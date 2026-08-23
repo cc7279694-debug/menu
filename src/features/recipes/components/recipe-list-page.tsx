@@ -39,7 +39,7 @@ export async function RecipeListPage({ searchParams, favoriteOnly = false, title
       </header>
       <RecipeSearchFilters current={query} categories={taxonomy.categories} tags={taxonomy.tags} />
       {items.length ? <RecipeGrid deleted={query.deletedOnly} recipes={items} /> : <RecipeListEmpty mode={emptyMode} />}
-      <RecipePagination query={query} totalCount={totalCount} />
+      <RecipePagination basePath={favoriteOnly ? "/favorites" : "/recipes"} query={query} totalCount={totalCount} />
     </main>
   );
 }

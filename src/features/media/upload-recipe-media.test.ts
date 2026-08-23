@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 
 import {
   buildRecipeMediaPath,
+  getObsoleteRecipeMediaPaths,
   removeRecipeMediaPaths,
   uploadRecipeMedia,
 } from "@/features/media/upload-recipe-media";
@@ -91,5 +92,23 @@ describe("recipe media upload", () => {
 
     expect(removed).toEqual([`${userId}/recipes/${recipeId}/cover/a.webp`]);
     expect(bucket.remove).toHaveBeenCalledWith(removed);
+  });
+
+  it("finds replaced and removed paths without deleting reused media", () => {
+    expect(getObsoleteRecipeMediaPaths(
+      {
+        coverPath: `${userId}/recipes/${recipeId}/cover/old.webp`,
+        stepPaths: {
+          [stepId]: `${userId}/recipes/${recipeId}/steps/${stepId}/same.webp`,
+        },
+      },
+      {
+        coverPath: `${userId}/recipes/${recipeId}/cover/new.webp`,
+        stepPaths: {},
+      },
+    )).toEqual([
+      `${userId}/recipes/${recipeId}/cover/old.webp`,
+      `${userId}/recipes/${recipeId}/steps/${stepId}/same.webp`,
+    ]);
   });
 });

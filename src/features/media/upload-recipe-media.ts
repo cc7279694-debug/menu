@@ -33,6 +33,22 @@ export type UploadRecipeMediaInput = {
   createAssetId?: () => string;
 };
 
+type RecipeMediaPaths = {
+  coverPath: string | null;
+  stepPaths: Record<string, string>;
+};
+
+export function getObsoleteRecipeMediaPaths(previous: RecipeMediaPaths, next: RecipeMediaPaths): string[] {
+  const currentPaths = new Set([
+    ...(next.coverPath ? [next.coverPath] : []),
+    ...Object.values(next.stepPaths),
+  ]);
+  return [
+    ...(previous.coverPath ? [previous.coverPath] : []),
+    ...Object.values(previous.stepPaths),
+  ].filter((path, index, paths) => !currentPaths.has(path) && paths.indexOf(path) === index);
+}
+
 function assertUuid(value: string, label: string) {
   if (!uuidPattern.test(value)) {
     throw new Error(`${label} 无效`);

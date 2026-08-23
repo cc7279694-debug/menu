@@ -3,6 +3,7 @@ import { describe, expect, it, vi } from "vitest";
 
 import { RecipeCard } from "@/features/recipes/components/recipe-card";
 import { RecipeListEmpty } from "@/features/recipes/components/recipe-list-empty";
+import { RecipePagination } from "@/features/recipes/components/recipe-pagination";
 import { RecipeSearchFilters } from "@/features/recipes/components/recipe-search-filters";
 import type { RecipeSummary } from "@/features/recipes/types";
 
@@ -56,5 +57,20 @@ describe("recipe discovery components", () => {
     expect(screen.getByRole("search")).toHaveAttribute("method", "get");
     expect(screen.getByDisplayValue("番茄")).toBeInTheDocument();
     expect(screen.getByRole("combobox", { name: "分类" })).toHaveValue(recipe.category!.id);
+  });
+
+  it("keeps the current page scope when paginating favorites", () => {
+    render(
+      <RecipePagination
+        basePath="/favorites"
+        query={{ query: "番茄", categoryId: null, tagId: null, favoriteOnly: true, deletedOnly: false, page: 1 }}
+        totalCount={48}
+      />,
+    );
+
+    expect(screen.getByRole("link", { name: "下一页" })).toHaveAttribute(
+      "href",
+      "/favorites?q=%E7%95%AA%E8%8C%84&favorite=1&page=2",
+    );
   });
 });
