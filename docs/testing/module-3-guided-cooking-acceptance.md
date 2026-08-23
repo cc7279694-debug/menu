@@ -44,10 +44,12 @@ npm.cmd run build
 
 ## 浏览器验收与能力边界
 
-- 本记录创建时，in-app Browser 的视觉/交互冒烟由模块控制方单独执行；未在此工作树保存截图。
+- 已完成安全占位的 in-app Browser 登录与路由保护冒烟（2026-08-24）：打开 `http://127.0.0.1:3100/login`，标题为“登录 · 食序”。桌面视口为 1280×720，`inner`/`scroll` 均为 1280×720；移动端请求视口为 360×800，实测 `inner`/`scroll` 为 361×800。登录页具有有效的登录 DOM、无框架错误遮罩；登录页和受保护路由导航的控制台日志均为 `[]`。
+- 交互验证：输入 `review@example.test` 后显示“验证码发送失败，请稍后重试”；直接访问 `/recipes` 会跳转到 `/login?next=%2Frecipes`。这证明了安全占位环境下的登录失败反馈和路由保护，不代表认证成功。
+- 截图保存在仓库外：`C:\Users\CDD\AppData\Local\Temp\recipe-module3-acceptance-login-desktop.png` 与 `C:\Users\CDD\AppData\Local\Temp\recipe-module3-acceptance-login-mobile.png`。
 - 需要使用授权的非生产 Supabase 项目和测试账号，在桌面与 360px 宽度验证：三步、两计时器、关联食材和步骤图片的菜谱；4 人份数值数量翻倍而文字数量不变；当前步骤食材与覆盖数量；跨步骤并行计时；隐藏/恢复后按 `endsAt` 重算；刷新后恢复步骤、份数和计时器；Wake Lock 拒绝/不支持提示；完成后清理本地会话及返回/编辑备注链接。
 - 同次浏览器验收还应确认 URL/标题、有效 DOM、无框架错误遮罩、控制台健康、键盘焦点、无横向溢出，并将截图保存在仓库外。
-- 尚无授权的非生产认证会话证据，因此真实 Supabase 认证、真实菜谱读取、浏览器 Wake Lock/Notifications 设备行为和跨设备边界仍待后续非生产验收；不得使用生产项目或个人邮箱。
+- 没有授权的非生产 Supabase 凭据，因此已认证的菜谱与烹饪 UI、真实 Supabase 认证/读取、浏览器 Wake Lock/Notifications 设备行为和跨设备边界仍未验证；不得使用生产项目或个人邮箱。
 
 ## 安全、依赖与范围检查（2026-08-24）
 
@@ -58,7 +60,7 @@ git grep -n -I -E "service_role|SUPABASE_SERVICE_ROLE|eyJ[a-zA-Z0-9_-]{20,}|pass
 npm.cmd audit --omit=dev
 ```
 
-- `git diff --check`：通过；执行文档提交前需再次复跑。
+- `git diff --check`：已在暂存前通过，文档提交推送后工作树保持干净。
 - 密钥模式扫描只命中已有实施计划中的命令文本，以及 `supabase/config.toml` 对本地 `service_role` 角色的说明；未发现前端 service-role key、JWT 或密码值。
 - `npm.cmd audit --omit=dev`：3 个 high 严重度依赖建议，来自 Next.js 15.5.23 间接依赖的 `postcss` 和 `sharp`。自动修复要求强制升级到破坏性版本 `next@16.3.2`，本模块未执行。
 - 相对基线 `8acd366...HEAD` 的实现范围仅含模块 3 烹饪路由、组件、hooks、纯函数和测试，以及任务计划/报告；没有购物清单、离线/IndexedDB、数据库迁移、部署或无关重构文件。
