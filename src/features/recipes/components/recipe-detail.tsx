@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 import { Badge } from "@/components/ui/badge";
+import { CookingEntry } from "@/features/cooking/components/cooking-entry";
 import { RecipeActions } from "@/features/recipes/components/recipe-actions";
 import type { RecipeDetail as RecipeDetailValue } from "@/features/recipes/types";
 
@@ -29,7 +30,10 @@ export function RecipeDetailView({ recipe }: { recipe: RecipeDetailValue }) {
           <p className="mt-3 text-sm text-muted-foreground">{recipe.baseServings} 人份 · {formatDuration(recipe.prepMinutes, recipe.cookMinutes)}</p>
           <div className="mt-3 flex flex-wrap gap-1">{recipe.tags.map((tag) => <Badge key={tag.id} variant="outline">{tag.name}</Badge>)}</div>
         </div>
-        <RecipeActions isFavorite={recipe.isFavorite} recipeId={recipe.id} />
+        <div className="space-y-3">
+          <RecipeActions isFavorite={recipe.isFavorite} recipeId={recipe.id} />
+          <CookingEntry recipe={recipe} />
+        </div>
       </div>
 
       {recipe.coverUrl && <img alt={`${recipe.title}封面`} className="max-h-[28rem] w-full rounded-2xl object-cover" src={recipe.coverUrl} />}

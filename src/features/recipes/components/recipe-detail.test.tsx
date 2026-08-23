@@ -30,6 +30,8 @@ describe("RecipeDetailView", () => {
   it("shows recipe metadata, ingredients, steps, and notes", () => {
     render(<RecipeDetailView recipe={recipe} />);
     expect(screen.getByRole("heading", { name: "番茄炒蛋" })).toBeInTheDocument();
+    expect(screen.getByText("2 人份 · 准备 5 分钟 · 烹饪 10 分钟")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "开始烹饪" })).toBeInTheDocument();
     expect(screen.getByText("2 个")).toBeInTheDocument();
     expect(screen.getByText("打散鸡蛋。")) .toBeInTheDocument();
     expect(screen.getByText("鸡蛋 · 先用")).toBeInTheDocument();
