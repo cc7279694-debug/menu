@@ -6,7 +6,7 @@ import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { clearCookingSession, loadCookingSession } from "@/features/cooking/session-storage";
-import { MAX_SERVINGS, MIN_SERVINGS } from "@/features/cooking/servings";
+import { MAX_SERVINGS, MIN_SERVINGS, isValidTargetServings } from "@/features/cooking/servings";
 import type { RecipeDetail } from "@/features/recipes/types";
 
 type EntryState = {
@@ -31,17 +31,10 @@ function getInitialState(recipe: RecipeDetail): EntryState {
   };
 }
 
-function isValidServings(value: string): boolean {
-  const trimmed = value.trim();
-  if (!/^\d+(?:\.\d{1,2})?$/.test(trimmed)) return false;
-  const servings = Number(trimmed);
-  return Number.isFinite(servings) && servings >= MIN_SERVINGS && servings <= MAX_SERVINGS;
-}
-
 export function CookingEntry({ recipe }: { recipe: RecipeDetail }) {
   const [initial] = useState(() => getInitialState(recipe));
   const [servings, setServings] = useState(initial.servings);
-  const validServings = isValidServings(servings);
+  const validServings = isValidTargetServings(servings);
   const query = `servings=${encodeURIComponent(servings.trim())}`;
   const href = `/recipes/${recipe.id}/cook?${query}`;
 

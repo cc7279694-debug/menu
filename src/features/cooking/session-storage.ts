@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import { MAX_SERVINGS, MIN_SERVINGS, parseTargetServings } from "./servings";
+import { MAX_SERVINGS, MIN_SERVINGS, isValidTargetServings, parseTargetServings } from "./servings";
 import type { CookingSessionRecipe, CookingSessionV1 } from "./types";
 
 const cookingTimerSchema = z.object({
@@ -16,7 +16,7 @@ const cookingSessionSchema = z.discriminatedUnion("version", [z.object({
   version: z.literal(1),
   recipeId: z.string(),
   recipeUpdatedAt: z.string(),
-  targetServings: z.number().finite().min(MIN_SERVINGS).max(MAX_SERVINGS),
+  targetServings: z.number().finite().min(MIN_SERVINGS).max(MAX_SERVINGS).refine(isValidTargetServings),
   currentStepId: z.string(),
   timers: z.array(cookingTimerSchema),
   startedAt: z.number().finite(),

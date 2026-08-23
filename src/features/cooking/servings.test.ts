@@ -19,6 +19,8 @@ describe("serving scaling", () => {
   it("uses the fallback for invalid serving input", () => {
     expect(parseTargetServings("0", 2)).toBe(2);
     expect(parseTargetServings("4.5", 2)).toBe(4.5);
+    expect(parseTargetServings("2.345", 2)).toBe(2);
+    expect(parseTargetServings(2.345, 2)).toBe(2);
   });
 
   it("formats text and units without adding an empty unit", () => {

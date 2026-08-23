@@ -53,6 +53,7 @@ describe("versioned cooking session storage", () => {
   it("uses the recipe base servings when requested servings are out of range", () => {
     expect(createCookingSession(recipe, 0, 1_000).targetServings).toBe(2);
     expect(createCookingSession(recipe, Infinity, 1_000).targetServings).toBe(2);
+    expect(createCookingSession(recipe, 2.345, 1_000).targetServings).toBe(2);
   });
 
   it("does not create a session without recipe identity metadata", () => {
@@ -94,6 +95,7 @@ describe("versioned cooking session storage", () => {
   it("rejects invalid servings and non-finite timer values", () => {
     const session = createCookingSession(recipe, 2, 1_000);
     expect(loadCookingSession(storageWith({ ...session, targetServings: 1001 }), recipe)).toBeNull();
+    expect(loadCookingSession(storageWith({ ...session, targetServings: 2.345 }), recipe)).toBeNull();
     expect(loadCookingSession(storageWith({ ...session, timers: [{ stepId: "step-1", label: "煮沸", durationSeconds: Infinity, startedAt: 1_000, endsAt: 2_000, notifiedAt: null }] }), recipe)).toBeNull();
   });
 

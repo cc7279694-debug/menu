@@ -3,9 +3,20 @@ import type { CookingRecipe, CookingStepIngredient } from "./types";
 export const MIN_SERVINGS = 0.25;
 export const MAX_SERVINGS = 1000;
 
+export function isValidTargetServings(value: string | number): boolean {
+  const trimmed = typeof value === "string" ? value.trim() : null;
+  if (trimmed !== null && !/^\d+(?:\.\d{1,2})?$/.test(trimmed)) return false;
+  const parsed = typeof value === "number" ? value : Number(trimmed);
+  return Number.isFinite(parsed)
+    && parsed >= MIN_SERVINGS
+    && parsed <= MAX_SERVINGS
+    && Number(parsed.toFixed(2)) === parsed;
+}
+
 export function parseTargetServings(value: string | number, fallback: number): number {
   const parsed = typeof value === "number" ? value : Number(value.trim());
-  return Number.isFinite(parsed) && parsed >= MIN_SERVINGS && parsed <= MAX_SERVINGS ? parsed : fallback;
+  if (isValidTargetServings(value)) return parsed;
+  return isValidTargetServings(fallback) ? fallback : MIN_SERVINGS;
 }
 
 export function scaleQuantity(quantity: number, baseServings: number, targetServings: number): number {
