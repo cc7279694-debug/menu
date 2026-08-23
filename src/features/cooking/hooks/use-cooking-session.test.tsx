@@ -1,4 +1,5 @@
 import { act, renderHook } from "@testing-library/react";
+import { StrictMode, type PropsWithChildren } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { cookingSessionKey, createCookingSession } from "../session-storage";
@@ -85,6 +86,23 @@ describe("useCookingSession", () => {
     expect(persisted.currentStepId).toBe("step-2");
   });
 
+  it("persists state after React finishes the update instead of writing inside the state updater", () => {
+    const setItem = vi.spyOn(storage, "setItem");
+    const wrapper = ({ children }: PropsWithChildren) => <StrictMode>{children}</StrictMode>;
+    const { result } = renderHook(
+      () => useCookingSession({ recipe, requestedServings: 2, restart: false }),
+      { wrapper },
+    );
+    setItem.mockClear();
+
+    act(() => {
+      result.current.next();
+      expect(setItem).not.toHaveBeenCalled();
+    });
+
+    expect(setItem).toHaveBeenCalledTimes(1);
+  });
+
   it("persists timer starts, cancellations, dismissals, and restarts", async () => {
     const { result } = renderHook(() => useCookingSession({ recipe, requestedServings: 2, restart: false }));
 
@@ -117,6 +135,7 @@ describe("useCookingSession", () => {
     const { result } = renderHook(() => useCookingSession({ recipe, requestedServings: 2, restart: false }));
 
     expect(result.current.storageAvailable).toBe(false);
+    expect(result.current.session.startedAt).toBe(Date.now());
     act(() => result.current.next());
     expect(result.current.currentStep.id).toBe("step-2");
   });
@@ -169,6 +188,35 @@ describe("useCookingSession", () => {
 
     rerender();
     expect(notify).toHaveBeenCalledTimes(1);
+  });
+
+  it("reports an existing denied notification permission without prompting", () => {
+    const requestPermission = vi.fn();
+    Object.defineProperty(globalThis, "Notification", {
+      configurable: true,
+      value: Object.assign(vi.fn(), { permission: "denied", requestPermission }),
+    });
+
+    const { result } = renderHook(() => useCookingSession({ recipe, requestedServings: 2, restart: false }));
+
+    expect(result.current.notificationStatus).toBe("denied");
+    expect(result.current.notificationMessage).toBe("计时完成通知未获授权，页面内计时仍会继续。");
+    expect(requestPermission).not.toHaveBeenCalled();
+  });
+
+  it("reports a failed notification permission request while still starting the timer", async () => {
+    const requestPermission = vi.fn().mockRejectedValue(new Error("blocked"));
+    Object.defineProperty(globalThis, "Notification", {
+      configurable: true,
+      value: Object.assign(vi.fn(), { permission: "default", requestPermission }),
+    });
+    const { result } = renderHook(() => useCookingSession({ recipe, requestedServings: 2, restart: false }));
+
+    await act(async () => { await result.current.startTimer("step-1", "煮沸", 120); });
+
+    expect(result.current.notificationStatus).toBe("error");
+    expect(result.current.notificationMessage).toBe("计时完成通知开启失败，页面内计时仍会继续。");
+    expect(result.current.timerViews).toMatchObject([{ stepId: "step-1", status: "running" }]);
   });
 
   it.each([

@@ -1,16 +1,26 @@
 import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import type { ComponentProps } from "react";
+import { hydrateRoot } from "react-dom/client";
+import { renderToString } from "react-dom/server";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import type { RecipeDetail } from "@/features/recipes/types";
-import { cookingSessionKey } from "@/features/cooking/session-storage";
+import { cookingSessionKey, createCookingSession } from "@/features/cooking/session-storage";
 
 import { CookingScreen } from "./cooking-screen";
 
 const originalLocalStorage = Object.getOwnPropertyDescriptor(globalThis, "localStorage");
 const originalNotification = Object.getOwnPropertyDescriptor(globalThis, "Notification");
 const originalWakeLock = Object.getOwnPropertyDescriptor(navigator, "wakeLock");
+
+function restoreProperty(target: object, key: PropertyKey, descriptor: PropertyDescriptor | undefined) {
+  if (descriptor) {
+    Object.defineProperty(target, key, descriptor);
+  } else {
+    Reflect.deleteProperty(target, key);
+  }
+}
 
 function supportedWakeLock() {
   return {
@@ -71,12 +81,40 @@ beforeEach(() => {
 
 afterEach(() => {
   vi.useRealTimers();
-  if (originalLocalStorage) Object.defineProperty(globalThis, "localStorage", originalLocalStorage);
-  if (originalNotification) Object.defineProperty(globalThis, "Notification", originalNotification);
-  if (originalWakeLock) Object.defineProperty(navigator, "wakeLock", originalWakeLock);
+  restoreProperty(globalThis, "localStorage", originalLocalStorage);
+  restoreProperty(globalThis, "Notification", originalNotification);
+  restoreProperty(navigator, "wakeLock", originalWakeLock);
 });
 
 describe("CookingScreen", () => {
+  it("keeps server markup storage-free and restores the saved step after hydration", async () => {
+    const saved = createCookingSession(recipe, 2, 1_000);
+    saved.currentStepId = "step-2";
+    localStorage.setItem(cookingSessionKey(recipe.id), JSON.stringify(saved));
+    const getItem = vi.spyOn(localStorage, "getItem");
+    const setItem = vi.spyOn(localStorage, "setItem");
+    const container = document.createElement("div");
+    document.body.append(container);
+
+    container.innerHTML = renderToString(<CookingScreen recipe={recipe} requestedServings={2} restart={false} />);
+
+    expect(getItem).not.toHaveBeenCalled();
+    expect(setItem).not.toHaveBeenCalled();
+    expect(container).toHaveTextContent("先切番茄");
+
+    const onRecoverableError = vi.fn();
+    const root = hydrateRoot(
+      container,
+      <CookingScreen recipe={recipe} requestedServings={2} restart={false} />,
+      { onRecoverableError },
+    );
+    await waitFor(() => expect(container).toHaveTextContent("下锅翻炒"));
+    expect(onRecoverableError).not.toHaveBeenCalled();
+
+    await act(async () => root.unmount());
+    container.remove();
+  });
+
   it("renders only the current first step, scaled linked ingredients, and accessible progress", () => {
     render(<CookingScreen recipe={recipe} requestedServings={4} restart={false} />);
 
@@ -85,12 +123,20 @@ describe("CookingScreen", () => {
     expect(screen.getByRole("progressbar")).toHaveAttribute("aria-valuenow", "33");
     expect(screen.getByText("先切番茄")).toBeInTheDocument();
     expect(screen.queryByText("下锅翻炒")).not.toBeInTheDocument();
-    expect(screen.getByText("番茄（切块）")).toBeInTheDocument();
+    expect(screen.getByText("番茄")).toBeInTheDocument();
+    expect(screen.getByText("预处理：切块")).toBeInTheDocument();
+    expect(screen.getByText("本步备注：备用")).toBeInTheDocument();
     expect(screen.getByText("2 个")).toBeInTheDocument();
     expect(screen.queryByText("盐")).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /查看步骤 .* 图片/ })).not.toBeInTheDocument();
     expect(screen.getByRole("button", { name: "上一步" })).toBeDisabled();
     expect(screen.getByRole("button", { name: "下一步" })).toBeEnabled();
+    expect(screen.getByRole("button", { name: "开始本步计时（01:00）" })).toHaveClass("min-h-11");
+    expect(screen.getByRole("button", { name: "上一步" })).toHaveClass("min-h-11");
+    expect(screen.getByRole("button", { name: "下一步" })).toHaveClass("min-h-11");
+    expect(screen.getByRole("navigation", { name: "烹饪步骤" })).toHaveClass(
+      "bottom-[calc(3.5rem+env(safe-area-inset-bottom))]",
+    );
   });
 
   it("enlarges the current step image in an accessible dialog", async () => {
@@ -101,10 +147,12 @@ describe("CookingScreen", () => {
     };
 
     render(<CookingScreen recipe={recipeWithImage} requestedServings={2} restart={false} />);
+    expect(screen.getByRole("button", { name: "查看步骤 1 图片" })).toHaveClass("min-h-11");
     await user.click(screen.getByRole("button", { name: "查看步骤 1 图片" }));
 
     expect(screen.getByRole("dialog")).toBeInTheDocument();
     expect(screen.getByRole("img", { name: "番茄炒蛋，第 1 步图片" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "关闭步骤图片" })).toHaveClass("min-h-11");
     await user.click(screen.getByRole("button", { name: "关闭步骤图片" }));
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
   });
@@ -120,6 +168,7 @@ describe("CookingScreen", () => {
 
     expect(screen.getByRole("listitem", { name: /第 1 步.*01:00/ })).toBeInTheDocument();
     expect(screen.getByRole("listitem", { name: /第 2 步.*00:30/ })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "取消第 1 步计时" })).toHaveClass("min-h-11");
 
     act(() => { vi.advanceTimersByTime(61_000); });
     expect(screen.getByRole("listitem", { name: /第 1 步.*已完成/ })).toBeInTheDocument();
@@ -140,6 +189,8 @@ describe("CookingScreen", () => {
     expect(screen.getByText("烹饪完成")).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "查看菜谱" })).toHaveAttribute("href", "/recipes/recipe-1");
     expect(screen.getByRole("link", { name: "编辑菜谱" })).toHaveAttribute("href", "/recipes/recipe-1/edit");
+    expect(screen.getByRole("link", { name: "查看菜谱" })).toHaveClass("min-h-11");
+    expect(screen.getByRole("link", { name: "编辑菜谱" })).toHaveClass("min-h-11");
   });
 
   it("keeps step navigation available with a non-blocking warning when Wake Lock is unsupported", async () => {
@@ -156,6 +207,20 @@ describe("CookingScreen", () => {
     render(<CookingScreen recipe={recipe} requestedServings={2} restart={false} />);
 
     expect(screen.getByRole("status")).toHaveTextContent("此浏览器不支持计时完成通知。");
+    fireEvent.click(screen.getByRole("button", { name: "下一步" }));
+    expect(screen.getByText("下锅翻炒")).toBeInTheDocument();
+  });
+
+  it("shows denied notification status without prompting until a timer is started", () => {
+    const requestPermission = vi.fn();
+    Object.defineProperty(globalThis, "Notification", {
+      configurable: true,
+      value: Object.assign(vi.fn(), { permission: "denied", requestPermission }),
+    });
+    render(<CookingScreen recipe={recipe} requestedServings={2} restart={false} />);
+
+    expect(screen.getByRole("status")).toHaveTextContent("计时完成通知未获授权，页面内计时仍会继续。");
+    expect(requestPermission).not.toHaveBeenCalled();
     fireEvent.click(screen.getByRole("button", { name: "下一步" }));
     expect(screen.getByText("下锅翻炒")).toBeInTheDocument();
   });

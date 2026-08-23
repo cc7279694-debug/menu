@@ -27,7 +27,7 @@ export function TimerTray({ timers, onCancel, onDismiss }: TimerTrayProps) {
                 <p className="font-medium">{timer.label}</p>
                 <p className={finished ? "text-sm font-medium text-primary" : "text-sm text-muted-foreground"}>{status}</p>
               </div>
-              <Button onClick={() => finished ? onDismiss(timer.stepId) : onCancel(timer.stepId)} size="sm" type="button" variant="outline">
+              <Button className="min-h-11" onClick={() => finished ? onDismiss(timer.stepId) : onCancel(timer.stepId)} size="sm" type="button" variant="outline">
                 {finished ? `关闭${timer.label}计时` : `取消${timer.label}计时`}
               </Button>
             </li>

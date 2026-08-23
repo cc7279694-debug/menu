@@ -1,5 +1,7 @@
-import { render, screen } from "@testing-library/react";
+import { act, render, screen, waitFor } from "@testing-library/react";
 import type { ComponentProps } from "react";
+import { hydrateRoot } from "react-dom/client";
+import { renderToString } from "react-dom/server";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -92,5 +94,28 @@ describe("CookingEntry", () => {
 
     await user.click(screen.getByRole("link", { name: "重新开始" }));
     expect(localStorage.getItem("food-sequence:cooking:v1:recipe-1")).toBeNull();
+  });
+
+  it("keeps server markup storage-free and restores a saved session after hydration", async () => {
+    saveCookingSession(localStorage, createCookingSession(recipe, 4, 1_000));
+    const getItem = vi.spyOn(localStorage, "getItem");
+    const setItem = vi.spyOn(localStorage, "setItem");
+    const container = document.createElement("div");
+    document.body.append(container);
+
+    container.innerHTML = renderToString(<CookingEntry recipe={recipe} />);
+
+    expect(getItem).not.toHaveBeenCalled();
+    expect(setItem).not.toHaveBeenCalled();
+    expect(container.querySelector("input")).toHaveValue(2);
+
+    const onRecoverableError = vi.fn();
+    const root = hydrateRoot(container, <CookingEntry recipe={recipe} />, { onRecoverableError });
+    await waitFor(() => expect(container.querySelector("input")).toHaveValue(4));
+    expect(container.querySelector("a")).toHaveTextContent("继续上次烹饪");
+    expect(onRecoverableError).not.toHaveBeenCalled();
+
+    await act(async () => root.unmount());
+    container.remove();
   });
 });

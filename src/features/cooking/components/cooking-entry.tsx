@@ -1,18 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { clearCookingSession, loadCookingSession } from "@/features/cooking/session-storage";
 import { MAX_SERVINGS, MIN_SERVINGS, isValidTargetServings } from "@/features/cooking/servings";
 import type { RecipeDetail } from "@/features/recipes/types";
-
-type EntryState = {
-  hasSavedSession: boolean;
-  servings: string;
-};
 
 function getStorage(): Storage | null {
   try {
@@ -22,18 +17,17 @@ function getStorage(): Storage | null {
   }
 }
 
-function getInitialState(recipe: RecipeDetail): EntryState {
-  const storage = getStorage();
-  const savedSession = storage ? loadCookingSession(storage, recipe) : null;
-  return {
-    hasSavedSession: savedSession !== null,
-    servings: String(savedSession?.targetServings ?? recipe.baseServings),
-  };
-}
-
 export function CookingEntry({ recipe }: { recipe: RecipeDetail }) {
-  const [initial] = useState(() => getInitialState(recipe));
-  const [servings, setServings] = useState(initial.servings);
+  const [hasSavedSession, setHasSavedSession] = useState(false);
+  const [servings, setServings] = useState(() => String(recipe.baseServings));
+
+  useEffect(() => {
+    const storage = getStorage();
+    const savedSession = storage ? loadCookingSession(storage, recipe) : null;
+    setHasSavedSession(savedSession !== null);
+    setServings(String(savedSession?.targetServings ?? recipe.baseServings));
+  }, [recipe]);
+
   const validServings = isValidTargetServings(servings);
   const query = `servings=${encodeURIComponent(servings.trim())}`;
   const href = `/recipes/${recipe.id}/cook?${query}`;
@@ -67,14 +61,14 @@ export function CookingEntry({ recipe }: { recipe: RecipeDetail }) {
       <div className="flex flex-wrap gap-2">
         {validServings ? (
           <Link className="inline-flex h-11 items-center justify-center rounded-lg bg-primary px-4 text-sm font-medium text-primary-foreground hover:bg-primary/80" href={href}>
-            {initial.hasSavedSession ? "继续上次烹饪" : "开始烹饪"}
+            {hasSavedSession ? "继续上次烹饪" : "开始烹饪"}
           </Link>
         ) : (
           <button className="h-11 rounded-lg bg-primary px-4 text-sm font-medium text-primary-foreground opacity-50" disabled type="button">
-            {initial.hasSavedSession ? "继续上次烹饪" : "开始烹饪"}
+            {hasSavedSession ? "继续上次烹饪" : "开始烹饪"}
           </button>
         )}
-        {initial.hasSavedSession && validServings && (
+        {hasSavedSession && validServings && (
           <Link className="inline-flex h-11 items-center justify-center rounded-lg border px-4 text-sm font-medium" href={`${href}&restart=1`} onClick={restart}>
             重新开始
           </Link>

@@ -55,13 +55,17 @@ export function getStepIngredients(recipe: CookingRecipe, stepId: string, target
     if (!link) return [];
     const amount = link.quantityTextOverride !== null
       ? formatIngredientAmount(null, link.quantityTextOverride, ingredient.unit)
-      : formatIngredientAmount(
-        link.quantityOverride !== null
-          ? scaleQuantity(link.quantityOverride, recipe.baseServings, targetServings)
-          : ingredient.quantity === null ? null : scaleQuantity(ingredient.quantity, recipe.baseServings, targetServings),
-        ingredient.quantityText,
-        ingredient.unit,
-      );
+      : link.quantityOverride !== null
+        ? formatIngredientAmount(
+          scaleQuantity(link.quantityOverride, recipe.baseServings, targetServings),
+          null,
+          ingredient.unit,
+        )
+        : formatIngredientAmount(
+          ingredient.quantity === null ? null : scaleQuantity(ingredient.quantity, recipe.baseServings, targetServings),
+          ingredient.quantityText,
+          ingredient.unit,
+        );
     return [{ recipeIngredientId: ingredient.id, name: ingredient.name, amount, preparationNote: ingredient.preparationNote, linkNote: link.note }];
   });
 }

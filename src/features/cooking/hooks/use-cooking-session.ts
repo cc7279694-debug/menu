@@ -26,6 +26,8 @@ export type CookingSessionController = {
   progressPercent: number;
   timerViews: CookingTimerView[];
   storageAvailable: boolean;
+  notificationStatus: CookingNotificationStatus;
+  notificationMessage: string | null;
   previous(): void;
   next(): void;
   restart(targetServings: number): void;
@@ -35,15 +37,12 @@ export type CookingSessionController = {
   dismissTimer(stepId: string): void;
 };
 
+export type CookingNotificationStatus = "checking" | "unsupported" | NotificationPermission | "error";
+
 type UseCookingSessionOptions = {
   recipe: RecipeDetail;
   requestedServings: number;
   restart: boolean;
-};
-
-type InitialSession = {
-  session: CookingSessionV1;
-  storage: Storage | null;
 };
 
 function getStorage(): Storage | null {
@@ -54,24 +53,6 @@ function getStorage(): Storage | null {
   }
 }
 
-function createInitialSession({ recipe, requestedServings, restart }: UseCookingSessionOptions): InitialSession {
-  const storage = getStorage();
-
-  if (!storage) {
-    return { session: createCookingSession(recipe, requestedServings), storage: null };
-  }
-
-  try {
-    if (restart) clearCookingSession(storage, recipe.id);
-    const restored = restart ? null : loadCookingSession(storage, recipe);
-    const session = restored ?? createCookingSession(recipe, requestedServings);
-    if (!restored && !saveCookingSession(storage, session)) return { session, storage: null };
-    return { session, storage };
-  } catch {
-    return { session: createCookingSession(recipe, requestedServings), storage: null };
-  }
-}
-
 function notificationApi(): typeof Notification | null {
   return typeof globalThis.Notification === "undefined" ? null : globalThis.Notification;
 }
@@ -79,31 +60,67 @@ function notificationApi(): typeof Notification | null {
 export function useCookingSession(options: UseCookingSessionOptions): CookingSessionController {
   const recipe = options.recipe;
   const orderedSteps = [...recipe.steps].sort((left, right) => left.sortOrder - right.sortOrder || left.id.localeCompare(right.id));
-  const initialRef = useRef<InitialSession | null>(null);
-  if (!initialRef.current) initialRef.current = createInitialSession(options);
-
-  const [session, setSession] = useState(() => initialRef.current!.session);
-  const [now, setNow] = useState(Date.now);
-  const [storageAvailable, setStorageAvailable] = useState(() => initialRef.current!.storage !== null);
-  const storageRef = useRef<Storage | null>(initialRef.current.storage);
+  const [session, setSession] = useState(() => createCookingSession(recipe, options.requestedServings, 0));
+  const [now, setNow] = useState(0);
+  const [storageAvailable, setStorageAvailable] = useState(true);
+  const [notificationStatus, setNotificationStatus] = useState<CookingNotificationStatus>("checking");
+  const initializationKey = `${recipe.id}:${recipe.updatedAt}:${options.requestedServings}:${options.restart}`;
+  const [initializedKey, setInitializedKey] = useState<string | null>(null);
+  const storageRef = useRef<Storage | null>(null);
+  const skipNextPersistenceRef = useRef(false);
   const notifiedTimerKeysRef = useRef(new Set<string>());
   const notificationPermissionRef = useRef<NotificationPermission | null>(null);
 
-  const persist = useCallback((nextSession: CookingSessionV1) => {
-    const storage = storageRef.current;
-    if (!storage || !saveCookingSession(storage, nextSession)) {
-      storageRef.current = null;
-      setStorageAvailable(false);
-    }
+  const updateSession = useCallback((update: (previous: CookingSessionV1, now: number) => CookingSessionV1) => {
+    setSession((previous) => update(previous, Date.now()));
   }, []);
 
-  const updateSession = useCallback((update: (previous: CookingSessionV1, now: number) => CookingSessionV1) => {
-    setSession((previous) => {
-      const next = update(previous, Date.now());
-      persist(next);
-      return next;
-    });
-  }, [persist]);
+  useEffect(() => {
+    const storage = getStorage();
+    storageRef.current = storage;
+
+    if (!storage) {
+      setStorageAvailable(false);
+      setSession(createCookingSession(recipe, options.requestedServings));
+      setNow(Date.now());
+      setInitializedKey(initializationKey);
+      return;
+    }
+
+    if (options.restart) clearCookingSession(storage, recipe.id);
+    const restored = options.restart ? null : loadCookingSession(storage, recipe);
+    const nextSession = restored ?? createCookingSession(recipe, options.requestedServings);
+
+    setStorageAvailable(true);
+    setSession(nextSession);
+    setNow(Date.now());
+    setInitializedKey(initializationKey);
+  }, [initializationKey, options.requestedServings, options.restart, recipe]);
+
+  useEffect(() => {
+    if (initializedKey !== initializationKey) return;
+    if (skipNextPersistenceRef.current) {
+      skipNextPersistenceRef.current = false;
+      return;
+    }
+
+    const storage = storageRef.current;
+    if (!storage || saveCookingSession(storage, session)) return;
+    storageRef.current = null;
+    setStorageAvailable(false);
+  }, [initializationKey, initializedKey, session]);
+
+  useEffect(() => {
+    const notification = notificationApi();
+    if (!notification) {
+      notificationPermissionRef.current = null;
+      setNotificationStatus("unsupported");
+      return;
+    }
+
+    notificationPermissionRef.current = notification.permission;
+    setNotificationStatus(notification.permission);
+  }, []);
 
   useEffect(() => {
     const refreshNow = () => setNow(Date.now());
@@ -128,7 +145,7 @@ export function useCookingSession(options: UseCookingSessionOptions): CookingSes
       try {
         new notification(`计时完成：${timer.label}`);
       } catch {
-        // Browser notifications are an enhancement; the finished timer remains visible in the page.
+        setNotificationStatus("error");
       }
       updateSession((previous, notificationNow) => ({
         ...previous,
@@ -154,10 +171,6 @@ export function useCookingSession(options: UseCookingSessionOptions): CookingSes
     const storage = storageRef.current;
     if (storage) clearCookingSession(storage, recipe.id);
     const next = createCookingSession(recipe, targetServings);
-    if (storage && !saveCookingSession(storage, next)) {
-      storageRef.current = null;
-      setStorageAvailable(false);
-    }
     setSession(next);
     setNow(Date.now());
   }, [recipe]);
@@ -165,17 +178,25 @@ export function useCookingSession(options: UseCookingSessionOptions): CookingSes
   const complete = useCallback(() => {
     const storage = storageRef.current;
     if (storage) clearCookingSession(storage, recipe.id);
+    skipNextPersistenceRef.current = true;
     setSession((previous) => ({ ...previous, timers: [], updatedAt: Date.now() }));
   }, [recipe.id]);
 
   const startTimer = useCallback(async (stepId: string, label: string, durationSeconds: number) => {
     const notification = notificationApi();
-    if (notification?.permission === "default" && typeof notification.requestPermission === "function") {
+    if (!notification) {
+      setNotificationStatus("unsupported");
+    } else if (notification.permission === "default" && typeof notification.requestPermission === "function") {
       try {
         notificationPermissionRef.current = await notification.requestPermission();
+        setNotificationStatus(notificationPermissionRef.current);
       } catch {
         notificationPermissionRef.current = "denied";
+        setNotificationStatus("error");
       }
+    } else {
+      notificationPermissionRef.current = notification.permission;
+      setNotificationStatus(notification.permission);
     }
 
     updateSession((previous, startedAt) => ({
@@ -202,6 +223,14 @@ export function useCookingSession(options: UseCookingSessionOptions): CookingSes
     }));
   }, [updateSession]);
 
+  const notificationMessage = notificationStatus === "unsupported"
+    ? "此浏览器不支持计时完成通知。"
+    : notificationStatus === "denied"
+      ? "计时完成通知未获授权，页面内计时仍会继续。"
+      : notificationStatus === "error"
+        ? "计时完成通知开启失败，页面内计时仍会继续。"
+        : null;
+
   return {
     session,
     currentStep,
@@ -209,6 +238,8 @@ export function useCookingSession(options: UseCookingSessionOptions): CookingSes
     progressPercent: orderedSteps.length === 0 ? 0 : Math.round(((currentIndex + 1) / orderedSteps.length) * 100),
     timerViews: session.timers.map((timer) => getTimerView(timer, now)),
     storageAvailable,
+    notificationStatus,
+    notificationMessage,
     previous: () => moveTo(currentIndex - 1),
     next: () => moveTo(currentIndex + 1),
     restart,

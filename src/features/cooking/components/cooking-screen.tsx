@@ -26,9 +26,11 @@ export function CookingScreen({ recipe, requestedServings, restart }: CookingScr
   const ingredients = getStepIngredients(recipe, cooking.currentStep.id, cooking.session.targetServings);
   const timerSeconds = cooking.currentStep.timerSeconds;
   const timerLabel = `第 ${cooking.currentIndex + 1} 步`;
-  const capabilityMessage = !cooking.storageAvailable
-    ? "无法保存烹饪进度，本次烹饪仍可继续。"
-    : wakeLock.message ?? (typeof globalThis.Notification === "undefined" ? "此浏览器不支持计时完成通知。" : null);
+  const capabilityMessages = [
+    !cooking.storageAvailable ? "无法保存烹饪进度，本次烹饪仍可继续。" : null,
+    wakeLock.message,
+    cooking.notificationMessage,
+  ].filter((message): message is string => message !== null);
 
   if (completed) {
     return (
@@ -36,40 +38,44 @@ export function CookingScreen({ recipe, requestedServings, restart }: CookingScr
         <h1 className="text-2xl font-semibold">烹饪完成</h1>
         <p className="text-muted-foreground">这次烹饪进度已清除。</p>
         <div className="flex justify-center gap-3">
-          <Link className="inline-flex h-9 items-center rounded-lg bg-primary px-3 text-sm font-medium text-primary-foreground" href={`/recipes/${recipe.id}`}>查看菜谱</Link>
-          <Link className="inline-flex h-9 items-center rounded-lg border px-3 text-sm font-medium" href={`/recipes/${recipe.id}/edit`}>编辑菜谱</Link>
+          <Link className="inline-flex min-h-11 items-center rounded-lg bg-primary px-3 text-sm font-medium text-primary-foreground" href={`/recipes/${recipe.id}`}>查看菜谱</Link>
+          <Link className="inline-flex min-h-11 items-center rounded-lg border px-3 text-sm font-medium" href={`/recipes/${recipe.id}/edit`}>编辑菜谱</Link>
         </div>
       </main>
     );
   }
 
   return (
-    <main className="mx-auto max-w-3xl space-y-6 pb-28">
+    <main className="mx-auto max-w-3xl space-y-6 pb-44 sm:pb-0">
       <header>
         <h1 className="text-2xl font-semibold tracking-tight">{recipe.title}</h1>
         <p aria-live="polite" className="mt-2 text-sm text-muted-foreground">第 {cooking.currentIndex + 1} / {recipe.steps.length} 步</p>
         <div aria-label="烹饪进度" aria-valuemax={100} aria-valuemin={0} aria-valuenow={cooking.progressPercent} className="mt-3 h-2 overflow-hidden rounded-full bg-muted" role="progressbar">
           <div className="h-full bg-primary" style={{ width: `${cooking.progressPercent}%` }} />
         </div>
-        {capabilityMessage && <p className="mt-3 text-sm text-muted-foreground" role="status">{capabilityMessage}</p>}
+        {capabilityMessages.length > 0 && (
+          <div className="mt-3 space-y-1 text-sm text-muted-foreground" role="status">
+            {capabilityMessages.map((message) => <p key={message}>{message}</p>)}
+          </div>
+        )}
       </header>
 
       <article className="space-y-5 rounded-2xl border bg-card p-5 shadow-sm">
         <p className="whitespace-pre-wrap text-lg leading-8">{cooking.currentStep.instruction}</p>
         {cooking.currentStep.imageUrl && (
           <Dialog>
-            <DialogTrigger aria-label={`查看步骤 ${cooking.currentIndex + 1} 图片`} render={<button className="block w-full overflow-hidden rounded-xl focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring" type="button" />}>
+            <DialogTrigger aria-label={`查看步骤 ${cooking.currentIndex + 1} 图片`} render={<button className="block min-h-11 w-full overflow-hidden rounded-xl focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring" type="button" />}>
               <img alt={`步骤 ${cooking.currentIndex + 1} 图片，点击查看大图`} className="max-h-80 w-full object-cover" src={cooking.currentStep.imageUrl} />
             </DialogTrigger>
             <DialogContent className="max-w-3xl" showCloseButton={false}>
               <DialogTitle>步骤 {cooking.currentIndex + 1} 图片</DialogTitle>
               <img alt={`${recipe.title}，第 ${cooking.currentIndex + 1} 步图片`} className="max-h-[75vh] w-full rounded-lg object-contain" src={cooking.currentStep.imageUrl} />
-              <DialogClose render={<Button type="button" variant="outline" />}>关闭步骤图片</DialogClose>
+              <DialogClose render={<Button className="min-h-11" type="button" variant="outline" />}>关闭步骤图片</DialogClose>
             </DialogContent>
           </Dialog>
         )}
         {timerSeconds && timerSeconds > 0 && (
-          <Button onClick={() => { void cooking.startTimer(cooking.currentStep.id, timerLabel, timerSeconds); }} type="button">
+          <Button className="min-h-11" onClick={() => { void cooking.startTimer(cooking.currentStep.id, timerLabel, timerSeconds); }} type="button">
             开始本步计时（{formatRemainingSeconds(timerSeconds)}）
           </Button>
         )}
@@ -79,7 +85,11 @@ export function CookingScreen({ recipe, requestedServings, restart }: CookingScr
             <ul className="mt-2 space-y-2">
               {ingredients.map((ingredient) => (
                 <li className="flex justify-between gap-4 text-sm" key={ingredient.recipeIngredientId}>
-                  <span>{ingredient.name}{ingredient.preparationNote ? `（${ingredient.preparationNote}）` : ""}</span>
+                  <div className="min-w-0">
+                    <p>{ingredient.name}</p>
+                    {ingredient.preparationNote && <p className="text-muted-foreground">预处理：{ingredient.preparationNote}</p>}
+                    {ingredient.linkNote && <p className="text-muted-foreground">本步备注：{ingredient.linkNote}</p>}
+                  </div>
                   <span className="shrink-0 text-muted-foreground">{ingredient.amount}</span>
                 </li>
               ))}
@@ -90,13 +100,13 @@ export function CookingScreen({ recipe, requestedServings, restart }: CookingScr
 
       <TimerTray onCancel={cooking.cancelTimer} onDismiss={cooking.dismissTimer} timers={cooking.timerViews} />
 
-      <nav aria-label="烹饪步骤" className="fixed inset-x-0 bottom-0 border-t bg-background/95 p-3 backdrop-blur sm:static sm:rounded-xl sm:border">
+      <nav aria-label="烹饪步骤" className="fixed inset-x-0 bottom-[calc(3.5rem+env(safe-area-inset-bottom))] z-30 border-t bg-background/95 p-3 backdrop-blur sm:static sm:rounded-xl sm:border">
         <div className="mx-auto flex max-w-3xl justify-between gap-3">
-          <Button disabled={cooking.currentIndex === 0} onClick={cooking.previous} type="button" variant="outline">上一步</Button>
+          <Button className="min-h-11" disabled={cooking.currentIndex === 0} onClick={cooking.previous} type="button" variant="outline">上一步</Button>
           {cooking.currentIndex === recipe.steps.length - 1 ? (
-            <Button onClick={() => { cooking.complete(); setCompleted(true); }} type="button">完成烹饪</Button>
+            <Button className="min-h-11" onClick={() => { cooking.complete(); setCompleted(true); }} type="button">完成烹饪</Button>
           ) : (
-            <Button onClick={cooking.next} type="button">下一步</Button>
+            <Button className="min-h-11" onClick={cooking.next} type="button">下一步</Button>
           )}
         </div>
       </nav>

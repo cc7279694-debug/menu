@@ -69,4 +69,23 @@ describe("step ingredient projection", () => {
       expect.objectContaining({ name: "盐", amount: "少许", preparationNote: null, linkNote: null }),
     ]);
   });
+
+  it("uses a numeric step override before the ingredient text amount", () => {
+    const recipe = {
+      baseServings: 2,
+      ingredients: [
+        { id: "stock", name: "高汤", quantity: null, quantityText: "按需", unit: "毫升", preparationNote: null, sortOrder: 0 },
+      ],
+      steps: [
+        {
+          id: "step-1",
+          ingredientLinks: [
+            { recipeIngredientId: "stock", quantityOverride: 100, quantityTextOverride: null, note: null },
+          ],
+        },
+      ],
+    };
+
+    expect(getStepIngredients(recipe, "step-1", 4)[0].amount).toBe("200 毫升");
+  });
 });
