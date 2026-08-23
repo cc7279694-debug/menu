@@ -374,14 +374,13 @@ Commit: `feat(cooking): orchestrate device cooking session`
 
 ---
 
-### Task 5: Recipe-detail entry and protected cooking route
+### Task 5: Recipe-detail cooking entry
 
 **Files:**
 - Create: `src/features/cooking/components/cooking-entry.tsx`
 - Test: `src/features/cooking/components/cooking-entry.test.tsx`
 - Modify: `src/features/recipes/components/recipe-detail.tsx`
 - Modify: `src/features/recipes/components/recipe-detail.test.tsx`
-- Create: `src/app/(app)/recipes/[recipeId]/cook/page.tsx`
 
 **Interfaces:**
 - Consumes: `CookingSessionV1` storage contract and existing `getRecipeDetail(recipeId)`.
@@ -403,11 +402,7 @@ Use a numeric input with an associated label, inline validation text, and a prim
 
 Place it near `RecipeActions` so users reach cooking in at most three clicks. Update the existing detail test to assert the heading, original metadata, and “开始烹饪” are all present.
 
-- [ ] **Step 4: Add the server route**
-
-Use `getRecipeDetail(recipeId)` and `notFound()` exactly like the detail route. Parse `searchParams.servings` through `parseTargetServings`; treat only `restart === "1"` as restart. Render `CookingScreen` with the recipe, requested servings, and restart flag. Do not query or mutate Supabase from the client component.
-
-- [ ] **Step 5: Run tests and commit**
+- [ ] **Step 4: Run entry/detail tests and commit**
 
 Run:
 
@@ -418,7 +413,7 @@ npm.cmd run typecheck
 
 Expected: PASS.
 
-Commit: `feat(cooking): add guided cooking entry route`
+Commit: `feat(cooking): add guided cooking entry`
 
 ---
 
@@ -428,6 +423,7 @@ Commit: `feat(cooking): add guided cooking entry route`
 - Create: `src/features/cooking/components/timer-tray.tsx`
 - Create: `src/features/cooking/components/cooking-screen.tsx`
 - Test: `src/features/cooking/components/cooking-screen.test.tsx`
+- Create: `src/app/(app)/recipes/[recipeId]/cook/page.tsx`
 
 **Interfaces:**
 - Consumes: `RecipeDetail`, `getStepIngredients`, `useCookingSession`, and `useWakeLock`.
@@ -458,6 +454,8 @@ Start the first step timer, navigate to step two, start its timer, and assert bo
 On the last step, “完成烹饪” clears the session and renders links to `/recipes/[recipeId]` and `/recipes/[recipeId]/edit`. Mock unsupported Wake Lock, Notification, and throwing Local Storage independently; each case must retain step navigation and show one non-blocking message.
 
 - [ ] **Step 6: Run component tests and commit**
+
+After the screen exists, add the protected server route in the same task. Use `getRecipeDetail(recipeId)` and `notFound()` exactly like the detail route. Parse `searchParams.servings` through `parseTargetServings`; treat only `restart === "1"` as restart. Render `CookingScreen` with the recipe, requested servings, and restart flag. Do not query or mutate Supabase from the client component.
 
 Run: `npm.cmd test -- src/features/cooking/components/cooking-screen.test.tsx --reporter=verbose --maxWorkers=1 --fileParallelism=false`
 
