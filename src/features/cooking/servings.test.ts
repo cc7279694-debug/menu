@@ -33,6 +33,7 @@ describe("serving scaling", () => {
 
   it("does not turn near-but-unconfirmed values into fractions", () => {
     expect(formatKitchenQuantity(1.26)).toBe("1.26");
+    expect(formatKitchenQuantity(0.25005)).toBe("0.25");
   });
 });
 
