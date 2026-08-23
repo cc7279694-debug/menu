@@ -21,15 +21,15 @@ const KITCHEN_FRACTIONS = [
 export function formatKitchenQuantity(quantity: number): string {
   if (!Number.isFinite(quantity)) return "";
   const rounded = Math.round(quantity * 100) / 100;
-  const whole = Math.floor(rounded);
-  const fraction = rounded - whole;
-  const match = KITCHEN_FRACTIONS.find(([value]) => Math.abs(fraction - value) < 0.02);
+  const whole = Math.floor(quantity);
+  const fraction = quantity - whole;
+  const match = KITCHEN_FRACTIONS.find(([value]) => Math.abs(fraction - value) < 0.0001);
   if (match) return whole > 0 ? `${whole} ${match[1]}` : match[1];
   return String(Number(rounded.toFixed(2)));
 }
 
 export function formatIngredientAmount(quantity: number | null, quantityText: string | null, unit: string | null): string {
-  const value = quantity !== null && Number.isFinite(quantity) ? formatKitchenQuantity(quantity) : (quantityText ?? "");
+  const value = quantityText ?? (quantity !== null && Number.isFinite(quantity) ? formatKitchenQuantity(quantity) : "适量");
   return [value, unit].filter(Boolean).join(" ");
 }
 

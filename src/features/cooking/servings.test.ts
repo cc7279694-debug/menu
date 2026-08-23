@@ -25,6 +25,15 @@ describe("serving scaling", () => {
     expect(formatIngredientAmount(2, null, "个")).toBe("2 个");
     expect(formatIngredientAmount(null, "少许", null)).toBe("少许");
   });
+
+  it("prefers text amounts and falls back to 适量", () => {
+    expect(formatIngredientAmount(2, "少许", "个")).toBe("少许 个");
+    expect(formatIngredientAmount(null, null, null)).toBe("适量");
+  });
+
+  it("does not turn near-but-unconfirmed values into fractions", () => {
+    expect(formatKitchenQuantity(1.26)).toBe("1.26");
+  });
 });
 
 describe("step ingredient projection", () => {
