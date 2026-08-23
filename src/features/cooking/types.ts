@@ -46,6 +46,11 @@ export type CookingTimer = {
   notifiedAt: number | null;
 };
 
+export type CookingTimerView = CookingTimer & {
+  remainingSeconds: number;
+  status: "running" | "finished";
+};
+
 export type CookingSessionV1 = {
   version: 1;
   recipeId: string;
