@@ -1,3 +1,14 @@
-export default function Home() {
-  return <main className="grid min-h-dvh place-items-center">正在打开食序…</main>;
+import { redirect } from "next/navigation";
+
+import { createServerSupabaseClient } from "@/lib/supabase/server";
+
+export const dynamic = "force-dynamic";
+
+export default async function HomePage() {
+  const supabase = await createServerSupabaseClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  redirect(user ? "/recipes" : "/login");
 }
