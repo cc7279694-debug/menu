@@ -6,6 +6,7 @@ import {
   isPublicPath,
 } from "@/features/auth/route-access";
 import { getPublicEnv } from "@/lib/env";
+import type { Database } from "@/lib/supabase/database.types";
 
 function copySessionCookies(source: NextResponse, target: NextResponse) {
   source.cookies.getAll().forEach((cookie) => target.cookies.set(cookie));
@@ -17,7 +18,7 @@ export async function updateSession(
 ): Promise<NextResponse> {
   let response = NextResponse.next({ request });
   const env = getPublicEnv();
-  const supabase = createServerClient(
+  const supabase = createServerClient<Database>(
     env.NEXT_PUBLIC_SUPABASE_URL,
     env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
     {
