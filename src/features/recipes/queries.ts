@@ -57,7 +57,7 @@ async function getAuthenticatedClient() {
 }
 
 export async function listRecipeSummaries(input: RecipeListQuery): Promise<RecipeListResult> {
-  const { supabase, user } = await getAuthenticatedClient();
+  const { supabase } = await getAuthenticatedClient();
   const { data, error } = await supabase.rpc("search_recipe_summaries", {
     p_query: input.query || null,
     p_category_id: input.categoryId,

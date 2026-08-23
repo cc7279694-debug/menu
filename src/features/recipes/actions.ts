@@ -100,11 +100,11 @@ async function createCategoryOrTag(
   return { ok: false, message: "名称创建失败，请稍后重试" };
 }
 
-export function createCategoryAction(name: string) {
+export async function createCategoryAction(name: string) {
   return createCategoryOrTag("categories", name);
 }
 
-export function createTagAction(name: string) {
+export async function createTagAction(name: string) {
   return createCategoryOrTag("tags", name);
 }
 
@@ -140,14 +140,14 @@ async function updateRecipe(
   return { ok: true, data: null };
 }
 
-export function setRecipeFavoriteAction(recipeId: string, favorite: boolean) {
+export async function setRecipeFavoriteAction(recipeId: string, favorite: boolean) {
   return updateRecipe(recipeId, { is_favorite: favorite }, (query) => query.is("deleted_at", null));
 }
 
-export function moveRecipeToTrashAction(recipeId: string) {
+export async function moveRecipeToTrashAction(recipeId: string) {
   return updateRecipe(recipeId, { deleted_at: new Date().toISOString() }, (query) => query.is("deleted_at", null));
 }
 
-export function restoreRecipeAction(recipeId: string) {
+export async function restoreRecipeAction(recipeId: string) {
   return updateRecipe(recipeId, { deleted_at: null }, (query) => query.not("deleted_at", "is", null));
 }

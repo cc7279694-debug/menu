@@ -10,9 +10,20 @@ const nullableText = (max: number) =>
     .nullish()
     .transform((value) => value || null);
 
+const nullableNumber = (schema: z.ZodNumber) =>
+  z.preprocess(
+    (value) => (value === "" || (typeof value === "number" && Number.isNaN(value)) ? null : value),
+    schema.nullable(),
+  );
+
+const nullableUuid = z.preprocess(
+  (value) => (value === "" ? null : value),
+  uuidSchema.nullable(),
+);
+
 const ingredientLinkSchema = z.object({
   recipeIngredientId: uuidSchema,
-  quantityOverride: z.number().finite().positive().nullable(),
+  quantityOverride: nullableNumber(z.number().finite().positive()),
   quantityTextOverride: nullableText(40),
   note: nullableText(120),
 });
@@ -20,7 +31,7 @@ const ingredientLinkSchema = z.object({
 const ingredientSchema = z.object({
   recipeIngredientId: uuidSchema,
   name: z.string().trim().min(1).max(80),
-  quantity: z.number().finite().positive().nullable(),
+  quantity: nullableNumber(z.number().finite().positive()),
   quantityText: nullableText(40),
   unit: nullableText(20),
   preparationNote: nullableText(120),
@@ -31,7 +42,7 @@ const stepSchema = z.object({
   stepId: uuidSchema,
   instruction: z.string().trim().min(1).max(2000),
   imagePath: nullableText(500),
-  timerSeconds: z.number().int().min(1).max(86400).nullable(),
+  timerSeconds: nullableNumber(z.number().int().min(1).max(86400)),
   sortOrder: z.number().int().nonnegative(),
   ingredientLinks: z.array(ingredientLinkSchema),
 });
@@ -40,12 +51,12 @@ const recipeSaveInputBaseSchema = z.object({
   recipeId: uuidSchema,
   title: z.string().trim().min(1).max(100),
   description: nullableText(500),
-  categoryId: uuidSchema.nullable(),
+  categoryId: nullableUuid,
   tagIds: z.array(uuidSchema),
   coverPath: nullableText(500),
   baseServings: z.number().finite().positive().max(1000),
-  prepMinutes: z.number().int().min(0).max(10080).nullable(),
-  cookMinutes: z.number().int().min(0).max(10080).nullable(),
+  prepMinutes: nullableNumber(z.number().int().min(0).max(10080)),
+  cookMinutes: nullableNumber(z.number().int().min(0).max(10080)),
   personalNotes: nullableText(4000),
   ingredients: z.array(ingredientSchema).min(1),
   steps: z.array(stepSchema).min(1),

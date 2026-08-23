@@ -1,10 +1,5 @@
-import { PagePlaceholder } from "@/components/page-placeholder";
+import { RecipeListPage } from "@/features/recipes/components/recipe-list-page";
 
-export default function RecipesPage() {
-  return (
-    <PagePlaceholder
-      title="我的菜谱"
-      description="下一模块将在这里添加、整理和搜索菜谱。"
-    />
-  );
+export default async function RecipesPage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
+  return <RecipeListPage searchParams={searchParams} title="我的菜谱" />;
 }

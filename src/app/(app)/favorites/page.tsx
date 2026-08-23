@@ -1,10 +1,5 @@
-import { PagePlaceholder } from "@/components/page-placeholder";
+import { RecipeListPage } from "@/features/recipes/components/recipe-list-page";
 
-export default function FavoritesPage() {
-  return (
-    <PagePlaceholder
-      title="我的收藏"
-      description="收藏的菜谱会集中显示在这里。"
-    />
-  );
+export default async function FavoritesPage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
+  return <RecipeListPage favoriteOnly searchParams={searchParams} title="我的收藏" />;
 }
