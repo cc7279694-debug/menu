@@ -85,6 +85,29 @@ describe("useCookingSession", () => {
     expect(persisted.currentStepId).toBe("step-2");
   });
 
+  it("persists timer starts, cancellations, dismissals, and restarts", async () => {
+    const { result } = renderHook(() => useCookingSession({ recipe, requestedServings: 2, restart: false }));
+
+    await act(async () => { await result.current.startTimer("step-1", "煮沸", 120); });
+    expect(JSON.parse(storage.getItem(cookingSessionKey(recipe.id)) ?? "").timers).toMatchObject([
+      { stepId: "step-1", label: "煮沸", durationSeconds: 120 },
+    ]);
+
+    act(() => result.current.cancelTimer("step-1"));
+    expect(JSON.parse(storage.getItem(cookingSessionKey(recipe.id)) ?? "").timers).toEqual([]);
+
+    await act(async () => { await result.current.startTimer("step-2", "焖煮", 60); });
+    act(() => result.current.dismissTimer("step-2"));
+    expect(JSON.parse(storage.getItem(cookingSessionKey(recipe.id)) ?? "").timers).toEqual([]);
+
+    act(() => result.current.restart(4));
+    expect(JSON.parse(storage.getItem(cookingSessionKey(recipe.id)) ?? "")).toMatchObject({
+      targetServings: 4,
+      currentStepId: "step-1",
+      timers: [],
+    });
+  });
+
   it("keeps navigation available when local storage cannot be accessed", () => {
     Object.defineProperty(globalThis, "localStorage", {
       configurable: true,
@@ -146,5 +169,21 @@ describe("useCookingSession", () => {
 
     rerender();
     expect(notify).toHaveBeenCalledTimes(1);
+  });
+
+  it.each([
+    ["denied", () => Object.assign(vi.fn(), { permission: "denied" })],
+    ["unavailable", () => undefined],
+    ["throwing permission request", () => Object.assign(vi.fn(), {
+      permission: "default",
+      requestPermission: vi.fn().mockRejectedValue(new Error("blocked")),
+    })],
+  ])("starts a timer when Notification is %s", async (_state, createNotification) => {
+    Object.defineProperty(globalThis, "Notification", { configurable: true, value: createNotification() });
+    const { result } = renderHook(() => useCookingSession({ recipe, requestedServings: 2, restart: false }));
+
+    await act(async () => { await result.current.startTimer("step-1", "煮沸", 120); });
+
+    expect(result.current.timerViews).toMatchObject([{ stepId: "step-1", remainingSeconds: 120, status: "running" }]);
   });
 });

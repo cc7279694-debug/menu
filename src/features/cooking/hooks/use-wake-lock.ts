@@ -24,10 +24,10 @@ export function useWakeLock(enabled: boolean): { status: WakeLockStatus; message
   const [status, setStatus] = useState<WakeLockStatus>(enabled ? "requesting" : "released");
   const [message, setMessage] = useState<string | null>(null);
   const sentinelRef = useRef<WakeLockSentinelLike | null>(null);
-  const requestingRef = useRef(false);
 
   useEffect(() => {
     let disposed = false;
+    let requesting = false;
 
     const releaseCurrent = () => {
       const sentinel = sentinelRef.current;
@@ -47,7 +47,7 @@ export function useWakeLock(enabled: boolean): { status: WakeLockStatus; message
     };
 
     const request = async () => {
-      if (!enabled || sentinelRef.current || requestingRef.current) return;
+      if (!enabled || sentinelRef.current || requesting) return;
       const wakeLock = getWakeLock();
       if (!wakeLock) {
         setStatus("unsupported");
@@ -55,7 +55,7 @@ export function useWakeLock(enabled: boolean): { status: WakeLockStatus; message
         return;
       }
 
-      requestingRef.current = true;
+      requesting = true;
       setStatus("requesting");
       setMessage(null);
       try {
@@ -73,7 +73,7 @@ export function useWakeLock(enabled: boolean): { status: WakeLockStatus; message
           setMessage("无法保持屏幕常亮，烹饪仍可继续。");
         }
       } finally {
-        requestingRef.current = false;
+        requesting = false;
       }
     };
 

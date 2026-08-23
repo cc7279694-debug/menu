@@ -16,6 +16,12 @@ function createSentinel() {
   };
 }
 
+function deferred<T>() {
+  let resolve!: (value: T) => void;
+  const promise = new Promise<T>((complete) => { resolve = complete; });
+  return { promise, resolve };
+}
+
 function setWakeLock(value: unknown) {
   Object.defineProperty(navigator, "wakeLock", { configurable: true, value });
 }
@@ -74,5 +80,25 @@ describe("useWakeLock", () => {
     unmount();
 
     expect(sentinel.release).toHaveBeenCalledTimes(1);
+  });
+
+  it("acquires the final enabled lock when an earlier request resolves after a disable and re-enable", async () => {
+    const staleRequest = deferred<ReturnType<typeof createSentinel>>();
+    const stale = createSentinel();
+    const current = createSentinel();
+    const request = vi.fn().mockReturnValueOnce(staleRequest.promise).mockResolvedValueOnce(current);
+    setWakeLock({ request });
+
+    const { result, rerender } = renderHook(({ enabled }) => useWakeLock(enabled), { initialProps: { enabled: true } });
+    rerender({ enabled: false });
+    rerender({ enabled: true });
+
+    await waitFor(() => expect(request).toHaveBeenCalledTimes(2));
+    await waitFor(() => expect(result.current.status).toBe("active"));
+    expect(result.current.message).toBeNull();
+
+    await act(async () => { staleRequest.resolve(stale); });
+    await waitFor(() => expect(stale.release).toHaveBeenCalledTimes(1));
+    expect(result.current.status).toBe("active");
   });
 });
