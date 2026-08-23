@@ -7,7 +7,7 @@ import {
   loadCookingSession,
   saveCookingSession,
 } from "./session-storage";
-import type { CookingRecipe } from "./types";
+import type { CookingSessionRecipe } from "./types";
 
 class MemoryStorage implements Storage {
   private values = new Map<string, string>();
@@ -19,7 +19,7 @@ class MemoryStorage implements Storage {
   setItem(key: string, value: string) { this.values.set(key, value); }
 }
 
-const recipe: CookingRecipe = {
+const recipe: CookingSessionRecipe = {
   id: "recipe-1",
   updatedAt: "2026-08-23T12:00:00.000Z",
   baseServings: 2,
@@ -53,6 +53,18 @@ describe("versioned cooking session storage", () => {
   it("uses the recipe base servings when requested servings are out of range", () => {
     expect(createCookingSession(recipe, 0, 1_000).targetServings).toBe(2);
     expect(createCookingSession(recipe, Infinity, 1_000).targetServings).toBe(2);
+  });
+
+  it("does not create a session without recipe identity metadata", () => {
+    const incomplete = { ...recipe, id: undefined, updatedAt: undefined } as unknown as CookingSessionRecipe;
+    expect(() => createCookingSession(incomplete, 2, 1_000)).toThrow();
+  });
+
+  it("does not load a session when the recipe identity metadata is missing", () => {
+    const session = createCookingSession(recipe, 2, 1_000);
+    const storage = storageWith(session);
+    const incomplete = { ...recipe, updatedAt: undefined } as unknown as CookingSessionRecipe;
+    expect(loadCookingSession(storage, incomplete)).toBeNull();
   });
 
   it("round-trips and clears a valid session", () => {

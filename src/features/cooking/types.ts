@@ -31,6 +31,12 @@ export type CookingRecipe = {
   }>;
 };
 
+export type CookingSessionRecipe = Omit<CookingRecipe, "id" | "updatedAt" | "steps"> & {
+  id: string;
+  updatedAt: string;
+  steps: Array<CookingRecipe["steps"][number] & { sortOrder: number }>;
+};
+
 export type CookingTimer = {
   stepId: string;
   label: string;

@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 import { MAX_SERVINGS, MIN_SERVINGS, parseTargetServings } from "./servings";
-import type { CookingRecipe, CookingSessionV1 } from "./types";
+import type { CookingSessionRecipe, CookingSessionV1 } from "./types";
 
 const cookingTimerSchema = z.object({
   stepId: z.string(),
@@ -27,13 +27,16 @@ export function cookingSessionKey(recipeId: string): string {
   return `food-sequence:cooking:v1:${recipeId}`;
 }
 
-export function createCookingSession(recipe: CookingRecipe, targetServings: number, now = Date.now()): CookingSessionV1 {
-  const firstStep = [...recipe.steps].sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0) || a.id.localeCompare(b.id))[0];
+export function createCookingSession(recipe: CookingSessionRecipe, targetServings: number, now = Date.now()): CookingSessionV1 {
+  if (!recipe.id || !recipe.updatedAt || recipe.steps.some((step) => !Number.isFinite(step.sortOrder))) {
+    throw new Error("菜谱缺少会话所需的身份或版本信息");
+  }
+  const firstStep = [...recipe.steps].sort((a, b) => a.sortOrder - b.sortOrder || a.id.localeCompare(b.id))[0];
   const servings = parseTargetServings(targetServings, recipe.baseServings);
   return {
     version: 1,
-    recipeId: recipe.id ?? "",
-    recipeUpdatedAt: recipe.updatedAt ?? "",
+    recipeId: recipe.id,
+    recipeUpdatedAt: recipe.updatedAt,
     targetServings: servings,
     currentStepId: firstStep?.id ?? "",
     timers: [],
@@ -42,9 +45,10 @@ export function createCookingSession(recipe: CookingRecipe, targetServings: numb
   };
 }
 
-export function loadCookingSession(storage: Storage, recipe: CookingRecipe): CookingSessionV1 | null {
+export function loadCookingSession(storage: Storage, recipe: CookingSessionRecipe): CookingSessionV1 | null {
   try {
-    const raw = storage.getItem(cookingSessionKey(recipe.id ?? ""));
+    if (!recipe.id || !recipe.updatedAt || recipe.steps.some((step) => !Number.isFinite(step.sortOrder))) return null;
+    const raw = storage.getItem(cookingSessionKey(recipe.id));
     if (!raw) return null;
     const parsed = cookingSessionSchema.safeParse(JSON.parse(raw));
     if (!parsed.success) return null;

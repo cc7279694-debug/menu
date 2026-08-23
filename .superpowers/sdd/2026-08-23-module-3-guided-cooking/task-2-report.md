@@ -27,3 +27,11 @@ Added `session-storage.test.ts` before production implementation. The required f
 ## Notes
 
 `CookingRecipe.id`, `updatedAt`, and step `sortOrder` are optional in the shared type to preserve existing Task 1 callers; session creation uses empty fallbacks when absent, while real recipe sessions provide these fields for invalidation.
+
+## Review fix: identity metadata hardening
+
+- RED: added regressions for missing recipe identity/update metadata; focused tests reported 1 failure because creation returned an empty-identity session instead of throwing.
+- GREEN: introduced required `CookingSessionRecipe`, removed empty-string fallbacks, added runtime guards for missing identity/version data, and made malformed loads return `null`.
+- Updated verification: focused session suite 10/10, cooking suite 16/16, and typecheck passed.
+
+The previous optional-field note is superseded: general `CookingRecipe` remains compatible for Task 1, but all session-storage APIs now require `CookingSessionRecipe` with required `id`, `updatedAt`, and step `sortOrder`.
