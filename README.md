@@ -1,36 +1,44 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 食序
 
-## Getting Started
+食序是一个中文优先的个人菜谱与分步烹饪 PWA。模块 1 已完成项目基础、邮箱验证码登录、认证路由保护和手机/桌面响应式导航；菜谱、购物清单与 PWA 离线能力将在后续模块逐步加入。
 
-First, run the development server:
+## 本地要求
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+- Node.js 22 或兼容 Next.js 15 的较新 LTS 版本
+- npm
+- 一个非生产 Supabase 项目（只有实际验证登录时才需要）
+
+## 开始运行
+
+```powershell
+npm.cmd install
+Copy-Item .env.example .env.local
+npm.cmd run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+然后打开 <http://localhost:3000>。
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+`.env.local` 只填写非生产 Supabase 的公共变量：
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```dotenv
+NEXT_PUBLIC_SUPABASE_URL=
+NEXT_PUBLIC_SUPABASE_ANON_KEY=
+```
 
-## Learn More
+不要提交 `.env.local`，也不要把 service-role key 放进前端或仓库。
 
-To learn more about Next.js, take a look at the following resources:
+## 验证命令
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```powershell
+npm.cmd test
+npm.cmd run typecheck
+npm.cmd run lint
+npm.cmd run build
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+模块 1 不包含数据库迁移、Storage Bucket 创建或生产部署。真实邮箱验证码登录需要经授权的非生产 Supabase 项目和测试邮箱；没有这些输入时，只运行代码级验证。
 
-## Deploy on Vercel
+## 设计文档
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- [产品规格](docs/superpowers/specs/2026-08-23-personal-recipe-cooking-app-design.md)
+- [模块 1 实施计划](docs/superpowers/plans/2026-08-23-module-1-foundation-auth-navigation.md)
