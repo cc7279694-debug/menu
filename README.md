@@ -1,6 +1,15 @@
 # 食序
 
-食序是一个中文优先的个人菜谱与分步烹饪 PWA。模块 1 已完成项目基础、邮箱验证码登录、认证路由保护和手机/桌面响应式导航；模块 2 已加入私有菜谱数据模型、菜谱编辑、搜索筛选、收藏、回收站和详情页。
+食序是一个中文优先的个人菜谱与分步烹饪 PWA。模块 1 已完成项目基础、邮箱验证码登录、认证路由保护和手机/桌面响应式导航；模块 2 已加入私有菜谱数据模型、菜谱编辑、搜索筛选、收藏、回收站和详情页；模块 3 提供单步引导烹饪。
+
+## 模块 3：引导烹饪边界
+
+- 受保护的烹饪路由为 `/recipes/[recipeId]/cook`。
+- 本模块没有数据库迁移；不新增 Supabase 表、RPC、Storage 或服务端 API。
+- 进度使用浏览器 Local Storage，键名为 `food-sequence:cooking:v1:<recipeId>`。它仅保存在当前设备/浏览器，不会跨设备同步。
+- 计时器以绝对结束时间为准，恢复或回到前台时重新计算剩余时间，避免依赖间隔计时造成累计漂移。
+- Screen Wake Lock 和浏览器 Notifications 都是可选增强能力；不支持、被拒绝或失败时，步骤导航和页面内计时仍可用。
+- 模块 4 购物清单和模块 5 离线/IndexedDB 仍处于延期状态，未随本模块实现。
 
 ## 本地要求
 
@@ -46,3 +55,5 @@ npm.cmd run build
 - [模块 1 实施计划](docs/superpowers/plans/2026-08-23-module-1-foundation-auth-navigation.md)
 - [模块 2 实施计划](docs/superpowers/plans/2026-08-23-module-2-recipe-management.md)
 - [模块 2 验收记录](docs/testing/module-2-recipe-management-acceptance.md)
+- [模块 3 引导烹饪实施计划](docs/superpowers/plans/2026-08-23-module-3-guided-cooking.md)
+- [模块 3 引导烹饪验收记录](docs/testing/module-3-guided-cooking-acceptance.md)
