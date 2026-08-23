@@ -7,6 +7,8 @@ export type CookingStepIngredient = {
 };
 
 export type CookingRecipe = {
+  id?: string;
+  updatedAt?: string;
   baseServings: number;
   ingredients: Array<{
     id: string;
@@ -19,6 +21,7 @@ export type CookingRecipe = {
   }>;
   steps: Array<{
     id: string;
+    sortOrder?: number;
     ingredientLinks: Array<{
       recipeIngredientId: string;
       quantityOverride: number | null;
@@ -26,4 +29,24 @@ export type CookingRecipe = {
       note: string | null;
     }>;
   }>;
+};
+
+export type CookingTimer = {
+  stepId: string;
+  label: string;
+  durationSeconds: number;
+  startedAt: number;
+  endsAt: number;
+  notifiedAt: number | null;
+};
+
+export type CookingSessionV1 = {
+  version: 1;
+  recipeId: string;
+  recipeUpdatedAt: string;
+  targetServings: number;
+  currentStepId: string;
+  timers: CookingTimer[];
+  startedAt: number;
+  updatedAt: number;
 };
