@@ -3,6 +3,7 @@ import { z } from "zod";
 import { MAX_SERVINGS, MIN_SERVINGS } from "@/features/ingredients/quantities";
 
 const uuidSchema = z.string().uuid();
+const MAX_SQL_NUMERIC_12_3 = 999999999.999;
 
 function hasPrecision(value: number, places: number) {
   return Number(value.toFixed(places)) === value;
@@ -21,7 +22,7 @@ const nullableUuid = z.preprocess(
   uuidSchema.nullable(),
 );
 
-const nullableQuantity = (places: number) =>
+const nullableQuantity = (places: number, maxValue: number = Number.POSITIVE_INFINITY) =>
   z.preprocess(
     (value) => (value === "" || (typeof value === "number" && Number.isNaN(value)) ? null : value),
     z
@@ -29,6 +30,7 @@ const nullableQuantity = (places: number) =>
       .finite()
       .positive()
       .refine((value) => hasPrecision(value, places), `数量最多保留 ${places} 位小数`)
+      .max(maxValue, `数量不能大于 ${maxValue}`)
       .nullable(),
   );
 
@@ -67,7 +69,7 @@ export const shoppingItemInputSchema = z
     shoppingListId: uuidSchema,
     itemId: nullableUuid,
     nameSnapshot: z.string().trim().min(1).max(80),
-    quantity: nullableQuantity(3),
+    quantity: nullableQuantity(3, MAX_SQL_NUMERIC_12_3),
     quantityText: nullableText(40),
     unit: nullableText(20),
     aisle: nullableText(40),

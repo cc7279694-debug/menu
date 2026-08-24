@@ -122,4 +122,30 @@ describe("shopping schemas", () => {
       itemIds: [itemId, otherRecipeId],
     });
   });
+
+  it("keeps shopping item quantity inside the numeric(12,3) range", () => {
+    expect(shoppingItemInputSchema.parse({
+      shoppingListId: listId,
+      itemId,
+      nameSnapshot: "番茄",
+      quantity: 999999999.999,
+      quantityText: null,
+      unit: "个",
+      aisle: null,
+    })).toMatchObject({
+      quantity: 999999999.999,
+    });
+
+    expect(() =>
+      shoppingItemInputSchema.parse({
+        shoppingListId: listId,
+        itemId,
+        nameSnapshot: "番茄",
+        quantity: 1000000000,
+        quantityText: null,
+        unit: "个",
+        aisle: null,
+      }),
+    ).toThrow();
+  });
 });
