@@ -17,9 +17,19 @@
 npm.cmd test -- src/features/cooking --reporter=verbose --maxWorkers=1 --fileParallelism=false
 ```
 
-- 结果：7 个测试文件、50 个测试全部通过（16.10 秒）。
+- 结果：7 个测试文件、57 个测试全部通过；最终修复后全量回归为 27 个测试文件、109 个测试全部通过。
 - 覆盖：份数缩放与文字数量保留、步骤食材映射和覆盖优先级、版本化 Local Storage 会话、绝对结束时间与并行计时器、恢复/完成、Wake Lock、Notifications，以及烹饪入口和单步屏幕的组件交互。
 - Vitest 输出 1 条既有 Vite `configLoader: 'native'` 迁移警告：`vitest.config.ts` 以 CommonJS 方式加载时含 ESM 语法；本模块未修改该配置。
+
+## 最终审查修复（2026-08-24）
+
+- 修复移动端烹饪步骤导航与既有 56px 底部导航的重叠，并保留安全区间距。
+- 修复步骤数值覆盖优先级；预处理备注与本步关联备注分别展示。
+- 将 Local Storage 初始化、读取和持久化移出渲染阶段，SSR 首次输出保持稳定，水合后恢复已保存步骤。
+- 通知不支持、拒绝或申请失败时提供非阻塞提示，仅在启动计时时申请权限。
+- 烹饪导航、计时、图片关闭和完成链接均满足至少 44px 触控高度。
+- 测试中的 Local Storage、Notification、Wake Lock 属性按原始描述符精确恢复或删除。
+- 最终定向复审：指定问题全部关闭；相关测试 4 个文件、36 个测试通过，工作树干净，分支与远端同步。
 
 ## 本地构建与测试证据（2026-08-24）
 
@@ -35,12 +45,12 @@ $env:NEXT_PUBLIC_SUPABASE_ANON_KEY='local-review-placeholder'
 npm.cmd run build
 ```
 
-- 全量测试：27 个测试文件、102 个测试全部通过（77.03 秒）。
+- 全量测试：27 个测试文件、109 个测试全部通过（76.70 秒）。
 - 数据库/PGlite 测试：10 个测试文件、32 个测试全部通过（41.68 秒）。这只验证本地迁移、RLS/RPC/Storage 策略，不能替代真实 Supabase Data API、认证或 Storage 验收。
 - `npm.cmd run typecheck`：通过。
 - `npm.cmd run lint`：0 errors、4 warnings。均为既有 `@next/next/no-img-element` 警告，位于 `image-picker.tsx`、`recipe-card.tsx` 和 `recipe-detail.tsx`（2 处）；本模块的步骤图片仍使用 `<img>`，该优化风险在后续图片策略中统一处理。
 - `npm.cmd run build`：通过。构建显示同样的 4 条 `<img>` 警告，另有 1 条多个 lockfile 导致 Next.js 推断工作区根目录的警告；没有通过删除 lockfile 来压制该警告。
-- 生产构建已列出动态路由 `/recipes/[recipeId]/cook`（6.52 kB，首载 163 kB）。构建仅使用本地安全占位的 Supabase 公共变量，不连接真实项目。
+- 生产构建已列出动态路由 `/recipes/[recipeId]/cook`（6.79 kB，首载 163 kB）。构建仅使用本地安全占位的 Supabase 公共变量，不连接真实项目。
 
 ## 浏览器验收与能力边界
 
