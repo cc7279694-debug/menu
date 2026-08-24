@@ -1,16 +1,14 @@
 import type { ActionResult } from "@/features/recipes/types";
+import type {
+  ShoppingGenerationInputSchemaOutput,
+  ShoppingRecipeSelectionSchemaOutput,
+} from "@/features/shopping/schemas";
 
 export type ShoppingActionResult<T> = ActionResult<T>;
 
-export type ShoppingRecipeSelection = {
-  recipeId: string;
-  selectedServings: number;
-};
+export type ShoppingRecipeSelection = ShoppingRecipeSelectionSchemaOutput;
 
-export type ShoppingGenerationInput = {
-  selections: ShoppingRecipeSelection[];
-  excludedRecipeIngredientIds: string[];
-};
+export type ShoppingGenerationInput = ShoppingGenerationInputSchemaOutput;
 
 export type ShoppingGenerationRecipeIngredient = {
   recipeIngredientId: string;

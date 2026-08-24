@@ -104,10 +104,27 @@ export const shoppingReorderInputSchema = z
     }
   });
 
-export type ShoppingRecipeSelectionInput = z.output<typeof shoppingRecipeSelectionSchema>;
-export type ShoppingGenerationInputSchemaValue = z.output<typeof shoppingGenerationInputSchema>;
-export type ShoppingItemInput = z.output<typeof shoppingItemInputSchema>;
-export type ShoppingItemCheckedInput = z.output<typeof shoppingItemCheckedInputSchema>;
-export type ShoppingItemDeleteInput = z.output<typeof shoppingItemDeleteInputSchema>;
-export type ShoppingClearCompletedInput = z.output<typeof shoppingClearCompletedInputSchema>;
-export type ShoppingReorderInput = z.output<typeof shoppingReorderInputSchema>;
+export type ShoppingRecipeSelectionSchemaInput = z.input<typeof shoppingRecipeSelectionSchema>;
+export type ShoppingRecipeSelectionSchemaOutput = z.output<typeof shoppingRecipeSelectionSchema>;
+export type ShoppingGenerationInputSchemaInput = z.input<typeof shoppingGenerationInputSchema>;
+export type ShoppingGenerationInputSchemaOutput = z.output<typeof shoppingGenerationInputSchema>;
+export type ShoppingItemInputSchemaInput = z.input<typeof shoppingItemInputSchema>;
+export type ShoppingItemInputSchemaOutput = z.output<typeof shoppingItemInputSchema>;
+export type ShoppingItemCheckedInputSchemaInput = z.input<typeof shoppingItemCheckedInputSchema>;
+export type ShoppingItemCheckedInputSchemaOutput = z.output<typeof shoppingItemCheckedInputSchema>;
+export type ShoppingItemDeleteInputSchemaInput = z.input<typeof shoppingItemDeleteInputSchema>;
+export type ShoppingItemDeleteInputSchemaOutput = z.output<typeof shoppingItemDeleteInputSchema>;
+export type ShoppingClearCompletedInputSchemaInput = z.input<typeof shoppingClearCompletedInputSchema>;
+export type ShoppingClearCompletedInputSchemaOutput = z.output<typeof shoppingClearCompletedInputSchema>;
+export type ShoppingReorderInputSchemaInput = z.input<typeof shoppingReorderInputSchema>;
+export type ShoppingReorderInputSchemaOutput = z.output<typeof shoppingReorderInputSchema>;
+
+export type ShoppingRecipeSelectionInput = ShoppingRecipeSelectionSchemaInput;
+export type ShoppingRecipeSelectionOutput = ShoppingRecipeSelectionSchemaOutput;
+export type ShoppingGenerationInputInput = ShoppingGenerationInputSchemaInput;
+export type ShoppingGenerationInputOutput = ShoppingGenerationInputSchemaOutput;
+export type ShoppingItemInput = ShoppingItemInputSchemaOutput;
+export type ShoppingItemCheckedInput = ShoppingItemCheckedInputSchemaOutput;
+export type ShoppingItemDeleteInput = ShoppingItemDeleteInputSchemaOutput;
+export type ShoppingClearCompletedInput = ShoppingClearCompletedInputSchemaOutput;
+export type ShoppingReorderInput = ShoppingReorderInputSchemaOutput;

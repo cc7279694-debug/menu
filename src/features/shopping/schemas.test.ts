@@ -1,10 +1,16 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, expectTypeOf, it } from "vitest";
 
 import {
+  type ShoppingGenerationInputSchemaOutput,
+  type ShoppingRecipeSelectionSchemaOutput,
   shoppingGenerationInputSchema,
   shoppingItemInputSchema,
   shoppingReorderInputSchema,
 } from "@/features/shopping/schemas";
+import type {
+  ShoppingGenerationInput,
+  ShoppingRecipeSelection,
+} from "@/features/shopping/types";
 
 const recipeId = "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa";
 const otherRecipeId = "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb";
@@ -13,6 +19,11 @@ const listId = "dddddddd-dddd-4ddd-8ddd-dddddddddddd";
 const itemId = "eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee";
 
 describe("shopping schemas", () => {
+  it("exports schema-derived output types for shared shopping contracts", () => {
+    expectTypeOf<ShoppingRecipeSelection>().toEqualTypeOf<ShoppingRecipeSelectionSchemaOutput>();
+    expectTypeOf<ShoppingGenerationInput>().toEqualTypeOf<ShoppingGenerationInputSchemaOutput>();
+  });
+
   it("accepts distinct recipe selections and trims item fields", () => {
     const generation = shoppingGenerationInputSchema.parse({
       selections: [{ recipeId, selectedServings: 2.5 }],
