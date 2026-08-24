@@ -21,6 +21,11 @@ export type RecipeListResult = {
   totalCount: number;
 };
 
+export type RecipeSelectionSummary = Pick<
+  RecipeSummary,
+  "id" | "title" | "coverUrl" | "baseServings"
+>;
+
 export type RecipeDetail = RecipeSummary & {
   personalNotes: string | null;
   coverPath: string | null;

@@ -69,3 +69,51 @@ export type ShoppingDraftItem = {
   sortOrder: number;
   sources: ShoppingDraftItemSource[];
 };
+
+export type ShoppingRecipeOption = {
+  id: string;
+  title: string;
+  coverUrl: string | null;
+  baseServings: number;
+};
+
+export type ShoppingListSourceSummary = {
+  id: string;
+  recipeId: string | null;
+  recipeTitleSnapshot: string;
+  selectedServings: number;
+};
+
+export type ShoppingListItemSourceSummary = {
+  id: string;
+  shoppingListSourceId: string;
+  recipeId: string | null;
+  recipeTitleSnapshot: string;
+  selectedServings: number;
+  recipeIngredientId: string | null;
+  quantityContribution: number | null;
+  quantityTextContribution: string | null;
+  unitSnapshot: string | null;
+};
+
+export type ShoppingListItemSummary = {
+  id: string;
+  ingredientId: string | null;
+  nameSnapshot: string;
+  quantity: number | null;
+  quantityText: string | null;
+  unit: string | null;
+  aisle: string | null;
+  isChecked: boolean;
+  isManual: boolean;
+  sortOrder: number;
+  sources: ShoppingListItemSourceSummary[];
+};
+
+export type ShoppingActiveList = {
+  id: string;
+  name: string;
+  updatedAt: string;
+  sources: ShoppingListSourceSummary[];
+  items: ShoppingListItemSummary[];
+};

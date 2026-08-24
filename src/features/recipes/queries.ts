@@ -1,6 +1,11 @@
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import type { Database, Json } from "@/lib/supabase/database.types";
-import type { RecipeDetail, RecipeListResult, RecipeSummary } from "@/features/recipes/types";
+import type {
+  RecipeDetail,
+  RecipeListResult,
+  RecipeSelectionSummary,
+  RecipeSummary,
+} from "@/features/recipes/types";
 import type { RecipeListQuery } from "@/features/recipes/query-params";
 import { createSignedImageUrlMap } from "@/features/media/signed-urls";
 
@@ -56,20 +61,28 @@ async function getAuthenticatedClient() {
   return { supabase, user };
 }
 
-export async function listRecipeSummaries(input: RecipeListQuery): Promise<RecipeListResult> {
+async function loadRecipeSearchRows(input: {
+  query?: string | null;
+  categoryId?: string | null;
+  tagId?: string | null;
+  favoriteOnly?: boolean;
+  deletedOnly?: boolean;
+  limit: number;
+  offset: number;
+}) {
   const { supabase } = await getAuthenticatedClient();
   const { data, error } = await supabase.rpc("search_recipe_summaries", {
     p_query: input.query || null,
-    p_category_id: input.categoryId,
-    p_tag_id: input.tagId,
-    p_favorite_only: input.favoriteOnly,
-    p_deleted_only: input.deletedOnly,
-    p_limit: 24,
-    p_offset: (input.page - 1) * 24,
+    p_category_id: input.categoryId ?? null,
+    p_tag_id: input.tagId ?? null,
+    p_favorite_only: input.favoriteOnly ?? false,
+    p_deleted_only: input.deletedOnly ?? false,
+    p_limit: input.limit,
+    p_offset: input.offset,
   });
 
   if (error) {
-    throw new Error("菜谱列表暂时无法加载");
+    throw new Error("菜谱查询暂时无法加载");
   }
 
   const rows = (data ?? []) as SearchRow[];
@@ -79,10 +92,45 @@ export async function listRecipeSummaries(input: RecipeListQuery): Promise<Recip
     paths,
   );
 
+  return { rows, signedUrls };
+}
+
+export async function listRecipeSummaries(input: RecipeListQuery): Promise<RecipeListResult> {
+  const { rows, signedUrls } = await loadRecipeSearchRows({
+    query: input.query,
+    categoryId: input.categoryId,
+    tagId: input.tagId,
+    favoriteOnly: input.favoriteOnly,
+    deletedOnly: input.deletedOnly,
+    limit: 24,
+    offset: (input.page - 1) * 24,
+  });
+
   return {
     items: rows.map((row) => mapRecipeSearchRow(row, signedUrls)),
     totalCount: Number(rows[0]?.total_count ?? 0),
   };
+}
+
+export async function searchOwnedRecipeSelectionSummaries(
+  query: string,
+  limit: number = 24,
+): Promise<RecipeSelectionSummary[]> {
+  const { rows, signedUrls } = await loadRecipeSearchRows({
+    query,
+    limit: Math.min(limit, 24),
+    offset: 0,
+  });
+
+  return rows.map((row) => {
+    const summary = mapRecipeSearchRow(row, signedUrls);
+    return {
+      id: summary.id,
+      title: summary.title,
+      coverUrl: summary.coverUrl,
+      baseServings: summary.baseServings,
+    };
+  });
 }
 
 export async function listRecipeTaxonomy(): Promise<{
