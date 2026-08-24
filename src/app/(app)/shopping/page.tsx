@@ -1,10 +1,11 @@
-import { PagePlaceholder } from "@/components/page-placeholder";
+import { ShoppingPage } from "@/features/shopping/components/shopping-page";
+import { getActiveShoppingList, searchShoppingRecipeOptions } from "@/features/shopping/queries";
 
-export default function ShoppingPage() {
-  return (
-    <PagePlaceholder
-      title="购物清单"
-      description="购物清单将在菜谱模块完成后接入。"
-    />
-  );
+export default async function ShoppingRoutePage() {
+  const [currentList, initialRecipes] = await Promise.all([
+    getActiveShoppingList(),
+    searchShoppingRecipeOptions(""),
+  ]);
+
+  return <ShoppingPage currentList={currentList} initialRecipes={initialRecipes} />;
 }
