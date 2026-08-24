@@ -15,6 +15,7 @@ type RecipeSelectionListProps = {
   selectedRecipes: SelectedShoppingRecipe[];
   selectedIds: ReadonlySet<string>;
   maxReached: boolean;
+  disabled?: boolean;
   servingErrors: ReadonlyMap<string, string>;
   onToggleRecipe: (recipe: ShoppingRecipeOption) => void;
   onServingsChange: (recipeId: string, value: string) => void;
@@ -25,6 +26,7 @@ export function RecipeSelectionList({
   selectedRecipes,
   selectedIds,
   maxReached,
+  disabled = false,
   servingErrors,
   onToggleRecipe,
   onServingsChange,
@@ -41,14 +43,14 @@ export function RecipeSelectionList({
           <ul className="space-y-2">
             {recipes.map((recipe) => {
               const checked = selectedIds.has(recipe.id);
-              const disabled = maxReached && !checked;
+              const isDisabled = disabled || (maxReached && !checked);
               return (
                 <li className="rounded-lg border bg-background p-3" key={recipe.id}>
                   <div className="flex min-w-0 items-start gap-3">
                     <Checkbox
-                      aria-describedby={disabled ? "shopping-generator-limit" : undefined}
+                      aria-describedby={isDisabled && maxReached && !checked ? "shopping-generator-limit" : undefined}
                       checked={checked}
-                      disabled={disabled}
+                      disabled={isDisabled}
                       id={`shopping-recipe-${recipe.id}`}
                       onCheckedChange={() => onToggleRecipe(recipe)}
                     />
@@ -96,6 +98,7 @@ export function RecipeSelectionList({
                         aria-invalid={Boolean(error)}
                         className="min-h-11"
                         id={`shopping-servings-${recipe.id}`}
+                        disabled={disabled}
                         max={1000}
                         min={0.25}
                         onChange={(event) => onServingsChange(recipe.id, event.target.value)}

@@ -53,6 +53,8 @@ export function ShoppingGenerator({ initialRecipes, onGenerated }: ShoppingGener
   const router = useRouter();
   const searchInputRef = useRef<HTMLInputElement>(null);
   const generatingRef = useRef(false);
+  const previewRequestRef = useRef(0);
+  const searchRequestRef = useRef(0);
   const [open, setOpen] = useState(false);
   const [step, setStep] = useState<Step>("select");
   const [recipes, setRecipes] = useState(initialRecipes);
@@ -102,9 +104,12 @@ export function ShoppingGenerator({ initialRecipes, onGenerated }: ShoppingGener
     setPreviewContributions([]);
     setExcludedRecipeIngredientIds(new Set());
     generatingRef.current = false;
+    previewRequestRef.current += 1;
+    searchRequestRef.current += 1;
   }
 
   function handleOpenChange(nextOpen: boolean) {
+    if (!nextOpen && generatingRef.current) return;
     setOpen(nextOpen);
     if (!nextOpen) resetFlow();
   }
@@ -140,9 +145,12 @@ export function ShoppingGenerator({ initialRecipes, onGenerated }: ShoppingGener
   }
 
   async function handleSearch() {
+    const requestId = searchRequestRef.current + 1;
+    searchRequestRef.current = requestId;
     setIsSearching(true);
     setStatusMessage(null);
     const result = await searchShoppingRecipesAction(searchQuery);
+    if (requestId !== searchRequestRef.current) return;
     setIsSearching(false);
     if (result.ok) {
       setRecipes(result.data);
@@ -153,6 +161,8 @@ export function ShoppingGenerator({ initialRecipes, onGenerated }: ShoppingGener
 
   async function handlePreview() {
     if (!canPreview) return;
+    const requestId = previewRequestRef.current + 1;
+    previewRequestRef.current = requestId;
     setStatusMessage(null);
     setIsPreviewing(true);
     const input: ShoppingGenerationInput = {
@@ -160,6 +170,7 @@ export function ShoppingGenerator({ initialRecipes, onGenerated }: ShoppingGener
       excludedRecipeIngredientIds: [],
     };
     const result = await previewShoppingListAction(input);
+    if (requestId !== previewRequestRef.current) return;
     setIsPreviewing(false);
     if (!result.ok) {
       setStatusMessage(result.message);
@@ -251,6 +262,7 @@ export function ShoppingGenerator({ initialRecipes, onGenerated }: ShoppingGener
             )}
 
             <RecipeSelectionList
+              disabled={isPreviewing}
               maxReached={maxReached}
               onServingsChange={updateServings}
               onToggleRecipe={toggleRecipe}

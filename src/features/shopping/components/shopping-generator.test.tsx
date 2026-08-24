@@ -252,6 +252,55 @@ describe("ShoppingGenerator", () => {
     expect(within(updatedTomatoRow).getByText("番茄牛腩")).toBeInTheDocument();
   });
 
+  it("locks recipe choices while preview is pending so stale previews cannot mix with changed inputs", async () => {
+    const user = await openGenerator();
+    const preview = deferred<{ ok: true; data: { contributions: ShoppingContribution[]; items: ShoppingDraftItem[] } }>();
+    actions.previewShoppingListAction.mockReturnValue(preview.promise);
+
+    await user.click(screen.getByRole("checkbox", { name: /番茄炒蛋/ }));
+    const selectedPanel = screen.getByRole("region", { name: "已选菜谱" });
+    const servings = within(selectedPanel).getByLabelText("番茄炒蛋 目标份数");
+    await user.click(screen.getByRole("button", { name: "预览购物清单" }));
+
+    expect(screen.getByRole("checkbox", { name: /番茄炒蛋/ })).toHaveAttribute("aria-disabled", "true");
+    expect(servings).toBeDisabled();
+
+    preview.resolve({
+      ok: true,
+      data: { contributions: previewContributions.slice(0, 1), items: previewItems() },
+    });
+    expect(await screen.findByRole("listitem", { name: /番茄/ })).toBeInTheDocument();
+  });
+
+  it("ignores older overlapping search results", async () => {
+    const user = await openGenerator();
+    const firstSearch = deferred<{ ok: true; data: ShoppingRecipeOption[] }>();
+    const secondSearch = deferred<{ ok: true; data: ShoppingRecipeOption[] }>();
+    actions.searchShoppingRecipesAction
+      .mockReturnValueOnce(firstSearch.promise)
+      .mockReturnValueOnce(secondSearch.promise);
+
+    const search = screen.getByRole("searchbox", { name: "搜索菜谱" });
+    await user.type(search, "汤");
+    await user.keyboard("{Enter}");
+    await user.clear(search);
+    await user.type(search, "饭");
+    await user.keyboard("{Enter}");
+
+    secondSearch.resolve({
+      ok: true,
+      data: [{ id: recipeCId, title: "蛋炒饭", coverUrl: null, baseServings: 1 }],
+    });
+    expect(await screen.findByRole("checkbox", { name: /蛋炒饭/ })).toBeInTheDocument();
+
+    firstSearch.resolve({
+      ok: true,
+      data: [{ id: "dddddddd-dddd-4ddd-8ddd-dddddddddddd", title: "冬瓜汤", coverUrl: null, baseServings: 4 }],
+    });
+    await waitFor(() => expect(screen.queryByRole("checkbox", { name: /冬瓜汤/ })).not.toBeInTheDocument());
+    expect(screen.getByRole("checkbox", { name: /蛋炒饭/ })).toBeInTheDocument();
+  });
+
   it("prevents empty generation after all ingredients are excluded and keeps choices after preview errors", async () => {
     const user = await openGenerator();
     actions.previewShoppingListAction.mockResolvedValueOnce({
@@ -274,6 +323,29 @@ describe("ShoppingGenerator", () => {
 
     expect(screen.getByText("请至少保留一项需要购买的食材。")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "生成清单" })).toBeDisabled();
+  });
+
+  it("does not close or reset while generation is pending", async () => {
+    const user = await openGenerator();
+    actions.previewShoppingListAction.mockResolvedValue({
+      ok: true,
+      data: { contributions: previewContributions.slice(0, 1), items: previewItems() },
+    });
+    const pending = deferred<{ ok: true; data: { shoppingListId: string } }>();
+    actions.generateShoppingListAction.mockReturnValue(pending.promise);
+
+    await user.click(screen.getByRole("checkbox", { name: /番茄炒蛋/ }));
+    await user.click(screen.getByRole("button", { name: "预览购物清单" }));
+    await screen.findByRole("listitem", { name: /番茄/ });
+    await user.click(screen.getByRole("button", { name: "生成清单" }));
+    await user.click(screen.getByRole("button", { name: "Close" }));
+
+    expect(screen.getByRole("dialog", { name: "生成购物清单" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "生成中..." })).toBeDisabled();
+    expect(actions.generateShoppingListAction).toHaveBeenCalledTimes(1);
+
+    pending.resolve({ ok: true, data: { shoppingListId: "99999999-9999-4999-8999-999999999999" } });
+    await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
   });
 
   it("submits once while saving, closes and resets on success, and keeps review choices after errors", async () => {
