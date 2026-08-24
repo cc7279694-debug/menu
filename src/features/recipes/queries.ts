@@ -69,6 +69,7 @@ async function loadRecipeSearchRows(input: {
   deletedOnly?: boolean;
   limit: number;
   offset: number;
+  errorMessage: string;
 }) {
   const { supabase } = await getAuthenticatedClient();
   const { data, error } = await supabase.rpc("search_recipe_summaries", {
@@ -82,7 +83,7 @@ async function loadRecipeSearchRows(input: {
   });
 
   if (error) {
-    throw new Error("菜谱查询暂时无法加载");
+    throw new Error(input.errorMessage);
   }
 
   const rows = (data ?? []) as SearchRow[];
@@ -104,6 +105,7 @@ export async function listRecipeSummaries(input: RecipeListQuery): Promise<Recip
     deletedOnly: input.deletedOnly,
     limit: 24,
     offset: (input.page - 1) * 24,
+    errorMessage: "菜谱列表暂时无法加载",
   });
 
   return {
@@ -120,6 +122,7 @@ export async function searchOwnedRecipeSelectionSummaries(
     query,
     limit: Math.min(limit, 24),
     offset: 0,
+    errorMessage: "菜谱查询暂时无法加载",
   });
 
   return rows.map((row) => {
