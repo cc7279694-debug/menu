@@ -30,7 +30,7 @@ create table public.shopping_list_sources (
   constraint shopping_list_sources_list_owner_fk foreign key (user_id, shopping_list_id)
     references public.shopping_lists (user_id, id) on delete cascade,
   constraint shopping_list_sources_recipe_owner_fk foreign key (user_id, recipe_id)
-    references public.recipes (user_id, id) on delete set null
+    references public.recipes (user_id, id) on delete set null (recipe_id)
 );
 
 create table public.shopping_list_items (
@@ -61,7 +61,7 @@ create table public.shopping_list_items (
   constraint shopping_list_items_list_owner_fk foreign key (user_id, shopping_list_id)
     references public.shopping_lists (user_id, id) on delete cascade,
   constraint shopping_list_items_ingredient_owner_fk foreign key (user_id, ingredient_id)
-    references public.ingredients (user_id, id) on delete set null
+    references public.ingredients (user_id, id) on delete set null (ingredient_id)
 );
 
 create table public.shopping_list_item_sources (
@@ -86,7 +86,7 @@ create table public.shopping_list_item_sources (
   constraint shopping_list_item_sources_source_owner_fk foreign key (user_id, shopping_list_id, shopping_list_source_id)
     references public.shopping_list_sources (user_id, shopping_list_id, id) on delete cascade,
   constraint shopping_list_item_sources_recipe_ingredient_owner_fk foreign key (user_id, recipe_ingredient_id)
-    references public.recipe_ingredients (user_id, id) on delete set null
+    references public.recipe_ingredients (user_id, id) on delete set null (recipe_ingredient_id)
 );
 
 create index shopping_list_sources_user_list_idx

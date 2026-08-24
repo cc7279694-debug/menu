@@ -2,7 +2,7 @@ import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
 import type { PGlite } from "@electric-sql/pglite";
 
-import { asUser, createDatabase } from "@/test/database/bootstrap";
+import { asOwner, asUser, createDatabase } from "@/test/database/bootstrap";
 import { loadShoppingMigrations } from "@/test/database/load-migrations";
 
 const userA = "11111111-1111-4111-8111-111111111111";
@@ -550,6 +550,211 @@ describe("shopping list security and transactions", () => {
     expect(sorted.rows).toEqual([
       { id: "56565656-5656-4565-8565-565656565656", sort_order: 0 },
       { id: "54545454-5454-4545-8545-545454545454", sort_order: 1 },
+    ]);
+  });
+
+  it("preserves shopping snapshots when referenced recipe, ingredient, and recipe ingredient are physically deleted", async () => {
+    const created = await replaceActiveList(
+      database,
+      shoppingPayload({
+        listId: "61616161-6161-4616-8616-616161616161",
+        sourceId: "62626262-6262-4626-8626-626262626262",
+        itemId: "63636363-6363-4636-8636-636363636363",
+        itemSourceId: "64646464-6464-4646-8646-646464646464",
+        recipeId: recipeAId,
+        recipeTitleSnapshot: "番茄炒蛋",
+        recipeIngredientId: recipeIngredientAId,
+        ingredientId: ingredientAId,
+        quantity: 2,
+        unit: "个",
+        aisle: "蔬菜",
+      }),
+    );
+
+    await asOwner(database);
+    await database.query("delete from public.recipes where user_id = $1 and id = $2", [userA, recipeAId]);
+
+    const sourceAfterRecipeDelete = await database.query<{
+      user_id: string;
+      shopping_list_id: string;
+      recipe_id: string | null;
+      recipe_title_snapshot: string;
+    }>(
+      `
+        select user_id, shopping_list_id, recipe_id, recipe_title_snapshot
+        from public.shopping_list_sources
+        where id = $1
+      `,
+      ["62626262-6262-4626-8626-626262626262"],
+    );
+
+    expect(sourceAfterRecipeDelete.rows).toEqual([
+      {
+        user_id: userA,
+        shopping_list_id: created.rows[0].list_id,
+        recipe_id: null,
+        recipe_title_snapshot: "番茄炒蛋",
+      },
+    ]);
+
+    const itemAfterRecipeDelete = await database.query<{
+      user_id: string;
+      ingredient_id: string | null;
+      name_snapshot: string;
+    }>(
+      `
+        select user_id, ingredient_id, name_snapshot
+        from public.shopping_list_items
+        where id = $1
+      `,
+      ["63636363-6363-4636-8636-636363636363"],
+    );
+
+    expect(itemAfterRecipeDelete.rows).toEqual([
+      {
+        user_id: userA,
+        ingredient_id: ingredientAId,
+        name_snapshot: "番茄炒蛋",
+      },
+    ]);
+
+    const itemSourceAfterRecipeDelete = await database.query<{
+      user_id: string;
+      recipe_ingredient_id: string | null;
+      shopping_list_source_id: string;
+      shopping_list_item_id: string;
+    }>(
+      `
+        select user_id, recipe_ingredient_id, shopping_list_source_id, shopping_list_item_id
+        from public.shopping_list_item_sources
+        where id = $1
+      `,
+      ["64646464-6464-4646-8646-646464646464"],
+    );
+
+    expect(itemSourceAfterRecipeDelete.rows).toEqual([
+      {
+        user_id: userA,
+        recipe_ingredient_id: null,
+        shopping_list_source_id: "62626262-6262-4626-8626-626262626262",
+        shopping_list_item_id: "63636363-6363-4636-8636-636363636363",
+      },
+    ]);
+  });
+
+  it("preserves shopping item snapshots when a referenced ingredient is physically deleted", async () => {
+    const created = await replaceActiveList(
+      database,
+      shoppingPayload({
+        listId: "65656565-6565-4656-8656-656565656565",
+        sourceId: "66666666-6666-4666-8666-666666666667",
+        itemId: "67676767-6767-4676-8676-676767676767",
+        itemSourceId: "68686868-6868-4686-8686-686868686868",
+        recipeId: recipeBId,
+        recipeTitleSnapshot: "青椒炒蛋",
+        recipeIngredientId: recipeIngredientBId,
+        ingredientId: ingredientBId,
+        quantity: 3,
+        unit: "个",
+        aisle: "蔬菜",
+      }),
+    );
+
+    await asOwner(database);
+    await database.query("delete from public.ingredients where user_id = $1 and id = $2", [userA, ingredientBId]);
+
+    const itemAfterIngredientDelete = await database.query<{
+      user_id: string;
+      shopping_list_id: string;
+      ingredient_id: string | null;
+      name_snapshot: string;
+    }>(
+      `
+        select user_id, shopping_list_id, ingredient_id, name_snapshot
+        from public.shopping_list_items
+        where id = $1
+      `,
+      ["67676767-6767-4676-8676-676767676767"],
+    );
+
+    expect(itemAfterIngredientDelete.rows).toEqual([
+      {
+        user_id: userA,
+        shopping_list_id: created.rows[0].list_id,
+        ingredient_id: null,
+        name_snapshot: "青椒炒蛋",
+      },
+    ]);
+
+    const itemSourceAfterIngredientDelete = await database.query<{
+      user_id: string;
+      recipe_ingredient_id: string | null;
+      shopping_list_item_id: string;
+    }>(
+      `
+        select user_id, recipe_ingredient_id, shopping_list_item_id
+        from public.shopping_list_item_sources
+        where id = $1
+      `,
+      ["68686868-6868-4686-8686-686868686868"],
+    );
+
+    expect(itemSourceAfterIngredientDelete.rows).toEqual([
+      {
+        user_id: userA,
+        recipe_ingredient_id: null,
+        shopping_list_item_id: "67676767-6767-4676-8676-676767676767",
+      },
+    ]);
+  });
+
+  it("preserves contribution snapshots when a referenced recipe ingredient is physically deleted", async () => {
+    const created = await replaceActiveList(
+      database,
+      shoppingPayload({
+        listId: "69696969-6969-4696-8696-696969696969",
+        sourceId: "70707070-7070-4707-8707-707070707070",
+        itemId: "71717171-7171-4717-8717-717171717171",
+        itemSourceId: "72727272-7272-4727-8727-727272727272",
+        recipeId: recipeBId,
+        recipeTitleSnapshot: "青椒炒蛋",
+        recipeIngredientId: recipeIngredientBId,
+        ingredientId: ingredientBId,
+        quantity: 3,
+        unit: "个",
+        aisle: "蔬菜",
+      }),
+    );
+
+    await asOwner(database);
+    await database.query("delete from public.recipe_ingredients where user_id = $1 and id = $2", [
+      userA,
+      recipeIngredientBId,
+    ]);
+
+    const itemSourceAfterIngredientDelete = await database.query<{
+      user_id: string;
+      shopping_list_id: string;
+      shopping_list_source_id: string;
+      recipe_ingredient_id: string | null;
+      unit_snapshot: string | null;
+    }>(
+      `
+        select user_id, shopping_list_id, shopping_list_source_id, recipe_ingredient_id, unit_snapshot
+        from public.shopping_list_item_sources
+        where id = $1
+      `,
+      ["72727272-7272-4727-8727-727272727272"],
+    );
+
+    expect(itemSourceAfterIngredientDelete.rows).toEqual([
+      {
+        user_id: userA,
+        shopping_list_id: created.rows[0].list_id,
+        shopping_list_source_id: "70707070-7070-4707-8707-707070707070",
+        recipe_ingredient_id: null,
+        unit_snapshot: "个",
+      },
     ]);
   });
 });
