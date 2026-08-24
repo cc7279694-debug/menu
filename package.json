@@ -10,6 +10,7 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:db": "vitest run src/test/database src/features/recipes",
+    "test:shopping": "vitest run src/features/shopping src/test/database/shopping-list-migration.test.ts src/test/database/shopping-list-security.test.ts",
     "test:recipes": "vitest run src/features/recipes",
     "test:watch": "vitest"
   },

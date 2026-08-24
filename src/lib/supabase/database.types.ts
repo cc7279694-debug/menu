@@ -88,6 +88,109 @@ export type Database = {
         Update: Partial<Database["public"]["Tables"]["recipe_steps"]["Insert"]>;
         Relationships: [];
       };
+      shopping_lists: {
+        Row: { id: string; user_id: string; name: string; is_active: boolean } & Timestamps;
+        Insert: { id?: string; user_id: string; name?: string; is_active?: boolean };
+        Update: { name?: string; is_active?: boolean };
+        Relationships: [];
+      };
+      shopping_list_sources: {
+        Row: {
+          id: string;
+          user_id: string;
+          shopping_list_id: string;
+          recipe_id: string | null;
+          recipe_title_snapshot: string;
+          selected_servings: number;
+        } & Pick<Timestamps, "created_at">;
+        Insert: {
+          id: string;
+          user_id: string;
+          shopping_list_id: string;
+          recipe_id?: string | null;
+          recipe_title_snapshot: string;
+          selected_servings: number;
+        };
+        Update: {
+          recipe_id?: string | null;
+          recipe_title_snapshot?: string;
+          selected_servings?: number;
+        };
+        Relationships: [];
+      };
+      shopping_list_items: {
+        Row: {
+          id: string;
+          user_id: string;
+          shopping_list_id: string;
+          ingredient_id: string | null;
+          name_snapshot: string;
+          quantity: number | null;
+          quantity_text: string | null;
+          unit: string | null;
+          aisle: string | null;
+          is_checked: boolean;
+          is_manual: boolean;
+          sort_order: number;
+        } & Timestamps;
+        Insert: {
+          id: string;
+          user_id: string;
+          shopping_list_id: string;
+          ingredient_id?: string | null;
+          name_snapshot: string;
+          quantity?: number | null;
+          quantity_text?: string | null;
+          unit?: string | null;
+          aisle?: string | null;
+          is_checked?: boolean;
+          is_manual?: boolean;
+          sort_order: number;
+        };
+        Update: {
+          ingredient_id?: string | null;
+          name_snapshot?: string;
+          quantity?: number | null;
+          quantity_text?: string | null;
+          unit?: string | null;
+          aisle?: string | null;
+          is_checked?: boolean;
+          is_manual?: boolean;
+          sort_order?: number;
+        };
+        Relationships: [];
+      };
+      shopping_list_item_sources: {
+        Row: {
+          id: string;
+          user_id: string;
+          shopping_list_id: string;
+          shopping_list_item_id: string;
+          shopping_list_source_id: string;
+          recipe_ingredient_id: string | null;
+          quantity_contribution: number | null;
+          quantity_text_contribution: string | null;
+          unit_snapshot: string | null;
+        } & Pick<Timestamps, "created_at">;
+        Insert: {
+          id: string;
+          user_id: string;
+          shopping_list_id: string;
+          shopping_list_item_id: string;
+          shopping_list_source_id: string;
+          recipe_ingredient_id?: string | null;
+          quantity_contribution?: number | null;
+          quantity_text_contribution?: string | null;
+          unit_snapshot?: string | null;
+        };
+        Update: {
+          recipe_ingredient_id?: string | null;
+          quantity_contribution?: number | null;
+          quantity_text_contribution?: string | null;
+          unit_snapshot?: string | null;
+        };
+        Relationships: [];
+      };
       step_ingredients: {
         Row: { user_id: string; recipe_id: string; step_id: string; recipe_ingredient_id: string; quantity_override: number | null; quantity_text_override: string | null; note: string | null } & Pick<Timestamps, "created_at">;
         Insert: { user_id: string; recipe_id: string; step_id: string; recipe_ingredient_id: string; quantity_override?: number | null; quantity_text_override?: string | null; note?: string | null };
@@ -97,6 +200,8 @@ export type Database = {
     };
     Views: Record<string, never>;
     Functions: {
+      replace_active_shopping_list: { Args: { p_payload: Json }; Returns: string };
+      reorder_shopping_items: { Args: { p_shopping_list_id: string; p_item_ids: string[] }; Returns: undefined };
       save_recipe: { Args: { p_payload: Json }; Returns: string };
       search_recipe_summaries: {
         Args: { p_query?: string | null; p_category_id?: string | null; p_tag_id?: string | null; p_favorite_only?: boolean; p_deleted_only?: boolean; p_limit?: number; p_offset?: number };
