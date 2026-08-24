@@ -77,7 +77,7 @@ export function ShoppingItemRow({
         <div className="grid grid-cols-4 gap-2 sm:flex sm:justify-end">
           <Button
             aria-label={`上移${item.nameSnapshot}`}
-            className="min-h-11"
+            className="min-h-11 min-w-11"
             disabled={!canMoveUp || reorderPending}
             onClick={() => onReorder(item.id, "up")}
             size="icon"
@@ -88,7 +88,7 @@ export function ShoppingItemRow({
           </Button>
           <Button
             aria-label={`下移${item.nameSnapshot}`}
-            className="min-h-11"
+            className="min-h-11 min-w-11"
             disabled={!canMoveDown || reorderPending}
             onClick={() => onReorder(item.id, "down")}
             size="icon"
@@ -99,7 +99,7 @@ export function ShoppingItemRow({
           </Button>
           <Button
             aria-label={`编辑${item.nameSnapshot}`}
-            className="min-h-11"
+            className="min-h-11 min-w-11"
             onClick={() => onEdit(item)}
             size="icon"
             type="button"
@@ -109,7 +109,7 @@ export function ShoppingItemRow({
           </Button>
           <Button
             aria-label={`删除${item.nameSnapshot}`}
-            className="min-h-11"
+            className="min-h-11 min-w-11"
             onClick={() => onDelete(item)}
             size="icon"
             type="button"

@@ -396,16 +396,6 @@ export async function deleteShoppingItemAction(input: unknown): Promise<ActionRe
     return { ok: false, message: ACTIVE_LIST_INVALID_MESSAGE };
   }
 
-  const sourceDelete = await client.supabase
-    .from("shopping_list_item_sources")
-    .delete()
-    .eq("shopping_list_id", parsed.data.shoppingListId)
-    .eq("shopping_list_item_id", parsed.data.itemId)
-    .eq("user_id", client.userId);
-  if (sourceDelete.error) {
-    return { ok: false, message: "购物清单删除失败，请刷新后重试" };
-  }
-
   const { data, error } = await client.supabase
     .from("shopping_list_items")
     .delete()

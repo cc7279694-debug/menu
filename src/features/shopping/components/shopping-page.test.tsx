@@ -156,6 +156,11 @@ function renderPage(list: ShoppingActiveList | null = activeList()) {
   return render(<ShoppingPage currentList={list} initialRecipes={recipeOptions} />);
 }
 
+function expectTouchTarget(button: HTMLElement) {
+  expect(button).toHaveClass("min-h-11");
+  expect(button).toHaveClass("min-w-11");
+}
+
 describe("shopping route page", () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -321,7 +326,11 @@ describe("ShoppingPage", () => {
 
     expect(within(screen.getByRole("listitem", { name: /番茄/ })).getByRole("button", { name: "上移番茄" })).toBeDisabled();
     expect(within(screen.getByRole("listitem", { name: /餐巾纸/ })).getByRole("button", { name: "下移餐巾纸" })).toBeDisabled();
-    expect(within(screen.getByRole("listitem", { name: /番茄/ })).getByRole("button", { name: "上移番茄" })).toHaveClass("min-h-11");
+    const tomatoRow = within(screen.getByRole("listitem", { name: /番茄/ }));
+    expectTouchTarget(tomatoRow.getByRole("button", { name: "上移番茄" }));
+    expectTouchTarget(tomatoRow.getByRole("button", { name: "下移番茄" }));
+    expectTouchTarget(tomatoRow.getByRole("button", { name: "编辑番茄" }));
+    expectTouchTarget(tomatoRow.getByRole("button", { name: "删除番茄" }));
 
     await user.click(within(screen.getByRole("listitem", { name: /海盐/ })).getByRole("button", { name: "上移海盐" }));
     await waitFor(() => expect(actions.reorderShoppingItemsAction).toHaveBeenCalledWith({

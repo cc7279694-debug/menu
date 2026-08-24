@@ -476,7 +476,6 @@ describe("shopping actions", () => {
 
   it("checks, deletes, clears completed items, and validates affected rows before revalidation", async () => {
     const checked = createBuilder({ data: { id: ITEM_ID }, error: null });
-    const deleteSources = createBuilder({ data: [], error: null });
     const deleteItem = createBuilder({ data: { id: ITEM_ID }, error: null });
     const clearItems = createBuilder({ data: [{ id: ITEM_ID }], error: null });
     const supabase = createSupabase({
@@ -486,7 +485,6 @@ describe("shopping actions", () => {
           .mockReturnValueOnce(checked)
           .mockReturnValueOnce(deleteItem)
           .mockReturnValueOnce(clearItems),
-        shopping_list_item_sources: () => deleteSources,
       },
     });
     mocks.createServerSupabaseClient.mockResolvedValue(supabase);
@@ -502,11 +500,10 @@ describe("shopping actions", () => {
       ok: true,
       data: null,
     });
-    expect(deleteSources.delete).toHaveBeenCalled();
-    expect(deleteSources.eq).toHaveBeenCalledWith("shopping_list_item_id", ITEM_ID);
     expect(deleteItem.delete).toHaveBeenCalled();
     expect(deleteItem.select).toHaveBeenCalledWith("id");
     expect(deleteItem.maybeSingle).toHaveBeenCalled();
+    expect(supabase.from).not.toHaveBeenCalledWith("shopping_list_item_sources");
 
     await expect(clearCompletedShoppingItemsAction({ shoppingListId: LIST_ID })).resolves.toEqual({
       ok: true,
@@ -515,6 +512,31 @@ describe("shopping actions", () => {
     expect(clearItems.delete).toHaveBeenCalled();
     expect(clearItems.eq).toHaveBeenCalledWith("is_checked", true);
     expect(mocks.revalidatePath).toHaveBeenCalledTimes(3);
+  });
+
+  it("does not delete source snapshots before a failed parent item delete", async () => {
+    const sourceDelete = createBuilder({ data: [], error: null });
+    const deleteItem = createBuilder({ data: null, error: null });
+    const supabase = createSupabase({
+      tables: {
+        shopping_lists: () => activeListBuilder(),
+        shopping_list_items: () => deleteItem,
+        shopping_list_item_sources: () => sourceDelete,
+      },
+    });
+    mocks.createServerSupabaseClient.mockResolvedValue(supabase);
+
+    await expect(deleteShoppingItemAction({ shoppingListId: LIST_ID, itemId: ITEM_ID })).resolves.toEqual({
+      ok: false,
+      message: "购物清单删除失败，请刷新后重试",
+    });
+
+    expect(deleteItem.delete).toHaveBeenCalled();
+    expect(deleteItem.select).toHaveBeenCalledWith("id");
+    expect(deleteItem.maybeSingle).toHaveBeenCalled();
+    expect(sourceDelete.delete).not.toHaveBeenCalled();
+    expect(supabase.from).not.toHaveBeenCalledWith("shopping_list_item_sources");
+    expect(mocks.revalidatePath).not.toHaveBeenCalled();
   });
 
   it("delegates reorder to the validated RPC and hides raw rollback errors", async () => {
