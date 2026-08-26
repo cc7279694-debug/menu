@@ -56,6 +56,9 @@ export async function createDatabase(): Promise<PGlite> {
       last_accessed_at timestamptz
     );
 
+    -- Supabase owns storage.objects and enables RLS before application migrations run.
+    alter table storage.objects enable row level security;
+
     create or replace function storage.foldername(object_name text)
     returns text[]
     language sql
