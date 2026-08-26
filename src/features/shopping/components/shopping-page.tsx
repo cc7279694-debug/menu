@@ -2,7 +2,6 @@
 
 import { useEffect, useMemo, useState, useTransition } from "react";
 import { PlusIcon } from "lucide-react";
-import { useRouter } from "next/navigation";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -84,7 +83,6 @@ function addManualItem(
 }
 
 export function ShoppingPage({ currentList, initialRecipes }: ShoppingPageProps) {
-  const router = useRouter();
   const [, startTransition] = useTransition();
   const [items, setItems] = useState<ShoppingListItemSummary[]>(() => currentList?.items ?? []);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
@@ -122,7 +120,6 @@ export function ShoppingPage({ currentList, initialRecipes }: ShoppingPageProps)
         const result = await action();
         if (result.ok) {
           onSuccess(result.data);
-          router.refresh();
         } else {
           setStatusMessage(result.message);
         }

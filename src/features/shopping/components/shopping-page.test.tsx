@@ -252,7 +252,7 @@ describe("ShoppingPage", () => {
     actions.setShoppingItemCheckedAction.mockResolvedValueOnce({ ok: true, data: null });
     await user.click(within(tomatoRow).getByRole("checkbox", { name: "番茄 标记为已完成" }));
     await waitFor(() => expect(within(tomatoRow).getByRole("checkbox", { name: "番茄 标记为未完成" })).toBeChecked());
-    expect(router.refresh).toHaveBeenCalledTimes(1);
+    expect(router.refresh).not.toHaveBeenCalled();
   });
 
   it("adds, edits, deletes, and clears manual items with in-app confirmations and no recipe mutation", async () => {

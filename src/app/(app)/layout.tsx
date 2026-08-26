@@ -2,7 +2,7 @@ import type { ReactNode } from "react";
 import { redirect } from "next/navigation";
 
 import { AppShell } from "@/components/app-shell";
-import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { getServerAuthContext } from "@/lib/supabase/server-auth";
 
 export const dynamic = "force-dynamic";
 
@@ -11,10 +11,7 @@ export default async function AuthenticatedLayout({
 }: {
   children: ReactNode;
 }) {
-  const supabase = await createServerSupabaseClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const { user } = await getServerAuthContext();
 
   if (!user) {
     redirect("/login");

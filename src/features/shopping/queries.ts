@@ -7,6 +7,7 @@ import type {
   ShoppingRecipeOption,
 } from "@/features/shopping/types";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { getServerAuthContext } from "@/lib/supabase/server-auth";
 
 const INVALID_RECIPE_SELECTION_MESSAGE = "所选菜谱已失效，请重新选择";
 const GENERATION_QUERY_ERROR_MESSAGE = "所选菜谱暂时无法加载";
@@ -19,8 +20,7 @@ async function getAuthenticatedShoppingClient(): Promise<{
   supabase: AuthenticatedClient;
   userId: string;
 }> {
-  const supabase = await createServerSupabaseClient();
-  const { data: { user }, error } = await supabase.auth.getUser();
+  const { supabase, user, error } = await getServerAuthContext();
 
   if (error || !user) {
     throw new Error(AUTH_REQUIRED_MESSAGE);

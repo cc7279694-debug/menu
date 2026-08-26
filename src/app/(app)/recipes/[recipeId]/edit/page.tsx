@@ -3,7 +3,7 @@ import { notFound, redirect } from "next/navigation";
 import { RecipeEditorPage } from "@/features/recipes/components/recipe-editor-page";
 import { recipeDetailToSaveInput } from "@/features/recipes/editor-value";
 import { getRecipeDetail, listRecipeTaxonomy } from "@/features/recipes/queries";
-import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { getServerAuthContext } from "@/lib/supabase/server-auth";
 
 export const dynamic = "force-dynamic";
 
@@ -13,8 +13,7 @@ export default async function EditRecipePage({
   params: Promise<{ recipeId: string }>;
 }) {
   const { recipeId } = await params;
-  const supabase = await createServerSupabaseClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const { user } = await getServerAuthContext();
   if (!user) redirect(`/login?next=${encodeURIComponent(`/recipes/${recipeId}/edit`)}`);
 
   const [detail, taxonomy] = await Promise.all([

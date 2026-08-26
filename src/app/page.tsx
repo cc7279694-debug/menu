@@ -1,14 +1,11 @@
 import { redirect } from "next/navigation";
 
-import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { getServerAuthContext } from "@/lib/supabase/server-auth";
 
 export const dynamic = "force-dynamic";
 
 export default async function HomePage() {
-  const supabase = await createServerSupabaseClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const { user } = await getServerAuthContext();
 
   redirect(user ? "/recipes" : "/login");
 }

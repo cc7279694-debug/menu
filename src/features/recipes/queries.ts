@@ -1,4 +1,5 @@
 import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { getServerAuthContext } from "@/lib/supabase/server-auth";
 import type { Database, Json } from "@/lib/supabase/database.types";
 import type {
   RecipeDetail,
@@ -54,8 +55,7 @@ export function mapRecipeSearchRow(
 }
 
 async function getAuthenticatedClient() {
-  const supabase = await createServerSupabaseClient();
-  const { data: { user }, error } = await supabase.auth.getUser();
+  const { supabase, user, error } = await getServerAuthContext();
   if (error || !user) {
     throw new Error("需要登录后才能访问菜谱");
   }
