@@ -9,6 +9,7 @@ vi.mock("@/lib/supabase/server", () => ({
 }));
 
 import {
+  listRecipePageData,
   listRecipeSummaries,
   mapRecipeSearchRow,
   parseRecipeSearchTags,
@@ -31,6 +32,43 @@ function createSupabaseForList(options?: {
         createSignedUrls: vi.fn().mockResolvedValue({ data: [], error: null }),
       }),
     },
+  };
+}
+
+function createSupabaseForPageData() {
+  const getUser = vi.fn().mockResolvedValue({
+    data: { user: { id: "11111111-1111-4111-8111-111111111111" } },
+    error: null,
+  });
+  const rpc = vi.fn().mockResolvedValue({ data: [], error: null });
+  const from = vi.fn((table: string) => {
+    const rows = table === "categories"
+      ? [{ id: "category-1", name: "家常菜" }]
+      : [{ id: "tag-1", name: "快手" }];
+    const result = Promise.resolve({ data: rows, error: null });
+    const builder = {
+      select: vi.fn(() => builder),
+      eq: vi.fn(() => builder),
+      order: vi.fn(() => builder),
+      then: result.then.bind(result),
+      catch: result.catch.bind(result),
+      finally: result.finally.bind(result),
+    };
+    return builder;
+  });
+
+  return {
+    client: {
+      auth: { getUser },
+      rpc,
+      from,
+      storage: {
+        from: vi.fn().mockReturnValue({
+          createSignedUrls: vi.fn().mockResolvedValue({ data: [], error: null }),
+        }),
+      },
+    },
+    getUser,
   };
 }
 
@@ -92,5 +130,28 @@ describe("recipe query view mapping", () => {
         deletedOnly: false,
       }),
     ).rejects.toThrow("菜谱列表暂时无法加载");
+  });
+
+  it("loads list results and taxonomy through one authenticated client", async () => {
+    const { client, getUser } = createSupabaseForPageData();
+    mocks.createServerSupabaseClient.mockResolvedValue(client);
+
+    await expect(
+      listRecipePageData({
+        page: 1,
+        query: "",
+        categoryId: null,
+        tagId: null,
+        favoriteOnly: false,
+        deletedOnly: false,
+      }),
+    ).resolves.toEqual({
+      items: [],
+      totalCount: 0,
+      categories: [{ id: "category-1", name: "家常菜" }],
+      tags: [{ id: "tag-1", name: "快手" }],
+    });
+
+    expect(getUser).toHaveBeenCalledTimes(1);
   });
 });

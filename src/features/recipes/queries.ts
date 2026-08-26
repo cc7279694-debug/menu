@@ -10,6 +10,7 @@ import type { RecipeListQuery } from "@/features/recipes/query-params";
 import { createSignedImageUrlMap } from "@/features/media/signed-urls";
 
 type SearchRow = Database["public"]["Functions"]["search_recipe_summaries"]["Returns"][number];
+type ServerSupabaseClient = Awaited<ReturnType<typeof createServerSupabaseClient>>;
 
 export function parseRecipeSearchTags(value: Json): Array<{ id: string; name: string }> {
   if (!Array.isArray(value)) {
@@ -61,17 +62,19 @@ async function getAuthenticatedClient() {
   return { supabase, user };
 }
 
-async function loadRecipeSearchRows(input: {
-  query?: string | null;
-  categoryId?: string | null;
-  tagId?: string | null;
-  favoriteOnly?: boolean;
-  deletedOnly?: boolean;
-  limit: number;
-  offset: number;
-  errorMessage: string;
-}) {
-  const { supabase } = await getAuthenticatedClient();
+async function loadRecipeSearchRowsForClient(
+  supabase: ServerSupabaseClient,
+  input: {
+    query?: string | null;
+    categoryId?: string | null;
+    tagId?: string | null;
+    favoriteOnly?: boolean;
+    deletedOnly?: boolean;
+    limit: number;
+    offset: number;
+    errorMessage: string;
+  },
+) {
   const { data, error } = await supabase.rpc("search_recipe_summaries", {
     p_query: input.query || null,
     p_category_id: input.categoryId ?? null,
@@ -96,6 +99,20 @@ async function loadRecipeSearchRows(input: {
   return { rows, signedUrls };
 }
 
+async function loadRecipeSearchRows(input: {
+  query?: string | null;
+  categoryId?: string | null;
+  tagId?: string | null;
+  favoriteOnly?: boolean;
+  deletedOnly?: boolean;
+  limit: number;
+  offset: number;
+  errorMessage: string;
+}) {
+  const { supabase } = await getAuthenticatedClient();
+  return loadRecipeSearchRowsForClient(supabase, input);
+}
+
 export async function listRecipeSummaries(input: RecipeListQuery): Promise<RecipeListResult> {
   const { rows, signedUrls } = await loadRecipeSearchRows({
     query: input.query,
@@ -111,6 +128,63 @@ export async function listRecipeSummaries(input: RecipeListQuery): Promise<Recip
   return {
     items: rows.map((row) => mapRecipeSearchRow(row, signedUrls)),
     totalCount: Number(rows[0]?.total_count ?? 0),
+  };
+}
+
+async function listRecipeTaxonomyForClient(
+  supabase: ServerSupabaseClient,
+  userId: string,
+): Promise<{
+  categories: Array<{ id: string; name: string }>;
+  tags: Array<{ id: string; name: string }>;
+}> {
+  const [categoriesResult, tagsResult] = await Promise.all([
+    supabase
+      .from("categories")
+      .select("id, name")
+      .eq("user_id", userId)
+      .order("sort_order", { ascending: true })
+      .order("name", { ascending: true }),
+    supabase
+      .from("tags")
+      .select("id, name")
+      .eq("user_id", userId)
+      .order("name", { ascending: true }),
+  ]);
+
+  if (categoriesResult.error || tagsResult.error) {
+    throw new Error("分类和标签暂时无法加载");
+  }
+
+  return {
+    categories: categoriesResult.data ?? [],
+    tags: tagsResult.data ?? [],
+  };
+}
+
+export async function listRecipePageData(input: RecipeListQuery): Promise<RecipeListResult & {
+  categories: Array<{ id: string; name: string }>;
+  tags: Array<{ id: string; name: string }>;
+}> {
+  const { supabase, user } = await getAuthenticatedClient();
+  const [searchResult, taxonomy] = await Promise.all([
+    loadRecipeSearchRowsForClient(supabase, {
+      query: input.query,
+      categoryId: input.categoryId,
+      tagId: input.tagId,
+      favoriteOnly: input.favoriteOnly,
+      deletedOnly: input.deletedOnly,
+      limit: 24,
+      offset: (input.page - 1) * 24,
+      errorMessage: "菜谱列表暂时无法加载",
+    }),
+    listRecipeTaxonomyForClient(supabase, user.id),
+  ]);
+
+  return {
+    items: searchResult.rows.map((row) => mapRecipeSearchRow(row, searchResult.signedUrls)),
+    totalCount: Number(searchResult.rows[0]?.total_count ?? 0),
+    ...taxonomy,
   };
 }
 
@@ -141,28 +215,7 @@ export async function listRecipeTaxonomy(): Promise<{
   tags: Array<{ id: string; name: string }>;
 }> {
   const { supabase, user } = await getAuthenticatedClient();
-  const [categoriesResult, tagsResult] = await Promise.all([
-    supabase
-      .from("categories")
-      .select("id, name")
-      .eq("user_id", user.id)
-      .order("sort_order", { ascending: true })
-      .order("name", { ascending: true }),
-    supabase
-      .from("tags")
-      .select("id, name")
-      .eq("user_id", user.id)
-      .order("name", { ascending: true }),
-  ]);
-
-  if (categoriesResult.error || tagsResult.error) {
-    throw new Error("分类和标签暂时无法加载");
-  }
-
-  return {
-    categories: categoriesResult.data ?? [],
-    tags: tagsResult.data ?? [],
-  };
+  return listRecipeTaxonomyForClient(supabase, user.id);
 }
 
 export async function getRecipeDetail(recipeId: string): Promise<RecipeDetail | null> {

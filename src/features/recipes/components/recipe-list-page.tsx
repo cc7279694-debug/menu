@@ -5,7 +5,7 @@ import { RecipeListEmpty } from "@/features/recipes/components/recipe-list-empty
 import { RecipePagination } from "@/features/recipes/components/recipe-pagination";
 import { RecipeSearchFilters } from "@/features/recipes/components/recipe-search-filters";
 import { parseRecipeListQuery, type RecipeListQuery } from "@/features/recipes/query-params";
-import { listRecipeSummaries, listRecipeTaxonomy } from "@/features/recipes/queries";
+import { listRecipePageData } from "@/features/recipes/queries";
 
 type SearchParams = Record<string, string | string[] | undefined>;
 
@@ -21,7 +21,7 @@ function toSearchParams(input: SearchParams) {
 export async function RecipeListPage({ searchParams, favoriteOnly = false, title }: { searchParams: Promise<SearchParams>; favoriteOnly?: boolean; title: string }) {
   const parsed = parseRecipeListQuery(toSearchParams(await searchParams));
   const query: RecipeListQuery = { ...parsed, favoriteOnly: favoriteOnly || parsed.favoriteOnly, deletedOnly: favoriteOnly ? false : parsed.deletedOnly };
-  const [{ items, totalCount }, taxonomy] = await Promise.all([listRecipeSummaries(query), listRecipeTaxonomy()]);
+  const { items, totalCount, categories, tags } = await listRecipePageData(query);
   const isFiltered = Boolean(query.query || query.categoryId || query.tagId || query.favoriteOnly);
   const emptyMode = query.deletedOnly ? "trash" : isFiltered ? "filtered" : "all";
 
@@ -37,7 +37,7 @@ export async function RecipeListPage({ searchParams, favoriteOnly = false, title
           <Link className="rounded-lg bg-primary px-3 py-2 text-sm text-primary-foreground" href="/recipes/new">新建菜谱</Link>
         </div>
       </header>
-      <RecipeSearchFilters current={query} categories={taxonomy.categories} tags={taxonomy.tags} />
+      <RecipeSearchFilters current={query} categories={categories} tags={tags} />
       {items.length ? <RecipeGrid deleted={query.deletedOnly} recipes={items} /> : <RecipeListEmpty mode={emptyMode} />}
       <RecipePagination basePath={favoriteOnly ? "/favorites" : "/recipes"} query={query} totalCount={totalCount} />
     </main>
