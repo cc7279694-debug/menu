@@ -148,6 +148,8 @@ describe("CookingScreen", () => {
 
     render(<CookingScreen recipe={recipeWithImage} requestedServings={2} restart={false} />);
     expect(screen.getByRole("button", { name: "查看步骤 1 图片" })).toHaveClass("min-h-11");
+    expect(screen.getByRole("img", { name: "步骤 1 图片，点击查看大图" })).toHaveAttribute("loading", "lazy");
+    expect(screen.getByRole("img", { name: "步骤 1 图片，点击查看大图" })).toHaveAttribute("decoding", "async");
     await user.click(screen.getByRole("button", { name: "查看步骤 1 图片" }));
 
     expect(screen.getByRole("dialog")).toBeInTheDocument();

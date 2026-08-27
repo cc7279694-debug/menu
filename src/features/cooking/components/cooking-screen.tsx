@@ -65,11 +65,11 @@ export function CookingScreen({ recipe, requestedServings, restart }: CookingScr
         {cooking.currentStep.imageUrl && (
           <Dialog>
             <DialogTrigger aria-label={`查看步骤 ${cooking.currentIndex + 1} 图片`} render={<button className="block min-h-11 w-full overflow-hidden rounded-xl focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring" type="button" />}>
-              <img alt={`步骤 ${cooking.currentIndex + 1} 图片，点击查看大图`} className="max-h-80 w-full object-cover" src={cooking.currentStep.imageUrl} />
+              <img alt={`步骤 ${cooking.currentIndex + 1} 图片，点击查看大图`} className="max-h-80 w-full object-cover" decoding="async" height={800} loading="lazy" src={cooking.currentStep.imageUrl} width={1200} />
             </DialogTrigger>
             <DialogContent className="max-w-3xl" showCloseButton={false}>
               <DialogTitle>步骤 {cooking.currentIndex + 1} 图片</DialogTitle>
-              <img alt={`${recipe.title}，第 ${cooking.currentIndex + 1} 步图片`} className="max-h-[75vh] w-full rounded-lg object-contain" src={cooking.currentStep.imageUrl} />
+              <img alt={`${recipe.title}，第 ${cooking.currentIndex + 1} 步图片`} className="max-h-[75vh] w-full rounded-lg object-contain" decoding="async" height={800} loading="lazy" src={cooking.currentStep.imageUrl} width={1200} />
               <DialogClose render={<Button className="min-h-11" type="button" variant="outline" />}>关闭步骤图片</DialogClose>
             </DialogContent>
           </Dialog>
@@ -100,7 +100,7 @@ export function CookingScreen({ recipe, requestedServings, restart }: CookingScr
 
       <TimerTray onCancel={cooking.cancelTimer} onDismiss={cooking.dismissTimer} timers={cooking.timerViews} />
 
-      <nav aria-label="烹饪步骤" className="fixed inset-x-0 bottom-[calc(3.5rem+env(safe-area-inset-bottom))] z-30 border-t bg-background/95 p-3 backdrop-blur sm:static sm:rounded-xl sm:border">
+      <nav aria-label="烹饪步骤" className="fixed inset-x-0 bottom-[calc(3.5rem+env(safe-area-inset-bottom))] z-30 border-t bg-background/98 p-3 backdrop-blur-sm sm:static sm:rounded-xl sm:border sm:backdrop-blur-0">
         <div className="mx-auto flex max-w-3xl justify-between gap-3">
           <Button className="min-h-11" disabled={cooking.currentIndex === 0} onClick={cooking.previous} type="button" variant="outline">上一步</Button>
           {cooking.currentIndex === recipe.steps.length - 1 ? (

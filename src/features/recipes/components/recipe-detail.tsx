@@ -36,7 +36,7 @@ export function RecipeDetailView({ recipe }: { recipe: RecipeDetailValue }) {
         </div>
       </div>
 
-      {recipe.coverUrl && <img alt={`${recipe.title}封面`} className="max-h-[28rem] w-full rounded-2xl object-cover" src={recipe.coverUrl} />}
+      {recipe.coverUrl && <img alt={`${recipe.title}封面`} className="max-h-[28rem] w-full rounded-2xl object-cover" decoding="async" height={800} loading="eager" src={recipe.coverUrl} width={1200} />}
 
       <section className="grid gap-6 lg:grid-cols-[minmax(16rem,0.8fr)_minmax(0,1.2fr)]">
         <div className="rounded-2xl border bg-card p-5">
@@ -53,7 +53,7 @@ export function RecipeDetailView({ recipe }: { recipe: RecipeDetailValue }) {
                   <p className="whitespace-pre-wrap leading-7">{step.instruction}</p>
                   {step.timerSeconds && <p className="text-sm text-muted-foreground">计时 {Math.ceil(step.timerSeconds / 60)} 分钟</p>}
                   {step.ingredientLinks.length > 0 && <div className="flex flex-wrap gap-2">{step.ingredientLinks.map((link) => { const ingredient = ingredients.get(link.recipeIngredientId); return ingredient ? <Badge key={link.recipeIngredientId} variant="outline">{ingredient.name}{link.note ? ` · ${link.note}` : ""}</Badge> : null; })}</div>}
-                  {step.imageUrl && <img alt={`步骤 ${index + 1}`} className="max-h-80 w-full rounded-xl object-cover" src={step.imageUrl} />}
+                  {step.imageUrl && <img alt={`步骤 ${index + 1}`} className="max-h-80 w-full rounded-xl object-cover" decoding="async" height={800} loading="lazy" src={step.imageUrl} width={1200} />}
                 </div>
               </div>
             </article>

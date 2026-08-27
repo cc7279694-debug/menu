@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import type { RecipeDetail } from "@/features/recipes/types";
 
@@ -59,7 +59,10 @@ function notificationApi(): typeof Notification | null {
 
 export function useCookingSession(options: UseCookingSessionOptions): CookingSessionController {
   const recipe = options.recipe;
-  const orderedSteps = [...recipe.steps].sort((left, right) => left.sortOrder - right.sortOrder || left.id.localeCompare(right.id));
+  const orderedSteps = useMemo(
+    () => [...recipe.steps].sort((left, right) => left.sortOrder - right.sortOrder || left.id.localeCompare(right.id)),
+    [recipe.steps],
+  );
   const [session, setSession] = useState(() => createCookingSession(recipe, options.requestedServings, 0));
   const [now, setNow] = useState(0);
   const [storageAvailable, setStorageAvailable] = useState(true);
@@ -122,15 +125,22 @@ export function useCookingSession(options: UseCookingSessionOptions): CookingSes
     setNotificationStatus(notification.permission);
   }, []);
 
+  const hasActiveTimer = session.timers.some((timer) => timer.notifiedAt === null && timer.endsAt > now);
+
   useEffect(() => {
     const refreshNow = () => setNow(Date.now());
-    const interval = window.setInterval(refreshNow, 1_000);
     document.addEventListener("visibilitychange", refreshNow);
+
+    if (!hasActiveTimer) {
+      return () => document.removeEventListener("visibilitychange", refreshNow);
+    }
+
+    const interval = window.setInterval(refreshNow, 1_000);
     return () => {
       window.clearInterval(interval);
       document.removeEventListener("visibilitychange", refreshNow);
     };
-  }, []);
+  }, [hasActiveTimer]);
 
   useEffect(() => {
     const notification = notificationApi();

@@ -1,4 +1,5 @@
 import { render, screen, waitFor } from "@testing-library/react";
+import { Profiler } from "react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 
@@ -16,6 +17,28 @@ vi.mock("@/lib/supabase/browser", () => ({
 const userId = "11111111-1111-4111-8111-111111111111";
 
 describe("RecipeEditor", () => {
+  it("keeps the editor shell from rerendering for every step keystroke", async () => {
+    const user = userEvent.setup();
+    const onRender = vi.fn();
+
+    render(
+      <Profiler id="recipe-editor" onRender={onRender}>
+        <RecipeEditor
+          mode="create"
+          userId={userId}
+          categories={[]}
+          tags={[]}
+          onSaved={vi.fn()}
+        />
+      </Profiler>,
+    );
+
+    const rendersBeforeTyping = onRender.mock.calls.length;
+    await user.type(screen.getByLabelText("步骤说明"), "先切块再翻炒");
+
+    expect(onRender.mock.calls.length - rendersBeforeTyping).toBeLessThan(3);
+  });
+
   it("starts with editable basics and lets the user add ingredients and steps", async () => {
     const user = userEvent.setup();
     render(

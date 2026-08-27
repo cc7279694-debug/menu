@@ -54,6 +54,20 @@ afterEach(() => {
 });
 
 describe("useCookingSession", () => {
+  it("does not start a polling interval until a timer is active", async () => {
+    const setIntervalSpy = vi.spyOn(window, "setInterval");
+    const { result } = renderHook(() => useCookingSession({ recipe, requestedServings: 2, restart: false }));
+
+    expect(setIntervalSpy).not.toHaveBeenCalled();
+
+    await act(async () => {
+      await result.current.startTimer("step-1", "煮沸", 120);
+    });
+
+    expect(setIntervalSpy).toHaveBeenCalledTimes(1);
+    setIntervalSpy.mockRestore();
+  });
+
   it("restores the saved step and navigates in sorted step order", () => {
     const saved = createCookingSession(recipe, 4, Date.now());
     saved.currentStepId = "step-2";

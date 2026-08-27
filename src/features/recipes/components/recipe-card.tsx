@@ -9,7 +9,7 @@ export function RecipeCard({ recipe, deleted = false }: { recipe: RecipeSummary;
   const content = (
     <>
       {recipe.coverUrl ? (
-        <img alt={`${recipe.title}封面`} className="aspect-[4/3] w-full object-cover" src={recipe.coverUrl} />
+        <img alt={`${recipe.title}封面`} className="aspect-[4/3] w-full object-cover" decoding="async" height={600} loading="lazy" src={recipe.coverUrl} width={800} />
       ) : (
         <div className="flex aspect-[4/3] items-center justify-center bg-muted text-sm text-muted-foreground">暂无封面</div>
       )}

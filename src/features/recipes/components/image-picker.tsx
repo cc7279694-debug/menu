@@ -33,7 +33,11 @@ export function ImagePicker({ label, value, previewUrl, onChange }: ImagePickerP
         <img
           alt={`${label}预览`}
           className="aspect-video w-full max-w-md rounded-xl border object-cover"
+          decoding="async"
+          height={360}
+          loading="lazy"
           src={imageUrl}
+          width={640}
         />
       ) : (
         <div className="flex aspect-video max-w-md items-center justify-center rounded-xl border border-dashed text-sm text-muted-foreground">

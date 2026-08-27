@@ -1,5 +1,15 @@
 import { describe, expect, it, vi } from "vitest";
 
+const imageCompressionModule = vi.hoisted(() => ({
+  loaded: false,
+  compress: vi.fn(async (source: File) => source),
+}));
+
+vi.mock("browser-image-compression", () => {
+  imageCompressionModule.loaded = true;
+  return { default: imageCompressionModule.compress };
+});
+
 import {
   buildRecipeMediaPath,
   getObsoleteRecipeMediaPaths,
@@ -14,6 +24,24 @@ const stepId = "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb";
 const image = new File([new Uint8Array([1, 2, 3])], "photo.jpg", { type: "image/jpeg" });
 
 describe("recipe media upload", () => {
+  it("loads the image compressor only when an upload uses the default compressor", async () => {
+    expect(imageCompressionModule.loaded).toBe(false);
+
+    await uploadRecipeMedia({
+      userId,
+      recipeId,
+      cover: image,
+      steps: {},
+      bucket: {
+        upload: vi.fn().mockResolvedValue({ data: {}, error: null }),
+        remove: vi.fn().mockResolvedValue({ data: [], error: null }),
+      },
+      createAssetId: () => "asset-lazy",
+    });
+
+    expect(imageCompressionModule.loaded).toBe(true);
+  });
+
   it("builds owner-scoped immutable paths", () => {
     expect(buildRecipeMediaPath(userId, recipeId, "cover", "asset-1")).toBe(
       `${userId}/recipes/${recipeId}/cover/asset-1.webp`,

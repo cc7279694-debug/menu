@@ -1,5 +1,3 @@
-import imageCompression from "browser-image-compression";
-
 import {
   MAX_IMAGE_DIMENSION,
   TARGET_IMAGE_BYTES,
@@ -87,14 +85,15 @@ function toWebpFile(value: File | Blob, originalName: string): File {
 }
 
 async function compressImage(file: File, compress: UploadRecipeMediaInput["compress"]): Promise<File> {
-  const compressor: NonNullable<UploadRecipeMediaInput["compress"]> =
-    compress ?? ((source, options) => imageCompression(source, options));
-  const result = await compressor(file, {
+  const options = {
     maxSizeMB: TARGET_IMAGE_BYTES / (1024 * 1024),
     maxWidthOrHeight: MAX_IMAGE_DIMENSION,
     useWebWorker: true,
     fileType: "image/webp",
-  });
+  } as const;
+  const result = compress
+    ? await compress(file, options)
+    : await (await import("browser-image-compression")).default(file, options);
   const output = toWebpFile(result, file.name);
   const validation = validateImageFile(file, output.size);
   if (!validation.ok) {

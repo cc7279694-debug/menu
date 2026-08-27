@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { useFieldArray, useForm } from "react-hook-form";
+import { useFieldArray, useForm, useWatch, type Control } from "react-hook-form";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -27,6 +27,37 @@ type RecipeEditorProps = {
   onSaved: (recipeId: string) => void;
   saveRecipe?: (input: unknown) => Promise<ActionResult<{ recipeId: string }>>;
 };
+
+function StepIngredientLinks({
+  control,
+  stepIndex,
+  onToggle,
+}: {
+  control: Control<RecipeSaveInput>;
+  stepIndex: number;
+  onToggle: (stepIndex: number, ingredientId: string, checked: boolean) => void;
+}) {
+  const ingredients = useWatch({ control, name: "ingredients" }) ?? [];
+  const links = useWatch({ control, name: `steps.${stepIndex}.ingredientLinks` }) ?? [];
+
+  return (
+    <div className="space-y-2">
+      <p className="text-sm font-medium">本步骤使用的食材</p>
+      <div className="flex flex-wrap gap-3">
+        {ingredients.map((ingredient, ingredientIndex) => ingredient.recipeIngredientId && (
+          <label className="flex items-center gap-2 text-sm" key={ingredient.recipeIngredientId}>
+            <input
+              checked={links.some((link) => link.recipeIngredientId === ingredient.recipeIngredientId)}
+              onChange={(event) => onToggle(stepIndex, ingredient.recipeIngredientId, event.target.checked)}
+              type="checkbox"
+            />
+            {ingredient.name || `食材 ${ingredientIndex + 1}`}
+          </label>
+        ))}
+      </div>
+    </div>
+  );
+}
 
 function createEmptyRecipe(): RecipeSaveInput {
   return {
@@ -86,16 +117,14 @@ export function RecipeEditor({
     register,
     control,
     handleSubmit,
+    getValues,
     setError,
     setValue,
-    watch,
     formState: { errors, isDirty },
   } = useForm<RecipeSaveInput>({ defaultValues });
-  const ingredients = watch("ingredients");
-  const watchedSteps = watch("steps");
   const ingredientFields = useFieldArray({ control, name: "ingredients", keyName: "fieldKey" });
   const stepFields = useFieldArray({ control, name: "steps", keyName: "fieldKey" });
-  const selectedTags = watch("tagIds");
+  const selectedTags = useWatch({ control, name: "tagIds" }) ?? [];
 
   useEffect(() => {
     const warn = (event: BeforeUnloadEvent) => {
@@ -207,7 +236,7 @@ export function RecipeEditor({
   }
 
   const toggleStepIngredient = (stepIndex: number, ingredientId: string, checked: boolean) => {
-    const links = watchedSteps[stepIndex]?.ingredientLinks ?? [];
+    const links = getValues(`steps.${stepIndex}.ingredientLinks`) ?? [];
     if (checked) {
       setValue(`steps.${stepIndex}.ingredientLinks`, [
         ...links,
@@ -219,10 +248,11 @@ export function RecipeEditor({
   };
 
   const removeIngredient = (index: number) => {
+    const ingredients = getValues("ingredients");
     const id = ingredients[index]?.recipeIngredientId;
     ingredientFields.remove(index);
     if (id) {
-      watchedSteps.forEach((step, stepIndex) => {
+      getValues("steps").forEach((step, stepIndex) => {
         setValue(`steps.${stepIndex}.ingredientLinks`, step.ingredientLinks.filter((link) => link.recipeIngredientId !== id), { shouldDirty: true });
       });
     }
@@ -305,7 +335,7 @@ export function RecipeEditor({
 
       <section className="space-y-4 rounded-2xl border bg-card p-5">
         <div className="flex items-center justify-between gap-4"><div><h2 className="text-xl font-semibold">步骤</h2><p className="text-sm text-muted-foreground">每一步可以关联当前要用的食材并设置计时。</p></div><Button onClick={() => stepFields.append({ stepId: crypto.randomUUID(), instruction: "", imagePath: null, timerSeconds: null, sortOrder: stepFields.fields.length, ingredientLinks: [] })} type="button" variant="outline">添加步骤</Button></div>
-        <div className="space-y-4">{stepFields.fields.map((field, index) => <div className="space-y-4 rounded-xl border p-4" key={field.fieldKey}><div className="flex flex-wrap items-center justify-between gap-2"><h3 className="font-medium">第 {index + 1} 步</h3><div className="flex items-center gap-1"><Button aria-label={`上移步骤 ${index + 1}`} className="px-2" disabled={index === 0} onClick={() => moveStep(index, -1)} type="button" variant="ghost">↑</Button><Button aria-label={`下移步骤 ${index + 1}`} className="px-2" disabled={index === stepFields.fields.length - 1} onClick={() => moveStep(index, 1)} type="button" variant="ghost">↓</Button><Button aria-label={`移除步骤 ${index + 1}`} onClick={() => stepFields.remove(index)} type="button" variant="ghost">移除</Button></div></div><div className="space-y-1"><Label htmlFor={`step-${index}`}>步骤说明</Label><Textarea id={`step-${index}`} {...register(`steps.${index}.instruction`, { required: "请先填写步骤说明" })} />{errors.steps?.[index]?.instruction && <p className="text-sm text-destructive">{errors.steps[index]?.instruction?.message}</p>}</div><div className="grid gap-3 md:grid-cols-2"><div className="space-y-1"><Label htmlFor={`timer-${index}`}>计时（秒，可选）</Label><Input id={`timer-${index}`} min={1} type="number" {...register(`steps.${index}.timerSeconds`, { valueAsNumber: true })} /></div><ImagePicker label={`第 ${index + 1} 步图片`} onChange={(file) => { setStepFiles((current) => ({ ...current, [field.stepId]: file })); setRemovedStepIds((current) => { const next = new Set(current); if (file) next.delete(field.stepId); else next.add(field.stepId); return next; }); }} value={stepFiles[field.stepId]} previewUrl={removedStepIds.has(field.stepId) ? null : stepPreviewUrls[field.stepId] ?? null} /></div><div className="space-y-2"><p className="text-sm font-medium">本步骤使用的食材</p><div className="flex flex-wrap gap-3">{ingredients.map((ingredient, ingredientIndex) => ingredient.recipeIngredientId && <label className="flex items-center gap-2 text-sm" key={ingredient.recipeIngredientId}><input checked={(watchedSteps[index]?.ingredientLinks ?? []).some((link) => link.recipeIngredientId === ingredient.recipeIngredientId)} onChange={(event) => toggleStepIngredient(index, ingredient.recipeIngredientId, event.target.checked)} type="checkbox" />{ingredient.name || `食材 ${ingredientIndex + 1}`}</label>)}</div></div></div>)}</div>
+        <div className="space-y-4">{stepFields.fields.map((field, index) => <div className="space-y-4 rounded-xl border p-4" key={field.fieldKey}><div className="flex flex-wrap items-center justify-between gap-2"><h3 className="font-medium">第 {index + 1} 步</h3><div className="flex items-center gap-1"><Button aria-label={`上移步骤 ${index + 1}`} className="px-2" disabled={index === 0} onClick={() => moveStep(index, -1)} type="button" variant="ghost">↑</Button><Button aria-label={`下移步骤 ${index + 1}`} className="px-2" disabled={index === stepFields.fields.length - 1} onClick={() => moveStep(index, 1)} type="button" variant="ghost">↓</Button><Button aria-label={`移除步骤 ${index + 1}`} onClick={() => stepFields.remove(index)} type="button" variant="ghost">移除</Button></div></div><div className="space-y-1"><Label htmlFor={`step-${index}`}>步骤说明</Label><Textarea id={`step-${index}`} {...register(`steps.${index}.instruction`, { required: "请先填写步骤说明" })} />{errors.steps?.[index]?.instruction && <p className="text-sm text-destructive">{errors.steps[index]?.instruction?.message}</p>}</div><div className="grid gap-3 md:grid-cols-2"><div className="space-y-1"><Label htmlFor={`timer-${index}`}>计时（秒，可选）</Label><Input id={`timer-${index}`} min={1} type="number" {...register(`steps.${index}.timerSeconds`, { valueAsNumber: true })} /></div><ImagePicker label={`第 ${index + 1} 步图片`} onChange={(file) => { setStepFiles((current) => ({ ...current, [field.stepId]: file })); setRemovedStepIds((current) => { const next = new Set(current); if (file) next.delete(field.stepId); else next.add(field.stepId); return next; }); }} value={stepFiles[field.stepId]} previewUrl={removedStepIds.has(field.stepId) ? null : stepPreviewUrls[field.stepId] ?? null} /></div><StepIngredientLinks control={control} onToggle={toggleStepIngredient} stepIndex={index} /></div>)}</div>
       </section>
     </form>
   );
