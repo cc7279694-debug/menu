@@ -220,6 +220,7 @@ describe("ShoppingPage", () => {
     const user = userEvent.setup();
     Object.defineProperty(navigator, "onLine", { configurable: true, value: false });
     renderPage();
+    await screen.findByText(/联网后可用/);
 
     const tomatoRow = screen.getByRole("listitem", { name: /番茄/ });
     await user.click(within(tomatoRow).getByRole("checkbox", { name: "番茄 标记为已完成" }));
@@ -239,6 +240,67 @@ describe("ShoppingPage", () => {
     expect(within(tomatoRow).getByRole("button", { name: "编辑番茄" })).toBeDisabled();
     expect(within(tomatoRow).getByRole("button", { name: "删除番茄" })).toBeDisabled();
     expect(screen.getByText(/联网后可用/)).toBeInTheDocument();
+  });
+
+  it("closes an opened generator when the browser changes to offline", async () => {
+    const user = userEvent.setup();
+    renderPage();
+
+    await user.click(screen.getByRole("button", { name: "生成购物清单" }));
+    expect(screen.getByRole("dialog", { name: "生成购物清单" })).toBeInTheDocument();
+
+    Object.defineProperty(navigator, "onLine", { configurable: true, value: false });
+    window.dispatchEvent(new Event("offline"));
+
+    await waitFor(() => expect(screen.queryByRole("dialog", { name: "生成购物清单" })).not.toBeInTheDocument());
+    expect(screen.getByRole("button", { name: "生成购物清单" })).toBeDisabled();
+  });
+
+  it("writes every confirmed online local mutation to a complete shopping snapshot", async () => {
+    const user = userEvent.setup();
+    renderPage();
+    await waitFor(() => expect(offlineDatabase.putShoppingSnapshot).toHaveBeenCalledTimes(1));
+    offlineDatabase.putShoppingSnapshot.mockClear();
+
+    const tomatoRow = screen.getByRole("listitem", { name: /番茄/ });
+    await user.click(within(tomatoRow).getByRole("checkbox", { name: "番茄 标记为已完成" }));
+    await waitFor(() => expect(offlineDatabase.putShoppingSnapshot).toHaveBeenCalledTimes(1));
+
+    await user.click(within(screen.getByRole("listitem", { name: /海盐/ })).getByRole("button", { name: "上移海盐" }));
+    await waitFor(() => expect(offlineDatabase.putShoppingSnapshot).toHaveBeenCalledTimes(2));
+
+    await user.click(screen.getByRole("button", { name: "添加食材" }));
+    await user.type(screen.getByLabelText("食材名称"), "厨房纸");
+    await user.click(screen.getByRole("button", { name: "保存食材" }));
+    await waitFor(() => expect(offlineDatabase.putShoppingSnapshot).toHaveBeenCalledTimes(3));
+
+    const napkinRow = screen.getByRole("listitem", { name: /餐巾纸/ });
+    await user.click(within(napkinRow).getByRole("button", { name: "编辑餐巾纸" }));
+    await user.clear(screen.getByLabelText("文本数量"));
+    await user.type(screen.getByLabelText("文本数量"), "两包");
+    await user.click(screen.getByRole("button", { name: "保存食材" }));
+    await waitFor(() => expect(offlineDatabase.putShoppingSnapshot).toHaveBeenCalledTimes(4));
+
+    await user.click(within(napkinRow).getByRole("button", { name: "删除餐巾纸" }));
+    await user.click(screen.getByRole("button", { name: "确认删除" }));
+    await waitFor(() => expect(offlineDatabase.putShoppingSnapshot).toHaveBeenCalledTimes(5));
+
+    await user.click(screen.getByRole("button", { name: "清理已完成" }));
+    await user.click(screen.getByRole("button", { name: "确认清理" }));
+    await waitFor(() => expect(offlineDatabase.putShoppingSnapshot).toHaveBeenCalledTimes(6));
+
+    const snapshot = offlineDatabase.putShoppingSnapshot.mock.calls[5]?.[0];
+    expect(snapshot).toEqual(expect.objectContaining({
+      userId,
+      listId,
+      list: expect.objectContaining({
+        items: [
+          expect.objectContaining({ id: saltId, isChecked: false, sortOrder: 0 }),
+          expect.objectContaining({ nameSnapshot: "厨房纸", isChecked: false, sortOrder: 1 }),
+        ],
+      }),
+    }));
+    expect(offlineDatabase.queueShoppingToggle).not.toHaveBeenCalled();
   });
 
   it("shows onboarding when no current list exists and keeps the generator ready", () => {

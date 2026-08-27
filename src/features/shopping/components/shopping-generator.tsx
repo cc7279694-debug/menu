@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 
 import { Button } from "@/components/ui/button";
@@ -93,7 +93,7 @@ export function ShoppingGenerator({ disabled = false, initialRecipes, onGenerate
     return () => window.clearTimeout(timer);
   }, [open]);
 
-  function resetFlow() {
+  const resetFlow = useCallback(() => {
     setStep("select");
     setRecipes(initialRecipes);
     setSelectedById({});
@@ -107,7 +107,13 @@ export function ShoppingGenerator({ disabled = false, initialRecipes, onGenerate
     generatingRef.current = false;
     previewRequestRef.current += 1;
     searchRequestRef.current += 1;
-  }
+  }, [initialRecipes]);
+
+  useEffect(() => {
+    if (!disabled) return;
+    setOpen(false);
+    resetFlow();
+  }, [disabled, resetFlow]);
 
   function handleOpenChange(nextOpen: boolean) {
     if (disabled && nextOpen) return;

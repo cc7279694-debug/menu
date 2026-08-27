@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState, useTransition } from "react";
+import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { PlusIcon } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -90,6 +90,7 @@ export function ShoppingPage({ currentList, initialRecipes, userId }: ShoppingPa
   const online = useOnlineStatus();
   const offline = !online;
   const [items, setItems] = useState<ShoppingListItemSummary[]>(() => currentList?.items ?? []);
+  const itemsRef = useRef(items);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
   const [pendingControl, setPendingControl] = useState<PendingControl>(null);
   const [editorOpen, setEditorOpen] = useState(false);
@@ -97,7 +98,9 @@ export function ShoppingPage({ currentList, initialRecipes, userId }: ShoppingPa
   const [confirmState, setConfirmState] = useState<ConfirmState>(null);
 
   useEffect(() => {
-    setItems(currentList?.items ?? []);
+    const nextItems = currentList?.items ?? [];
+    itemsRef.current = nextItems;
+    setItems(nextItems);
     setStatusMessage(null);
     setPendingControl(null);
     setEditorOpen(false);
@@ -127,6 +130,33 @@ export function ShoppingPage({ currentList, initialRecipes, userId }: ShoppingPa
     setEditingItem(null);
     setConfirmState(null);
   }, [offline]);
+
+  function setCurrentItems(update: (current: ShoppingListItemSummary[]) => ShoppingListItemSummary[]) {
+    const nextItems = update(itemsRef.current);
+    itemsRef.current = nextItems;
+    setItems(nextItems);
+    return nextItems;
+  }
+
+  function persistShoppingSnapshot(nextItems: ShoppingListItemSummary[]) {
+    if (!currentList) return;
+
+    const cachedAt = new Date().toISOString();
+    // This only replaces the snapshot record; pending toggle queue records remain untouched.
+    void putShoppingSnapshot({
+      userId,
+      listId: currentList.id,
+      cachedAt,
+      serverUpdatedAt: currentList.updatedAt,
+      dataVersion: 1,
+      list: { ...currentList, items: nextItems },
+    }).catch(() => undefined);
+  }
+
+  function applyOnlineItems(update: (current: ShoppingListItemSummary[]) => ShoppingListItemSummary[]) {
+    const nextItems = setCurrentItems(update);
+    persistShoppingSnapshot(nextItems);
+  }
 
   const sortedItems = useMemo(() => sortItems(items), [items]);
   const checkedCount = items.filter((item) => item.isChecked).length;
@@ -168,7 +198,7 @@ export function ShoppingPage({ currentList, initialRecipes, userId }: ShoppingPa
         targetChecked: isChecked,
       })
         .then(() => {
-          setItems((current) => replaceItem(current, item.id, (currentItem) => ({ ...currentItem, isChecked })));
+          setCurrentItems((current) => replaceItem(current, item.id, (currentItem) => ({ ...currentItem, isChecked })));
         })
         .catch(() => {
           setStatusMessage("离线操作保存失败，请重试");
@@ -185,13 +215,13 @@ export function ShoppingPage({ currentList, initialRecipes, userId }: ShoppingPa
         itemId: item.id,
         isChecked,
       }),
-      () => setItems((current) => replaceItem(current, item.id, (currentItem) => ({ ...currentItem, isChecked }))),
+      () => applyOnlineItems((current) => replaceItem(current, item.id, (currentItem) => ({ ...currentItem, isChecked }))),
     );
   }
 
   function handleReorder(itemId: string, direction: "up" | "down") {
     if (!currentList || offline) return;
-    const currentOrder = sortItems(items);
+    const currentOrder = sortItems(itemsRef.current);
     const currentIndex = currentOrder.findIndex((item) => item.id === itemId);
     const targetIndex = direction === "up" ? currentIndex - 1 : currentIndex + 1;
     if (currentIndex < 0 || targetIndex < 0 || targetIndex >= currentOrder.length) return;
@@ -202,7 +232,7 @@ export function ShoppingPage({ currentList, initialRecipes, userId }: ShoppingPa
     runMutation(
       { kind: "reorder", id: itemId },
       () => reorderShoppingItemsAction({ shoppingListId: currentList.id, itemIds }),
-      () => setItems(nextOrder.map((item, index) => ({ ...item, sortOrder: index }))),
+      () => applyOnlineItems(() => nextOrder.map((item, index) => ({ ...item, sortOrder: index }))),
     );
   }
 
@@ -233,7 +263,7 @@ export function ShoppingPage({ currentList, initialRecipes, userId }: ShoppingPa
         aisle: value.aisle,
       }),
       (data) => {
-        setItems((current) => itemId
+        applyOnlineItems((current) => itemId
           ? replaceItem(current, itemId, (item) => ({
             ...item,
             nameSnapshot: value.nameSnapshot,
@@ -256,7 +286,7 @@ export function ShoppingPage({ currentList, initialRecipes, userId }: ShoppingPa
       { kind: "delete", id: itemId },
       () => deleteShoppingItemAction({ shoppingListId: currentList.id, itemId }),
       () => {
-        setItems((current) => normalizeOrder(current.filter((item) => item.id !== itemId)));
+        applyOnlineItems((current) => normalizeOrder(current.filter((item) => item.id !== itemId)));
         setConfirmState(null);
       },
     );
@@ -268,7 +298,7 @@ export function ShoppingPage({ currentList, initialRecipes, userId }: ShoppingPa
       { kind: "clear" },
       () => clearCompletedShoppingItemsAction({ shoppingListId: currentList.id }),
       () => {
-        setItems((current) => normalizeOrder(current.filter((item) => !item.isChecked)));
+        applyOnlineItems((current) => normalizeOrder(current.filter((item) => !item.isChecked)));
         setConfirmState(null);
       },
     );
