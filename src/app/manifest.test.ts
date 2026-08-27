@@ -23,7 +23,7 @@ describe("PWA public shell", () => {
     const result = manifest();
 
     expect(result).toMatchObject({
-      name: "食序",
+      name: "食序 ORDINE",
       short_name: "食序",
       start_url: "/recipes",
       scope: "/",

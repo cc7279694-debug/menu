@@ -5,7 +5,7 @@ import { PROJECT_META } from "@/lib/project-meta";
 export default function manifest(): MetadataRoute.Manifest {
   return {
     name: PROJECT_META.name,
-    short_name: PROJECT_META.name,
+    short_name: PROJECT_META.shortName,
     description: PROJECT_META.description,
     start_url: "/recipes",
     scope: "/",
