@@ -19,7 +19,12 @@ export function toOfflineRecipeSnapshot(
       coverPath: null,
       ingredients: recipe.ingredients.map((ingredient) => ({ ...ingredient })),
       tags: recipe.tags.map((tag) => ({ ...tag })),
-      steps: recipe.steps.map((step) => ({ ...step, imageUrl: null, imagePath: null })),
+      steps: recipe.steps.map((step) => ({
+        ...step,
+        imageUrl: null,
+        imagePath: null,
+        ingredientLinks: step.ingredientLinks.map((link) => ({ ...link })),
+      })),
     },
   };
 }

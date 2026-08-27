@@ -28,7 +28,10 @@ const recipe: RecipeDetail = {
   steps: [{
     id: "step-a", instruction: "翻炒", imageUrl: "https://example.invalid/step.jpg",
     imagePath: "recipes/step.jpg", timerSeconds: null, sortOrder: 0,
-    ingredientLinks: [],
+    ingredientLinks: [{
+      recipeIngredientId: "ingredient-a", quantityOverride: null,
+      quantityTextOverride: null, note: "切碎",
+    }],
   }],
 };
 
@@ -40,6 +43,8 @@ describe("toOfflineRecipeSnapshot", () => {
     expect(snapshot.recipe.coverUrl).toBeNull();
     expect(snapshot.recipe.coverPath).toBeNull();
     expect(snapshot.recipe.steps[0]).toMatchObject({ imageUrl: null, imagePath: null });
+    snapshot.recipe.steps[0].ingredientLinks[0].note = "已修改";
+    expect(recipe.steps[0].ingredientLinks[0].note).toBe("切碎");
     expect(snapshot.dataVersion).toBe(1);
     expect(snapshot.cachedAt).toBe(NOW);
     expect(snapshot.lastOpenedAt).toBe(NOW);

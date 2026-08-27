@@ -41,6 +41,7 @@ function db() {
 
 async function safe<T>(operation: (database: IDBPDatabase<OrdineOfflineSchema>) => Promise<T>) {
   try { return await operation(await db()); } catch (error) {
+    if (error instanceof Error && (error.message === "SHOPPING_SNAPSHOT_NOT_FOUND" || error.message === "SHOPPING_ITEM_NOT_FOUND")) throw error;
     if (error instanceof Error && error.message === STORAGE_ERROR) throw error;
     throw new Error(STORAGE_ERROR);
   }
@@ -145,4 +146,9 @@ export function clearOfflineData(): Promise<void> {
   return safe(async (database) => { const tx = database.transaction(["profiles", "recipes", "shoppingSnapshots", "shoppingToggleQueue"], "readwrite"); await Promise.all([tx.objectStore("profiles").clear(), tx.objectStore("recipes").clear(), tx.objectStore("shoppingSnapshots").clear(), tx.objectStore("shoppingToggleQueue").clear()]); await tx.done; });
 }
 
-export async function __resetOfflineDatabaseForTests(): Promise<void> { dbPromise = undefined; await deleteDB(DB_NAME); }
+export async function __resetOfflineDatabaseForTests(): Promise<void> {
+  const current = dbPromise;
+  dbPromise = undefined;
+  (await current)?.close();
+  await deleteDB(DB_NAME);
+}

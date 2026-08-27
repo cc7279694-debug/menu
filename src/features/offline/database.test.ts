@@ -1,12 +1,14 @@
 import "fake-indexeddb/auto";
 
-import { beforeEach, describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import type { OfflineRecipeSnapshot, OfflineShoppingSnapshot } from "./types";
 import {
   clearOfflineData,
+  __resetOfflineDatabaseForTests,
   deleteShoppingToggleIfCurrent,
   getLastOfflineProfile,
+  getRecipeSnapshot,
   getShoppingSnapshot,
   listRecipeSnapshots,
   listShoppingToggleQueue,
@@ -86,6 +88,26 @@ describe("offline database", () => {
 
   it("removes incompatible records instead of returning them", async () => {
     await putRecipeSnapshot({ ...baseRecipe("bad", "2026-08-27T00:00:00.000Z"), dataVersion: 2 as 1 });
-    expect(await listRecipeSnapshots("user-a")).toEqual([]);
+    expect(await getRecipeSnapshot("user-a", "bad")).toBeNull();
+    await putShoppingSnapshot({ ...shoppingSnapshot, dataVersion: 2 as 1 });
+    expect(await getShoppingSnapshot("user-a")).toBeNull();
+  });
+
+  it("returns a stable storage error when IndexedDB cannot open", async () => {
+    await __resetOfflineDatabaseForTests();
+    const indexedDb = globalThis.indexedDB;
+    vi.stubGlobal("indexedDB", { ...indexedDb, open: () => { throw new Error("simulated open failure"); } });
+    try {
+      await expect(getShoppingSnapshot("user-a")).rejects.toThrow("OFFLINE_STORAGE_UNAVAILABLE");
+      await expect(getShoppingSnapshot("secret-user")).rejects.not.toThrow("secret-user");
+    } finally {
+      vi.unstubAllGlobals();
+      await __resetOfflineDatabaseForTests();
+    }
+  });
+
+  it("preserves distinguishable business errors", async () => {
+    await expect(queueShoppingToggle({ userId: "user-a", listId: "missing", itemId: "missing", targetChecked: true }))
+      .rejects.toThrow("SHOPPING_SNAPSHOT_NOT_FOUND");
   });
 });
