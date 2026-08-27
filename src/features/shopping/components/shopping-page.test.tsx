@@ -4,7 +4,7 @@ import { describe, expect, it, beforeEach, vi } from "vitest";
 
 import type { ShoppingActiveList, ShoppingRecipeOption } from "@/features/shopping/types";
 
-const { actions, queries, router } = vi.hoisted(() => ({
+const { actions, offlineDatabase, queries, router, serverAuth } = vi.hoisted(() => ({
   actions: {
     clearCompletedShoppingItemsAction: vi.fn(),
     deleteShoppingItemAction: vi.fn(),
@@ -12,12 +12,20 @@ const { actions, queries, router } = vi.hoisted(() => ({
     saveShoppingItemAction: vi.fn(),
     setShoppingItemCheckedAction: vi.fn(),
   },
+  offlineDatabase: {
+    putShoppingSnapshot: vi.fn(),
+    queueShoppingToggle: vi.fn(),
+    rememberOfflineProfile: vi.fn(),
+  },
   queries: {
     getActiveShoppingList: vi.fn(),
     searchShoppingRecipeOptions: vi.fn(),
   },
   router: {
     refresh: vi.fn(),
+  },
+  serverAuth: {
+    getServerAuthContext: vi.fn(),
   },
 }));
 
@@ -36,10 +44,15 @@ vi.mock("@/features/shopping/actions", async (importOriginal) => ({
 
 vi.mock("@/features/shopping/queries", () => queries);
 
+vi.mock("@/features/offline/database", () => offlineDatabase);
+
+vi.mock("@/lib/supabase/server-auth", () => serverAuth);
+
 import ShoppingRoutePage from "@/app/(app)/shopping/page";
 import { ShoppingPage } from "@/features/shopping/components/shopping-page";
 
 const listId = "eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee";
+const userId = "99999999-9999-4999-8999-999999999999";
 const tomatoId = "11111111-1111-4111-8111-111111111111";
 const saltId = "22222222-2222-4222-8222-222222222222";
 const milkId = "33333333-3333-4333-8333-333333333333";
@@ -153,7 +166,7 @@ function deferred<T>() {
 }
 
 function renderPage(list: ShoppingActiveList | null = activeList()) {
-  return render(<ShoppingPage currentList={list} initialRecipes={recipeOptions} />);
+  return render(<ShoppingPage currentList={list} initialRecipes={recipeOptions} userId={userId} />);
 }
 
 function expectTouchTarget(button: HTMLElement) {
@@ -164,6 +177,7 @@ function expectTouchTarget(button: HTMLElement) {
 describe("shopping route page", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    serverAuth.getServerAuthContext.mockResolvedValue({ error: null, user: { id: userId } });
   });
 
   it("loads the active list and initial recipe options in parallel before rendering the protected route", async () => {
@@ -191,11 +205,40 @@ describe("shopping route page", () => {
 describe("ShoppingPage", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    Object.defineProperty(navigator, "onLine", { configurable: true, value: true });
     actions.clearCompletedShoppingItemsAction.mockResolvedValue({ ok: true, data: null });
     actions.deleteShoppingItemAction.mockResolvedValue({ ok: true, data: null });
     actions.reorderShoppingItemsAction.mockResolvedValue({ ok: true, data: null });
     actions.saveShoppingItemAction.mockResolvedValue({ ok: true, data: { itemId: "55555555-5555-4555-8555-555555555555" } });
     actions.setShoppingItemCheckedAction.mockResolvedValue({ ok: true, data: null });
+    offlineDatabase.putShoppingSnapshot.mockResolvedValue(undefined);
+    offlineDatabase.queueShoppingToggle.mockResolvedValue({});
+    offlineDatabase.rememberOfflineProfile.mockResolvedValue(undefined);
+  });
+
+  it("queues a toggle while offline and keeps every other shopping action unavailable", async () => {
+    const user = userEvent.setup();
+    Object.defineProperty(navigator, "onLine", { configurable: true, value: false });
+    renderPage();
+
+    const tomatoRow = screen.getByRole("listitem", { name: /番茄/ });
+    await user.click(within(tomatoRow).getByRole("checkbox", { name: "番茄 标记为已完成" }));
+
+    await waitFor(() => expect(offlineDatabase.queueShoppingToggle).toHaveBeenCalledWith({
+      userId,
+      listId,
+      itemId: tomatoId,
+      targetChecked: true,
+    }));
+    expect(actions.setShoppingItemCheckedAction).not.toHaveBeenCalled();
+    expect(within(tomatoRow).getByRole("checkbox", { name: "番茄 标记为未完成" })).toBeChecked();
+    expect(screen.getByRole("button", { name: "添加食材" })).toBeDisabled();
+    expect(screen.getByRole("button", { name: "清理已完成" })).toBeDisabled();
+    expect(screen.getByRole("button", { name: "生成购物清单" })).toBeDisabled();
+    expect(within(tomatoRow).getByRole("button", { name: "下移番茄" })).toBeDisabled();
+    expect(within(tomatoRow).getByRole("button", { name: "编辑番茄" })).toBeDisabled();
+    expect(within(tomatoRow).getByRole("button", { name: "删除番茄" })).toBeDisabled();
+    expect(screen.getByText(/联网后可用/)).toBeInTheDocument();
   });
 
   it("shows onboarding when no current list exists and keeps the generator ready", () => {

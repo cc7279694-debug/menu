@@ -14,6 +14,7 @@ type PendingControl = {
 
 type ShoppingItemRowProps = {
   item: ShoppingListItemSummary;
+  offline: boolean;
   pendingControl: PendingControl;
   canMoveUp: boolean;
   canMoveDown: boolean;
@@ -25,6 +26,7 @@ type ShoppingItemRowProps = {
 
 export function ShoppingItemRow({
   item,
+  offline,
   pendingControl,
   canMoveUp,
   canMoveDown,
@@ -78,7 +80,7 @@ export function ShoppingItemRow({
           <Button
             aria-label={`上移${item.nameSnapshot}`}
             className="min-h-11 min-w-11"
-            disabled={!canMoveUp || reorderPending}
+            disabled={offline || !canMoveUp || reorderPending}
             onClick={() => onReorder(item.id, "up")}
             size="icon"
             type="button"
@@ -89,7 +91,7 @@ export function ShoppingItemRow({
           <Button
             aria-label={`下移${item.nameSnapshot}`}
             className="min-h-11 min-w-11"
-            disabled={!canMoveDown || reorderPending}
+            disabled={offline || !canMoveDown || reorderPending}
             onClick={() => onReorder(item.id, "down")}
             size="icon"
             type="button"
@@ -100,6 +102,7 @@ export function ShoppingItemRow({
           <Button
             aria-label={`编辑${item.nameSnapshot}`}
             className="min-h-11 min-w-11"
+            disabled={offline}
             onClick={() => onEdit(item)}
             size="icon"
             type="button"
@@ -110,6 +113,7 @@ export function ShoppingItemRow({
           <Button
             aria-label={`删除${item.nameSnapshot}`}
             className="min-h-11 min-w-11"
+            disabled={offline}
             onClick={() => onDelete(item)}
             size="icon"
             type="button"

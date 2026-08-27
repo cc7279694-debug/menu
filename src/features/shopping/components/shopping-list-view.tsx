@@ -8,6 +8,7 @@ type PendingControl = {
 
 type ShoppingListViewProps = {
   items: ShoppingListItemSummary[];
+  offline: boolean;
   pendingControl: PendingControl;
   onToggle: (item: ShoppingListItemSummary, isChecked: boolean) => void;
   onEdit: (item: ShoppingListItemSummary) => void;
@@ -48,6 +49,7 @@ function buildGroups(items: ShoppingListItemSummary[]): Group[] {
 
 export function ShoppingListView({
   items,
+  offline,
   pendingControl,
   onToggle,
   onEdit,
@@ -86,6 +88,7 @@ export function ShoppingListView({
                   onEdit={onEdit}
                   onReorder={onReorder}
                   onToggle={onToggle}
+                  offline={offline}
                   pendingControl={pendingControl}
                 />
               );

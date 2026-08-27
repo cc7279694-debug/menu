@@ -19,6 +19,8 @@ import {
   saveShoppingItemAction,
   setShoppingItemCheckedAction,
 } from "@/features/shopping/actions";
+import { queueShoppingToggle, rememberOfflineProfile, putShoppingSnapshot } from "@/features/offline/database";
+import { useOnlineStatus } from "@/features/offline/hooks/use-online-status";
 import { ShoppingGenerator } from "@/features/shopping/components/shopping-generator";
 import { ShoppingItemEditor, type ShoppingItemEditorValue } from "@/features/shopping/components/shopping-item-editor";
 import { ShoppingListView } from "@/features/shopping/components/shopping-list-view";
@@ -27,6 +29,7 @@ import type { ShoppingActiveList, ShoppingListItemSummary, ShoppingRecipeOption 
 type ShoppingPageProps = {
   currentList: ShoppingActiveList | null;
   initialRecipes: ShoppingRecipeOption[];
+  userId: string;
 };
 
 type PendingControl = {
@@ -82,8 +85,10 @@ function addManualItem(
   ]);
 }
 
-export function ShoppingPage({ currentList, initialRecipes }: ShoppingPageProps) {
+export function ShoppingPage({ currentList, initialRecipes, userId }: ShoppingPageProps) {
   const [, startTransition] = useTransition();
+  const online = useOnlineStatus();
+  const offline = !online;
   const [items, setItems] = useState<ShoppingListItemSummary[]>(() => currentList?.items ?? []);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
   const [pendingControl, setPendingControl] = useState<PendingControl>(null);
@@ -99,6 +104,29 @@ export function ShoppingPage({ currentList, initialRecipes }: ShoppingPageProps)
     setEditingItem(null);
     setConfirmState(null);
   }, [currentList]);
+
+  useEffect(() => {
+    if (!currentList) return;
+
+    const cachedAt = new Date().toISOString();
+    void rememberOfflineProfile(userId, cachedAt)
+      .then(() => putShoppingSnapshot({
+        userId,
+        listId: currentList.id,
+        cachedAt,
+        serverUpdatedAt: currentList.updatedAt,
+        dataVersion: 1,
+        list: currentList,
+      }))
+      .catch(() => undefined);
+  }, [currentList, userId]);
+
+  useEffect(() => {
+    if (!offline) return;
+    setEditorOpen(false);
+    setEditingItem(null);
+    setConfirmState(null);
+  }, [offline]);
 
   const sortedItems = useMemo(() => sortItems(items), [items]);
   const checkedCount = items.filter((item) => item.isChecked).length;
@@ -130,6 +158,26 @@ export function ShoppingPage({ currentList, initialRecipes }: ShoppingPageProps)
 
   function handleToggle(item: ShoppingListItemSummary, isChecked: boolean) {
     if (!currentList) return;
+    if (offline) {
+      setStatusMessage(null);
+      setPendingControl({ kind: "toggle", id: item.id });
+      void queueShoppingToggle({
+        userId,
+        listId: currentList.id,
+        itemId: item.id,
+        targetChecked: isChecked,
+      })
+        .then(() => {
+          setItems((current) => replaceItem(current, item.id, (currentItem) => ({ ...currentItem, isChecked })));
+        })
+        .catch(() => {
+          setStatusMessage("离线操作保存失败，请重试");
+        })
+        .finally(() => {
+          setPendingControl(null);
+        });
+      return;
+    }
     runMutation(
       { kind: "toggle", id: item.id },
       () => setShoppingItemCheckedAction({
@@ -142,7 +190,7 @@ export function ShoppingPage({ currentList, initialRecipes }: ShoppingPageProps)
   }
 
   function handleReorder(itemId: string, direction: "up" | "down") {
-    if (!currentList) return;
+    if (!currentList || offline) return;
     const currentOrder = sortItems(items);
     const currentIndex = currentOrder.findIndex((item) => item.id === itemId);
     const targetIndex = direction === "up" ? currentIndex - 1 : currentIndex + 1;
@@ -159,17 +207,19 @@ export function ShoppingPage({ currentList, initialRecipes }: ShoppingPageProps)
   }
 
   function openCreateEditor() {
+    if (offline) return;
     setEditingItem(null);
     setEditorOpen(true);
   }
 
   function openEditEditor(item: ShoppingListItemSummary) {
+    if (offline) return;
     setEditingItem(item);
     setEditorOpen(true);
   }
 
   function handleSave(value: ShoppingItemEditorValue) {
-    if (!currentList) return;
+    if (!currentList || offline) return;
     const itemId = editingItem?.id ?? null;
     runMutation(
       { kind: "save", id: itemId ?? "new" },
@@ -200,7 +250,7 @@ export function ShoppingPage({ currentList, initialRecipes }: ShoppingPageProps)
   }
 
   function handleConfirmDelete() {
-    if (!currentList || confirmState?.kind !== "delete") return;
+    if (!currentList || offline || confirmState?.kind !== "delete") return;
     const itemId = confirmState.item.id;
     runMutation(
       { kind: "delete", id: itemId },
@@ -213,7 +263,7 @@ export function ShoppingPage({ currentList, initialRecipes }: ShoppingPageProps)
   }
 
   function handleConfirmClear() {
-    if (!currentList) return;
+    if (!currentList || offline) return;
     runMutation(
       { kind: "clear" },
       () => clearCompletedShoppingItemsAction({ shoppingListId: currentList.id }),
@@ -237,13 +287,19 @@ export function ShoppingPage({ currentList, initialRecipes }: ShoppingPageProps)
           {currentList && (
             <p className="text-sm text-muted-foreground">生成新清单会替换当前清单。</p>
           )}
-          <ShoppingGenerator initialRecipes={initialRecipes} />
+          <ShoppingGenerator disabled={offline} initialRecipes={initialRecipes} />
         </div>
       </header>
 
       {statusMessage && (
         <p aria-live="polite" className="rounded-lg border bg-muted/40 p-3 text-sm" role="status">
           {statusMessage}
+        </p>
+      )}
+
+      {offline && (
+        <p className="rounded-lg border bg-muted/40 p-3 text-sm text-muted-foreground">
+          当前处于离线状态：仅可勾选清单项；添加、编辑、删除、排序、清理和重新生成联网后可用。
         </p>
       )}
 
@@ -266,13 +322,13 @@ export function ShoppingPage({ currentList, initialRecipes }: ShoppingPageProps)
               <p className="mt-1 text-xl font-semibold">进度 {checkedCount} / {totalCount}</p>
             </div>
             <div className="flex flex-col gap-2 rounded-lg border bg-background p-4 sm:flex-row sm:items-center sm:justify-end">
-              <Button className="min-h-11" onClick={openCreateEditor} type="button" variant="outline">
+              <Button className="min-h-11" disabled={offline} onClick={openCreateEditor} type="button" variant="outline">
                 <PlusIcon data-icon="inline-start" />
                 添加食材
               </Button>
               <Button
                 className="min-h-11"
-                disabled={!hasCompleted || pendingClear}
+                disabled={offline || !hasCompleted || pendingClear}
                 onClick={() => setConfirmState({ kind: "clear" })}
                 type="button"
                 variant="outline"
@@ -288,6 +344,7 @@ export function ShoppingPage({ currentList, initialRecipes }: ShoppingPageProps)
             onEdit={openEditEditor}
             onReorder={handleReorder}
             onToggle={handleToggle}
+            offline={offline}
             pendingControl={pendingControl}
           />
         </section>

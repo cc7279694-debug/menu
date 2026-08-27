@@ -36,6 +36,7 @@ const SERVINGS_ERROR = "请输入 0.25 到 1000 之间且最多两位小数的�
 const MAX_SELECTED_RECIPES = 20;
 
 type ShoppingGeneratorProps = {
+  disabled?: boolean;
   initialRecipes: ShoppingRecipeOption[];
   onGenerated?: () => void;
 };
@@ -49,7 +50,7 @@ function buildRecipeSelectionInput(selectedRecipes: SelectedShoppingRecipe[]): S
   }));
 }
 
-export function ShoppingGenerator({ initialRecipes, onGenerated }: ShoppingGeneratorProps) {
+export function ShoppingGenerator({ disabled = false, initialRecipes, onGenerated }: ShoppingGeneratorProps) {
   const router = useRouter();
   const searchInputRef = useRef<HTMLInputElement>(null);
   const generatingRef = useRef(false);
@@ -109,6 +110,7 @@ export function ShoppingGenerator({ initialRecipes, onGenerated }: ShoppingGener
   }
 
   function handleOpenChange(nextOpen: boolean) {
+    if (disabled && nextOpen) return;
     if (!nextOpen && generatingRef.current) return;
     setOpen(nextOpen);
     if (!nextOpen) resetFlow();
@@ -218,7 +220,7 @@ export function ShoppingGenerator({ initialRecipes, onGenerated }: ShoppingGener
 
   return (
     <Dialog onOpenChange={handleOpenChange} open={open}>
-      <DialogTrigger render={<Button className="min-h-11" type="button" />}>
+      <DialogTrigger render={<Button className="min-h-11" disabled={disabled} type="button" />}>
         生成购物清单
       </DialogTrigger>
       <DialogContent className="max-h-[min(720px,calc(100vh-2rem))] overflow-y-auto sm:max-w-3xl">
