@@ -1,6 +1,6 @@
 # 食序
 
-食序是一个中文优先的个人菜谱与分步烹饪 PWA。模块 1 已完成项目基础、邮箱验证码登录、认证路由保护和手机/桌面响应式导航；模块 2 已加入私有菜谱数据模型、菜谱编辑、搜索筛选、收藏、回收站和详情页；模块 3 提供单步引导烹饪；模块 4 提供基于菜谱的在线购物清单。
+食序是一个中文优先的个人菜谱与分步烹饪 PWA。模块 1 已完成项目基础、邮箱验证码登录、认证路由保护和手机/桌面响应式导航；模块 2 已加入私有菜谱数据模型、菜谱编辑、搜索筛选、收藏、回收站和详情页；模块 3 提供单步引导烹饪；模块 4 提供基于菜谱的在线购物清单；模块 5A 提供安全的 PWA 安装壳、离线公共页和用户确认更新流程。
 
 ## 模块 3：引导烹饪边界
 
@@ -19,6 +19,15 @@
 - 当前版本每个用户只保留一份 active 购物清单；生成新清单会替换旧 active 清单，但历史行会作为非 active 记录保留在数据库中。
 - 清单支持勾选、手动添加、编辑、删除、上下移动排序和清理已完成项；这些操作只影响购物清单，不会修改菜谱。
 - 本模块是在线功能，依赖 Supabase 数据库和认证。离线查看、IndexedDB 缓存、后台同步和 PWA 离线购物流程延期到模块 5。
+
+## 模块 5A：PWA 公共壳与更新边界
+
+- Manifest 的应用入口为 `/recipes`，安装图标和苹果触控图标使用仓库内的暖中性视觉基底。
+- Service Worker 只预缓存离线页、Manifest 和图标；不会缓存登录后的页面、Supabase/API 响应、Next.js 构建资源或其他私人数据。
+- 新版本安装后保持 waiting，用户点击“立即更新”才会发送 `SKIP_WAITING`；新 worker 接管后只刷新一次，并清理旧公共壳缓存。
+- `/sw.js`、`/manifest.webmanifest`、`/offline.html` 和 `/icons/*` 在认证中间件中直接放行，避免离线壳依赖 Supabase Auth。
+- 断网时显示可访问的状态提示；离线页只包含内联 HTML/CSS，不依赖脚本或私有数据。
+- IndexedDB 私有菜谱快照、离线购物修改和后台同步属于模块 5B，当前未实现，也未修改数据库、业务 API 或认证模型。
 
 ## 本地要求
 
@@ -69,3 +78,4 @@ npm.cmd run build
 - [模块 3 引导烹饪验收记录](docs/testing/module-3-guided-cooking-acceptance.md)
 - [模块 4 购物清单实施计划](docs/superpowers/plans/2026-08-24-module-4-shopping-list.md)
 - [模块 4 购物清单验收记录](docs/testing/module-4-shopping-list-acceptance.md)
+- [模块 5A PWA 公共壳与更新验收记录](docs/testing/module-5a-pwa-shell-acceptance.md)

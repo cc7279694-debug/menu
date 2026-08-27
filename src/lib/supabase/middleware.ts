@@ -3,6 +3,7 @@ import { type NextRequest, NextResponse } from "next/server";
 
 import {
   buildLoginRedirect,
+  isPwaPublicResource,
   isPublicPath,
 } from "@/features/auth/route-access";
 import { getPublicEnv } from "@/lib/env";
@@ -16,6 +17,10 @@ function copySessionCookies(source: NextResponse, target: NextResponse) {
 export async function updateSession(
   request: NextRequest,
 ): Promise<NextResponse> {
+  if (isPwaPublicResource(request.nextUrl.pathname)) {
+    return NextResponse.next({ request });
+  }
+
   let response = NextResponse.next({ request });
   const env = getPublicEnv();
   const supabase = createServerClient<Database>(
