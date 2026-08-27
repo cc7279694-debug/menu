@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import * as shoppingActions from "@/features/shopping/actions";
 
 const USER_ID = "11111111-1111-4111-8111-111111111111";
 const RECIPE_ID = "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa";
@@ -14,6 +15,7 @@ const mocks = vi.hoisted(() => ({
   revalidatePath: vi.fn(),
   searchShoppingRecipeOptions: vi.fn(),
   getShoppingGenerationRecipes: vi.fn(),
+  getActiveShoppingList: vi.fn(),
 }));
 
 vi.mock("@/lib/supabase/server", () => ({
@@ -23,6 +25,7 @@ vi.mock("next/cache", () => ({ revalidatePath: mocks.revalidatePath }));
 vi.mock("@/features/shopping/queries", () => ({
   searchShoppingRecipeOptions: mocks.searchShoppingRecipeOptions,
   getShoppingGenerationRecipes: mocks.getShoppingGenerationRecipes,
+  getActiveShoppingList: mocks.getActiveShoppingList,
 }));
 
 import {
@@ -138,6 +141,22 @@ function generationRecipes() {
 
 function activeListBuilder(data: { id: string } | null = { id: LIST_ID }) {
   return createBuilder({ data, error: null });
+}
+
+const activeShoppingList = {
+  id: LIST_ID,
+  name: "本周采购",
+  updatedAt: "2026-08-27T08:00:00.000Z",
+  sources: [],
+  items: [],
+};
+
+function getActiveShoppingListForSyncAction() {
+  const action = (shoppingActions as unknown as {
+    getActiveShoppingListForSyncAction?: () => ReturnType<typeof Promise.resolve>;
+  }).getActiveShoppingListForSyncAction;
+  if (!action) throw new Error("getActiveShoppingListForSyncAction is missing");
+  return action();
 }
 
 describe("shopping actions", () => {
@@ -353,7 +372,6 @@ describe("shopping actions", () => {
 
   it.each([
     ["save", () => saveShoppingItemAction(itemInput({ shoppingListId: "bad" }))],
-    ["checked", () => setShoppingItemCheckedAction({ shoppingListId: LIST_ID, itemId: "bad", isChecked: true })],
     ["delete", () => deleteShoppingItemAction({ shoppingListId: LIST_ID, itemId: "bad" })],
     ["clear", () => clearCompletedShoppingItemsAction({ shoppingListId: "bad" })],
     ["reorder", () => reorderShoppingItemsAction({ shoppingListId: LIST_ID, itemIds: [ITEM_ID, ITEM_ID] })],
@@ -365,9 +383,14 @@ describe("shopping actions", () => {
     expect(mocks.createServerSupabaseClient).not.toHaveBeenCalled();
   });
 
+  it("returns a machine-readable invalid-input result for a shopping toggle", async () => {
+    await expect(
+      setShoppingItemCheckedAction({ shoppingListId: LIST_ID, itemId: "bad", isChecked: true }),
+    ).resolves.toEqual({ ok: false, code: "INVALID_INPUT", message: "请求参数无效" });
+  });
+
   it.each([
     ["save", () => saveShoppingItemAction(itemInput())],
-    ["checked", () => setShoppingItemCheckedAction({ shoppingListId: LIST_ID, itemId: ITEM_ID, isChecked: true })],
     ["delete", () => deleteShoppingItemAction({ shoppingListId: LIST_ID, itemId: ITEM_ID })],
     ["clear", () => clearCompletedShoppingItemsAction({ shoppingListId: LIST_ID })],
     ["reorder", () => reorderShoppingItemsAction({ shoppingListId: LIST_ID, itemIds: [ITEM_ID] })],
@@ -380,6 +403,16 @@ describe("shopping actions", () => {
       ok: false,
       message: "请先登录后再操作购物清单",
     });
+  });
+
+  it("returns a machine-readable authentication result for a shopping toggle", async () => {
+    mocks.createServerSupabaseClient.mockResolvedValue(
+      createSupabase({ auth: { data: { user: null }, error: null } }),
+    );
+
+    await expect(
+      setShoppingItemCheckedAction({ shoppingListId: LIST_ID, itemId: ITEM_ID, isChecked: true }),
+    ).resolves.toEqual({ ok: false, code: "AUTH_REQUIRED", message: "请先登录后再操作购物清单" });
   });
 
   it("creates a manual item on the owned active list with the next sort order", async () => {
@@ -468,6 +501,7 @@ describe("shopping actions", () => {
       setShoppingItemCheckedAction({ shoppingListId: LIST_ID, itemId: ITEM_ID, isChecked: true }),
     ).resolves.toEqual({
       ok: false,
+      code: "STALE_TARGET",
       message: "购物清单已失效，请刷新后重试",
     });
     expect(update.update).not.toHaveBeenCalled();
@@ -475,7 +509,10 @@ describe("shopping actions", () => {
   });
 
   it("checks, deletes, clears completed items, and validates affected rows before revalidation", async () => {
-    const checked = createBuilder({ data: { id: ITEM_ID }, error: null });
+    const checked = createBuilder({
+      data: { id: ITEM_ID, is_checked: true, updated_at: "2026-08-27T08:00:00.000Z" },
+      error: null,
+    });
     const deleteItem = createBuilder({ data: { id: ITEM_ID }, error: null });
     const clearItems = createBuilder({ data: [{ id: ITEM_ID }], error: null });
     const supabase = createSupabase({
@@ -491,9 +528,12 @@ describe("shopping actions", () => {
 
     await expect(
       setShoppingItemCheckedAction({ shoppingListId: LIST_ID, itemId: ITEM_ID, isChecked: true }),
-    ).resolves.toEqual({ ok: true, data: null });
+    ).resolves.toEqual({
+      ok: true,
+      data: { itemId: ITEM_ID, isChecked: true, updatedAt: "2026-08-27T08:00:00.000Z" },
+    });
     expect(checked.update).toHaveBeenCalledWith({ is_checked: true });
-    expect(checked.select).toHaveBeenCalledWith("id");
+    expect(checked.select).toHaveBeenCalledWith("id, is_checked, updated_at");
     expect(checked.maybeSingle).toHaveBeenCalled();
 
     await expect(deleteShoppingItemAction({ shoppingListId: LIST_ID, itemId: ITEM_ID })).resolves.toEqual({
@@ -563,6 +603,31 @@ describe("shopping actions", () => {
     await expect(reorderShoppingItemsAction({ shoppingListId: LIST_ID, itemIds: [ITEM_ID] })).resolves.toEqual({
       ok: false,
       message: "购物清单排序失败，请刷新后重试",
+    });
+  });
+
+  it("returns the authenticated active shopping list for synchronization", async () => {
+    mocks.getActiveShoppingList.mockResolvedValue(activeShoppingList);
+
+    await expect(getActiveShoppingListForSyncAction()).resolves.toEqual({
+      ok: true,
+      data: activeShoppingList,
+    });
+  });
+
+  it("returns stable machine-readable errors when synchronization refresh is unauthenticated or fails", async () => {
+    mocks.getActiveShoppingList.mockRejectedValueOnce(new Error("请先登录后再查看购物清单"));
+    await expect(getActiveShoppingListForSyncAction()).resolves.toEqual({
+      ok: false,
+      code: "AUTH_REQUIRED",
+      message: "请先登录后再获取购物清单",
+    });
+
+    mocks.getActiveShoppingList.mockRejectedValueOnce(new Error("raw database error"));
+    await expect(getActiveShoppingListForSyncAction()).resolves.toEqual({
+      ok: false,
+      code: "REQUEST_FAILED",
+      message: "购物清单暂时无法刷新",
     });
   });
 });

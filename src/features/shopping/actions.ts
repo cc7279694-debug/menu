@@ -5,6 +5,7 @@ import { z } from "zod";
 
 import { buildShoppingContributions, mergeShoppingContributions } from "@/features/shopping/merge";
 import {
+  getActiveShoppingList,
   getShoppingGenerationRecipes,
   searchShoppingRecipeOptions,
 } from "@/features/shopping/queries";
@@ -23,6 +24,8 @@ import type {
   ShoppingGenerationInput,
   ShoppingGenerationRecipe,
   ShoppingRecipeOption,
+  ShoppingSyncActionResult,
+  ShoppingToggleConfirmation,
 } from "@/features/shopping/types";
 import type { Json } from "@/lib/supabase/database.types";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
@@ -103,7 +106,7 @@ async function ensureOwnedActiveList(
   supabase: SupabaseClient,
   userId: string,
   shoppingListId: string,
-): Promise<boolean> {
+): Promise<"active" | "stale" | "failed"> {
   const { data, error } = await supabase
     .from("shopping_lists")
     .select("id")
@@ -112,7 +115,8 @@ async function ensureOwnedActiveList(
     .eq("is_active", true)
     .maybeSingle();
 
-  return !error && Boolean(data);
+  if (error) return "failed";
+  return data ? "active" : "stale";
 }
 
 async function loadDraft(input: ShoppingGenerationInput): Promise<ShoppingPreviewResult> {
@@ -278,7 +282,7 @@ export async function saveShoppingItemAction(
 
   const { supabase, userId } = client;
   const active = await ensureOwnedActiveList(supabase, userId, parsed.data.shoppingListId);
-  if (!active) {
+  if (active !== "active") {
     return { ok: false, message: ACTIVE_LIST_INVALID_MESSAGE };
   }
 
@@ -347,20 +351,24 @@ export async function saveShoppingItemAction(
   return { ok: true, data: { itemId: data.id } };
 }
 
-export async function setShoppingItemCheckedAction(input: unknown): Promise<ActionResult<null>> {
+export async function setShoppingItemCheckedAction(
+  input: unknown,
+): Promise<ShoppingSyncActionResult<ShoppingToggleConfirmation>> {
   const parsed = shoppingItemCheckedInputSchema.safeParse(input);
   if (!parsed.success) {
-    return invalidRequest();
+    return { ok: false, code: "INVALID_INPUT", message: INVALID_REQUEST_MESSAGE };
   }
 
   const client = await getMutationClient();
   if (!client) {
-    return { ok: false, message: MUTATION_AUTH_MESSAGE };
+    return { ok: false, code: "AUTH_REQUIRED", message: MUTATION_AUTH_MESSAGE };
   }
 
   const active = await ensureOwnedActiveList(client.supabase, client.userId, parsed.data.shoppingListId);
-  if (!active) {
-    return { ok: false, message: ACTIVE_LIST_INVALID_MESSAGE };
+  if (active !== "active") {
+    return active === "stale"
+      ? { ok: false, code: "STALE_TARGET", message: ACTIVE_LIST_INVALID_MESSAGE }
+      : { ok: false, code: "REQUEST_FAILED", message: "购物清单状态更新失败，请刷新后重试" };
   }
 
   const { data, error } = await client.supabase
@@ -369,15 +377,35 @@ export async function setShoppingItemCheckedAction(input: unknown): Promise<Acti
     .eq("id", parsed.data.itemId)
     .eq("shopping_list_id", parsed.data.shoppingListId)
     .eq("user_id", client.userId)
-    .select("id")
+    .select("id, is_checked, updated_at")
     .maybeSingle();
 
   if (error || !data) {
-    return { ok: false, message: "购物清单状态更新失败，请刷新后重试" };
+    return { ok: false, code: "REQUEST_FAILED", message: "购物清单状态更新失败，请刷新后重试" };
   }
 
   revalidatePath("/shopping");
-  return { ok: true, data: null };
+  return {
+    ok: true,
+    data: {
+      itemId: data.id,
+      isChecked: data.is_checked,
+      updatedAt: data.updated_at,
+    },
+  };
+}
+
+export async function getActiveShoppingListForSyncAction(): Promise<
+  ShoppingSyncActionResult<import("@/features/shopping/types").ShoppingActiveList | null>
+> {
+  try {
+    return { ok: true, data: await getActiveShoppingList() };
+  } catch (error) {
+    if (isAuthError(error)) {
+      return { ok: false, code: "AUTH_REQUIRED", message: "请先登录后再获取购物清单" };
+    }
+    return { ok: false, code: "REQUEST_FAILED", message: "购物清单暂时无法刷新" };
+  }
 }
 
 export async function deleteShoppingItemAction(input: unknown): Promise<ActionResult<null>> {
@@ -392,7 +420,7 @@ export async function deleteShoppingItemAction(input: unknown): Promise<ActionRe
   }
 
   const active = await ensureOwnedActiveList(client.supabase, client.userId, parsed.data.shoppingListId);
-  if (!active) {
+  if (active !== "active") {
     return { ok: false, message: ACTIVE_LIST_INVALID_MESSAGE };
   }
 
@@ -426,7 +454,7 @@ export async function clearCompletedShoppingItemsAction(
   }
 
   const active = await ensureOwnedActiveList(client.supabase, client.userId, parsed.data.shoppingListId);
-  if (!active) {
+  if (active !== "active") {
     return { ok: false, message: ACTIVE_LIST_INVALID_MESSAGE };
   }
 
@@ -456,7 +484,7 @@ export async function reorderShoppingItemsAction(input: unknown): Promise<Action
   }
 
   const active = await ensureOwnedActiveList(client.supabase, client.userId, parsed.data.shoppingListId);
-  if (!active) {
+  if (active !== "active") {
     return { ok: false, message: ACTIVE_LIST_INVALID_MESSAGE };
   }
 

@@ -6,6 +6,22 @@ import type {
 
 export type ShoppingActionResult<T> = ActionResult<T>;
 
+export type ShoppingSyncErrorCode =
+  | "INVALID_INPUT"
+  | "AUTH_REQUIRED"
+  | "STALE_TARGET"
+  | "REQUEST_FAILED";
+
+export type ShoppingSyncActionResult<T> =
+  | { ok: true; data: T }
+  | { ok: false; code: ShoppingSyncErrorCode; message: string };
+
+export type ShoppingToggleConfirmation = {
+  itemId: string;
+  isChecked: boolean;
+  updatedAt: string;
+};
+
 export type ShoppingRecipeSelection = ShoppingRecipeSelectionSchemaOutput;
 
 export type ShoppingGenerationInput = ShoppingGenerationInputSchemaOutput;
