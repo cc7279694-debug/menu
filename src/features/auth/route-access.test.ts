@@ -16,6 +16,8 @@ describe("route access", () => {
     expect(isPwaPublicResource("/sw.js")).toBe(true);
     expect(isPwaPublicResource("/manifest.webmanifest")).toBe(true);
     expect(isPwaPublicResource("/offline.html")).toBe(true);
+    expect(isPwaPublicResource("/offline/app")).toBe(true);
+    expect(isPwaPublicResource("/offline/app/anything")).toBe(false);
     expect(isPwaPublicResource("/icons/icon-192.png")).toBe(true);
     expect(isPwaPublicResource("/recipes")).toBe(false);
     expect(isPwaPublicResource("/shopping")).toBe(false);

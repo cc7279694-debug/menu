@@ -4,6 +4,7 @@ const PWA_PUBLIC_RESOURCE_PATHS = [
   "/sw.js",
   "/manifest.webmanifest",
   "/offline.html",
+  "/offline/app",
 ] as const;
 
 export function isPublicPath(pathname: string): boolean {
