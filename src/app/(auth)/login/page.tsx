@@ -30,7 +30,7 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
       <Card className="w-full max-w-sm">
         <CardHeader>
           <CardTitle>登录{PROJECT_META.name}</CardTitle>
-          <CardDescription>使用邮件登录链接同步你的个人菜谱。</CardDescription>
+          <CardDescription>使用邮箱验证码同步你的个人菜谱。</CardDescription>
         </CardHeader>
         <CardContent>
           <LoginForm initialMessage={initialMessage} nextPath={nextPath} />

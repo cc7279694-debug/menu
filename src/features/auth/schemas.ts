@@ -6,6 +6,11 @@ export const emailSchema = z
   .toLowerCase()
   .email("请输入有效邮箱地址");
 
+export const otpSchema = z
+  .string()
+  .trim()
+  .regex(/^\d{6}$/, "请输入 6 位验证码");
+
 export const nextPathSchema = z
   .string()
   .optional()
@@ -18,7 +23,7 @@ export const nextPathSchema = z
   });
 
 export type AuthActionState = {
-  status: "idle" | "link-sent" | "error";
+  status: "idle" | "code-sent" | "error";
   message?: string;
   email?: string;
 };
