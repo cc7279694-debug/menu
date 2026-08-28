@@ -274,12 +274,16 @@ export function RecipeEditor({
 
   return (
     <form className="space-y-8" onSubmit={handleSubmit(onSubmit, () => setServerMessage("请检查菜谱内容后再保存"))}>
-      <div className="flex flex-wrap items-end justify-between gap-4">
+      <div
+        aria-label="菜谱编辑操作"
+        className="sticky top-2 z-20 flex flex-wrap items-end justify-between gap-4 rounded-2xl border bg-background/95 p-3 shadow-sm md:static md:z-auto md:rounded-none md:border-0 md:bg-transparent md:p-0 md:shadow-none"
+        role="region"
+      >
         <div>
           <p className="text-sm text-muted-foreground">个人菜谱</p>
           <h1 className="text-3xl font-semibold tracking-tight">{mode === "create" ? "新建菜谱" : "编辑菜谱"}</h1>
         </div>
-        <Button disabled={isSaving} type="submit">
+        <Button className="w-full sm:w-auto" disabled={isSaving} type="submit">
           {isSaving ? "保存中…" : "保存菜谱"}
         </Button>
       </div>
@@ -314,12 +318,12 @@ export function RecipeEditor({
             <option value="">未分类</option>
             {categories.map((category) => <option key={category.id} value={category.id}>{category.name}</option>)}
           </select>
-          <div className="flex gap-2"><Input aria-label="新分类名称" onChange={(event) => setNewCategory(event.target.value)} value={newCategory} /><Button onClick={addCategory} type="button" variant="outline">新建分类</Button></div>
+          <div className="flex flex-col gap-2 sm:flex-row"><Input aria-label="新分类名称" onChange={(event) => setNewCategory(event.target.value)} value={newCategory} /><Button className="w-full sm:w-auto" onClick={addCategory} type="button" variant="outline">新建分类</Button></div>
         </div>
         <div className="space-y-2 md:col-span-2">
           <Label>标签</Label>
           <div className="flex flex-wrap gap-3">{tags.map((tag) => <label className="flex items-center gap-2 text-sm" key={tag.id}><input checked={selectedTags.includes(tag.id)} onChange={(event) => setValue("tagIds", event.target.checked ? [...selectedTags, tag.id] : selectedTags.filter((id) => id !== tag.id), { shouldDirty: true })} type="checkbox" />{tag.name}</label>)}</div>
-          <div className="flex gap-2"><Input aria-label="新标签名称" onChange={(event) => setNewTag(event.target.value)} value={newTag} /><Button onClick={addTag} type="button" variant="outline">新建标签</Button></div>
+          <div className="flex flex-col gap-2 sm:flex-row"><Input aria-label="新标签名称" onChange={(event) => setNewTag(event.target.value)} value={newTag} /><Button className="w-full sm:w-auto" onClick={addTag} type="button" variant="outline">新建标签</Button></div>
         </div>
         <div className="space-y-2 md:col-span-2">
           <Label htmlFor="recipe-notes">个人调整备注</Label>

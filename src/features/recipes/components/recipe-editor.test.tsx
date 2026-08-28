@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, screen, waitFor, within } from "@testing-library/react";
 import { Profiler } from "react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
@@ -17,6 +17,23 @@ vi.mock("@/lib/supabase/browser", () => ({
 const userId = "11111111-1111-4111-8111-111111111111";
 
 describe("RecipeEditor", () => {
+  it("keeps save actions reachable while editing on mobile", () => {
+    render(
+      <RecipeEditor
+        mode="create"
+        userId={userId}
+        categories={[]}
+        tags={[]}
+        onSaved={vi.fn()}
+      />,
+    );
+
+    const actions = screen.getByRole("region", { name: "菜谱编辑操作" });
+    expect(actions).toHaveClass("sticky");
+    expect(actions).toHaveClass("top-2");
+    expect(within(actions).getByRole("button", { name: "保存菜谱" })).toBeInTheDocument();
+  });
+
   it("keeps the editor shell from rerendering for every step keystroke", async () => {
     const user = userEvent.setup();
     const onRender = vi.fn();
