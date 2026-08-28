@@ -102,6 +102,35 @@ describe("OfflineApp", () => {
     expect(await screen.findByTestId("offline-cooking-screen")).toHaveTextContent("番茄炒蛋");
   });
 
+  it("strips media URLs before rendering offline cooking", async () => {
+    const unsafeRecipe = structuredClone(recipe);
+    Object.assign(unsafeRecipe.recipe, { coverUrl: "https://private.example/cover.jpg", coverPath: "private/cover.jpg" });
+    Object.assign(unsafeRecipe.recipe.steps[0], { imageUrl: "https://private.example/step.jpg", imagePath: "private/step.jpg" });
+    databaseMocks.getRecipeSnapshot.mockResolvedValue(unsafeRecipe);
+    setTarget(`/recipes/${RECIPE_ID}/cook`);
+    render(<OfflineApp />);
+
+    expect(await screen.findByTestId("offline-cooking-screen")).toHaveTextContent("番茄炒蛋");
+    expect(screen.getByTestId("offline-cooking-screen")).not.toHaveTextContent("private.example");
+  });
+
+  it("shows a clear empty state when no recipe snapshots exist", async () => {
+    databaseMocks.listRecipeSnapshots.mockResolvedValue([]);
+    setTarget("/recipes");
+    render(<OfflineApp />);
+
+    expect(await screen.findByText("没有可用的离线菜谱")).toBeInTheDocument();
+  });
+
+  it("shows a recoverable storage error state", async () => {
+    databaseMocks.getLastOfflineProfile.mockRejectedValue(new Error("OFFLINE_STORAGE_UNAVAILABLE"));
+    setTarget("/recipes");
+    render(<OfflineApp />);
+
+    expect(await screen.findByText("此设备暂时无法使用离线数据")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "返回在线页面" })).toHaveAttribute("href", "/recipes");
+  });
+
   it("queues an offline shopping checkbox change", async () => {
     setTarget("/shopping");
     render(<OfflineApp />);

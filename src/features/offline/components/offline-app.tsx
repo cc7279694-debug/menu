@@ -50,6 +50,15 @@ function targetHref(target: OfflineTarget) {
   return "/recipes";
 }
 
+function sanitizeOfflineRecipe(recipe: OfflineRecipeSnapshot["recipe"]): OfflineRecipeSnapshot["recipe"] {
+  return {
+    ...recipe,
+    coverUrl: null,
+    coverPath: null,
+    steps: recipe.steps.map((step) => ({ ...step, imageUrl: null, imagePath: null, ingredientLinks: step.ingredientLinks.map((link) => ({ ...link })) })),
+  };
+}
+
 type OfflineData = { profile: OfflineProfile; recipes: OfflineRecipeSnapshot[]; recipe: OfflineRecipeSnapshot | null; shopping: OfflineShoppingSnapshot | null };
 
 export function OfflineApp() {
@@ -95,10 +104,11 @@ export function OfflineApp() {
     return <OfflineFrame target={target}>{data.shopping ? <OfflineShoppingList snapshot={data.shopping} userId={data.profile.userId} /> : <OfflineMessage title="没有可用的离线购物清单" />}</OfflineFrame>;
   }
   if (!data.recipe) return <OfflineFrame target={target}><OfflineMessage title="这道菜还没有保存到本机" /></OfflineFrame>;
+  const safeRecipe = sanitizeOfflineRecipe(data.recipe.recipe);
   if (target.kind === "cooking") {
-    return <OfflineFrame target={target}><CookingScreen recipe={data.recipe.recipe} requestedServings={target.servings ?? data.recipe.recipe.baseServings} restart={target.restart} /></OfflineFrame>;
+    return <OfflineFrame target={target}><CookingScreen recipe={safeRecipe} requestedServings={target.servings ?? safeRecipe.baseServings} restart={target.restart} /></OfflineFrame>;
   }
-  return <OfflineFrame target={target}><OfflineRecipeDetail recipe={data.recipe.recipe} /></OfflineFrame>;
+  return <OfflineFrame target={target}><OfflineRecipeDetail recipe={safeRecipe} /></OfflineFrame>;
 }
 
 function OfflineFrame({ target, children }: { target: OfflineTarget; children: ReactNode }) {
@@ -114,5 +124,5 @@ function OfflineFrame({ target, children }: { target: OfflineTarget; children: R
 }
 
 function OfflineMessage({ title }: { title: string }) {
-  return <main className="mx-auto max-w-xl rounded-2xl border bg-card p-6 text-center"><h1 className="text-xl font-semibold">{title}</h1><p className="mt-2 text-sm text-muted-foreground">恢复网络后可继续使用完整功能。</p></main>;
+  return <main aria-live="polite" className="mx-auto max-w-xl rounded-2xl border bg-card p-6 text-center" role="status"><h1 className="text-xl font-semibold">{title}</h1><p className="mt-2 text-sm text-muted-foreground">恢复网络后可继续使用完整功能。</p><a className="mt-4 inline-flex min-h-11 items-center rounded-lg border px-3 text-sm" href="/recipes">返回在线页面</a></main>;
 }

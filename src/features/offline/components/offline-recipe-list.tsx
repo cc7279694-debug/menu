@@ -9,6 +9,9 @@ export function OfflineRecipeList({ snapshots }: { snapshots: OfflineRecipeSnaps
         <h1 className="text-2xl font-semibold" id="offline-recipe-list-heading">最近离线菜谱</h1>
         <p className="mt-1 text-sm text-muted-foreground">这些菜谱已保存在本机，可在断网时查看和烹饪。</p>
       </div>
+      {snapshots.length === 0 ? (
+        <p className="rounded-2xl border border-dashed bg-muted/20 p-6 text-sm text-muted-foreground">没有可用的离线菜谱</p>
+      ) : null}
       <div className="grid gap-3 sm:grid-cols-2">
         {snapshots.map((snapshot) => (
           <Link
