@@ -1,4 +1,4 @@
-const PUBLIC_PATHS = new Set(["/login"]);
+const PUBLIC_PATHS = new Set(["/login", "/auth/callback"]);
 
 const PWA_PUBLIC_RESOURCE_PATHS = [
   "/sw.js",

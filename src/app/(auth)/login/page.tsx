@@ -14,22 +14,26 @@ import { PROJECT_META } from "@/lib/project-meta";
 export const metadata: Metadata = { title: `登录 · ${PROJECT_META.name}` };
 
 type LoginPageProps = {
-  searchParams: Promise<{ next?: string }>;
+  searchParams: Promise<{ error?: string; next?: string }>;
 };
 
 export default async function LoginPage({ searchParams }: LoginPageProps) {
-  const { next } = await searchParams;
+  const { error, next } = await searchParams;
   const nextPath = nextPathSchema.parse(next);
+  const initialMessage =
+    error === "auth_callback"
+      ? "登录链接无效或已过期，请重新发送"
+      : undefined;
 
   return (
     <main className="grid min-h-dvh place-items-center px-4 py-10">
       <Card className="w-full max-w-sm">
         <CardHeader>
           <CardTitle>登录{PROJECT_META.name}</CardTitle>
-          <CardDescription>使用邮箱验证码同步你的个人菜谱。</CardDescription>
+          <CardDescription>使用邮件登录链接同步你的个人菜谱。</CardDescription>
         </CardHeader>
         <CardContent>
-          <LoginForm nextPath={nextPath} />
+          <LoginForm initialMessage={initialMessage} nextPath={nextPath} />
         </CardContent>
       </Card>
     </main>

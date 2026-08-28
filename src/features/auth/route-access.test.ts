@@ -7,8 +7,9 @@ import {
 } from "@/features/auth/route-access";
 
 describe("route access", () => {
-  it("only treats the login surface as public", () => {
+  it("treats login and auth callback surfaces as public", () => {
     expect(isPublicPath("/login")).toBe(true);
+    expect(isPublicPath("/auth/callback")).toBe(true);
     expect(isPublicPath("/recipes")).toBe(false);
   });
 
