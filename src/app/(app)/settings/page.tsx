@@ -1,5 +1,4 @@
-import { Button } from "@/components/ui/button";
-import { signOut } from "@/features/auth/actions";
+import { OfflineSettingsControls } from "@/features/offline/components/offline-settings-controls";
 import { getServerAuthContext } from "@/lib/supabase/server-auth";
 
 export default async function SettingsPage() {
@@ -11,11 +10,7 @@ export default async function SettingsPage() {
         <h1 className="text-2xl font-semibold">设置</h1>
         <p className="text-muted-foreground">{user?.email}</p>
       </div>
-      <form action={signOut}>
-        <Button type="submit" variant="outline">
-          退出登录
-        </Button>
-      </form>
+      <OfflineSettingsControls />
     </section>
   );
 }
