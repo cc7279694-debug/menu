@@ -86,6 +86,12 @@ async function loadRecipeSearchRowsForClient(
   });
 
   if (error) {
+    console.error("[recipes] search RPC failed", {
+      code: error.code,
+      message: error.message,
+      details: error.details,
+      hint: error.hint,
+    });
     throw new Error(input.errorMessage);
   }
 
