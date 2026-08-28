@@ -127,11 +127,11 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
-  if (PRECACHE_URLS.includes(url.pathname)) {
+  if (PRECACHE_URLS.includes(url.pathname) || url.pathname.startsWith("/_next/static/")) {
     event.respondWith(
       caches
         .open(CACHE_NAME)
-        .then((cache) => cache.match(url.pathname).then((cached) => cached ?? fetch(request))),
+        .then((cache) => cache.match(request).then((cached) => cached ?? fetch(request))),
     );
   }
 });

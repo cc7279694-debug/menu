@@ -39,6 +39,7 @@ describe("public PWA service worker source", () => {
     expect(source).toContain("cache.match(OFFLINE_APP_PATH)");
     expect(source).toContain("Response.redirect");
     expect(source).toContain("encodeURIComponent");
+    expect(source).toContain("cache.match(request)");
     expect(source).toContain("request.method !== \"GET\"");
     expect(source).not.toContain("cache.put(request");
     expect(source).not.toContain("/api/");
