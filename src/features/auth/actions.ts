@@ -7,6 +7,16 @@ import { emailSchema, nextPathSchema, type AuthActionState } from "@/features/au
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 
 function getRequestOrigin(headerStore: Headers): string | null {
+  const requestOrigin = headerStore.get("origin");
+
+  if (requestOrigin) {
+    try {
+      return new URL(requestOrigin).origin;
+    } catch {
+      // Fall back to forwarded headers when the origin header is malformed.
+    }
+  }
+
   const host = headerStore.get("x-forwarded-host") ?? headerStore.get("host");
 
   if (!host) {

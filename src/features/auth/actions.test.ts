@@ -48,4 +48,24 @@ describe("requestEmailMagicLink", () => {
       },
     });
   });
+
+  it("uses the request origin when forwarded host headers are unavailable", async () => {
+    headersMock.mockResolvedValue(
+      new Headers({ origin: "https://ordine.test" }),
+    );
+    const formData = new FormData();
+    formData.set("email", "cook@example.com");
+
+    const result = await requestEmailMagicLink(INITIAL_AUTH_STATE, formData);
+
+    expect(result.status).toBe("link-sent");
+    expect(signInWithOtpMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        options: expect.objectContaining({
+          emailRedirectTo:
+            "https://ordine.test/auth/callback?next=%2Frecipes",
+        }),
+      }),
+    );
+  });
 });
