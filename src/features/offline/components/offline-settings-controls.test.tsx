@@ -26,9 +26,14 @@ describe("OfflineSettingsControls", () => {
   });
 
   it("clears local data before invoking sign out", async () => {
+    let resolveClear!: () => void;
+    clearOfflineData.mockImplementation(() => new Promise<void>((resolve) => { resolveClear = resolve; }));
     render(<OfflineSettingsControls />);
     fireEvent.click(screen.getByRole("button", { name: "退出登录" }));
 
+    await waitFor(() => expect(clearOfflineData).toHaveBeenCalledTimes(1));
+    expect(signOut).not.toHaveBeenCalled();
+    resolveClear();
     await waitFor(() => expect(signOut).toHaveBeenCalledTimes(1));
     expect(clearOfflineData.mock.invocationCallOrder[0]).toBeLessThan(signOut.mock.invocationCallOrder[0]);
   });

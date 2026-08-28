@@ -32,6 +32,12 @@ export function OfflineSettingsControls() {
     setStatus(null);
     try {
       await clearOfflineData();
+    } catch {
+      setStatus("离线数据清除失败，尚未退出登录，请重试。");
+      setPending(null);
+      return;
+    }
+    try {
       await signOut();
     } catch {
       setStatus("退出登录失败，请检查网络后重试。");
