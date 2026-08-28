@@ -50,16 +50,21 @@ function targetHref(target: OfflineTarget) {
   return "/recipes";
 }
 
+type OfflineData = { profile: OfflineProfile; recipes: OfflineRecipeSnapshot[]; recipe: OfflineRecipeSnapshot | null; shopping: OfflineShoppingSnapshot | null };
+
 function sanitizeOfflineRecipe(recipe: OfflineRecipeSnapshot["recipe"]): OfflineRecipeSnapshot["recipe"] {
   return {
     ...recipe,
     coverUrl: null,
     coverPath: null,
-    steps: recipe.steps.map((step) => ({ ...step, imageUrl: null, imagePath: null, ingredientLinks: step.ingredientLinks.map((link) => ({ ...link })) })),
+    steps: recipe.steps.map((step) => ({
+      ...step,
+      imageUrl: null,
+      imagePath: null,
+      ingredientLinks: step.ingredientLinks.map((link) => ({ ...link })),
+    })),
   };
 }
-
-type OfflineData = { profile: OfflineProfile; recipes: OfflineRecipeSnapshot[]; recipe: OfflineRecipeSnapshot | null; shopping: OfflineShoppingSnapshot | null };
 
 export function OfflineApp() {
   const [target, setTarget] = useState<OfflineTarget | null>(null);
@@ -94,16 +99,16 @@ export function OfflineApp() {
 
   if (!target) return <main className="mx-auto max-w-3xl space-y-4 px-4 py-8"><p className="text-sm text-muted-foreground">正在读取本机离线数据…</p></main>;
   if (target.kind === "unsupported") return <OfflineMessage title="该页面暂不支持离线使用" />;
-  if (error) return <OfflineMessage title="此设备暂时无法使用离线数据" />;
-  if (empty) return <OfflineMessage title="没有可用的离线数据" />;
+  if (error) return <OfflineMessage href={targetHref(target)} title="此设备暂时无法使用离线数据" />;
+  if (empty) return <OfflineMessage href={targetHref(target)} title="没有可用的离线数据" />;
   if (!data) return <main className="mx-auto max-w-3xl space-y-4 px-4 py-8"><p className="text-sm text-muted-foreground">正在读取本机离线数据…</p></main>;
   if (target.kind === "recipe-list") {
     return <OfflineFrame target={target}><OfflineRecipeList snapshots={data.recipes} /></OfflineFrame>;
   }
   if (target.kind === "shopping") {
-    return <OfflineFrame target={target}>{data.shopping ? <OfflineShoppingList snapshot={data.shopping} userId={data.profile.userId} /> : <OfflineMessage title="没有可用的离线购物清单" />}</OfflineFrame>;
+    return <OfflineFrame target={target}>{data.shopping ? <OfflineShoppingList snapshot={data.shopping} userId={data.profile.userId} /> : <OfflineMessage href={targetHref(target)} title="没有可用的离线购物清单" />}</OfflineFrame>;
   }
-  if (!data.recipe) return <OfflineFrame target={target}><OfflineMessage title="这道菜还没有保存到本机" /></OfflineFrame>;
+  if (!data.recipe) return <OfflineFrame target={target}><OfflineMessage href={targetHref(target)} title="这道菜还没有保存到本机" /></OfflineFrame>;
   const safeRecipe = sanitizeOfflineRecipe(data.recipe.recipe);
   if (target.kind === "cooking") {
     return <OfflineFrame target={target}><CookingScreen recipe={safeRecipe} requestedServings={target.servings ?? safeRecipe.baseServings} restart={target.restart} /></OfflineFrame>;
@@ -123,6 +128,6 @@ function OfflineFrame({ target, children }: { target: OfflineTarget; children: R
   );
 }
 
-function OfflineMessage({ title }: { title: string }) {
-  return <main aria-live="polite" className="mx-auto max-w-xl rounded-2xl border bg-card p-6 text-center" role="status"><h1 className="text-xl font-semibold">{title}</h1><p className="mt-2 text-sm text-muted-foreground">恢复网络后可继续使用完整功能。</p><a className="mt-4 inline-flex min-h-11 items-center rounded-lg border px-3 text-sm" href="/recipes">返回在线页面</a></main>;
+function OfflineMessage({ href = "/recipes", title }: { href?: string; title: string }) {
+  return <main aria-live="polite" className="mx-auto max-w-xl rounded-2xl border bg-card p-6 text-center" role="status"><h1 className="text-xl font-semibold">{title}</h1><p className="mt-2 text-sm text-muted-foreground">恢复网络后可继续使用完整功能。</p><a className="mt-4 inline-flex min-h-11 items-center rounded-lg border px-3 text-sm" href={href}>返回在线页面</a></main>;
 }

@@ -26,7 +26,10 @@ export function OfflineRecipeDetail({ recipe }: { recipe: OfflineRecipeDetail })
         {recipe.description && <p className="mt-2 max-w-2xl text-muted-foreground">{recipe.description}</p>}
         <p className="mt-3 text-sm text-muted-foreground">{recipe.baseServings} 人份 · {recipe.prepMinutes ?? 0} 分钟准备 · {recipe.cookMinutes ?? 0} 分钟烹饪</p>
       </header>
-      <div aria-label="菜谱图片离线不可用" className="flex aspect-[4/3] items-center justify-center rounded-2xl border bg-muted/30 text-sm text-muted-foreground">图片离线不可用</div>
+
+      <div aria-label="菜谱图片离线不可用" className="flex aspect-[4/3] items-center justify-center rounded-2xl border border-dashed bg-muted/20 text-sm text-muted-foreground" role="img">
+        离线模式暂不加载图片
+      </div>
 
       <section className="grid gap-6 lg:grid-cols-[minmax(16rem,0.8fr)_minmax(0,1.2fr)]">
         <div className="rounded-2xl border bg-card p-5">

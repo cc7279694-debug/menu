@@ -13,8 +13,8 @@ const databaseMocks = vi.hoisted(() => ({
 
 vi.mock("@/features/offline/database", () => databaseMocks);
 vi.mock("@/features/cooking/components/cooking-screen", () => ({
-  CookingScreen: ({ recipe }: { recipe: { title: string } }) => (
-    <div data-testid="offline-cooking-screen">正在烹饪：{recipe.title}</div>
+  CookingScreen: ({ recipe }: { recipe: { title: string; coverUrl: string | null; coverPath: string | null; steps: Array<{ imageUrl: string | null; imagePath: string | null }> } }) => (
+    <div data-cover-path={recipe.coverPath ?? "null"} data-cover-url={recipe.coverUrl ?? "null"} data-step-image-path={recipe.steps[0]?.imagePath ?? "null"} data-step-image-url={recipe.steps[0]?.imageUrl ?? "null"} data-testid="offline-cooking-screen">正在烹饪：{recipe.title}</div>
   ),
 }));
 
@@ -111,7 +111,10 @@ describe("OfflineApp", () => {
     render(<OfflineApp />);
 
     expect(await screen.findByTestId("offline-cooking-screen")).toHaveTextContent("番茄炒蛋");
-    expect(screen.getByTestId("offline-cooking-screen")).not.toHaveTextContent("private.example");
+    expect(screen.getByTestId("offline-cooking-screen")).toHaveAttribute("data-cover-url", "null");
+    expect(screen.getByTestId("offline-cooking-screen")).toHaveAttribute("data-cover-path", "null");
+    expect(screen.getByTestId("offline-cooking-screen")).toHaveAttribute("data-step-image-url", "null");
+    expect(screen.getByTestId("offline-cooking-screen")).toHaveAttribute("data-step-image-path", "null");
   });
 
   it("shows a clear empty state when no recipe snapshots exist", async () => {
@@ -122,6 +125,13 @@ describe("OfflineApp", () => {
     expect(await screen.findByText("没有可用的离线菜谱")).toBeInTheDocument();
   });
 
+  it("shows a fixed-ratio media placeholder on recipe detail", async () => {
+    setTarget(`/recipes/${RECIPE_ID}`);
+    render(<OfflineApp />);
+
+    expect(await screen.findByLabelText("菜谱图片离线不可用")).toBeInTheDocument();
+  });
+
   it("shows a recoverable storage error state", async () => {
     databaseMocks.getLastOfflineProfile.mockRejectedValue(new Error("OFFLINE_STORAGE_UNAVAILABLE"));
     setTarget("/recipes");
@@ -129,6 +139,15 @@ describe("OfflineApp", () => {
 
     expect(await screen.findByText("此设备暂时无法使用离线数据")).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "返回在线页面" })).toHaveAttribute("href", "/recipes");
+  });
+
+  it("returns to the current supported online target from an error state", async () => {
+    databaseMocks.getShoppingSnapshot.mockRejectedValue(new Error("OFFLINE_STORAGE_UNAVAILABLE"));
+    setTarget("/shopping");
+    render(<OfflineApp />);
+
+    expect(await screen.findByText("此设备暂时无法使用离线数据")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "返回在线页面" })).toHaveAttribute("href", "/shopping");
   });
 
   it("queues an offline shopping checkbox change", async () => {

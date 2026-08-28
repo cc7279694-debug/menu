@@ -42,7 +42,7 @@ export function OfflineShoppingList({ userId, snapshot }: { userId: string; snap
             <Checkbox
               aria-label={`${item.nameSnapshot} 标记为${item.isChecked ? "未完成" : "已完成"}`}
               checked={item.isChecked}
-              className="size-5 after:-inset-3"
+              className="size-5 after:-inset-x-[12px] after:-inset-y-[12px]"
               disabled={pendingIds.has(item.id)}
               onCheckedChange={(checked) => { void toggle(item.id, Boolean(checked)); }}
             />
