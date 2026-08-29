@@ -6,6 +6,7 @@ import { assertSafePublicUrl, fetchPublicDocument } from "@/features/recipe-impo
 
 const publicLookup = async () => [{ address: "93.184.216.34", family: 4 as const }];
 const privateLookup = async () => [{ address: "127.0.0.1", family: 4 as const }];
+const xhsProxyLookup = async () => [{ address: "198.18.0.16", family: 4 as const }];
 
 describe("public URL safety", () => {
   it.each([
@@ -25,6 +26,12 @@ describe("public URL safety", () => {
 
   it("rejects a public hostname resolving to a private address", async () => {
     await expect(assertSafePublicUrl("https://example.com", privateLookup)).rejects.toThrow("不支持访问该地址");
+  });
+
+  it("allows the known Xiaohongshu hosts when the runtime maps them to its public egress proxy", async () => {
+    await expect(assertSafePublicUrl("https://xhslink.cn/o/example", xhsProxyLookup)).resolves.toBeInstanceOf(URL);
+    await expect(assertSafePublicUrl("https://www.xiaohongshu.com/explore/example", xhsProxyLookup)).resolves.toBeInstanceOf(URL);
+    await expect(assertSafePublicUrl("https://example.com/recipe", xhsProxyLookup)).rejects.toThrow("不支持访问该地址");
   });
 
   it("follows safe redirects, but revalidates every location and caps the chain", async () => {

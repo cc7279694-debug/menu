@@ -7,6 +7,7 @@ const MAX_BODY_BYTES = 2 * 1024 * 1024;
 const MAX_REDIRECTS = 3;
 const REQUEST_TIMEOUT_MS = 10_000;
 const USER_AGENT = "ORDINE-recipe-import/1.0";
+const XHS_HOSTS = new Set(["xhslink.cn", "xiaohongshu.com"]);
 
 export type PublicLookup = (
   hostname: string,
@@ -40,6 +41,16 @@ function isPrivateAddress(value: string): boolean {
   return kind === 4 ? isPrivateIpv4(value) : kind === 6 ? isPrivateIpv6(value) : true;
 }
 
+function isXiaohongshuHost(hostname: string): boolean {
+  return XHS_HOSTS.has(hostname) || hostname.endsWith(".xiaohongshu.com");
+}
+
+function isPublicEgressProxyAddress(value: string, hostname: string): boolean {
+  if (!isXiaohongshuHost(hostname) || isIP(value) !== 4) return false;
+  const [first, second] = value.split(".").map(Number);
+  return first === 198 && second === 18;
+}
+
 export async function assertSafePublicUrl(value: string, lookup: PublicLookup = lookupPublicHost): Promise<URL> {
   let url: URL;
   try {
@@ -56,7 +67,7 @@ export async function assertSafePublicUrl(value: string, lookup: PublicLookup = 
 
   try {
     const addresses = await lookup(hostname, { all: true, verbatim: true });
-    if (!addresses.length || addresses.some(({ address }) => isPrivateAddress(address))) throw unsupportedAddress();
+    if (!addresses.length || addresses.some(({ address }) => isPrivateAddress(address) && !isPublicEgressProxyAddress(address, hostname))) throw unsupportedAddress();
   } catch (error) {
     if (error instanceof Error && error.message === "不支持访问该地址") throw error;
     throw unsupportedAddress();
