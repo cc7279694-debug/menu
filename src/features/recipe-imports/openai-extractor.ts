@@ -101,7 +101,11 @@ export function createOpenAiRecipeDraftExtractor(options: OpenAiExtractorOptions
         throw new Error("AI 服务暂时不可用");
       }
 
-      if (!response.ok) throw providerError(response.status);
+      if (!response.ok) {
+        // Keep provider response bodies (which may contain sensitive request details) out of logs.
+        console.error("[recipe-import] OpenAI request failed", { status: response.status });
+        throw providerError(response.status);
+      }
 
       try {
         const payload = (await response.json()) as unknown;
