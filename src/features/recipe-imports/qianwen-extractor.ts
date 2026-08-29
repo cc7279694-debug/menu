@@ -100,7 +100,11 @@ export function createQianwenRecipeDraftExtractor(options: QianwenExtractorOptio
         throw new Error("AI 服务暂时不可用");
       }
 
-      if (!response.ok) throw providerError(response.status);
+      if (!response.ok) {
+        // Keep provider response bodies (which may contain sensitive details) out of logs.
+        console.error("[recipe-import] QianWen request failed", { status: response.status, model: env.RECIPE_AI_MODEL });
+        throw providerError(response.status);
+      }
 
       try {
         const payload = (await response.json()) as unknown;
@@ -108,7 +112,10 @@ export function createQianwenRecipeDraftExtractor(options: QianwenExtractorOptio
         if (!outputText) throw new Error("missing output");
         const parsed = JSON.parse(outputText) as unknown;
         return recipeImportDraftSchema.parse(parsed);
-      } catch {
+      } catch (error) {
+        console.error("[recipe-import] QianWen output parse failed", {
+          error: error instanceof Error ? error.name : "unknown",
+        });
         throw new Error("菜谱内容整理失败");
       }
     },
