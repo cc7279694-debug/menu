@@ -21,6 +21,7 @@ async function loadSingleMigration(database: PGlite, suffix: string, label: stri
 
 export async function loadRecipeMigrations(database: PGlite) {
   await loadSingleMigration(database, "_recipe_management.sql", "recipe");
+  await loadSingleMigration(database, "_recipe_imports.sql", "recipe import");
 }
 
 export async function loadShoppingMigrations(database: PGlite) {

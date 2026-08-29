@@ -77,15 +77,77 @@ export type Database = {
         Relationships: [];
       };
       recipe_ingredients: {
-        Row: { id: string; user_id: string; recipe_id: string; ingredient_id: string; quantity: number | null; quantity_text: string | null; unit: string | null; preparation_note: string | null; sort_order: number } & Timestamps;
-        Insert: { id: string; user_id: string; recipe_id: string; ingredient_id: string; quantity?: number | null; quantity_text?: string | null; unit?: string | null; preparation_note?: string | null; sort_order: number };
+        Row: { id: string; user_id: string; recipe_id: string; ingredient_id: string; quantity: number | null; quantity_text: string | null; unit: string | null; preparation_note: string | null; group_type: string; sort_order: number } & Timestamps;
+        Insert: { id: string; user_id: string; recipe_id: string; ingredient_id: string; quantity?: number | null; quantity_text?: string | null; unit?: string | null; preparation_note?: string | null; group_type?: string; sort_order: number };
         Update: Partial<Database["public"]["Tables"]["recipe_ingredients"]["Insert"]>;
         Relationships: [];
       };
       recipe_steps: {
-        Row: { id: string; user_id: string; recipe_id: string; instruction: string; image_path: string | null; timer_seconds: number | null; sort_order: number } & Timestamps;
-        Insert: { id: string; user_id: string; recipe_id: string; instruction: string; image_path?: string | null; timer_seconds?: number | null; sort_order: number };
+        Row: { id: string; user_id: string; recipe_id: string; instruction: string; image_path: string | null; timer_seconds: number | null; heat_level: string | null; sort_order: number } & Timestamps;
+        Insert: { id: string; user_id: string; recipe_id: string; instruction: string; image_path?: string | null; timer_seconds?: number | null; heat_level?: string | null; sort_order: number };
         Update: Partial<Database["public"]["Tables"]["recipe_steps"]["Insert"]>;
+        Relationships: [];
+      };
+      recipe_import_jobs: {
+        Row: {
+          id: string;
+          user_id: string;
+          source_type: string;
+          source_url: string | null;
+          source_title: string | null;
+          source_author: string | null;
+          source_platform: string | null;
+          source_text: string | null;
+          image_paths: Json;
+          status: string;
+          draft: Json | null;
+          warnings: Json;
+          error_code: string | null;
+          recipe_id: string | null;
+          expires_at: string;
+        } & Timestamps;
+        Insert: {
+          id?: string;
+          user_id: string;
+          source_type: string;
+          source_url?: string | null;
+          source_title?: string | null;
+          source_author?: string | null;
+          source_platform?: string | null;
+          source_text?: string | null;
+          image_paths?: Json;
+          status?: string;
+          draft?: Json | null;
+          warnings?: Json;
+          error_code?: string | null;
+          recipe_id?: string | null;
+          expires_at?: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["recipe_import_jobs"]["Insert"]>;
+        Relationships: [];
+      };
+      recipe_sources: {
+        Row: {
+          id: string;
+          user_id: string;
+          recipe_id: string;
+          source_type: string;
+          source_url: string | null;
+          source_title: string | null;
+          source_author: string | null;
+          source_platform: string | null;
+        } & Pick<Timestamps, "created_at">;
+        Insert: {
+          id?: string;
+          user_id: string;
+          recipe_id: string;
+          source_type: string;
+          source_url?: string | null;
+          source_title?: string | null;
+          source_author?: string | null;
+          source_platform?: string | null;
+        };
+        Update: Partial<Database["public"]["Tables"]["recipe_sources"]["Insert"]>;
         Relationships: [];
       };
       shopping_lists: {

@@ -112,6 +112,7 @@ describe("recipe management migration", () => {
         select policyname
         from pg_policies
         where schemaname = 'storage' and tablename = 'objects'
+          and policyname like 'recipe_media_%'
       `,
     );
     expect(storagePolicies.rows.map((row) => row.policyname).sort()).toEqual([
