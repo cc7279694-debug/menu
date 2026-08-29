@@ -92,7 +92,7 @@ describe("QianWen recipe draft extractor", () => {
     const fetchImpl = vi.fn<typeof fetch>().mockResolvedValue(response({ choices: [{ message: { content: JSON.stringify({
       title: "干锅脆鱼",
       ingredients: [{ name: "鱼片", groupType: "主料", quantity: "适量" }],
-      steps: [{ instruction: "炸至金黄", timerSeconds: "120", ingredientNames: [] }],
+      steps: [{ instruction: { text: "炸至金黄" }, timerSeconds: "120", ingredientNames: [] }],
     }) } }] }));
     const extractor = createQianwenRecipeDraftExtractor({
       fetchImpl,

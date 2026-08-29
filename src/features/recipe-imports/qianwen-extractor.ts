@@ -94,7 +94,14 @@ async function readProviderError(response: Response): Promise<{ code?: string; m
 }
 
 function nullableText(value: unknown): string | null {
-  return typeof value === "string" && value.trim() ? value.trim() : null;
+  if (typeof value === "string" && value.trim()) return value.trim();
+  if (value && typeof value === "object") {
+    const record = value as Record<string, unknown>;
+    for (const key of ["text", "value", "name", "instruction", "description"]) {
+      if (typeof record[key] === "string" && record[key].trim()) return record[key].trim();
+    }
+  }
+  return null;
 }
 
 function nullableNumber(value: unknown): number | null {
@@ -104,7 +111,10 @@ function nullableNumber(value: unknown): number | null {
 }
 
 function stringArray(value: unknown): string[] {
-  return Array.isArray(value) ? value.filter((item): item is string => typeof item === "string" && item.trim().length > 0).map((item) => item.trim()) : [];
+  return Array.isArray(value) ? value.flatMap((item) => {
+    const text = nullableText(item);
+    return text ? [text] : [];
+  }) : [];
 }
 
 function ingredientGroup(value: unknown): "main" | "seasoning" | "other" {
@@ -123,7 +133,7 @@ function normalizeDraftModel(value: unknown): unknown {
     const ingredient = item && typeof item === "object" ? item as Record<string, unknown> : {};
     const rawQuantity = nullableNumber(ingredient.quantity);
     return {
-      name: ingredient.name,
+      name: nullableText(ingredient.name),
       groupType: ingredientGroup(ingredient.groupType),
       quantity: rawQuantity,
       quantityText: nullableText(ingredient.quantityText) ?? (typeof ingredient.quantity === "string" && rawQuantity === null ? ingredient.quantity.trim() : null),
@@ -134,14 +144,18 @@ function normalizeDraftModel(value: unknown): unknown {
   const steps = Array.isArray(draft.steps) ? draft.steps.map((item) => {
     const step = item && typeof item === "object" ? item as Record<string, unknown> : {};
     return {
-      instruction: step.instruction,
+      instruction: nullableText(step.instruction) ?? nullableText(step.description) ?? nullableText(step.text),
       heatLevel: nullableText(step.heatLevel),
       timerSeconds: nullableNumber(step.timerSeconds),
       ingredientNames: stringArray(step.ingredientNames),
     };
   }) : draft.steps;
+  const title = nullableText(draft.title);
+  const warnings = stringArray(draft.warnings);
+  if (!title) warnings.push("菜谱标题未从来源确认，请在保存前补充。");
   return {
     ...draft,
+    title: title ?? "未命名菜谱",
     description: nullableText(draft.description),
     baseServings: nullableNumber(draft.baseServings) ?? 2,
     prepMinutes: nullableNumber(draft.prepMinutes),
@@ -151,7 +165,7 @@ function normalizeDraftModel(value: unknown): unknown {
     suggestedTagNames: stringArray(draft.suggestedTagNames),
     ingredients,
     steps,
-    warnings: stringArray(draft.warnings),
+    warnings,
   };
 }
 
