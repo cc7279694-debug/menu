@@ -1,5 +1,7 @@
 import "server-only";
 
+import { ZodError } from "zod";
+
 import { getRecipeAiEnv, type RecipeAiEnv } from "@/lib/server-env";
 import {
   recipeImportDraftSchema,
@@ -160,9 +162,9 @@ export function createQianwenRecipeDraftExtractor(options: QianwenExtractorOptio
         const parsed = JSON.parse(outputText) as unknown;
         return recipeImportDraftSchema.parse(parsed);
       } catch (error) {
-        console.error("[recipe-import] QianWen output parse failed", {
-          error: error instanceof Error ? error.name : "unknown",
-        });
+        console.error("[recipe-import] QianWen output parse failed", error instanceof ZodError
+          ? { error: "ZodError", issues: error.issues.slice(0, 8).map((issue) => ({ path: issue.path.join("."), code: issue.code })) }
+          : { error: error instanceof Error ? error.name : "unknown" });
         throw new Error("菜谱内容整理失败");
       }
     },
