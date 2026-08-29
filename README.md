@@ -88,3 +88,4 @@ npm.cmd run build
 - [模块 4 购物清单实施计划](docs/superpowers/plans/2026-08-24-module-4-shopping-list.md)
 - [模块 4 购物清单验收记录](docs/testing/module-4-shopping-list-acceptance.md)
 - [模块 5A PWA 公共壳与更新验收记录](docs/testing/module-5a-pwa-shell-acceptance.md)
+- [模块 6A 来源导入验收记录](docs/testing/module-6a-recipe-source-import-acceptance.md)

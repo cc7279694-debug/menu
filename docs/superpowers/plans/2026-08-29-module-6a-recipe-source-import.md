@@ -30,7 +30,7 @@
 
 ## Planned File Map
 
-- `supabase/migrations/20260829090000_recipe_imports.sql`: import jobs, source provenance, ingredient grouping, heat level, Storage bucket, RLS, grants, and updated `save_recipe` RPC.
+- `supabase/migrations/20260829035043_recipe_imports.sql`: import jobs, source provenance, ingredient grouping, heat level, Storage bucket, RLS, grants, and updated `save_recipe` RPC.
 - `src/test/database/recipe-imports-migration.test.ts`: schema/default/check-constraint coverage.
 - `src/test/database/recipe-imports-security.test.ts`: table and Storage RLS coverage.
 - `src/test/database/load-migrations.ts`: load the recipe management and import migrations in order for PGlite tests.
@@ -83,7 +83,7 @@
 ### Task 1: Add the private import data model and recipe detail fields
 
 **Files:**
-- Create: `supabase/migrations/20260829090000_recipe_imports.sql`
+- Create: `supabase/migrations/20260829035043_recipe_imports.sql`
 - Create: `src/test/database/recipe-imports-migration.test.ts`
 - Create: `src/test/database/recipe-imports-security.test.ts`
 - Modify: `src/test/database/load-migrations.ts`
@@ -215,7 +215,7 @@ Expected: PASS, including cross-user SELECT/UPDATE/DELETE denial and Storage pat
 - [ ] **Step 6: Commit the data model task**
 
 ```powershell
-git add supabase/migrations/20260829090000_recipe_imports.sql src/test/database/recipe-imports-migration.test.ts src/test/database/recipe-imports-security.test.ts src/lib/supabase/database.types.ts
+git add supabase/migrations/20260829035043_recipe_imports.sql src/test/database/recipe-imports-migration.test.ts src/test/database/recipe-imports-security.test.ts src/lib/supabase/database.types.ts
 git commit -m "feat(recipe-import): add private import data model"
 ```
 
@@ -1012,3 +1012,4 @@ Report exactly:
 7. branch name, commit IDs, commit messages, push result, and GitHub branch link.
 
 Wait for user acceptance before planning or implementing Module 6B.
+
