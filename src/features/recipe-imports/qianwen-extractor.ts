@@ -3,7 +3,6 @@ import "server-only";
 import { getRecipeAiEnv, type RecipeAiEnv } from "@/lib/server-env";
 import {
   recipeImportDraftSchema,
-  recipeImportJsonSchema,
   type RecipeDraftExtractor,
   type SourceDocument,
 } from "@/features/recipe-imports/schemas";
@@ -89,13 +88,9 @@ export function createQianwenRecipeDraftExtractor(options: QianwenExtractorOptio
               { role: "system", content: SYSTEM_PROMPT },
               { role: "user", content: buildUserContent(input.document, input.imageUrls) },
             ],
-            response_format: {
-              type: "json_schema",
-              json_schema: {
-                name: "recipe_import_draft",
-                schema: recipeImportJsonSchema,
-              },
-            },
+            // DashScope's OpenAI-compatible endpoint supports JSON mode, while
+            // schema validation is performed locally after parsing the response.
+            response_format: { type: "json_object" },
             temperature: 0.1,
             max_tokens: 6000,
             stream: false,

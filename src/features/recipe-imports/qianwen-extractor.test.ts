@@ -48,8 +48,7 @@ describe("QianWen recipe draft extractor", () => {
     expect((init?.headers as Record<string, string>).Authorization).toBe("Bearer sk-test");
     const payload = JSON.parse(String(init?.body));
     expect(payload.model).toBe("qwen3.7-flash");
-    expect(payload.response_format.type).toBe("json_schema");
-    expect(payload.response_format.json_schema.name).toBe("recipe_import_draft");
+    expect(payload.response_format.type).toBe("json_object");
     expect(payload.messages[1].content.some((part: { type: string }) => part.type === "image_url")).toBe(true);
     expect(payload.stream).toBe(false);
   });
