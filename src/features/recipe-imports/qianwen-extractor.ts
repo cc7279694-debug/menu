@@ -104,7 +104,7 @@ function nullableNumber(value: unknown): number | null {
 }
 
 function stringArray(value: unknown): string[] {
-  return Array.isArray(value) ? value.filter((item): item is string => typeof item === "string" && item.trim()).map((item) => item.trim()) : [];
+  return Array.isArray(value) ? value.filter((item): item is string => typeof item === "string" && item.trim().length > 0).map((item) => item.trim()) : [];
 }
 
 function ingredientGroup(value: unknown): "main" | "seasoning" | "other" {
