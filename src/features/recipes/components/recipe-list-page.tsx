@@ -34,6 +34,7 @@ export async function RecipeListPage({ searchParams, favoriteOnly = false, title
         </div>
         <div className="flex gap-2">
           {!favoriteOnly && <Link className="rounded-lg border px-3 py-2 text-sm" href="/recipes?view=trash">回收站</Link>}
+          {!favoriteOnly && <Link className="rounded-lg border px-3 py-2 text-sm" href="/recipes/import">从来源生成</Link>}
           <Link className="rounded-lg bg-primary px-3 py-2 text-sm text-primary-foreground" href="/recipes/new">新建菜谱</Link>
         </div>
       </header>

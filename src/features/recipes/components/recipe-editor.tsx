@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { createCategoryAction, createTagAction, saveRecipeAction } from "@/features/recipes/actions";
+import { finalizeRecipeImportAction } from "@/features/recipe-imports/actions";
 import { recipeSaveInputSchema, type RecipeSaveInput } from "@/features/recipes/schemas";
 import { getObsoleteRecipeMediaPaths, uploadRecipeMedia, removeRecipeMediaPaths } from "@/features/media/upload-recipe-media";
 import { getBrowserSupabaseClient } from "@/lib/supabase/browser";
@@ -25,6 +26,7 @@ type RecipeEditorProps = {
   initialValue?: RecipeSaveInput;
   coverPreviewUrl?: string | null;
   stepPreviewUrls?: Record<string, string | null>;
+  importId?: string;
   onSaved: (recipeId: string) => void;
   saveRecipe?: (input: unknown) => Promise<ActionResult<{ recipeId: string }>>;
 };
@@ -145,6 +147,7 @@ export function RecipeEditor({
   initialValue,
   coverPreviewUrl = null,
   stepPreviewUrls = {},
+  importId,
   onSaved,
   saveRecipe = saveRecipeAction,
 }: RecipeEditorProps) {
@@ -233,6 +236,13 @@ export function RecipeEditor({
         }
         setServerMessage(result.message);
         return;
+      }
+      if (importId) {
+        const finalized = await finalizeRecipeImportAction(importId, result.data.recipeId);
+        if (!finalized.ok) {
+          setServerMessage(finalized.message);
+          return;
+        }
       }
       const previousMedia = {
         coverPath: initialValue?.coverPath ?? null,

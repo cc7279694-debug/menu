@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { APP_ROUTES } from "@/features/navigation/routes";
+import { APP_ROUTES, RECIPE_IMPORT_ROUTE } from "@/features/navigation/routes";
 
 describe("APP_ROUTES", () => {
   it("keeps the approved mobile navigation order", () => {
@@ -10,5 +10,10 @@ describe("APP_ROUTES", () => {
       { href: "/favorites", label: "收藏" },
       { href: "/settings", label: "设置" },
     ]);
+  });
+
+  it("keeps recipe import as a secondary route", () => {
+    expect(RECIPE_IMPORT_ROUTE).toBe("/recipes/import");
+    expect(APP_ROUTES).toHaveLength(4);
   });
 });

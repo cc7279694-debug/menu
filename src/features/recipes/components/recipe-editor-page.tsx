@@ -13,6 +13,7 @@ type RecipeEditorPageProps = {
   initialValue?: RecipeSaveInput;
   coverPreviewUrl?: string | null;
   stepPreviewUrls?: Record<string, string | null>;
+  importId?: string;
 };
 
 export function RecipeEditorPage(props: RecipeEditorPageProps) {
