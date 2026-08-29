@@ -37,6 +37,7 @@ export type RecipeDetail = RecipeSummary & {
     unit: string | null;
     preparationNote: string | null;
     sortOrder: number;
+    groupType?: "main" | "seasoning" | "other";
   }>;
   steps: Array<{
     id: string;
@@ -44,6 +45,7 @@ export type RecipeDetail = RecipeSummary & {
     imagePath: string | null;
     imageUrl: string | null;
     timerSeconds: number | null;
+    heatLevel?: string | null;
     sortOrder: number;
     ingredientLinks: Array<{
       recipeIngredientId: string;
@@ -52,4 +54,11 @@ export type RecipeDetail = RecipeSummary & {
       note: string | null;
     }>;
   }>;
+  source?: {
+    sourceType: "url" | "text" | "images";
+    sourceUrl: string | null;
+    sourceTitle: string | null;
+    sourceAuthor: string | null;
+    sourcePlatform: string | null;
+  } | null;
 };

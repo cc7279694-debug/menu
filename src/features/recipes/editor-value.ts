@@ -20,6 +20,7 @@ export function recipeDetailToSaveInput(detail: RecipeDetail): RecipeSaveInput {
       quantityText: ingredient.quantityText,
       unit: ingredient.unit,
       preparationNote: ingredient.preparationNote,
+      groupType: ingredient.groupType,
       sortOrder: ingredient.sortOrder,
     })),
     steps: detail.steps.map((step) => ({
@@ -27,6 +28,7 @@ export function recipeDetailToSaveInput(detail: RecipeDetail): RecipeSaveInput {
       instruction: step.instruction,
       imagePath: step.imagePath,
       timerSeconds: step.timerSeconds,
+      heatLevel: step.heatLevel,
       sortOrder: step.sortOrder,
       ingredientLinks: step.ingredientLinks,
     })),

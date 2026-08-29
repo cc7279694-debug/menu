@@ -241,26 +241,27 @@ export async function getRecipeDetail(recipeId: string): Promise<RecipeDetail | 
     return null;
   }
 
-  const [categoryResult, recipeTagsResult, recipeIngredientsResult, stepsResult] = await Promise.all([
+  const [categoryResult, recipeTagsResult, recipeIngredientsResult, stepsResult, sourceResult] = await Promise.all([
     recipeResult.data.category_id
       ? supabase.from("categories").select("id, name").eq("id", recipeResult.data.category_id).eq("user_id", user.id).maybeSingle()
       : Promise.resolve({ data: null, error: null }),
     supabase.from("recipe_tags").select("tag_id").eq("recipe_id", recipeId).eq("user_id", user.id),
     supabase
       .from("recipe_ingredients")
-      .select("id, ingredient_id, quantity, quantity_text, unit, preparation_note, sort_order")
+      .select("id, ingredient_id, quantity, quantity_text, unit, preparation_note, group_type, sort_order")
       .eq("recipe_id", recipeId)
       .eq("user_id", user.id)
       .order("sort_order", { ascending: true }),
     supabase
       .from("recipe_steps")
-      .select("id, instruction, image_path, timer_seconds, sort_order")
+      .select("id, instruction, image_path, timer_seconds, heat_level, sort_order")
       .eq("recipe_id", recipeId)
       .eq("user_id", user.id)
       .order("sort_order", { ascending: true }),
+    supabase.from("recipe_sources").select("source_type, source_url, source_title, source_author, source_platform").eq("recipe_id", recipeId).eq("user_id", user.id).maybeSingle(),
   ]);
 
-  if (categoryResult.error || recipeTagsResult.error || recipeIngredientsResult.error || stepsResult.error) {
+  if (categoryResult.error || recipeTagsResult.error || recipeIngredientsResult.error || stepsResult.error || sourceResult.error) {
     throw new Error("菜谱内容暂时无法加载");
   }
 
@@ -337,6 +338,7 @@ export async function getRecipeDetail(recipeId: string): Promise<RecipeDetail | 
       quantityText: ingredient.quantity_text,
       unit: ingredient.unit,
       preparationNote: ingredient.preparation_note,
+      groupType: ingredient.group_type === "seasoning" || ingredient.group_type === "other" ? ingredient.group_type : "main",
       sortOrder: ingredient.sort_order,
     })),
     steps: (stepsResult.data ?? []).map((step) => ({
@@ -345,8 +347,16 @@ export async function getRecipeDetail(recipeId: string): Promise<RecipeDetail | 
       imagePath: step.image_path,
       imageUrl: step.image_path ? signedUrls[step.image_path] ?? null : null,
       timerSeconds: step.timer_seconds,
+      heatLevel: step.heat_level,
       sortOrder: step.sort_order,
       ingredientLinks: linksByStep.get(step.id) ?? [],
     })),
+    source: sourceResult.data ? {
+      sourceType: sourceResult.data.source_type as "url" | "text" | "images",
+      sourceUrl: sourceResult.data.source_url,
+      sourceTitle: sourceResult.data.source_title,
+      sourceAuthor: sourceResult.data.source_author,
+      sourcePlatform: sourceResult.data.source_platform,
+    } : null,
   };
 }
