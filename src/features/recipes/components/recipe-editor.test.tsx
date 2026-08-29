@@ -112,6 +112,7 @@ describe("RecipeEditor", () => {
 
     expect(screen.getByRole("heading", { name: "新建菜谱" })).toBeInTheDocument();
     expect(screen.getAllByLabelText("食材名称")).toHaveLength(1);
+    expect(screen.getAllByLabelText("单位")).toHaveLength(1);
     expect(screen.getAllByLabelText("步骤说明")).toHaveLength(1);
 
     await user.click(screen.getByRole("button", { name: "添加食材" }));
