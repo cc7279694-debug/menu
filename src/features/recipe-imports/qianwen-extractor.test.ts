@@ -50,6 +50,7 @@ describe("QianWen recipe draft extractor", () => {
     expect(payload.model).toBe("qwen3.7-flash");
     expect(payload.response_format.type).toBe("json_object");
     expect(payload.messages[1].content.some((part: { type: string }) => part.type === "image_url")).toBe(true);
+    expect(payload.max_tokens).toBeUndefined();
     expect(payload.stream).toBe(false);
   });
 

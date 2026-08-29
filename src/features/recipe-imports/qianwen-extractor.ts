@@ -92,7 +92,6 @@ export function createQianwenRecipeDraftExtractor(options: QianwenExtractorOptio
             // schema validation is performed locally after parsing the response.
             response_format: { type: "json_object" },
             temperature: 0.1,
-            max_tokens: 6000,
             stream: false,
             enable_thinking: false,
           }),
