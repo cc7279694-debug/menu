@@ -21,6 +21,8 @@ const nullableUuid = z.preprocess(
   uuidSchema.nullable(),
 );
 
+export const recipeIngredientGroupSchema = z.enum(["main", "seasoning", "other"]);
+
 const ingredientLinkSchema = z.object({
   recipeIngredientId: uuidSchema,
   quantityOverride: nullableNumber(z.number().finite().positive()),
@@ -35,6 +37,7 @@ const ingredientSchema = z.object({
   quantityText: nullableText(40),
   unit: nullableText(20),
   preparationNote: nullableText(120),
+  groupType: recipeIngredientGroupSchema.optional(),
   sortOrder: z.number().int().nonnegative(),
 });
 
@@ -43,6 +46,7 @@ const stepSchema = z.object({
   instruction: z.string().trim().min(1).max(2000),
   imagePath: nullableText(500),
   timerSeconds: nullableNumber(z.number().int().min(1).max(86400)),
+  heatLevel: nullableText(60).optional(),
   sortOrder: z.number().int().nonnegative(),
   ingredientLinks: z.array(ingredientLinkSchema),
 });
