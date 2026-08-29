@@ -1,8 +1,5 @@
 import { z } from "zod";
 
-const nullableText = (max: number) =>
-  z.string().trim().max(max).nullish().transform((value) => value || null);
-
 const modelNullableText = (max: number) => z.string().trim().max(max).nullable();
 const modelNullableInteger = (min: number, max: number) => z.number().int().min(min).max(max).nullable();
 

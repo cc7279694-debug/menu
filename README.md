@@ -54,6 +54,15 @@ NEXT_PUBLIC_SUPABASE_URL=
 NEXT_PUBLIC_SUPABASE_ANON_KEY=
 ```
 
+菜谱来源整理的 AI 调用只允许在服务端执行。要在本地 Preview 验证时，可在 `.env.local` 增加：
+
+```dotenv
+OPENAI_API_KEY=
+RECIPE_AI_MODEL=gpt-5-mini
+```
+
+`OPENAI_API_KEY` 不会发送到浏览器，也不应提交到 Git。生产环境变量需要在 Vercel 项目中单独配置；未配置时，导入功能会给出配置缺失提示。
+
 不要提交 `.env.local`，也不要把 service-role key 放进前端或仓库。
 
 ## 验证命令

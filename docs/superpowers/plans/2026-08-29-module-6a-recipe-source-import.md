@@ -33,6 +33,7 @@
 - `supabase/migrations/20260829090000_recipe_imports.sql`: import jobs, source provenance, ingredient grouping, heat level, Storage bucket, RLS, grants, and updated `save_recipe` RPC.
 - `src/test/database/recipe-imports-migration.test.ts`: schema/default/check-constraint coverage.
 - `src/test/database/recipe-imports-security.test.ts`: table and Storage RLS coverage.
+- `src/test/database/load-migrations.ts`: load the recipe management and import migrations in order for PGlite tests.
 - `src/lib/supabase/database.types.ts`: generated database types after the migration.
 - `src/lib/server-env.ts`: server-only AI environment validation.
 - `src/lib/server-env.test.ts`: missing/valid server environment tests.
@@ -85,6 +86,7 @@
 - Create: `supabase/migrations/20260829090000_recipe_imports.sql`
 - Create: `src/test/database/recipe-imports-migration.test.ts`
 - Create: `src/test/database/recipe-imports-security.test.ts`
+- Modify: `src/test/database/load-migrations.ts`
 - Modify: `src/lib/supabase/database.types.ts`
 
 **Interfaces:**
@@ -103,6 +105,8 @@ expect(schema).toContain("heat_level text");
 expect(schema).toContain("bucket_id = 'recipe-imports'");
 expect(schema).toContain("alter table public.recipe_import_jobs force row level security");
 ```
+
+Update `loadRecipeMigrations()` in the same test-preparation task to load exactly one `_recipe_management.sql` file followed by exactly one `_recipe_imports.sql` file. Add an assertion that a recipe save payload without `groupType` still stores `main`.
 
 Add PGlite behavioral assertions for accepted statuses and rejected values:
 
