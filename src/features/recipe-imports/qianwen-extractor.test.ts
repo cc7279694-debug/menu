@@ -72,4 +72,19 @@ describe("QianWen recipe draft extractor", () => {
     const extractor = createQianwenRecipeDraftExtractor({ fetchImpl, env: { API_KEY: "sk-test", RECIPE_AI_MODEL: "qwen3.7-flash" } });
     await expect(extractor.extract({ document, imageUrls: [] })).rejects.toThrow("菜谱内容整理失败");
   });
+
+  it("retries without remote images when the provider rejects an image format", async () => {
+    const fetchImpl = vi.fn<typeof fetch>()
+      .mockResolvedValueOnce(response({ code: "invalid_parameter_error", message: "The image format is illegal and cannot be opened" }, 400))
+      .mockResolvedValueOnce(response({ choices: [{ message: { content: JSON.stringify(draft) } }] }));
+    const extractor = createQianwenRecipeDraftExtractor({
+      fetchImpl,
+      env: { API_KEY: "sk-test", RECIPE_AI_MODEL: "qwen3.7-flash" },
+    });
+
+    await expect(extractor.extract({ document, imageUrls: ["https://example.com/image.avif"] })).resolves.toEqual(draft);
+    expect(fetchImpl).toHaveBeenCalledTimes(2);
+    const retryPayload = JSON.parse(String(fetchImpl.mock.calls[1]?.[1]?.body));
+    expect(retryPayload.messages[1].content).toHaveLength(1);
+  });
 });

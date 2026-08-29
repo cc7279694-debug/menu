@@ -68,70 +68,89 @@ function providerError(status: number): Error {
   return new Error("AI 服务请求失败");
 }
 
+async function readProviderError(response: Response): Promise<{ code?: string; message?: string }> {
+  try {
+    const payload = (await response.clone().json()) as {
+      code?: unknown;
+      message?: unknown;
+      error?: { code?: unknown; message?: unknown };
+    };
+    const code = typeof payload.code === "string"
+      ? payload.code
+      : typeof payload.error?.code === "string"
+        ? payload.error.code
+        : undefined;
+    const message = typeof payload.message === "string"
+      ? payload.message
+      : typeof payload.error?.message === "string"
+        ? payload.error.message
+        : undefined;
+    return { code, message };
+  } catch {
+    return {};
+  }
+}
+
 export function createQianwenRecipeDraftExtractor(options: QianwenExtractorOptions = {}): RecipeDraftExtractor {
   const fetchImpl = options.fetchImpl ?? fetch;
   const env = options.env ?? getRecipeAiEnv();
 
   return {
     async extract(input) {
+      const request = async (imageUrls: string[]) => fetchImpl(CHAT_COMPLETIONS_URL, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${env.API_KEY}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          model: env.RECIPE_AI_MODEL,
+          messages: [
+            { role: "system", content: SYSTEM_PROMPT },
+            { role: "user", content: buildUserContent(input.document, imageUrls) },
+          ],
+          // DashScope's OpenAI-compatible endpoint supports JSON mode, while
+          // schema validation is performed locally after parsing the response.
+          response_format: { type: "json_object" },
+          temperature: 0.1,
+          stream: false,
+          enable_thinking: false,
+        }),
+      });
+
       let response: Response;
       try {
-        response = await fetchImpl(CHAT_COMPLETIONS_URL, {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${env.API_KEY}`,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            model: env.RECIPE_AI_MODEL,
-            messages: [
-              { role: "system", content: SYSTEM_PROMPT },
-              { role: "user", content: buildUserContent(input.document, input.imageUrls) },
-            ],
-            // DashScope's OpenAI-compatible endpoint supports JSON mode, while
-            // schema validation is performed locally after parsing the response.
-            response_format: { type: "json_object" },
-            temperature: 0.1,
-            stream: false,
-            enable_thinking: false,
-          }),
-        });
+        response = await request(input.imageUrls);
       } catch {
         throw new Error("AI 服务暂时不可用");
       }
 
       if (!response.ok) {
-        // Keep provider response bodies (which may contain sensitive details) out of logs.
-        let providerCode: string | undefined;
-        let providerMessage: string | undefined;
-        try {
-          const errorPayload = (await response.clone().json()) as {
-            code?: unknown;
-            message?: unknown;
-            error?: { code?: unknown; message?: unknown };
-          };
-          const code = typeof errorPayload.code === "string"
-            ? errorPayload.code
-            : typeof errorPayload.error?.code === "string"
-              ? errorPayload.error.code
-              : undefined;
-          providerCode = code?.slice(0, 80);
-          const message = typeof errorPayload.message === "string"
-            ? errorPayload.message
-            : typeof errorPayload.error?.message === "string"
-              ? errorPayload.error.message
-              : undefined;
-          providerMessage = message?.replace(/sk-[A-Za-z0-9_-]+/g, "[redacted]").slice(0, 160);
-        } catch {
-          // Some provider failures do not return JSON.
+        const details = await readProviderError(response);
+        const imageFormatError = response.status === 400 && details.message?.toLowerCase().includes("image format");
+        if (imageFormatError && input.imageUrls.length > 0) {
+          console.warn("[recipe-import] QianWen rejected source image; retrying text-only", { imageCount: input.imageUrls.length });
+          try {
+            response = await request([]);
+          } catch {
+            throw new Error("AI 服务暂时不可用");
+          }
         }
-        console.error("[recipe-import] QianWen request failed", {
-          status: response.status,
-          model: env.RECIPE_AI_MODEL,
-          providerCode,
-          providerMessage,
-        });
-        throw providerError(response.status);
+
+        if (response.ok) {
+          // Continue with normal response parsing below.
+        } else {
+          // Keep provider response bodies (which may contain sensitive details) out of logs.
+          const retryDetails = response === undefined ? {} : await readProviderError(response);
+          const providerMessage = retryDetails.message ?? details.message;
+          console.error("[recipe-import] QianWen request failed", {
+            status: response.status,
+            model: env.RECIPE_AI_MODEL,
+            providerCode: (retryDetails.code ?? details.code)?.slice(0, 80),
+            providerMessage: providerMessage?.replace(/sk-[A-Za-z0-9_-]+/g, "[redacted]").slice(0, 160),
+          });
+          throw providerError(response.status);
+        }
       }
 
       try {
