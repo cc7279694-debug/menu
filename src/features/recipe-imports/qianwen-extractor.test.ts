@@ -107,4 +107,25 @@ describe("QianWen recipe draft extractor", () => {
       steps: [{ timerSeconds: 120, heatLevel: null }],
     });
   });
+
+  it("splits amounts embedded in ingredient names", async () => {
+    const fetchImpl = vi.fn<typeof fetch>().mockResolvedValue(response({ choices: [{ message: { content: JSON.stringify({
+      ...draft,
+      ingredients: [
+        { name: "豆瓣酱2勺", groupType: "seasoning", quantity: null, quantityText: null, unit: null },
+        { name: "干锅酱一包", groupType: "seasoning", quantity: null, quantityText: null, unit: null },
+      ],
+    }) } }] }));
+    const extractor = createQianwenRecipeDraftExtractor({
+      fetchImpl,
+      env: { API_KEY: "sk-test", RECIPE_AI_MODEL: "qwen3.7-flash" },
+    });
+
+    await expect(extractor.extract({ document, imageUrls: [] })).resolves.toMatchObject({
+      ingredients: [
+        { name: "豆瓣酱", quantity: 2, quantityText: null, unit: "勺" },
+        { name: "干锅酱", quantity: null, quantityText: "一包", unit: null },
+      ],
+    });
+  });
 });
