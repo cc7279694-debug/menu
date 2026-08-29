@@ -87,4 +87,24 @@ describe("QianWen recipe draft extractor", () => {
     const retryPayload = JSON.parse(String(fetchImpl.mock.calls[1]?.[1]?.body));
     expect(retryPayload.messages[1].content).toHaveLength(1);
   });
+
+  it("normalizes optional model fields before schema validation", async () => {
+    const fetchImpl = vi.fn<typeof fetch>().mockResolvedValue(response({ choices: [{ message: { content: JSON.stringify({
+      title: "干锅脆鱼",
+      ingredients: [{ name: "鱼片", groupType: "主料", quantity: "适量" }],
+      steps: [{ instruction: "炸至金黄", timerSeconds: "120", ingredientNames: [] }],
+    }) } }] }));
+    const extractor = createQianwenRecipeDraftExtractor({
+      fetchImpl,
+      env: { API_KEY: "sk-test", RECIPE_AI_MODEL: "qwen3.7-flash" },
+    });
+
+    await expect(extractor.extract({ document, imageUrls: [] })).resolves.toMatchObject({
+      title: "干锅脆鱼",
+      baseServings: 2,
+      description: null,
+      ingredients: [{ groupType: "main", quantity: null, quantityText: "适量", unit: null }],
+      steps: [{ timerSeconds: 120, heatLevel: null }],
+    });
+  });
 });

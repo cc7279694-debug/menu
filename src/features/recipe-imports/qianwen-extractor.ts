@@ -93,6 +93,68 @@ async function readProviderError(response: Response): Promise<{ code?: string; m
   }
 }
 
+function nullableText(value: unknown): string | null {
+  return typeof value === "string" && value.trim() ? value.trim() : null;
+}
+
+function nullableNumber(value: unknown): number | null {
+  if (typeof value === "number" && Number.isFinite(value)) return value;
+  if (typeof value === "string" && value.trim() && /^\d+(?:\.\d+)?$/.test(value.trim())) return Number(value);
+  return null;
+}
+
+function stringArray(value: unknown): string[] {
+  return Array.isArray(value) ? value.filter((item): item is string => typeof item === "string" && item.trim()).map((item) => item.trim()) : [];
+}
+
+function ingredientGroup(value: unknown): "main" | "seasoning" | "other" {
+  if (value === "main" || value === "seasoning" || value === "other") return value;
+  if (typeof value === "string") {
+    if (value.includes("主料") || value.includes("食材")) return "main";
+    if (value.includes("调料") || value.includes("调味")) return "seasoning";
+  }
+  return "other";
+}
+
+function normalizeDraftModel(value: unknown): unknown {
+  if (!value || typeof value !== "object") return value;
+  const draft = value as Record<string, unknown>;
+  const ingredients = Array.isArray(draft.ingredients) ? draft.ingredients.map((item) => {
+    const ingredient = item && typeof item === "object" ? item as Record<string, unknown> : {};
+    const rawQuantity = nullableNumber(ingredient.quantity);
+    return {
+      name: ingredient.name,
+      groupType: ingredientGroup(ingredient.groupType),
+      quantity: rawQuantity,
+      quantityText: nullableText(ingredient.quantityText) ?? (typeof ingredient.quantity === "string" && rawQuantity === null ? ingredient.quantity.trim() : null),
+      unit: nullableText(ingredient.unit),
+      preparationNote: nullableText(ingredient.preparationNote),
+    };
+  }) : draft.ingredients;
+  const steps = Array.isArray(draft.steps) ? draft.steps.map((item) => {
+    const step = item && typeof item === "object" ? item as Record<string, unknown> : {};
+    return {
+      instruction: step.instruction,
+      heatLevel: nullableText(step.heatLevel),
+      timerSeconds: nullableNumber(step.timerSeconds),
+      ingredientNames: stringArray(step.ingredientNames),
+    };
+  }) : draft.steps;
+  return {
+    ...draft,
+    description: nullableText(draft.description),
+    baseServings: nullableNumber(draft.baseServings) ?? 2,
+    prepMinutes: nullableNumber(draft.prepMinutes),
+    cookMinutes: nullableNumber(draft.cookMinutes),
+    personalNotes: nullableText(draft.personalNotes),
+    suggestedCategoryName: nullableText(draft.suggestedCategoryName),
+    suggestedTagNames: stringArray(draft.suggestedTagNames),
+    ingredients,
+    steps,
+    warnings: stringArray(draft.warnings),
+  };
+}
+
 export function createQianwenRecipeDraftExtractor(options: QianwenExtractorOptions = {}): RecipeDraftExtractor {
   const fetchImpl = options.fetchImpl ?? fetch;
   const env = options.env ?? getRecipeAiEnv();
@@ -129,7 +191,7 @@ export function createQianwenRecipeDraftExtractor(options: QianwenExtractorOptio
 
       if (!response.ok) {
         const details = await readProviderError(response);
-        const imageFormatError = response.status === 400 && details.message?.toLowerCase().includes("image format");
+        const imageFormatError = response.status === 400 && Boolean(details.message?.toLowerCase().includes("image format"));
         if (imageFormatError && input.imageUrls.length > 0) {
           console.warn("[recipe-import] QianWen rejected source image; retrying text-only", { imageCount: input.imageUrls.length });
           try {
@@ -160,7 +222,7 @@ export function createQianwenRecipeDraftExtractor(options: QianwenExtractorOptio
         const outputText = readOutputText(payload);
         if (!outputText) throw new Error("missing output");
         const parsed = JSON.parse(outputText) as unknown;
-        return recipeImportDraftSchema.parse(parsed);
+        return recipeImportDraftSchema.parse(normalizeDraftModel(parsed));
       } catch (error) {
         console.error("[recipe-import] QianWen output parse failed", error instanceof ZodError
           ? { error: "ZodError", issues: error.issues.slice(0, 8).map((issue) => ({ path: issue.path.join("."), code: issue.code })) }
