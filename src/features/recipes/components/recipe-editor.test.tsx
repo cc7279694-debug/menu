@@ -17,6 +17,48 @@ vi.mock("@/lib/supabase/browser", () => ({
 const userId = "11111111-1111-4111-8111-111111111111";
 
 describe("RecipeEditor", () => {
+  it("edits step timers as minutes and seconds while saving total seconds", async () => {
+    const user = userEvent.setup();
+    const initialValue: RecipeSaveInput = {
+      recipeId: "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+      title: "番茄炒蛋",
+      description: null,
+      categoryId: null,
+      tagIds: [],
+      coverPath: null,
+      baseServings: 2,
+      prepMinutes: null,
+      cookMinutes: null,
+      personalNotes: null,
+      ingredients: [{ recipeIngredientId: "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb", name: "番茄", quantity: null, quantityText: null, unit: null, preparationNote: null, sortOrder: 0 }],
+      steps: [{ stepId: "cccccccc-cccc-4ccc-8ccc-cccccccccccc", instruction: "煮熟", imagePath: null, timerSeconds: 90, sortOrder: 0, ingredientLinks: [] }],
+    };
+    const saveRecipe = vi.fn().mockResolvedValue({ ok: true, data: { recipeId: initialValue.recipeId } });
+
+    render(
+      <RecipeEditor
+        mode="edit"
+        userId={userId}
+        categories={[]}
+        tags={[]}
+        initialValue={initialValue}
+        onSaved={vi.fn()}
+        saveRecipe={saveRecipe}
+      />,
+    );
+
+    expect(screen.getByLabelText("第 1 步计时分钟")).toHaveValue(1);
+    expect(screen.getByLabelText("第 1 步计时秒")).toHaveValue(30);
+    await user.clear(screen.getByLabelText("第 1 步计时分钟"));
+    await user.type(screen.getByLabelText("第 1 步计时分钟"), "2");
+    await user.clear(screen.getByLabelText("第 1 步计时秒"));
+    await user.type(screen.getByLabelText("第 1 步计时秒"), "5");
+    await user.click(screen.getByRole("button", { name: "保存菜谱" }));
+
+    await waitFor(() => expect(saveRecipe).toHaveBeenCalledTimes(1));
+    expect(saveRecipe.mock.calls[0][0].steps[0].timerSeconds).toBe(125);
+  });
+
   it("keeps save actions reachable while editing on mobile", () => {
     render(
       <RecipeEditor

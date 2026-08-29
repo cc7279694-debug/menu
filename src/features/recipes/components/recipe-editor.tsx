@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { useFieldArray, useForm, useWatch, type Control } from "react-hook-form";
+import { useFieldArray, useForm, useWatch, type Control, type UseFormSetValue } from "react-hook-form";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -13,6 +13,7 @@ import { getObsoleteRecipeMediaPaths, uploadRecipeMedia, removeRecipeMediaPaths 
 import { getBrowserSupabaseClient } from "@/lib/supabase/browser";
 import type { ActionResult } from "@/features/recipes/types";
 import { ImagePicker } from "@/features/recipes/components/image-picker";
+import { combineTimerParts, splitTimerSeconds } from "@/features/recipes/timer-input";
 
 type TaxonomyOption = { id: string; name: string };
 
@@ -27,6 +28,51 @@ type RecipeEditorProps = {
   onSaved: (recipeId: string) => void;
   saveRecipe?: (input: unknown) => Promise<ActionResult<{ recipeId: string }>>;
 };
+
+function StepTimerFields({
+  control,
+  index,
+  setValue,
+}: {
+  control: Control<RecipeSaveInput>;
+  index: number;
+  setValue: UseFormSetValue<RecipeSaveInput>;
+}) {
+  const timerSeconds = useWatch({ control, name: `steps.${index}.timerSeconds` });
+  const parts = splitTimerSeconds(timerSeconds ?? null);
+  const updateTimer = (minutes: string, seconds: string) => {
+    setValue(`steps.${index}.timerSeconds`, combineTimerParts(minutes, seconds), { shouldDirty: true });
+  };
+
+  return (
+    <div className="space-y-1">
+      <Label>计时（可选）</Label>
+      <div className="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)_auto] items-center gap-2">
+        <Input
+          aria-label={`第 ${index + 1} 步计时分钟`}
+          inputMode="numeric"
+          min={0}
+          onChange={(event) => updateTimer(event.target.value, parts.seconds)}
+          step={1}
+          type="number"
+          value={parts.minutes}
+        />
+        <span className="text-sm text-muted-foreground">分</span>
+        <Input
+          aria-label={`第 ${index + 1} 步计时秒`}
+          inputMode="numeric"
+          max={59}
+          min={0}
+          onChange={(event) => updateTimer(parts.minutes, event.target.value)}
+          step={1}
+          type="number"
+          value={parts.seconds}
+        />
+        <span className="text-sm text-muted-foreground">秒</span>
+      </div>
+    </div>
+  );
+}
 
 function StepIngredientLinks({
   control,
@@ -339,7 +385,16 @@ export function RecipeEditor({
 
       <section className="space-y-4 rounded-2xl border bg-card p-5">
         <div className="flex items-center justify-between gap-4"><div><h2 className="text-xl font-semibold">步骤</h2><p className="text-sm text-muted-foreground">每一步可以关联当前要用的食材并设置计时。</p></div><Button onClick={() => stepFields.append({ stepId: crypto.randomUUID(), instruction: "", imagePath: null, timerSeconds: null, sortOrder: stepFields.fields.length, ingredientLinks: [] })} type="button" variant="outline">添加步骤</Button></div>
-        <div className="space-y-4">{stepFields.fields.map((field, index) => <div className="space-y-4 rounded-xl border p-4" key={field.fieldKey}><div className="flex flex-wrap items-center justify-between gap-2"><h3 className="font-medium">第 {index + 1} 步</h3><div className="flex items-center gap-1"><Button aria-label={`上移步骤 ${index + 1}`} className="px-2" disabled={index === 0} onClick={() => moveStep(index, -1)} type="button" variant="ghost">↑</Button><Button aria-label={`下移步骤 ${index + 1}`} className="px-2" disabled={index === stepFields.fields.length - 1} onClick={() => moveStep(index, 1)} type="button" variant="ghost">↓</Button><Button aria-label={`移除步骤 ${index + 1}`} onClick={() => stepFields.remove(index)} type="button" variant="ghost">移除</Button></div></div><div className="space-y-1"><Label htmlFor={`step-${index}`}>步骤说明</Label><Textarea id={`step-${index}`} {...register(`steps.${index}.instruction`, { required: "请先填写步骤说明" })} />{errors.steps?.[index]?.instruction && <p className="text-sm text-destructive">{errors.steps[index]?.instruction?.message}</p>}</div><div className="grid gap-3 md:grid-cols-2"><div className="space-y-1"><Label htmlFor={`timer-${index}`}>计时（秒，可选）</Label><Input id={`timer-${index}`} min={1} type="number" {...register(`steps.${index}.timerSeconds`, { valueAsNumber: true })} /></div><ImagePicker label={`第 ${index + 1} 步图片`} onChange={(file) => { setStepFiles((current) => ({ ...current, [field.stepId]: file })); setRemovedStepIds((current) => { const next = new Set(current); if (file) next.delete(field.stepId); else next.add(field.stepId); return next; }); }} value={stepFiles[field.stepId]} previewUrl={removedStepIds.has(field.stepId) ? null : stepPreviewUrls[field.stepId] ?? null} /></div><StepIngredientLinks control={control} onToggle={toggleStepIngredient} stepIndex={index} /></div>)}</div>
+        <div className="space-y-4">
+          {stepFields.fields.map((field, index) => (
+            <div className="space-y-4 rounded-xl border p-4" key={field.fieldKey}>
+              <div className="flex flex-wrap items-center justify-between gap-2"><h3 className="font-medium">第 {index + 1} 步</h3><div className="flex items-center gap-1"><Button aria-label={`上移步骤 ${index + 1}`} className="px-2" disabled={index === 0} onClick={() => moveStep(index, -1)} type="button" variant="ghost">↑</Button><Button aria-label={`下移步骤 ${index + 1}`} className="px-2" disabled={index === stepFields.fields.length - 1} onClick={() => moveStep(index, 1)} type="button" variant="ghost">↓</Button><Button aria-label={`移除步骤 ${index + 1}`} onClick={() => stepFields.remove(index)} type="button" variant="ghost">移除</Button></div></div>
+              <div className="space-y-1"><Label htmlFor={`step-${index}`}>步骤说明</Label><Textarea id={`step-${index}`} {...register(`steps.${index}.instruction`, { required: "请先填写步骤说明" })} />{errors.steps?.[index]?.instruction && <p className="text-sm text-destructive">{errors.steps[index]?.instruction?.message}</p>}</div>
+              <div className="grid gap-3 md:grid-cols-2"><StepTimerFields control={control} index={index} setValue={setValue} /><ImagePicker label={`第 ${index + 1} 步图片`} onChange={(file) => { setStepFiles((current) => ({ ...current, [field.stepId]: file })); setRemovedStepIds((current) => { const next = new Set(current); if (file) next.delete(field.stepId); else next.add(field.stepId); return next; }); }} value={stepFiles[field.stepId]} previewUrl={removedStepIds.has(field.stepId) ? null : stepPreviewUrls[field.stepId] ?? null} /></div>
+              <StepIngredientLinks control={control} onToggle={toggleStepIngredient} stepIndex={index} />
+            </div>
+          ))}
+        </div>
       </section>
     </form>
   );
