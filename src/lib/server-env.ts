@@ -3,23 +3,31 @@ import "server-only";
 import { z } from "zod";
 
 const recipeAiEnvSchema = z.object({
-  OPENAI_API_KEY: z.string().trim().min(1),
-  RECIPE_AI_MODEL: z.string().trim().min(1).max(100).default("gpt-5-mini"),
+  DASHSCOPE_API_KEY: z.string().trim().min(1).optional(),
+  QIANWEN_API_KEY: z.string().trim().min(1).optional(),
+  RECIPE_AI_MODEL: z.string().trim().min(1).max(100).default("qwen3.7-flash"),
 });
 
-export type RecipeAiEnv = z.infer<typeof recipeAiEnvSchema>;
+export type RecipeAiEnv = {
+  API_KEY: string;
+  RECIPE_AI_MODEL: string;
+};
 
 export function parseRecipeAiEnv(input: Record<string, string | undefined>): RecipeAiEnv {
   const parsed = recipeAiEnvSchema.safeParse(input);
-  if (!parsed.success) {
+  if (!parsed.success || (!parsed.data.QIANWEN_API_KEY && !parsed.data.DASHSCOPE_API_KEY)) {
     throw new Error("AI 服务配置缺失");
   }
-  return parsed.data;
+  return {
+    API_KEY: parsed.data.QIANWEN_API_KEY ?? parsed.data.DASHSCOPE_API_KEY!,
+    RECIPE_AI_MODEL: parsed.data.RECIPE_AI_MODEL,
+  };
 }
 
 export function getRecipeAiEnv(): RecipeAiEnv {
   return parseRecipeAiEnv({
-    OPENAI_API_KEY: process.env.OPENAI_API_KEY,
+    DASHSCOPE_API_KEY: process.env.DASHSCOPE_API_KEY,
+    QIANWEN_API_KEY: process.env.QIANWEN_API_KEY,
     RECIPE_AI_MODEL: process.env.RECIPE_AI_MODEL,
   });
 }

@@ -5,15 +5,22 @@ vi.mock("server-only", () => ({}));
 import { parseRecipeAiEnv } from "@/lib/server-env";
 
 describe("recipe AI server environment", () => {
-  it("requires a server-side OpenAI key", () => {
+  it("requires a server-side Qwen key", () => {
     expect(() => parseRecipeAiEnv({})).toThrow("AI 服务配置缺失");
   });
 
-  it("uses gpt-5-mini unless a valid model override is supplied", () => {
-    expect(parseRecipeAiEnv({ OPENAI_API_KEY: "sk-test" })).toEqual({
-      OPENAI_API_KEY: "sk-test",
-      RECIPE_AI_MODEL: "gpt-5-mini",
+  it("uses qwen3.7-flash unless a model override is supplied", () => {
+    expect(parseRecipeAiEnv({ DASHSCOPE_API_KEY: "sk-test" })).toEqual({
+      API_KEY: "sk-test",
+      RECIPE_AI_MODEL: "qwen3.7-flash",
     });
-    expect(parseRecipeAiEnv({ OPENAI_API_KEY: "sk-test", RECIPE_AI_MODEL: "gpt-5.1" }).RECIPE_AI_MODEL).toBe("gpt-5.1");
+    expect(parseRecipeAiEnv({ QIANWEN_API_KEY: "sk-test", RECIPE_AI_MODEL: "qwen3.8-flash" })).toEqual({
+      API_KEY: "sk-test",
+      RECIPE_AI_MODEL: "qwen3.8-flash",
+    });
+  });
+
+  it("prefers the QianWen alias when both key names are configured", () => {
+    expect(parseRecipeAiEnv({ DASHSCOPE_API_KEY: "dashscope-key", QIANWEN_API_KEY: "qianwen-key" }).API_KEY).toBe("qianwen-key");
   });
 });

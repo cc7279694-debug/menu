@@ -57,11 +57,11 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=
 菜谱来源整理的 AI 调用只允许在服务端执行。要在本地 Preview 验证时，可在 `.env.local` 增加：
 
 ```dotenv
-OPENAI_API_KEY=
-RECIPE_AI_MODEL=gpt-5-mini
+DASHSCOPE_API_KEY=
+RECIPE_AI_MODEL=qwen3.7-flash
 ```
 
-`OPENAI_API_KEY` 不会发送到浏览器，也不应提交到 Git。生产环境变量需要在 Vercel 项目中单独配置；未配置时，导入功能会给出配置缺失提示。
+`DASHSCOPE_API_KEY` 不会发送到浏览器，也不应提交到 Git。也可使用 `QIANWEN_API_KEY` 作为别名；如 Qwen 控制台提供了其他模型 ID，可用 `RECIPE_AI_MODEL` 覆盖默认的 `qwen3.7-flash`。生产环境变量需要在 Vercel 项目中单独配置；未配置时，导入功能会给出配置缺失提示。
 
 不要提交 `.env.local`，也不要把 service-role key 放进前端或仓库。
 

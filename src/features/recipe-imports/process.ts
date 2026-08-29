@@ -2,7 +2,7 @@ import "server-only";
 
 import { assertSafePublicUrl, fetchPublicDocument } from "@/features/recipe-imports/url-safety";
 import { extractPublicWebSource } from "@/features/recipe-imports/web-source";
-import { createOpenAiRecipeDraftExtractor } from "@/features/recipe-imports/openai-extractor";
+import { createQianwenRecipeDraftExtractor } from "@/features/recipe-imports/qianwen-extractor";
 import { recipeImportDraftSchema, type RecipeDraftExtractor, type RecipeImportDraft, type SourceDocument } from "@/features/recipe-imports/schemas";
 import { getServerAuthContext } from "@/lib/supabase/server-auth";
 import { RECIPE_IMPORT_BUCKET, mapRecipeImportJob } from "@/features/recipe-imports/queries";
@@ -20,6 +20,7 @@ export function mapImportErrorCode(error: unknown): string {
   if (message === "网页中没有找到可整理的文字") return "source_unreadable";
   if (message === "网页内容过大") return "source_too_large";
   if (message === "AI 服务请求过于频繁") return "ai_rate_limited";
+  if (message === "AI 服务认证失败") return "ai_unauthorized";
   if (message === "AI 服务暂时不可用") return "ai_unavailable";
   if (message === "菜谱内容整理失败") return "invalid_ai_output";
   return "processing_failed";
@@ -87,7 +88,7 @@ export async function processRecipeImport(importId: string, options: ProcessOpti
     }
 
     await updateJob(supabase, importId, userId, { status: "extracting", source_title: document.title, source_author: document.author, source_platform: document.platform, source_url: document.canonicalUrl ?? job.sourceUrl });
-    const draft = recipeImportDraftSchema.parse(await (options.extractor ?? createOpenAiRecipeDraftExtractor()).extract({ document, imageUrls }));
+    const draft = recipeImportDraftSchema.parse(await (options.extractor ?? createQianwenRecipeDraftExtractor()).extract({ document, imageUrls }));
     await updateJob(supabase, importId, userId, { status: "review", draft: draft as unknown as Record<string, unknown>, warnings: draft.warnings, error_code: null });
     return { status: "review", draft };
   } catch (error) {

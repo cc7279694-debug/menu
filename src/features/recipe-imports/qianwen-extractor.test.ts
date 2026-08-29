@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 
 vi.mock("server-only", () => ({}));
 
-import { createOpenAiRecipeDraftExtractor } from "@/features/recipe-imports/openai-extractor";
+import { createQianwenRecipeDraftExtractor } from "@/features/recipe-imports/qianwen-extractor";
 
 const draft = {
   title: "番茄炒蛋",
@@ -31,43 +31,45 @@ function response(body: unknown, status = 200) {
   return new Response(JSON.stringify(body), { status, headers: { "content-type": "application/json" } });
 }
 
-describe("OpenAI recipe draft extractor", () => {
-  it("requests strict structured JSON and validates the returned draft", async () => {
+describe("QianWen recipe draft extractor", () => {
+  it("requests structured JSON and validates the returned draft", async () => {
     const fetchImpl = vi.fn<typeof fetch>().mockResolvedValue(response({
-      output: [{ content: [{ type: "output_text", text: JSON.stringify(draft) }] }],
+      choices: [{ message: { content: JSON.stringify(draft) } }],
     }));
-    const extractor = createOpenAiRecipeDraftExtractor({
+    const extractor = createQianwenRecipeDraftExtractor({
       fetchImpl,
-      env: { OPENAI_API_KEY: "sk-test", RECIPE_AI_MODEL: "gpt-5-mini" },
+      env: { API_KEY: "sk-test", RECIPE_AI_MODEL: "qwen3.7-flash" },
     });
 
     await expect(extractor.extract({ document, imageUrls: ["https://example.com/image.webp"] })).resolves.toEqual(draft);
 
     const [url, init] = fetchImpl.mock.calls[0] ?? [];
-    expect(url).toBe("https://api.openai.com/v1/responses");
+    expect(url).toBe("https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions");
     expect((init?.headers as Record<string, string>).Authorization).toBe("Bearer sk-test");
     const payload = JSON.parse(String(init?.body));
-    expect(payload.model).toBe("gpt-5-mini");
-    expect(payload.text.format.type).toBe("json_schema");
-    expect(payload.text.format.strict).toBe(true);
-    expect(payload.input[1].content.some((part: { type: string }) => part.type === "input_image")).toBe(true);
+    expect(payload.model).toBe("qwen3.7-flash");
+    expect(payload.response_format.type).toBe("json_schema");
+    expect(payload.response_format.json_schema.name).toBe("recipe_import_draft");
+    expect(payload.messages[1].content.some((part: { type: string }) => part.type === "image_url")).toBe(true);
+    expect(payload.stream).toBe(false);
   });
 
   it("maps provider failures to stable user-facing errors", async () => {
-    const makeExtractor = (status: number) => createOpenAiRecipeDraftExtractor({
+    const makeExtractor = (status: number) => createQianwenRecipeDraftExtractor({
       fetchImpl: vi.fn<typeof fetch>().mockResolvedValue(response({}, status)),
-      env: { OPENAI_API_KEY: "sk-test", RECIPE_AI_MODEL: "gpt-5-mini" },
+      env: { API_KEY: "sk-test", RECIPE_AI_MODEL: "qwen3.7-flash" },
     });
 
+    await expect(makeExtractor(401).extract({ document, imageUrls: [] })).rejects.toThrow("AI 服务认证失败");
     await expect(makeExtractor(429).extract({ document, imageUrls: [] })).rejects.toThrow("AI 服务请求过于频繁");
     await expect(makeExtractor(503).extract({ document, imageUrls: [] })).rejects.toThrow("AI 服务暂时不可用");
   });
 
   it("rejects malformed or schema-invalid model output without exposing the response", async () => {
     const fetchImpl = vi.fn<typeof fetch>().mockResolvedValue(response({
-      output: [{ content: [{ type: "output_text", text: JSON.stringify({ ...draft, ingredients: [] }) }] }],
+      choices: [{ message: { content: JSON.stringify({ ...draft, ingredients: [] }) } }],
     }));
-    const extractor = createOpenAiRecipeDraftExtractor({ fetchImpl, env: { OPENAI_API_KEY: "sk-test", RECIPE_AI_MODEL: "gpt-5-mini" } });
+    const extractor = createQianwenRecipeDraftExtractor({ fetchImpl, env: { API_KEY: "sk-test", RECIPE_AI_MODEL: "qwen3.7-flash" } });
     await expect(extractor.extract({ document, imageUrls: [] })).rejects.toThrow("菜谱内容整理失败");
   });
 });

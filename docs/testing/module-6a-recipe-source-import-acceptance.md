@@ -30,7 +30,7 @@ npm.cmd run build
 ## 手动验收清单
 
 1. 在非生产 Supabase 项目执行 `20260829035043_recipe_imports.sql`。
-2. 在本地 `.env.local` 配置 Supabase 公共变量，以及仅服务端使用的 `OPENAI_API_KEY` 和可选 `RECIPE_AI_MODEL`。
+2. 在本地 `.env.local` 配置 Supabase 公共变量，以及仅服务端使用的 `DASHSCOPE_API_KEY`（或 `QIANWEN_API_KEY`）和可选 `RECIPE_AI_MODEL`。
 3. 登录后打开 `/recipes/import`，分别验证链接、文字和截图三种入口；刷新导入详情页应能继续轮询。
 4. 在草稿页检查主料/调料分组、火候和 65 秒显示为 `1 分 05 秒`，确认保存前可以修改并保存。
 5. 检查详情页来源链接；删除或保存后确认临时导入图片不会长期留在 `recipe-imports`。
@@ -42,4 +42,4 @@ npm.cmd run build
 - 小红书等需要登录、Cookie 或强反爬的页面不会读取私人会话；请改用公开链接、截图或粘贴文字。
 - 视频字幕/转写与平台专用适配器保留到后续模块。
 - 本工作树无法执行完整 `supabase db reset`，因为本机已有其他 Supabase 容器占用端口 54322；数据库契约已用 PGlite 完成验证，未自动修改任何远程 Supabase 项目。
-- 生产环境 OpenAI/Vercel 密钥和生产迁移仍需单独授权后配置。
+- 生产环境 Qwen/Vercel 密钥和生产迁移仍需单独授权后配置。
