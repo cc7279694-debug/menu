@@ -23,9 +23,13 @@ function normalizeText(value: string): string {
 
 export function extractPublicWebSource(input: { html: string; finalUrl: string }): SourceDocument {
   const $ = cheerio.load(input.html);
+  const metadataText = normalizeText(
+    $("meta[name='description'], meta[property='og:description']").map((_, element) => $(element).attr("content") ?? "").get().join(" "),
+  );
   $("script, style, nav, footer, form, noscript, template, [hidden], [aria-hidden='true']").remove();
   const container = $("article").first().length ? $("article").first() : $("main").first().length ? $("main").first() : $("body");
-  const text = normalizeText(container.text());
+  const visibleText = normalizeText(container.text());
+  const text = visibleText.length >= 40 ? visibleText : normalizeText([visibleText, metadataText].filter(Boolean).join(" "));
   const imageUrls: string[] = [];
   container.find("img, source").each((_, element) => {
     const node = $(element);

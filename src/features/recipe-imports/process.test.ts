@@ -7,6 +7,9 @@ import { mapImportErrorCode, processRecipeImport } from "@/features/recipe-impor
 describe("recipe import process state machine", () => {
   it("maps known failures to stable codes", () => {
     expect(mapImportErrorCode(new Error("不支持访问该地址"))).toBe("unsafe_url");
+    expect(mapImportErrorCode(new Error("网页暂时无法访问"))).toBe("source_unreadable");
+    expect(mapImportErrorCode(new Error("网页格式不受支持"))).toBe("source_unreadable");
+    expect(mapImportErrorCode(new Error("网页跳转次数过多"))).toBe("source_unreadable");
     expect(mapImportErrorCode(new Error("AI 服务请求过于频繁"))).toBe("ai_rate_limited");
     expect(mapImportErrorCode(new Error("AI 服务暂时不可用"))).toBe("ai_unavailable");
     expect(mapImportErrorCode(new Error("菜谱内容整理失败"))).toBe("invalid_ai_output");

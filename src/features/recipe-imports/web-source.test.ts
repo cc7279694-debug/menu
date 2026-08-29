@@ -37,6 +37,18 @@ describe("public web source extraction", () => {
     expect(result.imageUrls[0]).toBe("https://example.com/i/0.jpg");
   });
 
+  it("uses public meta descriptions when a JavaScript-rendered page has no article text", () => {
+    const result = extractPublicWebSource({
+      finalUrl: "https://www.xiaohongshu.com/explore/example",
+      html: `<html><head>
+        <title>干锅脆鱼超简单教程！太香啦！</title>
+        <meta name="description" content="这版干锅脆鱼亲身试验，真的好香啊。切好的鱼片，鱼骨清水洗净去腥味。加入鱼骨炸2分钟，再加鱼片炸5分钟。" />
+      </head><body><div id="app"></div></body></html>`,
+    });
+    expect(result.title).toBe("干锅脆鱼超简单教程！太香啦！");
+    expect(result.text).toContain("切好的鱼片");
+  });
+
   it("rejects a source with neither readable text nor images", () => {
     expect(() => extractPublicWebSource({ finalUrl: "https://example.com", html: "<html><body><script>x</script></body></html>" })).toThrow("网页中没有找到可整理的文字");
   });

@@ -17,7 +17,7 @@ export class RecipeImportProcessError extends Error {
 export function mapImportErrorCode(error: unknown): string {
   const message = error instanceof Error ? error.message : "";
   if (message === "不支持访问该地址") return "unsafe_url";
-  if (message === "网页中没有找到可整理的文字") return "source_unreadable";
+  if (["网页中没有找到可整理的文字", "网页暂时无法访问", "网页格式不受支持", "网页跳转次数过多", "网页请求超时"].includes(message)) return "source_unreadable";
   if (message === "网页内容过大") return "source_too_large";
   if (message === "AI 服务请求过于频繁") return "ai_rate_limited";
   if (message === "AI 服务认证失败") return "ai_unauthorized";
