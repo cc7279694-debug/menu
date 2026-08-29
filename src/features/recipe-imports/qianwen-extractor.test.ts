@@ -128,4 +128,30 @@ describe("QianWen recipe draft extractor", () => {
       ],
     });
   });
+
+  it("recovers units from source text when the model omits them", async () => {
+    const fetchImpl = vi.fn<typeof fetch>().mockResolvedValue(response({ choices: [{ message: { content: JSON.stringify({
+      ...draft,
+      ingredients: [
+        { name: "鸡蛋", groupType: "main", quantity: 2, quantityText: null, unit: null },
+        { name: "番茄", groupType: "main", quantity: 200, quantityText: null, unit: null },
+        { name: "食用油", groupType: "seasoning", quantity: 1, quantityText: null, unit: null },
+      ],
+    }) } }] }));
+    const extractor = createQianwenRecipeDraftExtractor({
+      fetchImpl,
+      env: { API_KEY: "sk-test", RECIPE_AI_MODEL: "qwen3.7-flash" },
+    });
+
+    await expect(extractor.extract({
+      document: { ...document, text: "食材：鸡蛋2个，番茄200克，食用油1勺。步骤：炒熟。" },
+      imageUrls: [],
+    })).resolves.toMatchObject({
+      ingredients: [
+        { name: "鸡蛋", quantity: 2, unit: "个" },
+        { name: "番茄", quantity: 200, unit: "克" },
+        { name: "食用油", quantity: 1, unit: "勺" },
+      ],
+    });
+  });
 });

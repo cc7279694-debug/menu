@@ -147,7 +147,23 @@ function splitEmbeddedIngredientAmount(value: string): { name: string; quantity:
   return null;
 }
 
-function normalizeDraftModel(value: unknown): unknown {
+function sourceIngredientAmount(sourceText: string, ingredientName: string): { quantity: number | null; quantityText: string | null; unit: string | null } | null {
+  if (!sourceText || !ingredientName) return null;
+  const escapedName = ingredientName.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const unit = "克|g|千克|公斤|斤|毫升|ml|升|勺|汤匙|茶匙|个|只|颗|枚|根|片|块|瓣|包|袋|把|杯|碗|滴|段|朵|件";
+  const numericSuffix = new RegExp(`${escapedName}\\s*(\\d+(?:\\.\\d+)?)\\s*(${unit})`, "i").exec(sourceText);
+  if (numericSuffix) return { quantity: Number(numericSuffix[1]), quantityText: null, unit: numericSuffix[2] ?? null };
+  const numericPrefix = new RegExp(`(\\d+(?:\\.\\d+)?)\\s*(${unit})\\s*${escapedName}`, "i").exec(sourceText);
+  if (numericPrefix) return { quantity: Number(numericPrefix[1]), quantityText: null, unit: numericPrefix[2] ?? null };
+  const textAmount = "适量|少许|大量|(?:一|两|二|三|四|五|六|七|八|九|十|半)(?:小|大)?(?:撮|把|包|袋|勺|汤匙|茶匙|个|只|颗|枚|根|片|块|瓣|杯|碗|克|斤|毫升|升)";
+  const textSuffix = new RegExp(`${escapedName}\\s*(${textAmount})`, "i").exec(sourceText);
+  if (textSuffix) return { quantity: null, quantityText: textSuffix[1] ?? null, unit: null };
+  const textPrefix = new RegExp(`(${textAmount})\\s*${escapedName}`, "i").exec(sourceText);
+  if (textPrefix) return { quantity: null, quantityText: textPrefix[1] ?? null, unit: null };
+  return null;
+}
+
+function normalizeDraftModel(value: unknown, sourceText = ""): unknown {
   if (!value || typeof value !== "object") return value;
   const draft = value as Record<string, unknown>;
   const ingredients = Array.isArray(draft.ingredients) ? draft.ingredients.map((item) => {
@@ -157,12 +173,15 @@ function normalizeDraftModel(value: unknown): unknown {
     const rawQuantityText = nullableText(ingredient.quantityText)
       ?? (typeof ingredient.quantity === "string" && rawQuantity === null ? ingredient.quantity.trim() : null);
     const embeddedAmount = rawQuantityText ? null : splitEmbeddedIngredientAmount(rawName);
+    const hasCompleteModelAmount = rawQuantity !== null && nullableText(ingredient.unit) !== null;
+    const sourceAmount = rawQuantityText || embeddedAmount || hasCompleteModelAmount ? null : sourceIngredientAmount(sourceText, rawName);
+    const amount = embeddedAmount ?? sourceAmount;
     return {
       name: embeddedAmount?.name ?? rawName,
       groupType: ingredientGroup(ingredient.groupType),
-      quantity: rawQuantity ?? embeddedAmount?.quantity ?? null,
-      quantityText: rawQuantityText ?? embeddedAmount?.quantityText ?? null,
-      unit: nullableText(ingredient.unit) ?? embeddedAmount?.unit ?? null,
+      quantity: rawQuantity ?? amount?.quantity ?? null,
+      quantityText: rawQuantityText ?? amount?.quantityText ?? null,
+      unit: nullableText(ingredient.unit) ?? amount?.unit ?? null,
       preparationNote: nullableText(ingredient.preparationNote),
     };
   }) : draft.ingredients;
@@ -261,7 +280,7 @@ export function createQianwenRecipeDraftExtractor(options: QianwenExtractorOptio
         const outputText = readOutputText(payload);
         if (!outputText) throw new Error("missing output");
         const parsed = JSON.parse(outputText) as unknown;
-        return recipeImportDraftSchema.parse(normalizeDraftModel(parsed));
+        return recipeImportDraftSchema.parse(normalizeDraftModel(parsed, input.document.text));
       } catch (error) {
         console.error("[recipe-import] QianWen output parse failed", error instanceof ZodError
           ? { error: "ZodError", issues: error.issues.slice(0, 8).map((issue) => ({ path: issue.path.join("."), code: issue.code })) }
