@@ -103,14 +103,25 @@ export function createQianwenRecipeDraftExtractor(options: QianwenExtractorOptio
       if (!response.ok) {
         // Keep provider response bodies (which may contain sensitive details) out of logs.
         let providerCode: string | undefined;
+        let providerMessage: string | undefined;
         try {
-          const errorPayload = (await response.clone().json()) as { code?: unknown; error?: { code?: unknown } };
+          const errorPayload = (await response.clone().json()) as {
+            code?: unknown;
+            message?: unknown;
+            error?: { code?: unknown; message?: unknown };
+          };
           const code = typeof errorPayload.code === "string"
             ? errorPayload.code
             : typeof errorPayload.error?.code === "string"
               ? errorPayload.error.code
               : undefined;
           providerCode = code?.slice(0, 80);
+          const message = typeof errorPayload.message === "string"
+            ? errorPayload.message
+            : typeof errorPayload.error?.message === "string"
+              ? errorPayload.error.message
+              : undefined;
+          providerMessage = message?.replace(/sk-[A-Za-z0-9_-]+/g, "[redacted]").slice(0, 160);
         } catch {
           // Some provider failures do not return JSON.
         }
@@ -118,6 +129,7 @@ export function createQianwenRecipeDraftExtractor(options: QianwenExtractorOptio
           status: response.status,
           model: env.RECIPE_AI_MODEL,
           providerCode,
+          providerMessage,
         });
         throw providerError(response.status);
       }
