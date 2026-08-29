@@ -102,7 +102,23 @@ export function createQianwenRecipeDraftExtractor(options: QianwenExtractorOptio
 
       if (!response.ok) {
         // Keep provider response bodies (which may contain sensitive details) out of logs.
-        console.error("[recipe-import] QianWen request failed", { status: response.status, model: env.RECIPE_AI_MODEL });
+        let providerCode: string | undefined;
+        try {
+          const errorPayload = (await response.clone().json()) as { code?: unknown; error?: { code?: unknown } };
+          const code = typeof errorPayload.code === "string"
+            ? errorPayload.code
+            : typeof errorPayload.error?.code === "string"
+              ? errorPayload.error.code
+              : undefined;
+          providerCode = code?.slice(0, 80);
+        } catch {
+          // Some provider failures do not return JSON.
+        }
+        console.error("[recipe-import] QianWen request failed", {
+          status: response.status,
+          model: env.RECIPE_AI_MODEL,
+          providerCode,
+        });
         throw providerError(response.status);
       }
 
