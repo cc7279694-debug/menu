@@ -34,7 +34,7 @@ function response(body: unknown, status = 200) {
 describe("QianWen recipe draft extractor", () => {
   it("requests structured JSON and validates the returned draft", async () => {
     const fetchImpl = vi.fn<typeof fetch>().mockResolvedValue(response({
-      output: { choices: [{ message: { content: [{ text: JSON.stringify(draft) }] } }] },
+      choices: [{ message: { content: JSON.stringify(draft) } }],
     }));
     const extractor = createQianwenRecipeDraftExtractor({
       fetchImpl,
@@ -44,21 +44,20 @@ describe("QianWen recipe draft extractor", () => {
     await expect(extractor.extract({ document, imageUrls: ["https://example.com/image.webp"] })).resolves.toEqual(draft);
 
     const [url, init] = fetchImpl.mock.calls[0] ?? [];
-    expect(url).toBe("https://dashscope.aliyuncs.com/api/v1/services/aigc/multimodal-generation/generation");
+    expect(url).toBe("https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions");
     expect((init?.headers as Record<string, string>).Authorization).toBe("Bearer sk-test");
     const payload = JSON.parse(String(init?.body));
     expect(payload.model).toBe("qwen3.8-flash");
-    expect(payload.parameters.response_format.type).toBe("json_object");
-    expect(payload.parameters.result_format).toBe("message");
-    expect(payload.parameters.reasoning_effort).toBe("none");
-    expect(payload.input.messages[1].content.some((part: { image?: string }) => typeof part.image === "string")).toBe(true);
-    expect(payload.max_tokens).toBeUndefined();
-    expect(payload.stream).toBeUndefined();
+    expect(payload.response_format.type).toBe("json_object");
+    expect(payload.messages[1].content).toContainEqual({ type: "image_url", image_url: { url: "https://example.com/image.webp" } });
+    expect(payload.messages[1].content).not.toContainEqual(expect.objectContaining({ type: "video_url" }));
+    expect(payload.enable_thinking).toBe(false);
+    expect(payload.stream).toBe(false);
   });
 
-  it("uses the DashScope multimodal endpoint for video sources", async () => {
+  it("uses the OpenAI-compatible multimodal content for video sources", async () => {
     const fetchImpl = vi.fn<typeof fetch>().mockResolvedValue(response({
-      output: { choices: [{ message: { content: [{ text: JSON.stringify(draft) }] } }] },
+      choices: [{ message: { content: JSON.stringify(draft) } }],
     }));
     const extractor = createQianwenRecipeDraftExtractor({
       fetchImpl,
@@ -71,10 +70,10 @@ describe("QianWen recipe draft extractor", () => {
     })).resolves.toEqual(draft);
 
     const [url, init] = fetchImpl.mock.calls[0] ?? [];
-    expect(url).toBe("https://dashscope.aliyuncs.com/api/v1/services/aigc/multimodal-generation/generation");
+    expect(url).toBe("https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions");
     const payload = JSON.parse(String(init?.body));
-    expect(payload.input.messages[1].content).toContainEqual({ video: "https://example.com/recipe.mp4" });
-    expect(payload.parameters.response_format.type).toBe("json_object");
+    expect(payload.messages[1].content).toContainEqual({ type: "video_url", video_url: { url: "https://example.com/recipe.mp4" } });
+    expect(payload.response_format.type).toBe("json_object");
   });
 
   it("maps provider failures to stable user-facing errors", async () => {
@@ -96,9 +95,9 @@ describe("QianWen recipe draft extractor", () => {
     await expect(extractor.extract({ document, imageUrls: [] })).rejects.toThrow("菜谱内容整理失败");
   });
 
-  it("passes images as DashScope multimodal content", async () => {
+  it("passes images as OpenAI-compatible multimodal content", async () => {
     const fetchImpl = vi.fn<typeof fetch>().mockResolvedValue(response({
-      output: { choices: [{ message: { content: [{ text: JSON.stringify(draft) }] } }] },
+      choices: [{ message: { content: JSON.stringify(draft) } }],
     }));
     const extractor = createQianwenRecipeDraftExtractor({
       fetchImpl,
@@ -107,7 +106,7 @@ describe("QianWen recipe draft extractor", () => {
 
     await expect(extractor.extract({ document, imageUrls: ["https://example.com/image.avif"] })).resolves.toEqual(draft);
     const payload = JSON.parse(String(fetchImpl.mock.calls[0]?.[1]?.body));
-    expect(payload.input.messages[1].content).toContainEqual({ image: "https://example.com/image.avif" });
+    expect(payload.messages[1].content).toContainEqual({ type: "image_url", image_url: { url: "https://example.com/image.avif" } });
   });
 
   it("normalizes optional model fields before schema validation", async () => {

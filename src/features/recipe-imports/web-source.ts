@@ -32,11 +32,19 @@ export function extractPublicWebSource(input: { html: string; finalUrl: string }
   const visibleText = normalizeText(container.text());
   const text = visibleText.length >= 40 ? visibleText : normalizeText([visibleText, metadataText].filter(Boolean).join(" "));
   const imageUrls: string[] = [];
-  container.find("img, source").each((_, element) => {
+  const addImageCandidate = (source: string | undefined) => {
+    if (!source || source.startsWith("data:") || source.startsWith("blob:")) return;
+    const absolute = absoluteHttpUrl(source, input.finalUrl);
+    if (!absolute || /\.svg(?:$|[?#])/i.test(absolute)) return;
+    if (!imageUrls.includes(absolute) && imageUrls.length < MAX_IMAGE_CANDIDATES) imageUrls.push(absolute);
+  };
+  $("meta[property='og:image'], meta[property='og:image:url'], meta[name='twitter:image']").each((_, element) => {
+    addImageCandidate($(element).attr("content"));
+  });
+  container.find("img").each((_, element) => {
     const node = $(element);
     const source = node.attr("src") || node.attr("data-src") || node.attr("data-original") || node.attr("srcset")?.split(",")[0]?.trim().split(" ")[0];
-    const absolute = absoluteHttpUrl(source, input.finalUrl);
-    if (absolute && !imageUrls.includes(absolute) && imageUrls.length < MAX_IMAGE_CANDIDATES) imageUrls.push(absolute);
+    addImageCandidate(source);
   });
 
   const videoUrls: string[] = [];

@@ -37,6 +37,16 @@ describe("public web source extraction", () => {
     expect(result.imageUrls[0]).toBe("https://example.com/i/0.jpg");
   });
 
+  it("ignores inline and SVG placeholders while keeping a public cover image", () => {
+    const result = extractPublicWebSource({
+      finalUrl: "https://example.com/r",
+      html: `<html><head><meta property="og:image" content="//cdn.example.com/cover" /></head><body>
+        <article>${"菜谱正文内容。".repeat(10)}<img src="data:image/png;base64,abc" /><img src="/icons/search.svg" /></article>
+      </body></html>`,
+    });
+    expect(result.imageUrls).toEqual(["https://cdn.example.com/cover"]);
+  });
+
   it("uses public meta descriptions when a JavaScript-rendered page has no article text", () => {
     const result = extractPublicWebSource({
       finalUrl: "https://www.xiaohongshu.com/explore/example",
