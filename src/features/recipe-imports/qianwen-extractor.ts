@@ -90,15 +90,16 @@ export function createQianwenRecipeDraftExtractor(options: QianwenExtractorOptio
         }
       }
 
+      let outputText: string | null = null;
       try {
         const payload = (await response.json()) as unknown;
-        const outputText = readOpenAiOutputText(payload);
+        outputText = readOpenAiOutputText(payload);
         if (!outputText) throw new Error("missing output");
         return parseRecipeImportDraftOutput(outputText, input.document.text);
       } catch (error) {
         let modelOutputSummary: Record<string, unknown> | undefined;
         try {
-          const parsed = JSON.parse(outputText) as unknown;
+          const parsed = outputText ? JSON.parse(outputText) as unknown : null;
           if (parsed && typeof parsed === "object") {
             const value = parsed as Record<string, unknown>;
             modelOutputSummary = {
