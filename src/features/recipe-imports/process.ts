@@ -2,7 +2,7 @@ import "server-only";
 
 import { assertSafePublicUrl, fetchPublicDocument } from "@/features/recipe-imports/url-safety";
 import { extractPublicWebSource } from "@/features/recipe-imports/web-source";
-import { createQianwenRecipeDraftExtractor } from "@/features/recipe-imports/qianwen-extractor";
+import { createRecipeAiExtractor } from "@/features/recipe-imports/recipe-ai-extractor";
 import { recipeImportDraftSchema, type RecipeDraftExtractor, type RecipeImportDraft, type SourceDocument } from "@/features/recipe-imports/schemas";
 import { getServerAuthContext } from "@/lib/supabase/server-auth";
 import { RECIPE_IMPORT_BUCKET, mapRecipeImportJob } from "@/features/recipe-imports/queries";
@@ -88,7 +88,7 @@ export async function processRecipeImport(importId: string, options: ProcessOpti
     }
 
     await updateJob(supabase, importId, userId, { status: "extracting", source_title: document.title, source_author: document.author, source_platform: document.platform, source_url: document.canonicalUrl ?? job.sourceUrl });
-    const draft = recipeImportDraftSchema.parse(await (options.extractor ?? createQianwenRecipeDraftExtractor()).extract({ document, imageUrls }));
+    const draft = recipeImportDraftSchema.parse(await (options.extractor ?? createRecipeAiExtractor()).extract({ document, imageUrls }));
     await updateJob(supabase, importId, userId, { status: "review", draft: draft as unknown as Record<string, unknown>, warnings: draft.warnings, error_code: null });
     return { status: "review", draft };
   } catch (error) {
