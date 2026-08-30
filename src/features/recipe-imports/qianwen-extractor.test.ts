@@ -109,6 +109,25 @@ describe("QianWen recipe draft extractor", () => {
     expect(payload.messages[1].content).toContainEqual({ type: "image_url", image_url: { url: "https://example.com/image.avif" } });
   });
 
+  it("retries blocked remote images as inline data when Qwen cannot download them", async () => {
+    const fetchImpl = vi.fn<typeof fetch>()
+      .mockResolvedValueOnce(response({ code: "invalid_parameter_error", message: "Failed to download multimodal content" }, 400))
+      .mockResolvedValueOnce(new Response(new Uint8Array([1, 2, 3]), { status: 200, headers: { "content-type": "image/jpeg" } }))
+      .mockResolvedValueOnce(response({ choices: [{ message: { content: JSON.stringify(draft) } }] }));
+    const extractor = createQianwenRecipeDraftExtractor({
+      fetchImpl,
+      env: { API_KEY: "sk-test", RECIPE_AI_MODEL: "qwen3.8-flash" },
+    });
+
+    await expect(extractor.extract({ document, imageUrls: ["https://sns-webpic-qc.xhscdn.com/example.jpg"] })).resolves.toEqual(draft);
+
+    const retryPayload = JSON.parse(String(fetchImpl.mock.calls[2]?.[1]?.body));
+    expect(retryPayload.messages[1].content).toContainEqual({
+      type: "image_url",
+      image_url: { url: "data:image/jpeg;base64,AQID" },
+    });
+  });
+
   it("normalizes optional model fields before schema validation", async () => {
     const fetchImpl = vi.fn<typeof fetch>().mockResolvedValue(response({ choices: [{ message: { content: JSON.stringify({
       title: "干锅脆鱼",

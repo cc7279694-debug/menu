@@ -12,6 +12,7 @@ import {
 import { type RecipeDraftExtractor } from "@/features/recipe-imports/schemas";
 
 const CHAT_COMPLETIONS_URL = "https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions";
+const MAX_INLINE_IMAGE_BYTES = 12 * 1024 * 1024;
 
 type QianwenExtractorOptions = { fetchImpl?: typeof fetch; env?: RecipeAiEnv };
 type MessageContentPart =
@@ -25,6 +26,30 @@ function buildUserContent(document: Parameters<typeof buildRecipeImportSourceTex
     ...(document.videoUrls ?? []).map((url) => ({ type: "video_url", video_url: { url } }) as const),
     { type: "text", text: buildRecipeImportSourceText(document) },
   ];
+}
+
+async function inlineImages(fetchImpl: typeof fetch, imageUrls: string[]): Promise<string[]> {
+  const inlined: string[] = [];
+  let totalBytes = 0;
+  for (const url of imageUrls) {
+    if (url.startsWith("data:image/")) {
+      inlined.push(url);
+      continue;
+    }
+    try {
+      const response = await fetchImpl(url, { method: "GET" });
+      if (!response.ok) continue;
+      const contentType = response.headers.get("content-type")?.split(";", 1)[0]?.trim().toLowerCase();
+      if (!contentType?.startsWith("image/")) continue;
+      const bytes = new Uint8Array(await response.arrayBuffer());
+      if (totalBytes + bytes.byteLength > MAX_INLINE_IMAGE_BYTES) continue;
+      totalBytes += bytes.byteLength;
+      inlined.push(`data:${contentType};base64,${Buffer.from(bytes).toString("base64")}`);
+    } catch {
+      // Keep the original request error if an optional image cannot be downloaded.
+    }
+  }
+  return inlined;
 }
 
 function providerError(status: number): Error {
@@ -75,13 +100,30 @@ export function createQianwenRecipeDraftExtractor(options: QianwenExtractorOptio
         throw new Error("AI 服务暂时不可用");
       }
 
+      let providerDetails: { code?: string; message?: string } | undefined;
       if (!response.ok) {
-        const details = await readProviderError(response);
+        providerDetails = await readProviderError(response);
+        const failedToDownloadMultimodal = response.status === 400 && /failed to download multimodal content/i.test(providerDetails.message ?? "");
+        if (hasMultimodalInput && input.imageUrls.length > 0 && failedToDownloadMultimodal) {
+          const inlineImageUrls = await inlineImages(fetchImpl, input.imageUrls);
+          if (inlineImageUrls.length > 0) {
+            const retryResponse = await request(inlineImageUrls);
+            if (retryResponse.ok) {
+              response = retryResponse;
+            } else {
+              providerDetails = await readProviderError(retryResponse);
+              response = retryResponse;
+            }
+          }
+        }
+      }
+
+      if (!response.ok) {
         console.error("[recipe-import] QianWen request failed", {
           status: response.status,
           model: env.RECIPE_AI_MODEL,
-          providerCode: details.code?.slice(0, 80),
-          providerMessage: details.message?.replace(/sk-[A-Za-z0-9_-]+/g, "[redacted]").slice(0, 160),
+          providerCode: providerDetails?.code?.slice(0, 80),
+          providerMessage: providerDetails?.message?.replace(/sk-[A-Za-z0-9_-]+/g, "[redacted]").slice(0, 160),
         });
         throw providerError(response.status);
       }
