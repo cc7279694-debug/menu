@@ -48,6 +48,10 @@ function nullableText(value: unknown): string | null {
     const record = value as Record<string, unknown>;
     for (const key of ["text", "value", "name", "instruction", "description"]) {
       if (typeof record[key] === "string" && record[key].trim()) return record[key].trim();
+      if (record[key] && typeof record[key] === "object") {
+        const nested = nullableText(record[key]);
+        if (nested) return nested;
+      }
     }
   }
   return null;
@@ -135,16 +139,16 @@ function normalizeDraftModel(value: unknown, sourceText = ""): unknown {
       ingredientNames: stringArray(step.ingredientNames),
     };
   }) : draft.steps;
-  const title = nullableText(draft.title);
+  const title = nullableText(draft.title) ?? nullableText(draft.name);
   const warnings = stringArray(draft.warnings);
   if (!title) warnings.push("菜谱标题未从来源确认，请在保存前补充。");
   return {
     ...draft,
     title: title ?? "未命名菜谱",
     description: nullableText(draft.description),
-    baseServings: nullableNumber(draft.baseServings) ?? 2,
-    prepMinutes: nullableNumber(draft.prepMinutes),
-    cookMinutes: nullableNumber(draft.cookMinutes),
+    baseServings: nullableNumber(draft.baseServings) ?? nullableNumber(draft.servings) ?? 2,
+    prepMinutes: nullableNumber(draft.prepMinutes) ?? nullableNumber(draft.prepTimeMinutes),
+    cookMinutes: nullableNumber(draft.cookMinutes) ?? nullableNumber(draft.cookTimeMinutes),
     personalNotes: nullableText(draft.personalNotes),
     suggestedCategoryName: nullableText(draft.suggestedCategoryName),
     suggestedTagNames: stringArray(draft.suggestedTagNames),
