@@ -47,6 +47,14 @@ describe("public web source extraction", () => {
     expect(result.imageUrls).toEqual(["https://cdn.example.com/cover"]);
   });
 
+  it("upgrades Xiaohongshu CDN image candidates to HTTPS for multimodal providers", () => {
+    const result = extractPublicWebSource({
+      finalUrl: "https://www.xiaohongshu.com/explore/example",
+      html: `<article>${"酸辣土豆丝做法，脆爽开胃。".repeat(10)}<img src="http://sns-webpic-qc.xhscdn.com/202608302105/example.jpg" /></article>`,
+    });
+    expect(result.imageUrls).toEqual(["https://sns-webpic-qc.xhscdn.com/202608302105/example.jpg"]);
+  });
+
   it("uses public meta descriptions when a JavaScript-rendered page has no article text", () => {
     const result = extractPublicWebSource({
       finalUrl: "https://www.xiaohongshu.com/explore/example",

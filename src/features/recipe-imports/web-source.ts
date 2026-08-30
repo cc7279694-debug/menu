@@ -12,7 +12,11 @@ function absoluteHttpUrl(value: string | undefined, base: string): string | null
   if (!value) return null;
   try {
     const url = new URL(value, base);
-    return /^https?:$/.test(url.protocol) ? url.toString() : null;
+    if (!/^https?:$/.test(url.protocol)) return null;
+    if (url.protocol === "http:" && (url.hostname.endsWith(".xhscdn.com") || url.hostname.endsWith(".xhscdn.net") || url.hostname.endsWith(".xiaohongshu.com"))) {
+      url.protocol = "https:";
+    }
+    return url.toString();
   } catch {
     return null;
   }
