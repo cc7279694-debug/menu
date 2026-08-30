@@ -96,8 +96,22 @@ export function createQianwenRecipeDraftExtractor(options: QianwenExtractorOptio
         if (!outputText) throw new Error("missing output");
         return parseRecipeImportDraftOutput(outputText, input.document.text);
       } catch (error) {
+        let modelOutputSummary: Record<string, unknown> | undefined;
+        try {
+          const parsed = JSON.parse(outputText) as unknown;
+          if (parsed && typeof parsed === "object") {
+            const value = parsed as Record<string, unknown>;
+            modelOutputSummary = {
+              keys: Object.keys(value).slice(0, 20),
+              ingredientsType: Array.isArray(value.ingredients) ? "array" : typeof value.ingredients,
+              ingredientsLength: Array.isArray(value.ingredients) ? value.ingredients.length : null,
+              stepsType: Array.isArray(value.steps) ? "array" : typeof value.steps,
+              stepsLength: Array.isArray(value.steps) ? value.steps.length : null,
+            };
+          }
+        } catch { /* keep provider output out of logs */ }
         console.error("[recipe-import] QianWen output parse failed", error instanceof ZodError
-          ? { error: "ZodError", issues: error.issues.slice(0, 8).map((issue) => ({ path: issue.path.join("."), code: issue.code })) }
+          ? { error: "ZodError", issues: error.issues.slice(0, 8).map((issue) => ({ path: issue.path.join("."), code: issue.code })), modelOutputSummary }
           : { error: error instanceof Error ? error.name : "unknown" });
         throw new Error("菜谱内容整理失败");
       }
