@@ -88,7 +88,10 @@ export async function processRecipeImport(importId: string, options: ProcessOpti
         try { await assertSafePublicUrl(candidate); imageUrls.push(candidate); } catch { /* discard unsafe image candidates */ }
       }
       const videoUrls: string[] = [];
-      for (const candidate of (document.videoUrls ?? []).slice(0, 2)) {
+      // Send one canonical video URL per request. Some social pages expose a
+      // stale fallback URL alongside the current one; passing both makes the
+      // provider reject the entire multimodal request when either has expired.
+      for (const candidate of (document.videoUrls ?? []).slice(0, 1)) {
         try { await assertSafePublicUrl(candidate); videoUrls.push(candidate); } catch { /* discard unsafe video candidates */ }
       }
       document = { ...document, videoUrls };

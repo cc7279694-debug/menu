@@ -110,7 +110,10 @@ function sourceIngredientAmount(sourceText: string, ingredientName: string): { q
 
 function normalizeDraftModel(value: unknown, sourceText = ""): unknown {
   if (!value || typeof value !== "object") return value;
-  const draft = value as Record<string, unknown>;
+  const input = value as Record<string, unknown>;
+  const draft = input.recipe && typeof input.recipe === "object"
+    ? { ...(input.recipe as Record<string, unknown>), warnings: input.warnings ?? (input.recipe as Record<string, unknown>).warnings }
+    : input;
   const ingredients = Array.isArray(draft.ingredients) ? draft.ingredients.map((item) => {
     const ingredient = item && typeof item === "object" ? item as Record<string, unknown> : {};
     const rawName = nullableText(ingredient.name) ?? "";

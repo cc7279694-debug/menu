@@ -149,6 +149,15 @@ describe("QianWen recipe draft extractor", () => {
     });
   });
 
+  it("unwraps a recipe envelope returned by Qwen", async () => {
+    const fetchImpl = vi.fn<typeof fetch>().mockResolvedValue(response({ choices: [{ message: { content: JSON.stringify({
+      recipe: { name: "鱼香肉丝", ingredients: [{ name: "猪肉丝", groupType: "main", quantity: null, quantityText: "适量" }], steps: [{ instruction: "翻炒" }] },
+      warnings: ["数量待确认"],
+    }) } }] }));
+    const extractor = createQianwenRecipeDraftExtractor({ fetchImpl, env: { API_KEY: "sk-test", RECIPE_AI_MODEL: "qwen3.8-flash" } });
+    await expect(extractor.extract({ document, imageUrls: [] })).resolves.toMatchObject({ title: "鱼香肉丝", ingredients: [{ name: "猪肉丝" }], steps: [{ instruction: "翻炒" }] });
+  });
+
   it("splits amounts embedded in ingredient names", async () => {
     const fetchImpl = vi.fn<typeof fetch>().mockResolvedValue(response({ choices: [{ message: { content: JSON.stringify({
       ...draft,
