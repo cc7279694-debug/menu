@@ -87,6 +87,11 @@ export async function processRecipeImport(importId: string, options: ProcessOpti
         if (imageUrls.length >= 6) break;
         try { await assertSafePublicUrl(candidate); imageUrls.push(candidate); } catch { /* discard unsafe image candidates */ }
       }
+      const videoUrls: string[] = [];
+      for (const candidate of (document.videoUrls ?? []).slice(0, 2)) {
+        try { await assertSafePublicUrl(candidate); videoUrls.push(candidate); } catch { /* discard unsafe video candidates */ }
+      }
+      document = { ...document, videoUrls };
     } else if (job.sourceType === "text") {
       document = { platform: "pasted-text", title: job.sourceTitle, author: job.sourceAuthor, canonicalUrl: null, text: typeof loaded.row.source_text === "string" ? loaded.row.source_text : "", imageUrls: [] };
     } else {

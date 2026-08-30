@@ -6,6 +6,7 @@ import type { SourceDocument } from "@/features/recipe-imports/schemas";
 
 const MAX_TEXT_CHARS = 60_000;
 const MAX_IMAGE_CANDIDATES = 12;
+const MAX_VIDEO_CANDIDATES = 2;
 
 function absoluteHttpUrl(value: string | undefined, base: string): string | null {
   if (!value) return null;
@@ -38,7 +39,17 @@ export function extractPublicWebSource(input: { html: string; finalUrl: string }
     if (absolute && !imageUrls.includes(absolute) && imageUrls.length < MAX_IMAGE_CANDIDATES) imageUrls.push(absolute);
   });
 
-  if (text.length < 40 && imageUrls.length === 0) throw new Error("网页中没有找到可整理的文字");
+  const videoUrls: string[] = [];
+  const videoCandidates = [
+    $("meta[property='og:video:secure_url'], meta[property='og:video:url'], meta[property='og:video']").map((_, element) => $(element).attr("content") ?? "").get(),
+    $("video, video source").map((_, element) => $(element).attr("src") ?? "").get(),
+  ].flat();
+  for (const candidate of videoCandidates) {
+    const absolute = absoluteHttpUrl(candidate, input.finalUrl);
+    if (absolute && !videoUrls.includes(absolute) && videoUrls.length < MAX_VIDEO_CANDIDATES) videoUrls.push(absolute);
+  }
+
+  if (text.length < 40 && imageUrls.length === 0 && videoUrls.length === 0) throw new Error("网页中没有找到可整理的文字");
   const canonicalUrl = absoluteHttpUrl($("link[rel='canonical']").attr("href"), input.finalUrl);
   const title = $("meta[property='og:title']").attr("content")?.trim() || $("title").first().text().trim() || null;
   const author = $("meta[name='author'], meta[property='article:author']").first().attr("content")?.trim() || null;
@@ -49,5 +60,6 @@ export function extractPublicWebSource(input: { html: string; finalUrl: string }
     canonicalUrl,
     text,
     imageUrls,
+    videoUrls,
   };
 }

@@ -49,6 +49,18 @@ describe("public web source extraction", () => {
     expect(result.text).toContain("切好的鱼片");
   });
 
+  it("extracts public video URLs from social recipe pages", () => {
+    const result = extractPublicWebSource({
+      finalUrl: "https://www.xiaohongshu.com/explore/example",
+      html: `<html><head>
+        <meta property="og:title" content="鱼香肉丝教程" />
+        <meta property="og:video" content="https://sns-video.example.com/recipe.mp4" />
+      </head><body><div id="app"></div></body></html>`,
+    });
+
+    expect(result.videoUrls).toEqual(["https://sns-video.example.com/recipe.mp4"]);
+  });
+
   it("rejects a source with neither readable text nor images", () => {
     expect(() => extractPublicWebSource({ finalUrl: "https://example.com", html: "<html><body><script>x</script></body></html>" })).toThrow("网页中没有找到可整理的文字");
   });

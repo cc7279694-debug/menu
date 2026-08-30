@@ -83,6 +83,7 @@ export type SourceDocument = {
   canonicalUrl: string | null;
   text: string;
   imageUrls: string[];
+  videoUrls?: string[];
 };
 
 export interface RecipeDraftExtractor {

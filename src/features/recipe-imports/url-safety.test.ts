@@ -31,6 +31,7 @@ describe("public URL safety", () => {
   it("allows the known Xiaohongshu hosts when the runtime maps them to its public egress proxy", async () => {
     await expect(assertSafePublicUrl("https://xhslink.cn/o/example", xhsProxyLookup)).resolves.toBeInstanceOf(URL);
     await expect(assertSafePublicUrl("https://www.xiaohongshu.com/explore/example", xhsProxyLookup)).resolves.toBeInstanceOf(URL);
+    await expect(assertSafePublicUrl("https://sns-video-v3.xhscdn.com/stream/example.mp4", xhsProxyLookup)).resolves.toBeInstanceOf(URL);
     await expect(assertSafePublicUrl("https://example.com/recipe", xhsProxyLookup)).rejects.toThrow("不支持访问该地址");
   });
 
