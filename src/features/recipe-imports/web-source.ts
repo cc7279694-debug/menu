@@ -27,6 +27,16 @@ export function extractPublicWebSource(input: { html: string; finalUrl: string }
   const metadataText = normalizeText(
     $("meta[name='description'], meta[property='og:description']").map((_, element) => $(element).attr("content") ?? "").get().join(" "),
   );
+  const structuredVideoCandidates = $("script[type='application/ld+json']").map((_, element) => {
+    try {
+      const value = JSON.parse($(element).text()) as unknown;
+      return value && typeof value === "object" && "contentUrl" in value && typeof (value as { contentUrl?: unknown }).contentUrl === "string"
+        ? (value as { contentUrl: string }).contentUrl
+        : null;
+    } catch {
+      return null;
+    }
+  }).get().filter((value): value is string => Boolean(value));
   $("script, style, nav, footer, form, noscript, template, [hidden], [aria-hidden='true']").remove();
   const container = $("article").first().length ? $("article").first() : $("main").first().length ? $("main").first() : $("body");
   const visibleText = normalizeText(container.text());
@@ -49,6 +59,7 @@ export function extractPublicWebSource(input: { html: string; finalUrl: string }
 
   const videoUrls: string[] = [];
   const videoCandidates = [
+    structuredVideoCandidates,
     $("meta[property='og:video:secure_url'], meta[property='og:video:url'], meta[property='og:video']").map((_, element) => $(element).attr("content") ?? "").get(),
     $("video, video source").map((_, element) => $(element).attr("src") ?? "").get(),
   ].flat();

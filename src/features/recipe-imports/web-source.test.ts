@@ -71,6 +71,15 @@ describe("public web source extraction", () => {
     expect(result.videoUrls).toEqual(["https://sns-video.example.com/recipe.mp4"]);
   });
 
+  it("prefers a schema.org video URL when a page exposes one", () => {
+    const result = extractPublicWebSource({
+      finalUrl: "https://www.xiaohongshu.com/explore/example",
+      html: `<html><head><script type="application/ld+json">${JSON.stringify({ "@type": "VideoObject", contentUrl: "https://sns-video.example.com/schema.mp4" })}</script>
+        <meta property="og:video" content="https://sns-video.example.com/og.mp4" /></head><body><main>${"鱼香肉丝教程。".repeat(20)}</main></body></html>`,
+    });
+    expect(result.videoUrls).toEqual(["https://sns-video.example.com/schema.mp4", "https://sns-video.example.com/og.mp4"]);
+  });
+
   it("rejects a source with neither readable text nor images", () => {
     expect(() => extractPublicWebSource({ finalUrl: "https://example.com", html: "<html><body><script>x</script></body></html>" })).toThrow("网页中没有找到可整理的文字");
   });
