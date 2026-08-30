@@ -34,10 +34,13 @@ export const recipeImportDraftModelSchema = z.object({
 export const recipeImportDraftSchema = recipeImportDraftModelSchema;
 export const recipeImportJsonSchema = z.toJSONSchema(recipeImportDraftModelSchema);
 
+export const recipeAiProviderSchema = z.enum(["auto", "qwen", "gemini"]);
+export type RecipeAiProvider = z.infer<typeof recipeAiProviderSchema>;
+
 export const createRecipeImportSchema = z.discriminatedUnion("sourceType", [
-  z.object({ sourceType: z.literal("url"), sourceUrl: z.string().url().max(2048) }),
-  z.object({ sourceType: z.literal("text"), sourceText: z.string().trim().min(40).max(60000) }),
-  z.object({ sourceType: z.literal("images") }),
+  z.object({ sourceType: z.literal("url"), sourceUrl: z.string().url().max(2048), aiProvider: recipeAiProviderSchema.default("auto") }),
+  z.object({ sourceType: z.literal("text"), sourceText: z.string().trim().min(40).max(60000), aiProvider: recipeAiProviderSchema.default("auto") }),
+  z.object({ sourceType: z.literal("images"), aiProvider: recipeAiProviderSchema.default("auto") }),
 ]);
 
 export const attachRecipeImportImagesSchema = z.object({
@@ -59,6 +62,7 @@ export type RecipeImportStatus =
 export type RecipeImportJob = {
   id: string;
   sourceType: "url" | "text" | "images";
+  aiProvider: RecipeAiProvider;
   sourceUrl: string | null;
   sourceTitle: string | null;
   sourceAuthor: string | null;

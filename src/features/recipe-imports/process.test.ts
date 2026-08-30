@@ -1,10 +1,24 @@
 import { describe, expect, it, vi } from "vitest";
 
 vi.mock("server-only", () => ({}));
+const providerMocks = vi.hoisted(() => ({
+  auto: { extract: vi.fn() },
+  qwen: { extract: vi.fn() },
+  gemini: { extract: vi.fn() },
+}));
+vi.mock("@/features/recipe-imports/recipe-ai-extractor", () => ({ createRecipeAiExtractor: () => providerMocks.auto }));
+vi.mock("@/features/recipe-imports/qianwen-extractor", () => ({ createQianwenRecipeDraftExtractor: () => providerMocks.qwen }));
+vi.mock("@/features/recipe-imports/gemini-extractor", () => ({ createGeminiRecipeDraftExtractor: () => providerMocks.gemini }));
 
-import { mapImportErrorCode, processRecipeImport } from "@/features/recipe-imports/process";
+import { createRecipeDraftExtractorForProvider, mapImportErrorCode, processRecipeImport } from "@/features/recipe-imports/process";
 
 describe("recipe import process state machine", () => {
+  it("selects the requested provider and keeps auto mode distinct", () => {
+    expect(createRecipeDraftExtractorForProvider("auto")).toBe(providerMocks.auto);
+    expect(createRecipeDraftExtractorForProvider("qwen")).toBe(providerMocks.qwen);
+    expect(createRecipeDraftExtractorForProvider("gemini")).toBe(providerMocks.gemini);
+  });
+
   it("maps known failures to stable codes", () => {
     expect(mapImportErrorCode(new Error("不支持访问该地址"))).toBe("unsafe_url");
     expect(mapImportErrorCode(new Error("网页暂时无法访问"))).toBe("source_unreadable");

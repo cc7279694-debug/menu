@@ -26,6 +26,7 @@ export async function createRecipeImportAction(input: unknown): Promise<ActionRe
     id: importId,
     user_id: user.id,
     source_type: parsed.data.sourceType,
+    ai_provider: parsed.data.aiProvider,
     source_url: parsed.data.sourceType === "url" ? parsed.data.sourceUrl : null,
     source_text: parsed.data.sourceType === "text" ? parsed.data.sourceText : null,
     status: "queued",

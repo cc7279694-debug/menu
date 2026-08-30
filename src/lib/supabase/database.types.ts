@@ -93,6 +93,7 @@ export type Database = {
           id: string;
           user_id: string;
           source_type: string;
+          ai_provider: string;
           source_url: string | null;
           source_title: string | null;
           source_author: string | null;
@@ -110,6 +111,7 @@ export type Database = {
           id?: string;
           user_id: string;
           source_type: string;
+          ai_provider?: string;
           source_url?: string | null;
           source_title?: string | null;
           source_author?: string | null;

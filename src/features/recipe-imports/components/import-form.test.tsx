@@ -28,4 +28,13 @@ describe("ImportForm", () => {
     fireEvent.submit(screen.getByRole("button", { name: "生成菜谱草稿" }).closest("form")!);
     expect(await screen.findByRole("button", { name: "正在准备导入…" })).toBeDisabled();
   });
+
+  it("submits the selected AI provider with the import job", async () => {
+    mocks.create.mockResolvedValue({ ok: true, data: { importId: "job", uploadFolder: "user/job" } });
+    render(<ImportForm />);
+    fireEvent.change(screen.getByLabelText("整理模型"), { target: { value: "gemini" } });
+    fireEvent.change(screen.getByLabelText("网页或视频链接"), { target: { value: "https://example.com/recipe" } });
+    fireEvent.submit(screen.getByRole("button", { name: "生成菜谱草稿" }).closest("form")!);
+    expect(mocks.create).toHaveBeenCalledWith({ sourceType: "url", sourceUrl: "https://example.com/recipe", aiProvider: "gemini" });
+  });
 });

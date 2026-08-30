@@ -50,14 +50,15 @@ describe("recipe import migration", () => {
   it("defaults the job to queued for one-day retention", async () => {
     await database.query("insert into auth.users (id, email) values ($1, $2)", [userId, "a@example.test"]);
     await asUser(database, userId);
-    const result = await database.query<{ status: string; image_paths: unknown; expires_at: string }>(
+    const result = await database.query<{ status: string; ai_provider: string; image_paths: unknown; expires_at: string }>(
       `insert into public.recipe_import_jobs (id, user_id, source_type)
        values ($1, $2, 'images')
-       returning status, image_paths, expires_at`,
+       returning status, ai_provider, image_paths, expires_at`,
       [jobId, userId],
     );
 
     expect(result.rows[0]?.status).toBe("queued");
+    expect(result.rows[0]?.ai_provider).toBe("auto");
     expect(result.rows[0]?.image_paths).toEqual([]);
     expect(Date.parse(result.rows[0]?.expires_at ?? "")).toBeGreaterThan(Date.now());
   });
@@ -69,11 +70,13 @@ describe("recipe import migration", () => {
         from information_schema.columns
         where table_schema = 'public'
           and ((table_name = 'recipe_ingredients' and column_name = 'group_type')
+            or (table_name = 'recipe_import_jobs' and column_name = 'ai_provider')
             or (table_name = 'recipe_steps' and column_name = 'heat_level'))
         order by table_name, column_name
       `,
     );
     expect(columns.rows).toEqual([
+      { table_name: "recipe_import_jobs", column_name: "ai_provider" },
       { table_name: "recipe_ingredients", column_name: "group_type" },
       { table_name: "recipe_steps", column_name: "heat_level" },
     ]);

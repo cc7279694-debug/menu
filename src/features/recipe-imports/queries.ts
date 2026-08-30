@@ -1,5 +1,5 @@
 import { getServerAuthContext } from "@/lib/supabase/server-auth";
-import type { RecipeImportDraft, RecipeImportJob, RecipeImportStatus } from "@/features/recipe-imports/schemas";
+import { recipeAiProviderSchema, type RecipeAiProvider, type RecipeImportDraft, type RecipeImportJob, type RecipeImportStatus } from "@/features/recipe-imports/schemas";
 import { recipeImportDraftSchema } from "@/features/recipe-imports/schemas";
 
 export const RECIPE_IMPORT_BUCKET = "recipe-imports";
@@ -8,11 +8,17 @@ function stringArray(value: unknown): string[] {
   return Array.isArray(value) ? value.filter((item): item is string => typeof item === "string") : [];
 }
 
+function aiProvider(value: unknown): RecipeAiProvider {
+  const parsed = recipeAiProviderSchema.safeParse(value);
+  return parsed.success ? parsed.data : "auto";
+}
+
 export function mapRecipeImportJob(row: Record<string, unknown>): RecipeImportJob {
   const draftResult = row.draft ? recipeImportDraftSchema.safeParse(row.draft) : null;
   return {
     id: String(row.id),
     sourceType: row.source_type as RecipeImportJob["sourceType"],
+    aiProvider: aiProvider(row.ai_provider),
     sourceUrl: typeof row.source_url === "string" ? row.source_url : null,
     sourceTitle: typeof row.source_title === "string" ? row.source_title : null,
     sourceAuthor: typeof row.source_author === "string" ? row.source_author : null,
@@ -32,7 +38,7 @@ export async function getOwnedRecipeImport(importId: string): Promise<RecipeImpo
   if (error || !user) return null;
   const result = await supabase
     .from("recipe_import_jobs")
-    .select("id, source_type, source_url, source_title, source_author, source_platform, image_paths, status, draft, warnings, error_code, recipe_id, expires_at")
+    .select("id, source_type, ai_provider, source_url, source_title, source_author, source_platform, image_paths, status, draft, warnings, error_code, recipe_id, expires_at")
     .eq("id", importId)
     .eq("user_id", user.id)
     .maybeSingle();

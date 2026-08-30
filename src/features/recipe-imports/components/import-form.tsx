@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { attachRecipeImportImagesAction, createRecipeImportAction } from "@/features/recipe-imports/actions";
+import type { RecipeAiProvider } from "@/features/recipe-imports/schemas";
 import { uploadImportImages } from "@/features/recipe-imports/upload-import-images";
 import { getBrowserSupabaseClient } from "@/lib/supabase/browser";
 
@@ -19,12 +20,19 @@ const modes: Array<{ value: InputMode; label: string }> = [
   { value: "text", label: "粘贴文字" },
 ];
 
+const aiProviders: Array<{ value: RecipeAiProvider; label: string }> = [
+  { value: "auto", label: "自动推荐（Qwen 优先，失败时用 Gemini）" },
+  { value: "qwen", label: "只用 Qwen 3.8 Flash" },
+  { value: "gemini", label: "只用 Gemini" },
+];
+
 export function ImportForm({ initialMode = "url" }: { initialMode?: InputMode }) {
   const router = useRouter();
   const [mode, setMode] = useState<InputMode>(initialMode);
   const [url, setUrl] = useState("");
   const [text, setText] = useState("");
   const [files, setFiles] = useState<File[]>([]);
+  const [aiProvider, setAiProvider] = useState<RecipeAiProvider>("auto");
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
@@ -42,7 +50,7 @@ export function ImportForm({ initialMode = "url" }: { initialMode?: InputMode })
     setSubmitting(true);
     try {
       const created = await createRecipeImportAction(
-        mode === "url" ? { sourceType: "url", sourceUrl: url.trim() } : mode === "text" ? { sourceType: "text", sourceText: text.trim() } : { sourceType: "images" },
+        mode === "url" ? { sourceType: "url", sourceUrl: url.trim(), aiProvider } : mode === "text" ? { sourceType: "text", sourceText: text.trim(), aiProvider } : { sourceType: "images", aiProvider },
       );
       if (!created.ok) throw new Error(created.message);
       let paths: string[] = [];
@@ -74,6 +82,7 @@ export function ImportForm({ initialMode = "url" }: { initialMode?: InputMode })
       {mode === "url" ? <div className="space-y-2"><Label htmlFor="recipe-source-url">网页或视频链接</Label><Input id="recipe-source-url" onChange={(event) => setUrl(event.target.value)} placeholder="https://…" type="url" value={url} /></div> : null}
       {mode === "text" ? <div className="space-y-2"><Label htmlFor="recipe-source-text">菜谱文字</Label><Textarea id="recipe-source-text" onChange={(event) => setText(event.target.value)} placeholder="粘贴图文笔记中的食材和步骤…" rows={10} value={text} /></div> : null}
       {mode === "images" ? <div className="space-y-2"><Label htmlFor="recipe-source-images">菜谱截图（最多 6 张，单张原图不超过 15MB）</Label><Input accept="image/jpeg,image/png,image/webp" id="recipe-source-images" multiple onChange={(event) => setFiles(Array.from(event.target.files ?? []))} type="file" />{files.length ? <p className="text-sm text-muted-foreground">已选择 {files.length} 张图片</p> : null}</div> : null}
+      <div className="space-y-2"><Label htmlFor="recipe-ai-provider">整理模型</Label><select className="flex h-9 w-full rounded-lg border border-input bg-background px-3 py-1 text-sm" disabled={submitting} id="recipe-ai-provider" onChange={(event) => setAiProvider(event.target.value as RecipeAiProvider)} value={aiProvider}>{aiProviders.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}</select><p className="text-xs text-muted-foreground">自动推荐会优先使用 Qwen，服务异常时再切换 Gemini。</p></div>
       {error ? <p className="text-sm text-destructive" role="alert">{error}</p> : null}
       <Button disabled={submitting} type="submit">{submitting ? "正在准备导入…" : "生成菜谱草稿"}</Button>
     </form>

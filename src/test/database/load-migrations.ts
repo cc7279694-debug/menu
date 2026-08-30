@@ -22,6 +22,11 @@ async function loadSingleMigration(database: PGlite, suffix: string, label: stri
 export async function loadRecipeMigrations(database: PGlite) {
   await loadSingleMigration(database, "_recipe_management.sql", "recipe");
   await loadSingleMigration(database, "_recipe_imports.sql", "recipe import");
+  const entries = await (await import("node:fs/promises")).readdir(migrationDirectory);
+  const followUpNames = entries.filter((entry) => entry.endsWith("_recipe_import_ai_provider.sql")).sort();
+  for (const migrationName of followUpNames) {
+    await database.exec(await readFile(join(migrationDirectory, migrationName), "utf8"));
+  }
 }
 
 export async function loadShoppingMigrations(database: PGlite) {

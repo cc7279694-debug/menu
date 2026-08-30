@@ -3,12 +3,20 @@ import "server-only";
 import { assertSafePublicUrl, fetchPublicDocument } from "@/features/recipe-imports/url-safety";
 import { extractPublicWebSource } from "@/features/recipe-imports/web-source";
 import { createRecipeAiExtractor } from "@/features/recipe-imports/recipe-ai-extractor";
-import { recipeImportDraftSchema, type RecipeDraftExtractor, type RecipeImportDraft, type SourceDocument } from "@/features/recipe-imports/schemas";
+import { createGeminiRecipeDraftExtractor } from "@/features/recipe-imports/gemini-extractor";
+import { createQianwenRecipeDraftExtractor } from "@/features/recipe-imports/qianwen-extractor";
+import { recipeImportDraftSchema, type RecipeAiProvider, type RecipeDraftExtractor, type RecipeImportDraft, type SourceDocument } from "@/features/recipe-imports/schemas";
 import { getServerAuthContext } from "@/lib/supabase/server-auth";
 import { RECIPE_IMPORT_BUCKET, mapRecipeImportJob } from "@/features/recipe-imports/queries";
 
 type ProcessClient = Awaited<ReturnType<typeof getServerAuthContext>>["supabase"];
 type ProcessOptions = { extractor?: RecipeDraftExtractor; fetchDocument?: typeof fetchPublicDocument; supabase?: ProcessClient; userId?: string };
+
+export function createRecipeDraftExtractorForProvider(provider: RecipeAiProvider): RecipeDraftExtractor {
+  if (provider === "qwen") return createQianwenRecipeDraftExtractor();
+  if (provider === "gemini") return createGeminiRecipeDraftExtractor();
+  return createRecipeAiExtractor();
+}
 
 export class RecipeImportProcessError extends Error {
   constructor(public readonly code: string, message: string) { super(message); }
@@ -88,7 +96,7 @@ export async function processRecipeImport(importId: string, options: ProcessOpti
     }
 
     await updateJob(supabase, importId, userId, { status: "extracting", source_title: document.title, source_author: document.author, source_platform: document.platform, source_url: document.canonicalUrl ?? job.sourceUrl });
-    const draft = recipeImportDraftSchema.parse(await (options.extractor ?? createRecipeAiExtractor()).extract({ document, imageUrls }));
+    const draft = recipeImportDraftSchema.parse(await (options.extractor ?? createRecipeDraftExtractorForProvider(job.aiProvider)).extract({ document, imageUrls }));
     await updateJob(supabase, importId, userId, { status: "review", draft: draft as unknown as Record<string, unknown>, warnings: draft.warnings, error_code: null });
     return { status: "review", draft };
   } catch (error) {

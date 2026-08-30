@@ -52,10 +52,10 @@ describe("recipe import lifecycle actions", () => {
   it("creates a URL job and returns an owned upload folder", async () => {
     const client = supabase();
     mocks.createServerSupabaseClient.mockResolvedValue(client);
-    const result = await createRecipeImportAction({ sourceType: "url", sourceUrl: "https://example.com/r" });
+    const result = await createRecipeImportAction({ sourceType: "url", sourceUrl: "https://example.com/r", aiProvider: "gemini" });
     expect(result.ok).toBe(true);
     if (result.ok) expect(result.data.uploadFolder).toMatch(new RegExp(`^${USER_ID}/[0-9a-f-]+$`));
-    expect(client.jobs.insert).toHaveBeenCalledWith(expect.objectContaining({ user_id: USER_ID, source_type: "url", source_url: "https://example.com/r", status: "queued" }));
+    expect(client.jobs.insert).toHaveBeenCalledWith(expect.objectContaining({ user_id: USER_ID, source_type: "url", source_url: "https://example.com/r", ai_provider: "gemini", status: "queued" }));
   });
 
   it("rejects image paths outside the job owner folder", async () => {

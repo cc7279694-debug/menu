@@ -63,7 +63,7 @@ GEMINI_API_KEY=
 GEMINI_RECIPE_AI_MODEL=gemini-3.7-flash
 ```
 
-`DASHSCOPE_API_KEY`、`GEMINI_API_KEY` 不会发送到浏览器，也不应提交到 Git。也可使用 `QIANWEN_API_KEY` 作为 Qwen 别名；如控制台提供了其他模型 ID，可分别用 `RECIPE_AI_MODEL` 或 `GEMINI_RECIPE_AI_MODEL` 覆盖默认模型。Qwen 是主模型，只有 Qwen 请求失败或返回无效结构化结果时，且已配置 `GEMINI_API_KEY`，才会串行尝试 Gemini 一次。生产环境变量需要在 Vercel 项目中单独配置；未配置时，导入功能会给出配置缺失提示。
+`DASHSCOPE_API_KEY`、`GEMINI_API_KEY` 不会发送到浏览器，也不应提交到 Git。也可使用 `QIANWEN_API_KEY` 作为 Qwen 别名；如控制台提供了其他模型 ID，可分别用 `RECIPE_AI_MODEL` 或 `GEMINI_RECIPE_AI_MODEL` 覆盖默认模型。导入菜谱时可以选择“自动推荐”“只用 Qwen 3.8 Flash”或“只用 Gemini”：自动模式会优先使用 Qwen，遇到可恢复的服务错误时最多回退到 Gemini 一次；单模型模式不会调用另一家服务。生产环境变量需要在 Vercel 项目中单独配置；未配置时，导入功能会给出配置缺失提示。
 
 不要提交 `.env.local`，也不要把 service-role key 放进前端或仓库。
 

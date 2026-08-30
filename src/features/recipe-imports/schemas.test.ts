@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   attachRecipeImportImagesSchema,
   createRecipeImportSchema,
+  recipeAiProviderSchema,
   recipeImportDraftSchema,
 } from "@/features/recipe-imports/schemas";
 
@@ -61,10 +62,12 @@ describe("recipe import schemas", () => {
     expect(createRecipeImportSchema.parse({ sourceType: "url", sourceUrl: "https://example.com/recipe" })).toEqual({
       sourceType: "url",
       sourceUrl: "https://example.com/recipe",
+      aiProvider: "auto",
     });
-    expect(createRecipeImportSchema.parse({ sourceType: "text", sourceText: "这是一段足够长的菜谱文字，用来测试粘贴文字导入，并且包含食材、调料和步骤信息，最后还会记录火候和烹饪时间。" })).toBeTruthy();
-    expect(createRecipeImportSchema.parse({ sourceType: "images" })).toEqual({ sourceType: "images" });
+    expect(createRecipeImportSchema.parse({ sourceType: "text", sourceText: "这是一段足够长的菜谱文字，用来测试粘贴文字导入，并且包含食材、调料和步骤信息，最后还会记录火候和烹饪时间。", aiProvider: "qwen" })).toMatchObject({ sourceType: "text", aiProvider: "qwen" });
+    expect(createRecipeImportSchema.parse({ sourceType: "images", aiProvider: "gemini" })).toEqual({ sourceType: "images", aiProvider: "gemini" });
     expect(() => createRecipeImportSchema.parse({ sourceType: "text", sourceText: "太短" })).toThrow();
+    expect(() => recipeAiProviderSchema.parse("other")).toThrow();
   });
 
   it("limits image paths to six owned candidates", () => {
