@@ -38,7 +38,7 @@ describe("QianWen recipe draft extractor", () => {
     }));
     const extractor = createQianwenRecipeDraftExtractor({
       fetchImpl,
-      env: { API_KEY: "sk-test", RECIPE_AI_MODEL: "qwen3.7-flash" },
+      env: { API_KEY: "sk-test", RECIPE_AI_MODEL: "qwen3.8-flash" },
     });
 
     await expect(extractor.extract({ document, imageUrls: ["https://example.com/image.webp"] })).resolves.toEqual(draft);
@@ -47,7 +47,7 @@ describe("QianWen recipe draft extractor", () => {
     expect(url).toBe("https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions");
     expect((init?.headers as Record<string, string>).Authorization).toBe("Bearer sk-test");
     const payload = JSON.parse(String(init?.body));
-    expect(payload.model).toBe("qwen3.7-flash");
+    expect(payload.model).toBe("qwen3.8-flash");
     expect(payload.response_format.type).toBe("json_object");
     expect(payload.messages[1].content.some((part: { type: string }) => part.type === "image_url")).toBe(true);
     expect(payload.max_tokens).toBeUndefined();

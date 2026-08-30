@@ -9,10 +9,10 @@ describe("recipe AI server environment", () => {
     expect(() => parseRecipeAiEnv({})).toThrow("AI 服务配置缺失");
   });
 
-  it("uses qwen3.7-flash unless a model override is supplied", () => {
+  it("uses qwen3.8-flash unless a model override is supplied", () => {
     expect(parseRecipeAiEnv({ DASHSCOPE_API_KEY: "sk-test" })).toEqual({
       API_KEY: "sk-test",
-      RECIPE_AI_MODEL: "qwen3.7-flash",
+      RECIPE_AI_MODEL: "qwen3.8-flash",
     });
     expect(parseRecipeAiEnv({ QIANWEN_API_KEY: "sk-test", RECIPE_AI_MODEL: "qwen3.8-flash" })).toEqual({
       API_KEY: "sk-test",

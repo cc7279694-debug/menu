@@ -5,7 +5,7 @@ import { z } from "zod";
 const recipeAiEnvSchema = z.object({
   DASHSCOPE_API_KEY: z.string().trim().min(1).optional(),
   QIANWEN_API_KEY: z.string().trim().min(1).optional(),
-  RECIPE_AI_MODEL: z.string().trim().min(1).max(100).default("qwen3.7-flash"),
+  RECIPE_AI_MODEL: z.string().trim().min(1).max(100).default("qwen3.8-flash"),
 });
 
 const geminiRecipeAiEnvSchema = z.object({
