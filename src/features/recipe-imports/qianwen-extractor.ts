@@ -21,9 +21,9 @@ type MessageContentPart =
 
 function buildUserContent(document: Parameters<typeof buildRecipeImportSourceText>[0], imageUrls: string[]): MessageContentPart[] {
   return [
-    { type: "text", text: buildRecipeImportSourceText(document) },
     ...imageUrls.map((url) => ({ type: "image_url", image_url: { url } }) as const),
     ...(document.videoUrls ?? []).map((url) => ({ type: "video_url", video_url: { url } }) as const),
+    { type: "text", text: buildRecipeImportSourceText(document) },
   ];
 }
 
