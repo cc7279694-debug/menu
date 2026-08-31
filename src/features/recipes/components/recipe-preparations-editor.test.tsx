@@ -55,6 +55,21 @@ describe("RecipePreparationsEditor", () => {
     });
   });
 
+  it("preserves the entered amount when changing the time unit", async () => {
+    const user = userEvent.setup();
+    render(<TestForm />);
+
+    await user.click(screen.getByRole("button", { name: "添加提前准备" }));
+    await user.type(screen.getByLabelText("准备说明 1"), "浸泡");
+    await user.type(screen.getByLabelText("提前时间 1"), "4");
+    await user.selectOptions(screen.getByLabelText("时间单位 1"), "hour");
+
+    expect(screen.getByLabelText("提前时间 1")).toHaveValue(4);
+    expect(JSON.parse(screen.getByTestId("preparations-value").textContent ?? "[]")[0]).toMatchObject({
+      leadTimeMinutes: 240,
+    });
+  });
+
   it("shows validation for an empty time and supports text time", async () => {
     const user = userEvent.setup();
     render(<TestForm />);

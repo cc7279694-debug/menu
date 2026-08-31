@@ -61,6 +61,20 @@ export function RecipePreparationsEditor({
     setSelectedUnits((current) => ({ ...current, [fieldId]: unit }));
   };
 
+  const updateUnit = (index: number, fieldId: string, nextUnit: PreparationTimeUnit) => {
+    const item = preparations[index];
+    const previousUnit = selectedUnits[fieldId] ?? toPreparationTimeParts(item?.leadTimeMinutes ?? null).unit;
+    const currentMinutes = item?.leadTimeMinutes;
+
+    if (currentMinutes !== null && currentMinutes !== undefined) {
+      const currentValue = previousUnit === "day"
+        ? currentMinutes / 1440
+        : previousUnit === "hour" ? currentMinutes / 60 : currentMinutes;
+      setValue(`preparations.${index}.leadTimeMinutes`, toLeadTimeMinutes(currentValue, nextUnit), { shouldDirty: true, shouldValidate: true });
+    }
+    setSelectedUnits((current) => ({ ...current, [fieldId]: nextUnit }));
+  };
+
   return (
     <section className="space-y-4 rounded-2xl border bg-card p-5" aria-labelledby="recipe-preparations-editor-heading">
       <div className="flex items-center justify-between gap-4">
@@ -109,10 +123,7 @@ export function RecipePreparationsEditor({
                   </div>
                   <div className="space-y-1">
                     <Label htmlFor={`preparation-unit-${index}`}>时间单位 {index + 1}</Label>
-                    <select className="h-10 rounded-md border bg-background px-3 text-sm" id={`preparation-unit-${index}`} onChange={(event) => {
-                      const nextUnit = event.target.value as PreparationTimeUnit;
-                      setSelectedUnits((current) => ({ ...current, [field.preparationId]: nextUnit }));
-                    }} value={unit}>
+                    <select className="h-10 rounded-md border bg-background px-3 text-sm" id={`preparation-unit-${index}`} onChange={(event) => updateUnit(index, field.preparationId, event.target.value as PreparationTimeUnit)} value={unit}>
                       {units.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
                     </select>
                   </div>
