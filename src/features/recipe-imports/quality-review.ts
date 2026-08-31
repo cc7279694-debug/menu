@@ -28,9 +28,6 @@ const statusRank: Record<RecipeImportFieldStatus, number> = {
   missing: 2,
 };
 
-const criticalRootPaths = new Set(["prepMinutes", "cookMinutes"]);
-const criticalIndexedFields = new Set(["quantity", "timerSeconds", "leadTimeMinutes"]);
-
 function hasValue(value: unknown): boolean {
   if (typeof value === "string") return value.trim().length > 0;
   if (Array.isArray(value)) return value.length > 0;
@@ -46,14 +43,6 @@ function parseIndexedPath(path: string): { collection: keyof typeof indexedField
   return Number.isInteger(index) && index >= 0 && indexedFields[collection].has(field)
     ? { collection, index, field }
     : null;
-}
-
-function fieldValue(draft: RecipeImportModelDraft, path: string): unknown {
-  if (rootPaths.has(path)) return draft[path as keyof RecipeImportModelDraft];
-  const parsed = parseIndexedPath(path);
-  if (!parsed) return undefined;
-  const item = draft[parsed.collection][parsed.index] as Record<string, unknown> | undefined;
-  return item?.[parsed.field];
 }
 
 function fieldLabel(draft: RecipeImportModelDraft, path: string): string {
@@ -81,12 +70,6 @@ function fieldLabel(draft: RecipeImportModelDraft, path: string): string {
 
 function defaultStatus(value: unknown): RecipeImportFieldStatus {
   return hasValue(value) ? "inferred" : "missing";
-}
-
-function isCriticalPath(path: string): boolean {
-  if (criticalRootPaths.has(path)) return true;
-  const parsed = parseIndexedPath(path);
-  return Boolean(parsed && criticalIndexedFields.has(parsed.field));
 }
 
 function checkMessage(status: RecipeImportFieldStatus, label: string, message: string | null): string {

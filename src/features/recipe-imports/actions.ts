@@ -54,9 +54,9 @@ export async function attachRecipeImportImagesAction(input: unknown): Promise<Ac
 
 export async function confirmRecipeImportAction(importId: string): Promise<ActionResult<null>> {
   const parsed = processRecipeImportSchema.safeParse({ importId });
-  if (!parsed.success) return { ok: false, message: "导入任务不存在" };
+  if (!parsed.success) return { ok: false, message: "导入任务无效" };
   const { supabase, user } = await getUser();
-  if (!user) return { ok: false, message: "请先登录后再保存菜谱" };
+  if (!user) return { ok: false, message: "请先登录后再确认" };
 
   const result = await supabase
     .from("recipe_import_jobs")
@@ -65,7 +65,10 @@ export async function confirmRecipeImportAction(importId: string): Promise<Actio
     .eq("user_id", user.id)
     .maybeSingle();
   if (result.error || !result.data) return { ok: false, message: "导入任务不存在" };
-  if (result.data.status !== "review") return { ok: false, message: "导入任务当前不可确认" };
+  if (result.data.status !== "review") return { ok: false, message: "导入任务当前不能确认" };
+  if (typeof result.data.expires_at !== "string" || new Date(result.data.expires_at).getTime() <= Date.now()) {
+    return { ok: false, message: "导入任务已过期" };
+  }
   const draft = parseStoredRecipeImportDraft(result.data.draft);
   if (!draft) return { ok: false, message: "导入结果已失效，请重新导入" };
   if (!draft.review.requiresConfirmation || draft.review.confirmedAt) return { ok: true, data: null };
@@ -82,6 +85,10 @@ export async function confirmRecipeImportAction(importId: string): Promise<Actio
   return { ok: true, data: null };
 }
 
+export async function confirmRecipeImportReviewAction(importId: string): Promise<ActionResult<null>> {
+  return confirmRecipeImportAction(importId);
+}
+
 export async function finalizeRecipeImportAction(importId: string, recipeId: string): Promise<ActionResult<null>> {
   const { supabase, user } = await getUser();
   if (!user) return { ok: false, message: "请先登录后再保存菜谱" };
@@ -94,7 +101,7 @@ export async function finalizeRecipeImportAction(importId: string, recipeId: str
   const job = mapRecipeImportJob(jobResult.data as unknown as Record<string, unknown>);
   if (job.status === "saved" && job.recipeId === recipeId) return { ok: true, data: null };
   if (job.status !== "review" || !job.draft) return { ok: false, message: "导入结果已失效，请重新导入" };
-  if (job.draft.review.requiresConfirmation && !job.draft.review.confirmedAt) return { ok: false, message: "请先确认 AI 整理结果" };
+  if (job.draft.review.requiresConfirmation && !job.draft.review.confirmedAt) return { ok: false, message: "请先确认 AI 推断和缺失内容" };
   const source = await supabase.from("recipe_sources").upsert({
     user_id: user.id,
     recipe_id: recipeId,

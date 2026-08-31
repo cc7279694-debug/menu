@@ -22,7 +22,13 @@ describe("RecipeImportReviewPanel", () => {
     expect(screen.getByRole("heading", { name: "请确认 AI 整理结果" })).toBeInTheDocument();
     expect(screen.getByText("鸡蛋的数字用量")).toBeInTheDocument();
     expect(screen.getByText("第 1 步火候")).toBeInTheDocument();
-    await user.click(screen.getByRole("checkbox", { name: "我已检查以上不确定内容" }));
+    await user.click(screen.getByRole("checkbox", { name: "我已检查以上 AI 推断和缺失内容" }));
     expect(onAcknowledgedChange).toHaveBeenCalledWith(true);
+  });
+
+  it("shows a clear state without a confirmation checkbox when every field is explicit", () => {
+    render(<RecipeImportReviewPanel review={{ fieldChecks: [{ path: "title", status: "explicit", label: "菜谱名称", message: null }], requiresConfirmation: false, confirmedAt: null }} acknowledged={true} onAcknowledgedChange={vi.fn()} />);
+    expect(screen.getByText("未发现需要特别确认的字段。")).toBeInTheDocument();
+    expect(screen.queryByRole("checkbox")).not.toBeInTheDocument();
   });
 });

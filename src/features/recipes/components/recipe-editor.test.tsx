@@ -18,7 +18,7 @@ vi.mock("@/lib/supabase/browser", () => ({
   }),
 }));
 vi.mock("@/features/recipe-imports/actions", () => ({
-  confirmRecipeImportAction: importActionMocks.confirm,
+  confirmRecipeImportReviewAction: importActionMocks.confirm,
   finalizeRecipeImportAction: importActionMocks.finalize,
 }));
 
@@ -62,10 +62,10 @@ describe("RecipeEditor", () => {
     );
 
     await user.click(screen.getByRole("button", { name: "保存菜谱" }));
-    expect(await screen.findByText("请先确认 AI 整理结果")).toBeInTheDocument();
+    expect(await screen.findByText("请先确认 AI 推断和缺失内容")).toBeInTheDocument();
     expect(saveRecipe).not.toHaveBeenCalled();
 
-    await user.click(screen.getByRole("checkbox", { name: "我已检查以上不确定内容" }));
+    await user.click(screen.getByRole("checkbox", { name: "我已检查以上 AI 推断和缺失内容" }));
     await user.click(screen.getByRole("button", { name: "保存菜谱" }));
     await waitFor(() => expect(importActionMocks.confirm).toHaveBeenCalledWith("dddddddd-dddd-4ddd-8ddd-dddddddddddd"));
     expect(saveRecipe).toHaveBeenCalledTimes(1);

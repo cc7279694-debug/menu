@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { createCategoryAction, createTagAction, saveRecipeAction } from "@/features/recipes/actions";
-import { confirmRecipeImportAction, finalizeRecipeImportAction } from "@/features/recipe-imports/actions";
+import { confirmRecipeImportReviewAction, finalizeRecipeImportAction } from "@/features/recipe-imports/actions";
 import { RecipeImportReviewPanel } from "@/features/recipe-imports/components/recipe-import-review";
 import type { RecipeImportReview } from "@/features/recipe-imports/schemas";
 import { recipeSaveInputSchema, type RecipeSaveInput } from "@/features/recipes/schemas";
@@ -208,7 +208,7 @@ export function RecipeEditor({
     }
 
     if (importId && importReview?.requiresConfirmation && !reviewAcknowledged) {
-      setServerMessage("请先确认 AI 整理结果");
+      setServerMessage("请先确认 AI 推断和缺失内容");
       reviewCheckboxRef.current?.focus();
       return;
     }
@@ -217,7 +217,7 @@ export function RecipeEditor({
     let uploadedPaths: string[] = [];
     try {
       if (importId && importReview?.requiresConfirmation) {
-        const confirmed = await confirmRecipeImportAction(importId);
+        const confirmed = await confirmRecipeImportReviewAction(importId);
         if (!confirmed.ok) {
           setServerMessage(confirmed.message);
           return;

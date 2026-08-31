@@ -106,6 +106,19 @@ describe("recipe import lifecycle actions", () => {
     }));
   });
 
+  it("rejects confirmation for an expired import", async () => {
+    const client = supabase();
+    client.jobs = builder({ data: {
+      id: IMPORT_ID, user_id: USER_ID, status: "review", draft: reviewDraft,
+      expires_at: "2020-01-01T00:00:00.000Z",
+    }, error: null });
+    client.from.mockImplementation(() => client.jobs);
+    mocks.createServerSupabaseClient.mockResolvedValue(client);
+
+    await expect(confirmRecipeImportAction(IMPORT_ID)).resolves.toEqual({ ok: false, message: "导入任务已过期" });
+    expect(client.jobs.update).not.toHaveBeenCalled();
+  });
+
   it("blocks finalizing an import until its review is confirmed", async () => {
     const client = supabase();
     client.jobs = builder({ data: {
@@ -118,7 +131,7 @@ describe("recipe import lifecycle actions", () => {
     mocks.createServerSupabaseClient.mockResolvedValue(client);
 
     await expect(finalizeRecipeImportAction(IMPORT_ID, "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb"))
-      .resolves.toEqual({ ok: false, message: "请先确认 AI 整理结果" });
+      .resolves.toEqual({ ok: false, message: "请先确认 AI 推断和缺失内容" });
     expect(client.jobs.upsert).not.toHaveBeenCalled();
   });
 });
