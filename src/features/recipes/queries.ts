@@ -202,7 +202,7 @@ export async function searchOwnedRecipeSelectionSummaries(
 ): Promise<RecipeSelectionSummary[]> {
   const { rows, signedUrls } = await loadRecipeSearchRows({
     query,
-    limit: Math.min(limit, 24),
+    limit: Math.min(limit, 100),
     offset: 0,
     errorMessage: "菜谱查询暂时无法加载",
   });

@@ -1,6 +1,6 @@
 # 食序 ORDINE
 
-食序 ORDINE 是一个中文优先的个人菜谱与分步烹饪 PWA。模块 1 已完成项目基础、邮箱验证码登录、认证路由保护和手机/桌面响应式导航；模块 2 已加入私有菜谱数据模型、菜谱编辑、搜索筛选、收藏、回收站和详情页；模块 3 提供单步引导烹饪；模块 4 提供基于菜谱的在线购物清单；模块 5A 提供安全的 PWA 安装壳、离线公共页和用户确认更新流程；模块 6 提供提前准备事项、AI 提取和烹饪前确认。
+食序 ORDINE 是一个中文优先的个人菜谱与分步烹饪 PWA。模块 1 已完成项目基础、邮箱验证码登录、认证路由保护和手机/桌面响应式导航；模块 2 已加入私有菜谱数据模型、菜谱编辑、搜索筛选、收藏、回收站和详情页；模块 3 提供单步引导烹饪；模块 4 提供基于菜谱的在线购物清单；模块 5A 提供安全的 PWA 安装壳、离线公共页和用户确认更新流程；模块 6/7 提供提前准备事项、AI 提取和烹饪前确认；模块 8 提供周菜单、准备提醒和按周生成购物清单。
 
 ## 模块 3：引导烹饪边界
 
@@ -36,6 +36,16 @@
 - 网页、图文、视频文案和截图导入会提取来源明确的提前准备要求，并在保存前交给用户检查。
 - 新增数据库迁移为 `supabase/migrations/20260830142826_recipe_preparations.sql`；执行前必须确认目标 Supabase 项目，仓库不会自动修改线上数据库。
 
+## 模块 8：周菜单与准备提醒
+
+- 受保护路由为 `/plan`，支持在同一天的早餐、午餐和晚餐安排多道菜，保存目标份数、开做时间、状态和备注。
+- 开做时间在浏览器按设备本地时区输入和显示，写入 Supabase 时使用 `timestamptz` UTC 时间。
+- 精确提前分钟会换算成准备时间并显示即将开始、已到时间或已逾期；只有文字时间时原样展示，不推算不存在的具体时间。
+- 浏览器通知是用户主动授权后的可选增强，只在应用打开时发送；拒绝或不支持通知不影响应用内提醒。
+- “生成购物清单”先按菜谱汇总本周待做份数，再复用模块 4 的保守合并规则；已完成和已跳过计划不会加入。
+- 本模块保持在线使用，不增加 Cron、邮件、远程推送、离线编辑或冲突同步。
+- 新增数据库迁移为 `supabase/migrations/20260831032930_meal_plan_entries.sql`；执行前必须再次确认目标 Supabase 项目。
+
 ## 本地要求
 
 - Node.js 22 或兼容 Next.js 15 的较新 LTS 版本
@@ -50,7 +60,7 @@ Copy-Item .env.example .env.local
 npm.cmd run dev
 ```
 
-首次使用菜谱数据时，需要在已授权的非生产 Supabase 项目中执行 `supabase/migrations/20260823132418_recipe_management.sql`。启用购物清单时，还需要执行 `supabase/migrations/20260824024955_shopping_lists.sql`；使用提前准备事项时，再执行 `supabase/migrations/20260830142826_recipe_preparations.sql`。当前仓库只提供迁移文件和本地 PGlite 迁移测试，不会自动连接或修改任何 Supabase 项目。
+首次使用菜谱数据时，需要在已授权的非生产 Supabase 项目中执行 `supabase/migrations/20260823132418_recipe_management.sql`。启用购物清单时，还需要执行 `supabase/migrations/20260824024955_shopping_lists.sql`；使用提前准备事项时，再执行 `supabase/migrations/20260830142826_recipe_preparations.sql`；使用周菜单时，继续执行 `supabase/migrations/20260831032930_meal_plan_entries.sql`。当前仓库只提供迁移文件和本地 PGlite 迁移测试，不会自动连接或修改任何 Supabase 项目。
 
 然后打开 <http://localhost:3000>。
 
@@ -79,6 +89,7 @@ GEMINI_RECIPE_AI_MODEL=gemini-3.7-flash
 ```powershell
 npm.cmd test
 npm.cmd run test:shopping
+npm.cmd run test:plan
 npm.cmd run typecheck
 npm.cmd run lint
 npm.cmd run build

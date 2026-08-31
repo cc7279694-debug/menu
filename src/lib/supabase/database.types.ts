@@ -176,6 +176,30 @@ export type Database = {
         Update: Partial<Database["public"]["Tables"]["recipe_sources"]["Insert"]>;
         Relationships: [];
       };
+      meal_plan_entries: {
+        Row: {
+          id: string;
+          user_id: string;
+          recipe_id: string;
+          meal_slot: string;
+          planned_at: string;
+          target_servings: number;
+          status: string;
+          note: string | null;
+        } & Timestamps;
+        Insert: {
+          id?: string;
+          user_id: string;
+          recipe_id: string;
+          meal_slot: string;
+          planned_at: string;
+          target_servings: number;
+          status?: string;
+          note?: string | null;
+        };
+        Update: Partial<Database["public"]["Tables"]["meal_plan_entries"]["Insert"]>;
+        Relationships: [];
+      };
       shopping_lists: {
         Row: { id: string; user_id: string; name: string; is_active: boolean } & Timestamps;
         Insert: { id?: string; user_id: string; name?: string; is_active?: boolean };
