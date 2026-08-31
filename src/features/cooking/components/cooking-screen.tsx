@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogClose, DialogContent, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { TimerTray } from "@/features/cooking/components/timer-tray";
 import { PreparationChecklist } from "@/features/cooking/components/preparation-checklist";
+import { CookingReflectionDialog } from "@/features/cooking-history/components/cooking-reflection-dialog";
 import { getStepIngredients } from "@/features/cooking/servings";
 import { formatRemainingSeconds } from "@/features/cooking/timers";
 import { useCookingSession } from "@/features/cooking/hooks/use-cooking-session";
@@ -18,10 +19,14 @@ type CookingScreenProps = {
   recipe: RecipeDetail;
   requestedServings: number;
   restart: boolean;
+  userId?: string;
+  mealPlanEntryId?: string | null;
 };
 
-export function CookingScreen({ recipe, requestedServings, restart }: CookingScreenProps) {
+export function CookingScreen({ recipe, requestedServings, restart, userId = "", mealPlanEntryId = null }: CookingScreenProps) {
   const [completed, setCompleted] = useState(false);
+  const [completionSaved, setCompletionSaved] = useState(false);
+  const [reflectionOpen, setReflectionOpen] = useState(false);
   const cooking = useCookingSession({ recipe, requestedServings, restart });
   const wakeLock = useWakeLock(!completed);
   const ingredients = getStepIngredients(recipe, cooking.currentStep.id, cooking.session.targetServings);
@@ -37,7 +42,7 @@ export function CookingScreen({ recipe, requestedServings, restart }: CookingScr
     return (
       <main className="mx-auto max-w-xl space-y-5 py-12 text-center">
         <h1 className="text-2xl font-semibold">烹饪完成</h1>
-        <p className="text-muted-foreground">这次烹饪进度已清除。</p>
+        <p className="text-muted-foreground">{completionSaved ? "烹饪记录已保存，" : "本次未保存记录，"}这次烹饪进度已清除。</p>
         <div className="flex justify-center gap-3">
           <Link className="inline-flex min-h-11 items-center rounded-lg bg-primary px-3 text-sm font-medium text-primary-foreground" href={`/recipes/${recipe.id}`}>查看菜谱</Link>
           <Link className="inline-flex min-h-11 items-center rounded-lg border px-3 text-sm font-medium" href={`/recipes/${recipe.id}/edit`}>编辑菜谱</Link>
@@ -121,12 +126,34 @@ export function CookingScreen({ recipe, requestedServings, restart }: CookingScr
         <div className="mx-auto flex max-w-3xl justify-between gap-3">
           <Button className="min-h-11" disabled={cooking.currentIndex === 0} onClick={cooking.previous} type="button" variant="outline">上一步</Button>
           {cooking.currentIndex === recipe.steps.length - 1 ? (
-            <Button className="min-h-11" onClick={() => { cooking.complete(); setCompleted(true); }} type="button">完成烹饪</Button>
+            <Button className="min-h-11" onClick={() => setReflectionOpen(true)} type="button">完成烹饪</Button>
           ) : (
             <Button className="min-h-11" onClick={cooking.next} type="button">下一步</Button>
           )}
         </div>
       </nav>
+
+      <CookingReflectionDialog
+        defaultServings={cooking.session.targetServings}
+        mealPlanEntryId={mealPlanEntryId}
+        onCompleted={() => {
+          cooking.complete();
+          setReflectionOpen(false);
+          setCompletionSaved(true);
+          setCompleted(true);
+        }}
+        onOpenChange={setReflectionOpen}
+        onSkip={() => {
+          cooking.complete();
+          setReflectionOpen(false);
+          setCompletionSaved(false);
+          setCompleted(true);
+        }}
+        open={reflectionOpen}
+        recipeId={recipe.id}
+        startedAt={cooking.session.startedAt}
+        userId={userId}
+      />
     </main>
   );
 }

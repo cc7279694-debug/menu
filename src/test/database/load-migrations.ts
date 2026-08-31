@@ -39,3 +39,8 @@ export async function loadMealPlanMigrations(database: PGlite) {
   await loadShoppingMigrations(database);
   await loadSingleMigration(database, "_meal_plan_entries.sql", "meal plan");
 }
+
+export async function loadCookingHistoryMigrations(database: PGlite) {
+  await loadMealPlanMigrations(database);
+  await loadSingleMigration(database, "_cooking_history.sql", "cooking history");
+}

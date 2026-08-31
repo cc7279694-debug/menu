@@ -5,6 +5,13 @@ import { CookingEntry } from "@/features/cooking/components/cooking-entry";
 import { RecipeActions } from "@/features/recipes/components/recipe-actions";
 import type { RecipeDetail as RecipeDetailValue } from "@/features/recipes/types";
 import { RecipePreparationList } from "@/features/recipes/components/recipe-preparation-list";
+import { CookingHistorySection } from "@/features/cooking-history/components/cooking-history-section";
+import type { RecipeCookingHistory } from "@/features/cooking-history/types";
+
+const emptyCookingHistory: RecipeCookingHistory = {
+  stats: { totalCount: 0, ratedCount: 0, averageRating: null, latestImprovementNotes: null },
+  recentRecords: [],
+};
 
 function formatQuantity(quantity: number | null, text: string | null, unit: string | null) {
   const amount = text ?? (quantity === null ? "适量" : String(quantity));
@@ -21,7 +28,7 @@ function formatTimer(seconds: number): string {
   return `${Math.floor(seconds / 60)} 分 ${String(seconds % 60).padStart(2, "0")} 秒`;
 }
 
-export function RecipeDetailView({ recipe }: { recipe: RecipeDetailValue }) {
+export function RecipeDetailView({ recipe, cookingHistory = emptyCookingHistory }: { recipe: RecipeDetailValue; cookingHistory?: RecipeCookingHistory }) {
   const ingredients = new Map(recipe.ingredients.map((ingredient) => [ingredient.id, ingredient]));
   return (
     <main className="space-y-8">
@@ -69,6 +76,8 @@ export function RecipeDetailView({ recipe }: { recipe: RecipeDetailValue }) {
           ))}
         </div>
       </section>
+
+      <CookingHistorySection history={cookingHistory} recipeTitle={recipe.title} />
 
       {recipe.personalNotes && <section className="rounded-2xl border bg-card p-5"><h2 className="font-semibold">我的备注</h2><p className="mt-2 whitespace-pre-wrap text-sm leading-6 text-muted-foreground">{recipe.personalNotes}</p></section>}
       {recipe.source && <section className="rounded-2xl border bg-card p-5"><h2 className="font-semibold">来源</h2><p className="mt-2 text-sm text-muted-foreground">{recipe.source.sourceTitle || recipe.source.sourcePlatform || "导入来源"}{recipe.source.sourceAuthor ? ` · ${recipe.source.sourceAuthor}` : ""}</p>{recipe.source.sourceUrl && <a className="mt-2 inline-block text-sm text-primary underline" href={recipe.source.sourceUrl} rel="noreferrer" target="_blank">查看原始来源</a>}</section>}

@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { Bell, BellOff, CalendarPlus, ChevronLeft, ChevronRight, ShoppingBasket } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
@@ -350,6 +351,7 @@ export function MealPlanPage({ recipes }: { recipes: RecipeSelectionSummary[] })
                             </div>
                             {entry.note ? <p className="mt-2 text-xs">备注：{entry.note}</p> : null}
                             <div className="mt-2 flex flex-wrap gap-1">
+                              {entry.status === "planned" ? <Link aria-label={`开始烹饪：${entry.recipeTitle}`} className="inline-flex min-h-11 items-center rounded-lg px-2 text-xs font-medium text-primary underline-offset-4 hover:underline" href={`/recipes/${entry.recipeId}/cook?${new URLSearchParams({ servings: String(entry.targetServings), mealPlanEntryId: entry.id }).toString()}`}>开始烹饪</Link> : null}
                               <Button onClick={() => setEditor(editEntry(entry))} size="xs" variant="ghost">编辑</Button>
                               {entry.status === "planned" ? <>
                                 <Button disabled={isPending} onClick={() => runMutation(() => setMealPlanStatusAction({ entryId: entry.id, status: "completed" }))} size="xs" variant="ghost">完成</Button>

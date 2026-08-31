@@ -84,7 +84,10 @@ function toWebpFile(value: File | Blob, originalName: string): File {
   });
 }
 
-async function compressImage(file: File, compress: UploadRecipeMediaInput["compress"]): Promise<File> {
+export async function compressRecipeImage(
+  file: File,
+  compress?: UploadRecipeMediaInput["compress"],
+): Promise<File> {
   const options = {
     maxSizeMB: TARGET_IMAGE_BYTES / (1024 * 1024),
     maxWidthOrHeight: MAX_IMAGE_DIMENSION,
@@ -133,7 +136,7 @@ export async function uploadRecipeMedia(input: UploadRecipeMediaInput): Promise<
   try {
     if (input.cover) {
       const path = buildRecipeMediaPath(input.userId, input.recipeId, "cover", createAssetId());
-      const file = await compressImage(input.cover, input.compress);
+      const file = await compressRecipeImage(input.cover, input.compress);
       const upload = await input.bucket.upload(path, file, {
         cacheControl: "31536000",
         upsert: false,
@@ -147,7 +150,7 @@ export async function uploadRecipeMedia(input: UploadRecipeMediaInput): Promise<
     for (const [stepId, source] of Object.entries(input.steps)) {
       if (!source) continue;
       const path = buildRecipeMediaPath(input.userId, input.recipeId, "step", createAssetId(), stepId);
-      const file = await compressImage(source, input.compress);
+      const file = await compressRecipeImage(source, input.compress);
       const upload = await input.bucket.upload(path, file, {
         cacheControl: "31536000",
         upsert: false,

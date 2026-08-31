@@ -12,6 +12,7 @@ vi.mock("browser-image-compression", () => {
 
 import {
   buildRecipeMediaPath,
+  compressRecipeImage,
   getObsoleteRecipeMediaPaths,
   removeRecipeMediaPaths,
   uploadRecipeMedia,
@@ -40,6 +41,11 @@ describe("recipe media upload", () => {
     });
 
     expect(imageCompressionModule.loaded).toBe(true);
+  });
+
+  it("exports the shared compressor as a WebP file", async () => {
+    const output = await compressRecipeImage(image, async (source) => new File([source], "compressed.webp", { type: "image/webp" }));
+    expect(output.type).toBe("image/webp");
   });
 
   it("builds owner-scoped immutable paths", () => {

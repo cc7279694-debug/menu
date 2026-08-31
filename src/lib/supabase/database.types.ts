@@ -200,6 +200,52 @@ export type Database = {
         Update: Partial<Database["public"]["Tables"]["meal_plan_entries"]["Insert"]>;
         Relationships: [];
       };
+      cooking_records: {
+        Row: {
+          id: string;
+          user_id: string;
+          recipe_id: string | null;
+          recipe_title_snapshot: string;
+          meal_plan_entry_id: string | null;
+          started_at: string;
+          completed_at: string;
+          actual_servings: number;
+          rating: number | null;
+          improvement_notes: string | null;
+        } & Timestamps;
+        Insert: {
+          id: string;
+          user_id: string;
+          recipe_id?: string | null;
+          recipe_title_snapshot: string;
+          meal_plan_entry_id?: string | null;
+          started_at: string;
+          completed_at?: string;
+          actual_servings: number;
+          rating?: number | null;
+          improvement_notes?: string | null;
+        };
+        Update: Partial<Database["public"]["Tables"]["cooking_records"]["Insert"]>;
+        Relationships: [];
+      };
+      cooking_record_photos: {
+        Row: {
+          id: string;
+          user_id: string;
+          cooking_record_id: string;
+          storage_path: string;
+          sort_order: number;
+        } & Pick<Timestamps, "created_at">;
+        Insert: {
+          id: string;
+          user_id: string;
+          cooking_record_id: string;
+          storage_path: string;
+          sort_order: number;
+        };
+        Update: Partial<Database["public"]["Tables"]["cooking_record_photos"]["Insert"]>;
+        Relationships: [];
+      };
       shopping_lists: {
         Row: { id: string; user_id: string; name: string; is_active: boolean } & Timestamps;
         Insert: { id?: string; user_id: string; name?: string; is_active?: boolean };
@@ -315,6 +361,16 @@ export type Database = {
       replace_active_shopping_list: { Args: { p_payload: Json }; Returns: string };
       reorder_shopping_items: { Args: { p_shopping_list_id: string; p_item_ids: string[] }; Returns: undefined };
       save_recipe: { Args: { p_payload: Json }; Returns: string };
+      complete_cooking_record: { Args: { p_payload: Json }; Returns: string };
+      get_recipe_cooking_history_stats: {
+        Args: { p_recipe_id: string };
+        Returns: Array<{
+          total_count: number;
+          rated_count: number;
+          average_rating: number | null;
+          latest_improvement_notes: string | null;
+        }>;
+      };
       search_recipe_summaries: {
         Args: { p_query?: string | null; p_category_id?: string | null; p_tag_id?: string | null; p_favorite_only?: boolean; p_deleted_only?: boolean; p_limit?: number; p_offset?: number };
         Returns: Array<{

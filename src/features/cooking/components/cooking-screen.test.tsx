@@ -199,7 +199,7 @@ describe("CookingScreen", () => {
     expect(screen.getByRole("listitem", { name: /第 2 步/ })).toBeInTheDocument();
   });
 
-  it("clears the cooking session and offers recipe links after completing the last step", () => {
+  it("opens a reflection dialog before clearing the cooking session", () => {
     render(<CookingScreen recipe={recipe} requestedServings={2} restart={false} />);
     fireEvent.click(screen.getByRole("button", { name: "下一步" }));
     fireEvent.click(screen.getByRole("button", { name: "下一步" }));
@@ -207,12 +207,9 @@ describe("CookingScreen", () => {
 
     fireEvent.click(screen.getByRole("button", { name: "完成烹饪" }));
 
-    expect(localStorage.getItem(cookingSessionKey(recipe.id))).toBeNull();
-    expect(screen.getByText("烹饪完成")).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "查看菜谱" })).toHaveAttribute("href", "/recipes/recipe-1");
-    expect(screen.getByRole("link", { name: "编辑菜谱" })).toHaveAttribute("href", "/recipes/recipe-1/edit");
-    expect(screen.getByRole("link", { name: "查看菜谱" })).toHaveClass("min-h-11");
-    expect(screen.getByRole("link", { name: "编辑菜谱" })).toHaveClass("min-h-11");
+    expect(localStorage.getItem(cookingSessionKey(recipe.id))).not.toBeNull();
+    expect(screen.getByRole("dialog", { name: "记录这次烹饪" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "返回继续烹饪" })).toBeInTheDocument();
   });
 
   it("keeps step navigation available with a non-blocking warning when Wake Lock is unsupported", async () => {

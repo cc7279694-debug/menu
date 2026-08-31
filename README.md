@@ -46,6 +46,14 @@
 - 本模块保持在线使用，不增加 Cron、邮件、远程推送、离线编辑或冲突同步。
 - 新增数据库迁移为 `supabase/migrations/20260831032930_meal_plan_entries.sql`；执行前必须再次确认目标 Supabase 项目。
 
+## 模块 9：烹饪历史与个人改进
+
+- 引导烹饪完成后可保存实际份数、评分、成品照片和“下次注意”，也可以跳过保存；保存失败时本地烹饪进度不会丢失。
+- 菜谱详情展示累计次数、平均评分、最近三次记录和私有签名照片；从周菜单开始烹饪会预填目标份数，完成后同步菜单状态。
+- 历史记录和照片只属于当前用户，使用强制 RLS 与私有 `recipe-media` Storage 路径；删除菜谱或菜单后保留标题快照并安全解除关联。
+- 当前版本不提供完整历史中心、记录编辑、家庭共享或离线历史同步。
+- 新增数据库迁移为 `supabase/migrations/20260831094439_cooking_history.sql`；执行前必须再次确认目标 Supabase 项目。
+
 ## 本地要求
 
 - Node.js 22 或兼容 Next.js 15 的较新 LTS 版本
@@ -109,3 +117,4 @@ npm.cmd run build
 - [模块 4 购物清单验收记录](docs/testing/module-4-shopping-list-acceptance.md)
 - [模块 5A PWA 公共壳与更新验收记录](docs/testing/module-5a-pwa-shell-acceptance.md)
 - [模块 6A 来源导入验收记录](docs/testing/module-6a-recipe-source-import-acceptance.md)
+- [模块 9 烹饪历史验收记录](docs/testing/module-9-cooking-history-acceptance.md)
