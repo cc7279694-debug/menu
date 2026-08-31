@@ -17,7 +17,7 @@ export default async function RecipeImportDetailPage({ params }: { params: Promi
     if (!user) redirect(`/login?next=/recipes/import/${importId}`);
     const taxonomy = await listRecipeTaxonomy();
     const mapped = mapImportDraftToRecipeSaveInput({ draft: job.draft, ...taxonomy });
-    return <main className="space-y-5"><div className="rounded-xl border bg-muted/30 p-4 text-sm">AI 已整理完成，请检查食材、提前准备、火候和时间后再保存。</div><RecipeEditorPage mode="create" userId={user.id} categories={taxonomy.categories} tags={taxonomy.tags} initialValue={mapped.value} importId={importId} /></main>;
+    return <main className="space-y-5"><div className="rounded-xl border bg-muted/30 p-4 text-sm">AI 已整理完成，请检查食材、提前准备、火候和时间后再保存。</div><RecipeEditorPage mode="create" userId={user.id} categories={taxonomy.categories} tags={taxonomy.tags} initialValue={mapped.value} importId={importId} importReview={job.draft.review} /></main>;
   }
   return <main className="mx-auto max-w-2xl"><ImportProgress importId={importId} initialStatus={job.status} initialErrorCode={job.errorCode} /></main>;
 }

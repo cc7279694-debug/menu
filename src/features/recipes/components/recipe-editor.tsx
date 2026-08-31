@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useFieldArray, useForm, useWatch, type Control, type UseFormSetValue } from "react-hook-form";
 
 import { Button } from "@/components/ui/button";
@@ -8,7 +8,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { createCategoryAction, createTagAction, saveRecipeAction } from "@/features/recipes/actions";
-import { finalizeRecipeImportAction } from "@/features/recipe-imports/actions";
+import { confirmRecipeImportAction, finalizeRecipeImportAction } from "@/features/recipe-imports/actions";
+import { RecipeImportReviewPanel } from "@/features/recipe-imports/components/recipe-import-review";
+import type { RecipeImportReview } from "@/features/recipe-imports/schemas";
 import { recipeSaveInputSchema, type RecipeSaveInput } from "@/features/recipes/schemas";
 import { getObsoleteRecipeMediaPaths, uploadRecipeMedia, removeRecipeMediaPaths } from "@/features/media/upload-recipe-media";
 import { getBrowserSupabaseClient } from "@/lib/supabase/browser";
@@ -28,6 +30,7 @@ type RecipeEditorProps = {
   coverPreviewUrl?: string | null;
   stepPreviewUrls?: Record<string, string | null>;
   importId?: string;
+  importReview?: RecipeImportReview;
   onSaved: (recipeId: string) => void;
   saveRecipe?: (input: unknown) => Promise<ActionResult<{ recipeId: string }>>;
 };
@@ -152,6 +155,7 @@ export function RecipeEditor({
   coverPreviewUrl = null,
   stepPreviewUrls = {},
   importId,
+  importReview,
   onSaved,
   saveRecipe = saveRecipeAction,
 }: RecipeEditorProps) {
@@ -166,6 +170,10 @@ export function RecipeEditor({
   const [isSaving, setIsSaving] = useState(false);
   const [newCategory, setNewCategory] = useState("");
   const [newTag, setNewTag] = useState("");
+  const reviewCheckboxRef = useRef<HTMLInputElement>(null);
+  const [reviewAcknowledged, setReviewAcknowledged] = useState(
+    !importReview?.requiresConfirmation || Boolean(importReview.confirmedAt),
+  );
   const {
     register,
     control,
@@ -199,9 +207,22 @@ export function RecipeEditor({
       return;
     }
 
+    if (importId && importReview?.requiresConfirmation && !reviewAcknowledged) {
+      setServerMessage("请先确认 AI 整理结果");
+      reviewCheckboxRef.current?.focus();
+      return;
+    }
+
     setIsSaving(true);
     let uploadedPaths: string[] = [];
     try {
+      if (importId && importReview?.requiresConfirmation) {
+        const confirmed = await confirmRecipeImportAction(importId);
+        if (!confirmed.ok) {
+          setServerMessage(confirmed.message);
+          return;
+        }
+      }
       const hasMedia = Boolean(coverFile) || Object.values(stepFiles).some(Boolean);
       let media: { coverPath: string | null; stepPaths: Record<string, string>; uploadedPaths: string[] } = {
         coverPath: null,
@@ -354,6 +375,8 @@ export function RecipeEditor({
       </div>
 
       {serverMessage && <p className="rounded-lg bg-destructive/10 p-3 text-sm text-destructive" role="alert">{serverMessage}</p>}
+
+      {importReview && <RecipeImportReviewPanel acknowledged={reviewAcknowledged} checkboxRef={reviewCheckboxRef} onAcknowledgedChange={setReviewAcknowledged} review={importReview} />}
 
       <section className="grid gap-6 rounded-2xl border bg-card p-5 md:grid-cols-2">
         <div className="space-y-2 md:col-span-2">

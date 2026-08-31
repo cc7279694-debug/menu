@@ -2,9 +2,9 @@
 
 import { randomUUID } from "node:crypto";
 import { revalidatePath } from "next/cache";
-
-import { attachRecipeImportImagesSchema, createRecipeImportSchema } from "@/features/recipe-imports/schemas";
+import { attachRecipeImportImagesSchema, createRecipeImportSchema, processRecipeImportSchema } from "@/features/recipe-imports/schemas";
 import { getOwnedRecipeImport, mapRecipeImportJob, RECIPE_IMPORT_BUCKET } from "@/features/recipe-imports/queries";
+import { parseStoredRecipeImportDraft } from "@/features/recipe-imports/quality-review";
 import type { ActionResult } from "@/features/recipes/types";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import type { Json } from "@/lib/supabase/database.types";
@@ -52,6 +52,36 @@ export async function attachRecipeImportImagesAction(input: unknown): Promise<Ac
   return { ok: true, data: null };
 }
 
+export async function confirmRecipeImportAction(importId: string): Promise<ActionResult<null>> {
+  const parsed = processRecipeImportSchema.safeParse({ importId });
+  if (!parsed.success) return { ok: false, message: "导入任务不存在" };
+  const { supabase, user } = await getUser();
+  if (!user) return { ok: false, message: "请先登录后再保存菜谱" };
+
+  const result = await supabase
+    .from("recipe_import_jobs")
+    .select("id, status, draft, expires_at")
+    .eq("id", parsed.data.importId)
+    .eq("user_id", user.id)
+    .maybeSingle();
+  if (result.error || !result.data) return { ok: false, message: "导入任务不存在" };
+  if (result.data.status !== "review") return { ok: false, message: "导入任务当前不可确认" };
+  const draft = parseStoredRecipeImportDraft(result.data.draft);
+  if (!draft) return { ok: false, message: "导入结果已失效，请重新导入" };
+  if (!draft.review.requiresConfirmation || draft.review.confirmedAt) return { ok: true, data: null };
+
+  const updated = await supabase
+    .from("recipe_import_jobs")
+    .update({ draft: { ...draft, review: { ...draft.review, confirmedAt: new Date().toISOString() } } as unknown as Json })
+    .eq("id", parsed.data.importId)
+    .eq("user_id", user.id)
+    .eq("status", "review")
+    .select("id")
+    .maybeSingle();
+  if (updated.error || !updated.data) return { ok: false, message: "确认状态保存失败，请重试" };
+  return { ok: true, data: null };
+}
+
 export async function finalizeRecipeImportAction(importId: string, recipeId: string): Promise<ActionResult<null>> {
   const { supabase, user } = await getUser();
   if (!user) return { ok: false, message: "请先登录后再保存菜谱" };
@@ -63,6 +93,8 @@ export async function finalizeRecipeImportAction(importId: string, recipeId: str
   if (jobResult.error || !jobResult.data) return { ok: false, message: "导入任务不存在" };
   const job = mapRecipeImportJob(jobResult.data as unknown as Record<string, unknown>);
   if (job.status === "saved" && job.recipeId === recipeId) return { ok: true, data: null };
+  if (job.status !== "review" || !job.draft) return { ok: false, message: "导入结果已失效，请重新导入" };
+  if (job.draft.review.requiresConfirmation && !job.draft.review.confirmedAt) return { ok: false, message: "请先确认 AI 整理结果" };
   const source = await supabase.from("recipe_sources").upsert({
     user_id: user.id,
     recipe_id: recipeId,

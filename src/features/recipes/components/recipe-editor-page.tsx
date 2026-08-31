@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 
 import { RecipeEditor } from "@/features/recipes/components/recipe-editor";
 import type { RecipeSaveInput } from "@/features/recipes/schemas";
+import type { RecipeImportReview } from "@/features/recipe-imports/schemas";
 
 type RecipeEditorPageProps = {
   mode: "create" | "edit";
@@ -14,6 +15,7 @@ type RecipeEditorPageProps = {
   coverPreviewUrl?: string | null;
   stepPreviewUrls?: Record<string, string | null>;
   importId?: string;
+  importReview?: RecipeImportReview;
 };
 
 export function RecipeEditorPage(props: RecipeEditorPageProps) {

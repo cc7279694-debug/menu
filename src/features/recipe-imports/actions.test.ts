@@ -13,8 +13,10 @@ vi.mock("next/cache", () => ({ revalidatePath: mocks.revalidatePath }));
 
 import {
   attachRecipeImportImagesAction,
+  confirmRecipeImportAction,
   createRecipeImportAction,
   discardRecipeImportAction,
+  finalizeRecipeImportAction,
 } from "@/features/recipe-imports/actions";
 
 function builder(result: { data?: unknown; error?: unknown } = { data: null, error: null }) {
@@ -41,6 +43,19 @@ function supabase(user: { id: string } | null = { id: USER_ID }) {
 
 describe("recipe import lifecycle actions", () => {
   beforeEach(() => { vi.clearAllMocks(); });
+
+  const reviewDraft = {
+    title: "番茄炒蛋", description: null, baseServings: 2, prepMinutes: null, cookMinutes: null, personalNotes: null,
+    suggestedCategoryName: null, suggestedTagNames: [],
+    ingredients: [{ name: "鸡蛋", groupType: "main", quantity: null, quantityText: "适量", unit: null, preparationNote: null }],
+    steps: [{ instruction: "炒熟", heatLevel: null, timerSeconds: null, ingredientNames: ["鸡蛋"] }],
+    preparations: [], warnings: ["请确认"],
+    review: {
+      fieldChecks: [{ path: "prepMinutes", status: "missing", label: "总准备时间", message: "来源未明确提供总准备时间，请确认后补充。" }],
+      requiresConfirmation: true,
+      confirmedAt: null,
+    },
+  };
 
   it("requires authentication before creating an import", async () => {
     const client = supabase(null);
@@ -74,5 +89,36 @@ describe("recipe import lifecycle actions", () => {
     const remove = client.storageBucket.remove;
     expect(remove).toHaveBeenCalledWith([`${USER_ID}/${IMPORT_ID}/a.webp`]);
     expect(client.jobs.delete).toHaveBeenCalled();
+  });
+
+  it("confirms an owned review draft and records the confirmation time", async () => {
+    const client = supabase();
+    client.jobs = builder({ data: {
+      id: IMPORT_ID, user_id: USER_ID, status: "review", draft: reviewDraft,
+      expires_at: "2099-01-01T00:00:00.000Z",
+    }, error: null });
+    client.from.mockImplementation(() => client.jobs);
+    mocks.createServerSupabaseClient.mockResolvedValue(client);
+
+    await expect(confirmRecipeImportAction(IMPORT_ID)).resolves.toEqual({ ok: true, data: null });
+    expect(client.jobs.update).toHaveBeenCalledWith(expect.objectContaining({
+      draft: expect.objectContaining({ review: expect.objectContaining({ requiresConfirmation: true, confirmedAt: expect.any(String) }) }),
+    }));
+  });
+
+  it("blocks finalizing an import until its review is confirmed", async () => {
+    const client = supabase();
+    client.jobs = builder({ data: {
+      id: IMPORT_ID, user_id: USER_ID, status: "review", draft: reviewDraft,
+      expires_at: "2099-01-01T00:00:00.000Z", image_paths: [], source_type: "text",
+      source_url: null, source_title: "番茄炒蛋", source_author: null, source_platform: "pasted-text",
+      recipe_id: null, warnings: [], error_code: null,
+    }, error: null });
+    client.from.mockImplementation(() => client.jobs);
+    mocks.createServerSupabaseClient.mockResolvedValue(client);
+
+    await expect(finalizeRecipeImportAction(IMPORT_ID, "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb"))
+      .resolves.toEqual({ ok: false, message: "请先确认 AI 整理结果" });
+    expect(client.jobs.upsert).not.toHaveBeenCalled();
   });
 });

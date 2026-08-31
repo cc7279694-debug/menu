@@ -7,16 +7,70 @@ import { RecipeEditor } from "@/features/recipes/components/recipe-editor";
 import type { RecipeSaveInput } from "@/features/recipes/schemas";
 
 const { removeMedia } = vi.hoisted(() => ({ removeMedia: vi.fn() }));
+const importActionMocks = vi.hoisted(() => ({
+  confirm: vi.fn().mockResolvedValue({ ok: true, data: null }),
+  finalize: vi.fn().mockResolvedValue({ ok: true, data: null }),
+}));
 
 vi.mock("@/lib/supabase/browser", () => ({
   getBrowserSupabaseClient: () => ({
     storage: { from: () => ({ remove: removeMedia }) },
   }),
 }));
+vi.mock("@/features/recipe-imports/actions", () => ({
+  confirmRecipeImportAction: importActionMocks.confirm,
+  finalizeRecipeImportAction: importActionMocks.finalize,
+}));
 
 const userId = "11111111-1111-4111-8111-111111111111";
 
 describe("RecipeEditor", () => {
+  it("requires confirmation before saving an imported draft", async () => {
+    const user = userEvent.setup();
+    const initialValue: RecipeSaveInput = {
+      recipeId: "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+      title: "番茄炒蛋",
+      description: null,
+      categoryId: null,
+      tagIds: [],
+      coverPath: null,
+      baseServings: 2,
+      prepMinutes: null,
+      cookMinutes: null,
+      personalNotes: null,
+      ingredients: [{ recipeIngredientId: "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb", name: "番茄", quantity: null, quantityText: "适量", unit: null, preparationNote: null, sortOrder: 0 }],
+      steps: [{ stepId: "cccccccc-cccc-4ccc-8ccc-cccccccccccc", instruction: "切块", imagePath: null, timerSeconds: null, sortOrder: 0, ingredientLinks: [] }],
+      preparations: [],
+    };
+    const saveRecipe = vi.fn().mockResolvedValue({ ok: true, data: { recipeId: initialValue.recipeId } });
+    render(
+      <RecipeEditor
+        mode="create"
+        userId={userId}
+        categories={[]}
+        tags={[]}
+        initialValue={initialValue}
+        importId="dddddddd-dddd-4ddd-8ddd-dddddddddddd"
+        importReview={{
+          fieldChecks: [{ path: "prepMinutes", status: "missing", label: "总准备时间", message: "来源未明确提供总准备时间，请确认后补充。" }],
+          requiresConfirmation: true,
+          confirmedAt: null,
+        }}
+        onSaved={vi.fn()}
+        saveRecipe={saveRecipe}
+      />,
+    );
+
+    await user.click(screen.getByRole("button", { name: "保存菜谱" }));
+    expect(await screen.findByText("请先确认 AI 整理结果")).toBeInTheDocument();
+    expect(saveRecipe).not.toHaveBeenCalled();
+
+    await user.click(screen.getByRole("checkbox", { name: "我已检查以上不确定内容" }));
+    await user.click(screen.getByRole("button", { name: "保存菜谱" }));
+    await waitFor(() => expect(importActionMocks.confirm).toHaveBeenCalledWith("dddddddd-dddd-4ddd-8ddd-dddddddddddd"));
+    expect(saveRecipe).toHaveBeenCalledTimes(1);
+  });
+
   it("edits step timers as minutes and seconds while saving total seconds", async () => {
     const user = userEvent.setup();
     const initialValue: RecipeSaveInput = {
