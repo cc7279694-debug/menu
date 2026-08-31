@@ -26,6 +26,7 @@ describe("recipe import process state machine", () => {
     expect(mapImportErrorCode(new Error("网页跳转次数过多"))).toBe("source_unreadable");
     expect(mapImportErrorCode(new Error("AI 服务请求过于频繁"))).toBe("ai_rate_limited");
     expect(mapImportErrorCode(new Error("AI 服务暂时不可用"))).toBe("ai_unavailable");
+    expect(mapImportErrorCode(new Error("AI 模型不可用"))).toBe("ai_model_unavailable");
     expect(mapImportErrorCode(new Error("菜谱内容整理失败"))).toBe("invalid_ai_output");
   });
 

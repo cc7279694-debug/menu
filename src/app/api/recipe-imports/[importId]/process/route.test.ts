@@ -31,6 +31,7 @@ describe("recipe import process route", () => {
   it.each([
     ["invalid_ai_output", "菜谱内容整理失败"],
     ["ai_unavailable", "AI 服务暂时不可用"],
+    ["ai_model_unavailable", "当前整理模型不可用，请检查模型版本或改用自动推荐"],
   ])("returns sanitized error details for %s", async (code, message) => {
     mocks.getServerAuthContext.mockResolvedValue({ user: { id: "user" }, supabase: {} });
     mocks.processRecipeImport.mockRejectedValue(new mocks.RecipeImportProcessError(code, `${message} secret=sk-test`));

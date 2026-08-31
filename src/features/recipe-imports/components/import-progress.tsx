@@ -24,6 +24,7 @@ const failureInfo: Record<string, RecipeImportFailureInfo> = {
   ai_rate_limited: { title: "AI 请求过于频繁", description: "AI 请求过于频繁，请等待一分钟后再重试。", retryable: true },
   ai_unauthorized: { title: "AI 服务配置不可用", description: "AI 服务配置不可用，请检查密钥后重试。", retryable: true },
   ai_unavailable: { title: "AI 服务暂时不可用", description: "AI 服务暂时不可用，请稍后重试或换一种输入方式。", retryable: true },
+  ai_model_unavailable: { title: "整理模型不可用", description: "当前整理模型不可用，请检查模型版本或改用自动推荐。", retryable: false },
   invalid_ai_output: { title: "AI 返回内容不完整", description: "AI 返回内容不完整，请重试或改用粘贴文案。", retryable: true },
   processing_failed: { title: "导入处理失败", description: "导入处理失败，请重试或换一种输入方式。", retryable: true },
 };

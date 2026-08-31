@@ -52,7 +52,17 @@ async function inlineImages(fetchImpl: typeof fetch, imageUrls: string[]): Promi
   return inlined;
 }
 
-function providerError(status: number): Error {
+function isUnavailableModel(details: { code?: string; message?: string } | undefined): boolean {
+  const code = details?.code?.toLowerCase() ?? "";
+  const message = details?.message?.toLowerCase() ?? "";
+  return code.includes("modelnotfound")
+    || code.includes("model_not_found")
+    || code.includes("model-not-found")
+    || /model[^\n]*(does not exist|not found|unavailable|not available)/i.test(message);
+}
+
+function providerError(status: number, details?: { code?: string; message?: string }): Error {
+  if (status === 400 && isUnavailableModel(details)) return new Error("AI 模型不可用");
   if (status === 401 || status === 403) return new Error("AI 服务认证失败");
   if (status === 429) return new Error("AI 服务请求过于频繁");
   if (status >= 500) return new Error("AI 服务暂时不可用");
@@ -125,7 +135,7 @@ export function createQianwenRecipeDraftExtractor(options: QianwenExtractorOptio
           providerCode: providerDetails?.code?.slice(0, 80),
           providerMessage: providerDetails?.message?.replace(/sk-[A-Za-z0-9_-]+/g, "[redacted]").slice(0, 160),
         });
-        throw providerError(response.status);
+        throw providerError(response.status, providerDetails);
       }
 
       let outputText: string | null = null;

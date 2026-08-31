@@ -16,6 +16,7 @@ describe("ImportProgress", () => {
     ["ai_rate_limited", "AI 请求过于频繁", true],
     ["ai_unauthorized", "AI 服务配置不可用", true],
     ["ai_unavailable", "AI 服务暂时不可用", true],
+    ["ai_model_unavailable", "整理模型不可用", false],
     ["invalid_ai_output", "AI 返回内容不完整", true],
     ["processing_failed", "导入处理失败", true],
   ])("maps %s to actionable copy", (code, text, retryable) => {

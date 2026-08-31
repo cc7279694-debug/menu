@@ -102,6 +102,19 @@ describe("QianWen recipe draft extractor", () => {
     await expect(makeExtractor(503).extract({ document, imageUrls: [] })).rejects.toThrow("AI 服务暂时不可用");
   });
 
+  it("identifies an unavailable model without exposing provider details", async () => {
+    const fetchImpl = vi.fn<typeof fetch>().mockResolvedValue(response({
+      code: "ModelNotFound",
+      message: "The model qwen3.8-flash does not exist or you do not have access to it",
+    }, 400));
+    const extractor = createQianwenRecipeDraftExtractor({
+      fetchImpl,
+      env: { API_KEY: "sk-test", RECIPE_AI_MODEL: "qwen3.8-flash" },
+    });
+
+    await expect(extractor.extract({ document, imageUrls: [] })).rejects.toThrow("AI 模型不可用");
+  });
+
   it("rejects malformed or schema-invalid model output without exposing the response", async () => {
     const fetchImpl = vi.fn<typeof fetch>().mockResolvedValue(response({
       choices: [{ message: { content: JSON.stringify({ ...draft, ingredients: [] }) } }],

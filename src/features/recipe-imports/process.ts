@@ -30,6 +30,7 @@ export function mapImportErrorCode(error: unknown): string {
   if (message === "AI 服务请求过于频繁") return "ai_rate_limited";
   if (message === "AI 服务认证失败") return "ai_unauthorized";
   if (message === "AI 服务暂时不可用") return "ai_unavailable";
+  if (message === "AI 模型不可用") return "ai_model_unavailable";
   if (message === "菜谱内容整理失败") return "invalid_ai_output";
   return "processing_failed";
 }
@@ -109,6 +110,10 @@ export async function processRecipeImport(importId: string, options: ProcessOpti
     return { status: "review", draft };
   } catch (error) {
     const code = mapImportErrorCode(error);
+    console.error("[recipe-import] processing failed", {
+      code,
+      errorName: error instanceof Error ? error.name : "unknown",
+    });
     await updateJob(supabase, importId, userId, { status: "failed", error_code: code });
     if (error instanceof RecipeImportProcessError) throw error;
     throw new RecipeImportProcessError(code, errorMessage(code, error));

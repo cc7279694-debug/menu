@@ -16,6 +16,7 @@ const safeMessages: Record<string, string> = {
   ai_rate_limited: "AI 服务请求过于频繁",
   ai_unauthorized: "AI 服务认证失败",
   ai_unavailable: "AI 服务暂时不可用",
+  ai_model_unavailable: "当前整理模型不可用，请检查模型版本或改用自动推荐",
   invalid_ai_output: "菜谱内容整理失败",
   processing_failed: "菜谱导入失败，请稍后重试",
 };
