@@ -17,7 +17,7 @@ const USER_ID = "user-a";
 const recipe: RecipeDetail = {
   id: "recipe-a", title: "番茄炒蛋", description: null, coverUrl: null, coverPath: null,
   baseServings: 2, prepMinutes: 5, cookMinutes: 10, isFavorite: false, category: null,
-  tags: [], updatedAt: "2026-08-27T00:00:00.000Z", personalNotes: null, ingredients: [], steps: [],
+  tags: [], preparationCount: 0, maxLeadTimeMinutes: null, updatedAt: "2026-08-27T00:00:00.000Z", personalNotes: null, ingredients: [], steps: [], preparations: [],
 };
 
 describe("OfflineRecipeCache", () => {

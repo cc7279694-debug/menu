@@ -15,6 +15,7 @@ import { getBrowserSupabaseClient } from "@/lib/supabase/browser";
 import type { ActionResult } from "@/features/recipes/types";
 import { ImagePicker } from "@/features/recipes/components/image-picker";
 import { combineTimerParts, splitTimerSeconds } from "@/features/recipes/timer-input";
+import { RecipePreparationsEditor } from "@/features/recipes/components/recipe-preparations-editor";
 
 type TaxonomyOption = { id: string; name: string };
 
@@ -138,6 +139,7 @@ function createEmptyRecipe(): RecipeSaveInput {
       sortOrder: 0,
       ingredientLinks: [],
     }],
+    preparations: [],
   };
 }
 
@@ -313,6 +315,11 @@ export function RecipeEditor({
       getValues("steps").forEach((step, stepIndex) => {
         setValue(`steps.${stepIndex}.ingredientLinks`, step.ingredientLinks.filter((link) => link.recipeIngredientId !== id), { shouldDirty: true });
       });
+      getValues("preparations").forEach((preparation, preparationIndex) => {
+        if (preparation.recipeIngredientId === id) {
+          setValue(`preparations.${preparationIndex}.recipeIngredientId`, null, { shouldDirty: true });
+        }
+      });
     }
   };
 
@@ -389,6 +396,8 @@ export function RecipeEditor({
         </div>
         <div className="md:col-span-2"><ImagePicker label="菜谱封面" onChange={(file) => { setCoverFile(file); setCoverRemoved(!file); }} previewUrl={coverRemoved ? null : coverPreviewUrl} value={coverFile} /></div>
       </section>
+
+      <RecipePreparationsEditor control={control} errors={errors} register={register} setValue={setValue} />
 
       <section className="space-y-4 rounded-2xl border bg-card p-5">
         <div className="flex items-center justify-between gap-4"><div><h2 className="text-xl font-semibold">食材</h2><p className="text-sm text-muted-foreground">数字用量和“少许”等文字用量都可以保留。</p></div><Button onClick={() => ingredientFields.append({ recipeIngredientId: crypto.randomUUID(), name: "", quantity: null, quantityText: null, unit: null, preparationNote: null, groupType: "main", sortOrder: ingredientFields.fields.length })} type="button" variant="outline">添加食材</Button></div>

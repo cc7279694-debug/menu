@@ -42,6 +42,7 @@ const validDraft = {
       ingredientNames: ["鸡蛋"],
     },
   ],
+  preparations: [],
   warnings: [],
 };
 

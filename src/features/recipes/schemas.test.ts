@@ -7,6 +7,7 @@ import {
 
 const ingredientId = "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb";
 const stepId = "cccccccc-cccc-4ccc-8ccc-cccccccccccc";
+const preparationId = "eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee";
 
 function validInput(overrides: Partial<RecipeSaveInput> = {}): RecipeSaveInput {
   return {
@@ -48,6 +49,7 @@ function validInput(overrides: Partial<RecipeSaveInput> = {}): RecipeSaveInput {
         ],
       },
     ],
+    preparations: [],
     ...overrides,
   };
 }
@@ -115,6 +117,79 @@ describe("recipe save schema", () => {
           ],
         }),
       ),
+    ).toThrow();
+  });
+
+  it("accepts precise, text-only, and combined preparation times", () => {
+    const result = recipeSaveInputSchema.parse(
+      validInput({
+        preparations: [
+          {
+            preparationId,
+            recipeIngredientId: ingredientId,
+            instruction: "腌制牛肉",
+            leadTimeMinutes: 30,
+            timingText: null,
+            sortOrder: 4,
+          },
+          {
+            preparationId: "ffffffff-ffff-4fff-8fff-ffffffffffff",
+            recipeIngredientId: null,
+            instruction: "提前一晚解冻",
+            leadTimeMinutes: null,
+            timingText: "提前一晚",
+            sortOrder: 5,
+          },
+          {
+            preparationId: "99999999-9999-4999-8999-999999999999",
+            recipeIngredientId: ingredientId,
+            instruction: "静置回温",
+            leadTimeMinutes: 15,
+            timingText: "约一刻钟",
+            sortOrder: 6,
+          },
+        ],
+      }),
+    );
+
+    expect(result.preparations.map((item) => item.sortOrder)).toEqual([0, 1, 2]);
+  });
+
+  it("rejects invalid preparation times, empty instructions, duplicate IDs, and unknown links", () => {
+    expect(() =>
+      recipeSaveInputSchema.parse({
+        ...validInput(),
+        preparations: [{ preparationId, recipeIngredientId: ingredientId, instruction: "", leadTimeMinutes: 30, timingText: null, sortOrder: 0 }],
+      }),
+    ).toThrow();
+    expect(() =>
+      recipeSaveInputSchema.parse({
+        ...validInput(),
+        preparations: [{ preparationId, recipeIngredientId: ingredientId, instruction: "浸泡", leadTimeMinutes: null, timingText: null, sortOrder: 0 }],
+      }),
+    ).toThrow();
+    expect(() =>
+      recipeSaveInputSchema.parse({
+        ...validInput(),
+        preparations: [
+          { preparationId, recipeIngredientId: ingredientId, instruction: "浸泡", leadTimeMinutes: 0, timingText: null, sortOrder: 0 },
+        ],
+      }),
+    ).toThrow();
+    expect(() =>
+      recipeSaveInputSchema.parse({
+        ...validInput(),
+        preparations: [
+          { preparationId, recipeIngredientId: ingredientId, instruction: "浸泡", leadTimeMinutes: 30, timingText: null, sortOrder: 0 },
+          { preparationId, recipeIngredientId: null, instruction: "重复", leadTimeMinutes: 60, timingText: null, sortOrder: 1 },
+        ],
+      }),
+    ).toThrow();
+    expect(() =>
+      recipeSaveInputSchema.parse({
+        ...validInput(),
+        preparations: [{ preparationId, recipeIngredientId: "dddddddd-dddd-4ddd-8ddd-dddddddddddd", instruction: "浸泡", leadTimeMinutes: 30, timingText: null, sortOrder: 0 }],
+      }),
     ).toThrow();
   });
 

@@ -20,10 +20,17 @@ const recipe: RecipeDetail = {
   isFavorite: false,
   category: { id: "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb", name: "家常菜" },
   tags: [{ id: "cccccccc-cccc-4ccc-8ccc-cccccccccccc", name: "快手" }],
+  preparationCount: 3,
+  maxLeadTimeMinutes: 240,
   personalNotes: "少放一点盐",
   updatedAt: "2026-08-23T00:00:00Z",
   ingredients: [{ id: "dddddddd-dddd-4ddd-8ddd-dddddddddddd", name: "鸡蛋", quantity: 2, quantityText: null, unit: "个", preparationNote: null, groupType: "main", sortOrder: 0 }],
   steps: [{ id: "eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee", instruction: "打散鸡蛋。", imagePath: null, imageUrl: null, timerSeconds: 65, heatLevel: "中火", sortOrder: 0, ingredientLinks: [{ recipeIngredientId: "dddddddd-dddd-4ddd-8ddd-dddddddddddd", quantityOverride: null, quantityTextOverride: null, note: "先用" }] }],
+  preparations: [
+    { id: "prep-1", recipeIngredientId: "dddddddd-dddd-4ddd-8ddd-dddddddddddd", ingredientName: "鸡蛋", instruction: "提前 4 小时浸泡", leadTimeMinutes: 240, timingText: null, sortOrder: 0 },
+    { id: "prep-2", recipeIngredientId: "dddddddd-dddd-4ddd-8ddd-dddddddddddd", ingredientName: "鸡蛋", instruction: "腌制入味", leadTimeMinutes: 30, timingText: null, sortOrder: 1 },
+    { id: "prep-3", recipeIngredientId: null, ingredientName: null, instruction: "提前解冻", leadTimeMinutes: null, timingText: "提前一晚", sortOrder: 2 },
+  ],
   source: { sourceType: "url", sourceUrl: "https://example.com/recipe", sourceTitle: "来源菜谱", sourceAuthor: "小明", sourcePlatform: "example.com" },
 };
 
@@ -38,6 +45,10 @@ describe("RecipeDetailView", () => {
     expect(screen.getByText("鸡蛋 · 先用")).toBeInTheDocument();
     expect(screen.getByText("少放一点盐")).toBeInTheDocument();
     expect(screen.getByText("火候：中火")).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "提前准备" })).toBeInTheDocument();
+    expect(screen.getByText("鸡蛋 · 提前 4 小时浸泡")).toBeInTheDocument();
+    expect(screen.getByText("鸡蛋 · 腌制入味")).toBeInTheDocument();
+    expect(screen.getByText("提前一晚 · 提前解冻")).toBeInTheDocument();
     expect(screen.getByText("计时 1 分 05 秒")).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "查看原始来源" })).toHaveAttribute("href", "https://example.com/recipe");
   });

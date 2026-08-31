@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { CookingEntry } from "@/features/cooking/components/cooking-entry";
 import { RecipeActions } from "@/features/recipes/components/recipe-actions";
 import type { RecipeDetail as RecipeDetailValue } from "@/features/recipes/types";
+import { RecipePreparationList } from "@/features/recipes/components/recipe-preparation-list";
 
 function formatQuantity(quantity: number | null, text: string | null, unit: string | null) {
   const amount = text ?? (quantity === null ? "适量" : String(quantity));
@@ -42,6 +43,8 @@ export function RecipeDetailView({ recipe }: { recipe: RecipeDetailValue }) {
       </div>
 
       {recipe.coverUrl && <img alt={`${recipe.title}封面`} className="max-h-[28rem] w-full rounded-2xl object-cover" decoding="async" height={800} loading="eager" src={recipe.coverUrl} width={1200} />}
+
+      <RecipePreparationList preparations={recipe.preparations} />
 
       <section className="grid gap-6 lg:grid-cols-[minmax(16rem,0.8fr)_minmax(0,1.2fr)]">
         <div className="rounded-2xl border bg-card p-5">

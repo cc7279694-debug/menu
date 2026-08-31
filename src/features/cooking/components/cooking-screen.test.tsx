@@ -50,6 +50,8 @@ const recipe: RecipeDetail = {
   isFavorite: false,
   category: null,
   tags: [],
+  preparationCount: 0,
+  maxLeadTimeMinutes: null,
   personalNotes: null,
   ingredients: [
     { id: "tomato", name: "番茄", quantity: 1, quantityText: null, unit: "个", preparationNote: "切块", sortOrder: 1 },
@@ -68,6 +70,7 @@ const recipe: RecipeDetail = {
     { id: "step-2", instruction: "下锅翻炒", imagePath: null, imageUrl: null, timerSeconds: 30, sortOrder: 2, ingredientLinks: [] },
     { id: "step-3", instruction: "装盘享用", imagePath: null, imageUrl: null, timerSeconds: null, sortOrder: 3, ingredientLinks: [] },
   ],
+  preparations: [],
 };
 
 beforeEach(() => {
@@ -137,6 +140,23 @@ describe("CookingScreen", () => {
     expect(screen.getByRole("navigation", { name: "烹饪步骤" })).toHaveClass(
       "bottom-[calc(3.5rem+env(safe-area-inset-bottom))]",
     );
+  });
+
+  it("requires advance preparations before showing cooking steps", () => {
+    const preparedRecipe: RecipeDetail = {
+      ...recipe,
+      preparationCount: 1,
+      maxLeadTimeMinutes: 30,
+      preparations: [{ id: "prep-1", recipeIngredientId: "tomato", ingredientName: "番茄", instruction: "腌制 30 分钟", leadTimeMinutes: 30, timingText: null, sortOrder: 1 }],
+    };
+    render(<CookingScreen recipe={preparedRecipe} requestedServings={2} restart={false} />);
+
+    expect(screen.getByRole("heading", { name: "开始前请确认" })).toBeInTheDocument();
+    expect(screen.queryByText("先切番茄")).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "准备完成，开始烹饪" })).toBeDisabled();
+    fireEvent.click(screen.getByRole("checkbox", { name: "完成：腌制 30 分钟" }));
+    fireEvent.click(screen.getByRole("button", { name: "准备完成，开始烹饪" }));
+    expect(screen.getByText("先切番茄")).toBeInTheDocument();
   });
 
   it("enlarges the current step image in an accessible dialog", async () => {

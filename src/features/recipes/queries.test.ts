@@ -91,6 +91,8 @@ describe("recipe query view mapping", () => {
         category_id: "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb",
         category_name: "家常菜",
         tags: [{ id: "cccccccc-cccc-4ccc-8ccc-cccccccccccc", name: "快手" }],
+        preparation_count: 0,
+        max_lead_time_minutes: null,
         updated_at: "2026-08-23T00:00:00.000Z",
         total_count: 1,
       },

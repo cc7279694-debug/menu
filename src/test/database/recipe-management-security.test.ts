@@ -11,6 +11,7 @@ const recipeId = "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa";
 const ingredientId = "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb";
 const stepId = "cccccccc-cccc-4ccc-8ccc-cccccccccccc";
 const foreignIngredientId = "dddddddd-dddd-4ddd-8ddd-dddddddddddd";
+const preparationId = "eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee";
 
 function payload(overrides: Record<string, unknown> = {}) {
   return {
@@ -50,6 +51,16 @@ function payload(overrides: Record<string, unknown> = {}) {
             note: null,
           },
         ],
+      },
+    ],
+    preparations: [
+      {
+        preparationId,
+        recipeIngredientId: ingredientId,
+        instruction: "加入调料抓匀腌制",
+        leadTimeMinutes: 30,
+        timingText: null,
+        sortOrder: 0,
       },
     ],
     ...overrides,
@@ -98,6 +109,36 @@ describe("recipe management security and transactions", () => {
     await asUser(database, userB);
     const foreignRows = await database.query("select id from public.recipes");
     expect(foreignRows.rows).toEqual([]);
+  });
+
+  it("persists preparation rows and returns list preparation summaries", async () => {
+    await save(database, payload());
+
+    const preparation = await database.query<{
+      instruction: string;
+      recipe_ingredient_id: string;
+      lead_time_minutes: number;
+    }>("select instruction, recipe_ingredient_id, lead_time_minutes from public.recipe_preparations");
+    expect(preparation.rows).toEqual([{
+      instruction: "加入调料抓匀腌制",
+      recipe_ingredient_id: ingredientId,
+      lead_time_minutes: 30,
+    }]);
+
+    const summary = await database.query<{ preparation_count: number; max_lead_time_minutes: number }>(
+      "select preparation_count, max_lead_time_minutes from public.search_recipe_summaries(null, null, null, false, false, 24, 0)",
+    );
+    expect(summary.rows).toEqual([{ preparation_count: 1, max_lead_time_minutes: 30 }]);
+  });
+
+  it("keeps a preparation when its ingredient is deleted", async () => {
+    await save(database, payload());
+    await database.query("delete from public.recipe_ingredients where id = $1", [ingredientId]);
+
+    const preparation = await database.query<{ recipe_ingredient_id: string | null; instruction: string }>(
+      "select recipe_ingredient_id, instruction from public.recipe_preparations",
+    );
+    expect(preparation.rows).toEqual([{ recipe_ingredient_id: null, instruction: "加入调料抓匀腌制" }]);
   });
 
   it("rolls back nested rows when an invalid step link is submitted", async () => {
@@ -149,6 +190,25 @@ describe("recipe management security and transactions", () => {
       `,
     );
     expect(rows.rows).toEqual([{ title: "番茄炒蛋", ingredient_name: "番茄" }]);
+  });
+
+  it("rolls back nested rows when an invalid preparation link is submitted", async () => {
+    await save(database, payload());
+
+    await expect(save(database, payload({
+      title: "应当回滚准备事项",
+      preparations: [{
+        preparationId,
+        recipeIngredientId: foreignIngredientId,
+        instruction: "跨用户食材",
+        leadTimeMinutes: 60,
+        timingText: null,
+        sortOrder: 0,
+      }],
+    }))).rejects.toThrow();
+
+    const rows = await database.query<{ instruction: string }>("select instruction from public.recipe_preparations");
+    expect(rows.rows).toEqual([{ instruction: "加入调料抓匀腌制" }]);
   });
 
   it("rejects a category owned by another user", async () => {

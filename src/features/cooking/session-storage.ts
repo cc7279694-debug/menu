@@ -19,6 +19,8 @@ const cookingSessionSchema = z.discriminatedUnion("version", [z.object({
   targetServings: z.number().finite().min(MIN_SERVINGS).max(MAX_SERVINGS).refine(isValidTargetServings),
   currentStepId: z.string(),
   timers: z.array(cookingTimerSchema),
+  completedPreparationIds: z.array(z.string()).default([]),
+  preparationsConfirmedAt: z.number().finite().nullable().default(null),
   startedAt: z.number().finite(),
   updatedAt: z.number().finite(),
 }).strict()]);
@@ -40,6 +42,8 @@ export function createCookingSession(recipe: CookingSessionRecipe, targetServing
     targetServings: servings,
     currentStepId: firstStep?.id ?? "",
     timers: [],
+    completedPreparationIds: [],
+    preparationsConfirmedAt: null,
     startedAt: now,
     updatedAt: now,
   };
@@ -56,7 +60,8 @@ export function loadCookingSession(storage: Storage, recipe: CookingSessionRecip
     if (session.recipeId !== recipe.id || session.recipeUpdatedAt !== recipe.updatedAt) return null;
     if (!recipe.steps.some((step) => step.id === session.currentStepId)) return null;
     if (session.timers.some((timer) => !recipe.steps.some((step) => step.id === timer.stepId))) return null;
-    return session;
+    const preparationIds = new Set(recipe.preparations.map((preparation) => preparation.id));
+    return { ...session, completedPreparationIds: session.completedPreparationIds.filter((id) => preparationIds.has(id)) };
   } catch {
     return null;
   }

@@ -47,7 +47,8 @@ async function safe<T>(operation: (database: IDBPDatabase<OrdineOfflineSchema>) 
   }
 }
 
-const compatible = (value: { dataVersion?: number }): boolean => value.dataVersion === 1;
+const compatibleRecipe = (value: { dataVersion?: number }): boolean => value.dataVersion === 2;
+const compatibleShopping = (value: { dataVersion?: number }): boolean => value.dataVersion === 1;
 const mutationId = () => globalThis.crypto?.randomUUID?.() ?? `${Date.now()}-${Math.random()}`;
 
 export function rememberOfflineProfile(userId: string, authenticatedAt: string): Promise<void> {
@@ -71,7 +72,7 @@ export function listRecipeSnapshots(userId: string): Promise<OfflineRecipeSnapsh
     const all = await tx.store.index("by-user-last-opened").getAll(IDBKeyRange.bound([userId, ""], [userId, "\uffff"]));
     const result: OfflineRecipeSnapshot[] = [];
     for (const snapshot of all.reverse()) {
-      if (compatible(snapshot)) result.push(snapshot); else await tx.store.delete([snapshot.userId, snapshot.recipeId]);
+      if (compatibleRecipe(snapshot)) result.push(snapshot); else await tx.store.delete([snapshot.userId, snapshot.recipeId]);
     }
     for (const snapshot of result.slice(10)) await tx.store.delete([snapshot.userId, snapshot.recipeId]);
     await tx.done;
@@ -83,7 +84,7 @@ export function getRecipeSnapshot(userId: string, recipeId: string): Promise<Off
   return safe(async (database) => {
     const tx = database.transaction("recipes", "readwrite");
     const snapshot = await tx.store.get([userId, recipeId]);
-    if (snapshot && !compatible(snapshot)) { await tx.store.delete([userId, recipeId]); await tx.done; return null; }
+    if (snapshot && !compatibleRecipe(snapshot)) { await tx.store.delete([userId, recipeId]); await tx.done; return null; }
     await tx.done; return snapshot ?? null;
   });
 }
@@ -96,7 +97,7 @@ export function getShoppingSnapshot(userId: string): Promise<OfflineShoppingSnap
   return safe(async (database) => {
     const tx = database.transaction("shoppingSnapshots", "readwrite");
     const snapshot = await tx.store.get(userId);
-    if (snapshot && !compatible(snapshot)) { await tx.store.delete(userId); await tx.done; return null; }
+    if (snapshot && !compatibleShopping(snapshot)) { await tx.store.delete(userId); await tx.done; return null; }
     await tx.done; return snapshot ?? null;
   });
 }
@@ -105,7 +106,7 @@ export function queueShoppingToggle(input: { userId: string; listId: string; ite
   return safe(async (database) => {
     const tx = database.transaction(["shoppingSnapshots", "shoppingToggleQueue"], "readwrite");
     const snapshot = await tx.objectStore("shoppingSnapshots").get(input.userId);
-    if (!snapshot || !compatible(snapshot) || snapshot.list.id !== input.listId) throw new Error("SHOPPING_SNAPSHOT_NOT_FOUND");
+    if (!snapshot || !compatibleShopping(snapshot) || snapshot.list.id !== input.listId) throw new Error("SHOPPING_SNAPSHOT_NOT_FOUND");
     const item = snapshot.list.items.find((candidate) => candidate.id === input.itemId);
     if (!item) throw new Error("SHOPPING_ITEM_NOT_FOUND");
     item.isChecked = input.targetChecked;

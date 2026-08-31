@@ -88,6 +88,30 @@ export type Database = {
         Update: Partial<Database["public"]["Tables"]["recipe_steps"]["Insert"]>;
         Relationships: [];
       };
+      recipe_preparations: {
+        Row: {
+          id: string;
+          user_id: string;
+          recipe_id: string;
+          recipe_ingredient_id: string | null;
+          instruction: string;
+          lead_time_minutes: number | null;
+          timing_text: string | null;
+          sort_order: number;
+        } & Timestamps;
+        Insert: {
+          id: string;
+          user_id: string;
+          recipe_id: string;
+          recipe_ingredient_id?: string | null;
+          instruction: string;
+          lead_time_minutes?: number | null;
+          timing_text?: string | null;
+          sort_order: number;
+        };
+        Update: Partial<Database["public"]["Tables"]["recipe_preparations"]["Insert"]>;
+        Relationships: [];
+      };
       recipe_import_jobs: {
         Row: {
           id: string;
@@ -281,6 +305,8 @@ export type Database = {
           category_id: string | null;
           category_name: string | null;
           tags: Json;
+          preparation_count: number;
+          max_lead_time_minutes: number | null;
           updated_at: string;
           total_count: number;
         }>;

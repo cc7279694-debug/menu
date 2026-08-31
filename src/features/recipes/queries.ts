@@ -50,6 +50,8 @@ export function mapRecipeSearchRow(
       ? { id: row.category_id, name: row.category_name }
       : null,
     tags: parseRecipeSearchTags(row.tags),
+    preparationCount: Number(row.preparation_count ?? 0),
+    maxLeadTimeMinutes: row.max_lead_time_minutes,
     updatedAt: row.updated_at,
   };
 }
@@ -241,7 +243,7 @@ export async function getRecipeDetail(recipeId: string): Promise<RecipeDetail | 
     return null;
   }
 
-  const [categoryResult, recipeTagsResult, recipeIngredientsResult, stepsResult, sourceResult] = await Promise.all([
+  const [categoryResult, recipeTagsResult, recipeIngredientsResult, stepsResult, preparationsResult, sourceResult] = await Promise.all([
     recipeResult.data.category_id
       ? supabase.from("categories").select("id, name").eq("id", recipeResult.data.category_id).eq("user_id", user.id).maybeSingle()
       : Promise.resolve({ data: null, error: null }),
@@ -258,10 +260,16 @@ export async function getRecipeDetail(recipeId: string): Promise<RecipeDetail | 
       .eq("recipe_id", recipeId)
       .eq("user_id", user.id)
       .order("sort_order", { ascending: true }),
+    supabase
+      .from("recipe_preparations")
+      .select("id, recipe_ingredient_id, instruction, lead_time_minutes, timing_text, sort_order")
+      .eq("recipe_id", recipeId)
+      .eq("user_id", user.id)
+      .order("sort_order", { ascending: true }),
     supabase.from("recipe_sources").select("source_type, source_url, source_title, source_author, source_platform").eq("recipe_id", recipeId).eq("user_id", user.id).maybeSingle(),
   ]);
 
-  if (categoryResult.error || recipeTagsResult.error || recipeIngredientsResult.error || stepsResult.error || sourceResult.error) {
+  if (categoryResult.error || recipeTagsResult.error || recipeIngredientsResult.error || stepsResult.error || preparationsResult.error || sourceResult.error) {
     throw new Error("菜谱内容暂时无法加载");
   }
 
@@ -316,6 +324,9 @@ export async function getRecipeDetail(recipeId: string): Promise<RecipeDetail | 
     imagePaths,
   );
   const tags = (tagsResult.data ?? []).sort((a, b) => a.name.localeCompare(b.name, "zh-CN"));
+  const recipeIngredientNameById = new Map(
+    (recipeIngredientsResult.data ?? []).map((ingredient) => [ingredient.id, ingredientNames.get(ingredient.ingredient_id) ?? "未命名食材"]),
+  );
 
   return {
     id: recipeResult.data.id,
@@ -329,6 +340,11 @@ export async function getRecipeDetail(recipeId: string): Promise<RecipeDetail | 
     isFavorite: recipeResult.data.is_favorite,
     category: categoryResult.data ? { id: categoryResult.data.id, name: categoryResult.data.name } : null,
     tags,
+    preparationCount: (preparationsResult.data ?? []).length,
+    maxLeadTimeMinutes: (preparationsResult.data ?? []).reduce<number | null>(
+      (max, preparation) => preparation.lead_time_minutes === null ? max : Math.max(max ?? 0, preparation.lead_time_minutes),
+      null,
+    ),
     personalNotes: recipeResult.data.personal_notes,
     updatedAt: recipeResult.data.updated_at,
     ingredients: (recipeIngredientsResult.data ?? []).map((ingredient) => ({
@@ -350,6 +366,15 @@ export async function getRecipeDetail(recipeId: string): Promise<RecipeDetail | 
       heatLevel: step.heat_level,
       sortOrder: step.sort_order,
       ingredientLinks: linksByStep.get(step.id) ?? [],
+    })),
+    preparations: (preparationsResult.data ?? []).map((preparation) => ({
+      id: preparation.id,
+      recipeIngredientId: preparation.recipe_ingredient_id,
+      ingredientName: preparation.recipe_ingredient_id ? recipeIngredientNameById.get(preparation.recipe_ingredient_id) ?? null : null,
+      instruction: preparation.instruction,
+      leadTimeMinutes: preparation.lead_time_minutes,
+      timingText: preparation.timing_text,
+      sortOrder: preparation.sort_order,
     })),
     source: sourceResult.data ? {
       sourceType: sourceResult.data.source_type as "url" | "text" | "images",

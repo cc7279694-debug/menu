@@ -29,7 +29,7 @@ const recipe: OfflineRecipeSnapshot = {
   recipeId: RECIPE_ID,
   cachedAt: "2026-08-28T00:00:00.000Z",
   lastOpenedAt: "2026-08-28T00:00:00.000Z",
-  dataVersion: 1,
+  dataVersion: 2,
   recipe: {
     id: RECIPE_ID,
     title: "番茄炒蛋",
@@ -41,11 +41,14 @@ const recipe: OfflineRecipeSnapshot = {
     isFavorite: false,
     category: null,
     tags: [],
+    preparationCount: 0,
+    maxLeadTimeMinutes: null,
     updatedAt: "2026-08-28T00:00:00.000Z",
     personalNotes: "少放盐",
     coverPath: null,
     ingredients: [{ id: "ingredient-1", name: "鸡蛋", quantity: 2, quantityText: null, unit: "个", preparationNote: null, sortOrder: 0 }],
     steps: [{ id: "step-1", instruction: "炒熟鸡蛋", imagePath: null, imageUrl: null, timerSeconds: null, sortOrder: 0, ingredientLinks: [] }],
+    preparations: [{ id: "prep-1", recipeIngredientId: "ingredient-1", ingredientName: "鸡蛋", instruction: "提前腌制", leadTimeMinutes: 240, timingText: null, sortOrder: 1 }],
   },
 };
 
@@ -92,6 +95,7 @@ describe("OfflineApp", () => {
 
     expect(await screen.findByRole("heading", { name: "番茄炒蛋" })).toBeInTheDocument();
     expect(screen.getByText("炒熟鸡蛋")).toBeInTheDocument();
+    expect(screen.getByText("提前 4 小时")).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /收藏|编辑/ })).not.toBeInTheDocument();
   });
 

@@ -38,9 +38,12 @@ const recipe: RecipeDetail = {
   isFavorite: false,
   category: null,
   tags: [],
+  preparationCount: 0,
+  maxLeadTimeMinutes: null,
   personalNotes: null,
   ingredients: [],
   steps: [{ id: "step-1", instruction: "炒熟", imagePath: null, imageUrl: null, timerSeconds: null, sortOrder: 1, ingredientLinks: [] }],
+  preparations: [],
 };
 
 beforeEach(() => localStorage.clear());
@@ -54,6 +57,11 @@ describe("CookingEntry", () => {
       "href",
       "/recipes/recipe-1/cook?servings=2",
     );
+  });
+
+  it("calls out advance preparations before starting", () => {
+    render(<CookingEntry recipe={{ ...recipe, preparations: [{ id: "prep-1", recipeIngredientId: null, ingredientName: null, instruction: "腌制", leadTimeMinutes: 30, timingText: null, sortOrder: 1 }], preparationCount: 1, maxLeadTimeMinutes: 30 }} />);
+    expect(screen.getByText("这道菜有 1 项提前准备，请先确认。")).toBeInTheDocument();
   });
 
   it.each(["0.24", "1000.01", "2.345"])('shows inline validation for "%s"', async (value) => {

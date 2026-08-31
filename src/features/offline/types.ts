@@ -17,7 +17,7 @@ export type OfflineRecipeSnapshot = {
   recipeId: string;
   cachedAt: string;
   lastOpenedAt: string;
-  dataVersion: 1;
+  dataVersion: 2;
   recipe: OfflineRecipeDetail;
 };
 

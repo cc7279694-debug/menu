@@ -51,6 +51,7 @@ const recipeInput = {
       ],
     },
   ],
+  preparations: [],
 };
 
 function createSupabase(overrides: Record<string, unknown> = {}) {

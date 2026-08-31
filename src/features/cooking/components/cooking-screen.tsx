@@ -7,6 +7,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogClose, DialogContent, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { TimerTray } from "@/features/cooking/components/timer-tray";
+import { PreparationChecklist } from "@/features/cooking/components/preparation-checklist";
 import { getStepIngredients } from "@/features/cooking/servings";
 import { formatRemainingSeconds } from "@/features/cooking/timers";
 import { useCookingSession } from "@/features/cooking/hooks/use-cooking-session";
@@ -41,6 +42,22 @@ export function CookingScreen({ recipe, requestedServings, restart }: CookingScr
           <Link className="inline-flex min-h-11 items-center rounded-lg bg-primary px-3 text-sm font-medium text-primary-foreground" href={`/recipes/${recipe.id}`}>查看菜谱</Link>
           <Link className="inline-flex min-h-11 items-center rounded-lg border px-3 text-sm font-medium" href={`/recipes/${recipe.id}/edit`}>编辑菜谱</Link>
         </div>
+      </main>
+    );
+  }
+
+  if (recipe.preparations.length > 0 && cooking.session.preparationsConfirmedAt === null) {
+    return (
+      <main className="mx-auto max-w-3xl space-y-6 py-8">
+        <Link className="inline-flex min-h-11 items-center text-sm text-muted-foreground underline" href={`/recipes/${recipe.id}`}>返回菜谱</Link>
+        <PreparationChecklist
+          allCompleted={cooking.preparationsComplete}
+          completedIds={cooking.session.completedPreparationIds}
+          onConfirm={cooking.confirmPreparations}
+          onSkip={cooking.confirmPreparations}
+          onToggle={cooking.togglePreparation}
+          preparations={recipe.preparations}
+        />
       </main>
     );
   }

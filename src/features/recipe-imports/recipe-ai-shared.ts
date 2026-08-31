@@ -9,6 +9,7 @@ export const RECIPE_IMPORT_SYSTEM_PROMPT = [
   "如果来源包含视频或图片，请优先依据可观察到的画面整理步骤；即使数量无法确认，也要保留可识别的食材和至少一个烹饪步骤，并在 warnings 中说明不确定项。",
   "把准备时间和烹饪时间用分钟表示；每个步骤的 timerSeconds 使用秒数。",
   "食材用量请拆分保存：quantity 只放可确认的数字，unit 只放独立单位，quantityText 保留无法安全拆成数字的原文（如适量、少许、一包、大量油）。例如：豆瓣酱2勺→name=豆瓣酱、quantity=2、unit=勺、quantityText=null；干锅酱一包→name=干锅酱、quantity=null、unit=null、quantityText=一包。不要把单位丢掉，也不要在 quantityText 已包含单位时重复填写 unit。",
+  "把来源明确提到的腌制、浸泡、解冻、醒发、静置、回温等做饭前任务放入 preparations。精确时间统一换算为分钟；提前一晚、泡至变软等保留在 timingText。来源未说明的时间不要凭常识补写，并在 warnings 中提醒用户确认。切片、切块、洗净等即时处理仍放在食材 preparationNote。",
   "只输出 JSON 对象，不要输出 Markdown、解释或额外文字。",
 ].join("\n");
 
@@ -142,6 +143,16 @@ function normalizeDraftModel(value: unknown, sourceText = ""): unknown {
       ingredientNames: stringArray(step.ingredientNames),
     };
   }) : draft.steps;
+  const rawPreparations = Array.isArray(draft.preparations) ? draft.preparations : Array.isArray(draft.prepTasks) ? draft.prepTasks : [];
+  const preparations = rawPreparations.map((item) => {
+    const preparation = item && typeof item === "object" ? item as Record<string, unknown> : {};
+    return {
+      ingredientName: nullableText(preparation.ingredientName) ?? nullableText(preparation.ingredient),
+      instruction: nullableText(preparation.instruction) ?? nullableText(preparation.description) ?? "请补充准备事项",
+      leadTimeMinutes: nullableNumber(preparation.leadTimeMinutes) ?? nullableNumber(preparation.durationMinutes),
+      timingText: nullableText(preparation.timingText) ?? nullableText(preparation.timeText),
+    };
+  });
   const title = nullableText(draft.title) ?? nullableText(draft.name);
   const warnings = stringArray(draft.warnings);
   if (!title) warnings.push("菜谱标题未从来源确认，请在保存前补充。");
@@ -157,6 +168,7 @@ function normalizeDraftModel(value: unknown, sourceText = ""): unknown {
     suggestedTagNames: stringArray(draft.suggestedTagNames),
     ingredients,
     steps,
+    preparations,
     warnings,
   };
 }

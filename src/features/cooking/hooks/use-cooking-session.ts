@@ -35,6 +35,9 @@ export type CookingSessionController = {
   startTimer(stepId: string, label: string, durationSeconds: number): Promise<void>;
   cancelTimer(stepId: string): void;
   dismissTimer(stepId: string): void;
+  togglePreparation(preparationId: string): void;
+  confirmPreparations(): void;
+  preparationsComplete: boolean;
 };
 
 export type CookingNotificationStatus = "checking" | "unsupported" | NotificationPermission | "error";
@@ -189,7 +192,7 @@ export function useCookingSession(options: UseCookingSessionOptions): CookingSes
     const storage = storageRef.current;
     if (storage) clearCookingSession(storage, recipe.id);
     skipNextPersistenceRef.current = true;
-    setSession((previous) => ({ ...previous, timers: [], updatedAt: Date.now() }));
+    setSession((previous) => ({ ...previous, timers: [], completedPreparationIds: [], preparationsConfirmedAt: null, updatedAt: Date.now() }));
   }, [recipe.id]);
 
   const startTimer = useCallback(async (stepId: string, label: string, durationSeconds: number) => {
@@ -233,6 +236,20 @@ export function useCookingSession(options: UseCookingSessionOptions): CookingSes
     }));
   }, [updateSession]);
 
+  const preparationIds = useMemo(() => new Set(recipe.preparations.map((preparation) => preparation.id)), [recipe.preparations]);
+  const preparationsComplete = recipe.preparations.length === 0 || recipe.preparations.every((preparation) => session.completedPreparationIds.includes(preparation.id));
+  const togglePreparation = useCallback((preparationId: string) => {
+    if (!preparationIds.has(preparationId)) return;
+    updateSession((previous, updatedAt) => {
+      const completed = new Set(previous.completedPreparationIds);
+      if (completed.has(preparationId)) completed.delete(preparationId); else completed.add(preparationId);
+      return { ...previous, completedPreparationIds: [...completed], updatedAt };
+    });
+  }, [preparationIds, updateSession]);
+  const confirmPreparations = useCallback(() => {
+    updateSession((previous, updatedAt) => ({ ...previous, preparationsConfirmedAt: updatedAt, updatedAt }));
+  }, [updateSession]);
+
   const notificationMessage = notificationStatus === "unsupported"
     ? "此浏览器不支持计时完成通知。"
     : notificationStatus === "denied"
@@ -257,5 +274,8 @@ export function useCookingSession(options: UseCookingSessionOptions): CookingSes
     startTimer,
     cancelTimer,
     dismissTimer,
+    togglePreparation,
+    confirmPreparations,
+    preparationsComplete,
   };
 }

@@ -15,6 +15,7 @@ const draft = {
   suggestedTagNames: ["快手"],
   ingredients: [{ name: "鸡蛋", groupType: "main", quantity: 2, quantityText: null, unit: "个", preparationNote: null }],
   steps: [{ instruction: "鸡蛋打散。", heatLevel: "中火", timerSeconds: 65, ingredientNames: ["鸡蛋"] }],
+  preparations: [],
   warnings: [],
 };
 

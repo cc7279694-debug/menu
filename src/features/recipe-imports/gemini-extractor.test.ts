@@ -15,6 +15,7 @@ const draft = {
   suggestedTagNames: ["下饭"],
   ingredients: [{ name: "鱼片", groupType: "main", quantity: 200, quantityText: null, unit: "克", preparationNote: null }],
   steps: [{ instruction: "鱼片炸至金黄", heatLevel: "中火", timerSeconds: 300, ingredientNames: ["鱼片"] }],
+  preparations: [],
   warnings: [],
 };
 

@@ -19,6 +19,7 @@ export type CookingRecipe = {
     preparationNote: string | null;
     sortOrder: number;
   }>;
+  preparations: Array<{ id: string }>;
   steps: Array<{
     id: string;
     sortOrder?: number;
@@ -58,6 +59,8 @@ export type CookingSessionV1 = {
   targetServings: number;
   currentStepId: string;
   timers: CookingTimer[];
+  completedPreparationIds: string[];
+  preparationsConfirmedAt: number | null;
   startedAt: number;
   updatedAt: number;
 };

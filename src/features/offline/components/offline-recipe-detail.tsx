@@ -2,6 +2,7 @@ import Link from "next/link";
 
 import { Badge } from "@/components/ui/badge";
 import type { OfflineRecipeDetail } from "@/features/offline/types";
+import { RecipePreparationList } from "@/features/recipes/components/recipe-preparation-list";
 
 function quantity(quantity: number | null, text: string | null, unit: string | null) {
   return `${text ?? (quantity === null ? "适量" : quantity)}${unit ? ` ${unit}` : ""}`;
@@ -30,6 +31,8 @@ export function OfflineRecipeDetail({ recipe }: { recipe: OfflineRecipeDetail })
       <div aria-label="菜谱图片离线不可用" className="flex aspect-[4/3] items-center justify-center rounded-2xl border border-dashed bg-muted/20 text-sm text-muted-foreground" role="img">
         离线模式暂不加载图片
       </div>
+
+      <RecipePreparationList preparations={recipe.preparations} />
 
       <section className="grid gap-6 lg:grid-cols-[minmax(16rem,0.8fr)_minmax(0,1.2fr)]">
         <div className="rounded-2xl border bg-card p-5">

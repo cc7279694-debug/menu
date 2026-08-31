@@ -20,6 +20,8 @@ const recipe: RecipeSummary = {
   isFavorite: false,
   category: { id: "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb", name: "家常菜" },
   tags: [{ id: "cccccccc-cccc-4ccc-8ccc-cccccccccccc", name: "快手" }],
+  preparationCount: 1,
+  maxLeadTimeMinutes: 240,
   updatedAt: "2026-08-23T00:00:00.000Z",
 };
 
@@ -32,6 +34,7 @@ describe("recipe discovery components", () => {
       `/recipes/${recipe.id}`,
     );
     expect(screen.getByText(/2 人份/)).toBeInTheDocument();
+    expect(screen.getByText("需提前 4 小时准备")).toBeInTheDocument();
     expect(screen.getByText("家常菜")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "收藏" })).toBeInTheDocument();
   });

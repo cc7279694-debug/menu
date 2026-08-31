@@ -32,5 +32,13 @@ export function recipeDetailToSaveInput(detail: RecipeDetail): RecipeSaveInput {
       sortOrder: step.sortOrder,
       ingredientLinks: step.ingredientLinks,
     })),
+    preparations: detail.preparations.map((preparation) => ({
+      preparationId: preparation.id,
+      recipeIngredientId: preparation.recipeIngredientId,
+      instruction: preparation.instruction,
+      leadTimeMinutes: preparation.leadTimeMinutes,
+      timingText: preparation.timingText,
+      sortOrder: preparation.sortOrder,
+    })),
   };
 }

@@ -29,12 +29,25 @@ const recipe: RecipeDetail = {
   isFavorite: false,
   category: null,
   tags: [],
+  preparationCount: 0,
+  maxLeadTimeMinutes: null,
   personalNotes: null,
   ingredients: [],
   steps: [
     { id: "step-3", instruction: "第三步", imagePath: null, imageUrl: null, timerSeconds: null, sortOrder: 3, ingredientLinks: [] },
     { id: "step-1", instruction: "第一步", imagePath: null, imageUrl: null, timerSeconds: null, sortOrder: 1, ingredientLinks: [] },
     { id: "step-2", instruction: "第二步", imagePath: null, imageUrl: null, timerSeconds: null, sortOrder: 2, ingredientLinks: [] },
+  ],
+  preparations: [],
+};
+
+const recipeWithPreparations: RecipeDetail = {
+  ...recipe,
+  preparationCount: 2,
+  maxLeadTimeMinutes: 30,
+  preparations: [
+    { id: "prep-1", recipeIngredientId: "", ingredientName: "牛肉", instruction: "腌制", leadTimeMinutes: 30, timingText: null, sortOrder: 1 },
+    { id: "prep-2", recipeIngredientId: null, ingredientName: null, instruction: "泡绿豆", leadTimeMinutes: 20, timingText: null, sortOrder: 2 },
   ],
 };
 
@@ -98,6 +111,41 @@ describe("useCookingSession", () => {
 
     const persisted = JSON.parse(storage.getItem(cookingSessionKey(recipe.id)) ?? "") as { currentStepId: string };
     expect(persisted.currentStepId).toBe("step-2");
+  });
+
+  it("persists preparation checks and confirmation, while filtering unknown ids", () => {
+    const { result } = renderHook(() => useCookingSession({ recipe: recipeWithPreparations, requestedServings: 2, restart: false }));
+
+    expect(result.current.preparationsComplete).toBe(false);
+    act(() => result.current.togglePreparation("prep-1"));
+    expect(result.current.session.completedPreparationIds).toEqual(["prep-1"]);
+    act(() => result.current.togglePreparation("prep-1"));
+    expect(result.current.session.completedPreparationIds).toEqual([]);
+    act(() => {
+      result.current.togglePreparation("prep-1");
+      result.current.togglePreparation("prep-2");
+    });
+    expect(result.current.preparationsComplete).toBe(true);
+    act(() => result.current.confirmPreparations());
+    expect(result.current.session.preparationsConfirmedAt).toBe(Date.now());
+
+    const persisted = JSON.parse(storage.getItem(cookingSessionKey(recipeWithPreparations.id)) ?? "");
+    expect(persisted.completedPreparationIds).toEqual(["prep-1", "prep-2"]);
+    expect(persisted.preparationsConfirmedAt).toBe(Date.now());
+  });
+
+  it("clears preparation state when restarting or completing", () => {
+    const { result } = renderHook(() => useCookingSession({ recipe: recipeWithPreparations, requestedServings: 2, restart: false }));
+    act(() => {
+      result.current.togglePreparation("prep-1");
+      result.current.confirmPreparations();
+    });
+    act(() => result.current.restart(2));
+    expect(result.current.session.completedPreparationIds).toEqual([]);
+    expect(result.current.session.preparationsConfirmedAt).toBeNull();
+    act(() => result.current.complete());
+    expect(result.current.session.completedPreparationIds).toEqual([]);
+    expect(result.current.session.preparationsConfirmedAt).toBeNull();
   });
 
   it("persists state after React finishes the update instead of writing inside the state updater", () => {

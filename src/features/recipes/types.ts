@@ -13,6 +13,8 @@ export type RecipeSummary = {
   isFavorite: boolean;
   category: { id: string; name: string } | null;
   tags: Array<{ id: string; name: string }>;
+  preparationCount: number;
+  maxLeadTimeMinutes: number | null;
   updatedAt: string;
 };
 
@@ -53,6 +55,15 @@ export type RecipeDetail = RecipeSummary & {
       quantityTextOverride: string | null;
       note: string | null;
     }>;
+  }>;
+  preparations: Array<{
+    id: string;
+    recipeIngredientId: string | null;
+    ingredientName: string | null;
+    instruction: string;
+    leadTimeMinutes: number | null;
+    timingText: string | null;
+    sortOrder: number;
   }>;
   source?: {
     sourceType: "url" | "text" | "images";

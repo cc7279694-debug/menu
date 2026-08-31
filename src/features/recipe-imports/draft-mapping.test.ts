@@ -27,6 +27,7 @@ describe("mapImportDraftToRecipeSaveInput", () => {
           { name: "盐", groupType: "seasoning", quantity: null, quantityText: "适量", unit: null, preparationNote: null },
         ],
         steps: [{ instruction: "番茄下锅。", heatLevel: "中火", timerSeconds: 65, ingredientNames: ["番茄"] }],
+        preparations: [{ ingredientName: "番茄", instruction: "提前腌制", leadTimeMinutes: 30, timingText: null }],
         warnings: ["火候来自原文"],
       },
       categories: [{ id: categoryId, name: "家常菜" }],
@@ -44,6 +45,7 @@ describe("mapImportDraftToRecipeSaveInput", () => {
     expect(result.value.steps[0]?.heatLevel).toBe("中火");
     expect(result.value.steps[0]?.timerSeconds).toBe(65);
     expect(result.value.steps[0]?.ingredientLinks[0]?.recipeIngredientId).toBe(ids[1]);
+    expect(result.value.preparations[0]).toMatchObject({ recipeIngredientId: ids[1], leadTimeMinutes: 30 });
     expect(result.unmatchedCategoryName).toBeNull();
     expect(result.unmatchedTagNames).toEqual(["不存在"]);
   });
@@ -61,6 +63,7 @@ describe("mapImportDraftToRecipeSaveInput", () => {
         suggestedTagNames: [],
         ingredients: [{ name: "西兰花", groupType: "main", quantity: null, quantityText: "适量", unit: null, preparationNote: null }],
         steps: [{ instruction: "焯水后装盘。", heatLevel: null, timerSeconds: null, ingredientNames: ["西兰花"] }],
+        preparations: [],
         warnings: ["份量未识别"],
       },
       categories: [],

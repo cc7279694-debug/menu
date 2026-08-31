@@ -32,6 +32,7 @@ describe("RecipeEditor", () => {
       personalNotes: null,
       ingredients: [{ recipeIngredientId: "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb", name: "番茄", quantity: null, quantityText: null, unit: null, preparationNote: null, sortOrder: 0 }],
       steps: [{ stepId: "cccccccc-cccc-4ccc-8ccc-cccccccccccc", instruction: "煮熟", imagePath: null, timerSeconds: 90, sortOrder: 0, ingredientLinks: [] }],
+      preparations: [],
     };
     const saveRecipe = vi.fn().mockResolvedValue({ ok: true, data: { recipeId: initialValue.recipeId } });
 
@@ -180,6 +181,7 @@ describe("RecipeEditor", () => {
       personalNotes: null,
       ingredients: [{ recipeIngredientId: "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb", name: "番茄", quantity: null, quantityText: null, unit: null, preparationNote: null, sortOrder: 0 }],
       steps: [{ stepId: "cccccccc-cccc-4ccc-8ccc-cccccccccccc", instruction: "切块", imagePath: null, timerSeconds: null, sortOrder: 0, ingredientLinks: [] }],
+      preparations: [],
     };
     removeMedia.mockResolvedValue({ data: [], error: null });
 

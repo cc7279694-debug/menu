@@ -27,6 +27,7 @@ export async function loadRecipeMigrations(database: PGlite) {
   for (const migrationName of followUpNames) {
     await database.exec(await readFile(join(migrationDirectory, migrationName), "utf8"));
   }
+  await loadSingleMigration(database, "_recipe_preparations.sql", "recipe preparation");
 }
 
 export async function loadShoppingMigrations(database: PGlite) {

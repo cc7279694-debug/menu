@@ -42,6 +42,7 @@ export function CookingEntry({ recipe }: { recipe: RecipeDetail }) {
       <div>
         <h2 className="text-lg font-semibold" id="cooking-entry-heading">开始烹饪</h2>
         <p className="mt-1 text-sm text-muted-foreground">选择份数后进入分步厨房模式。</p>
+        {recipe.preparations.length > 0 && <p className="mt-1 text-sm text-amber-700 dark:text-amber-300">这道菜有 {recipe.preparations.length} 项提前准备，请先确认。</p>}
       </div>
       <div className="max-w-48 space-y-1">
         <Label htmlFor={`cooking-servings-${recipe.id}`}>目标份数</Label>

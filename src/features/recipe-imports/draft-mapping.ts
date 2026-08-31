@@ -72,6 +72,16 @@ export function mapImportDraftToRecipeSaveInput(input: {
         return recipeIngredientId ? [{ recipeIngredientId, quantityOverride: null, quantityTextOverride: null, note: null }] : [];
       }))],
     })),
+    preparations: input.draft.preparations.map((item, index) => ({
+      preparationId: createId(),
+      recipeIngredientId: item.ingredientName
+        ? ingredientByName.get(normalize(item.ingredientName)) ?? null
+        : null,
+      instruction: item.instruction,
+      leadTimeMinutes: item.leadTimeMinutes,
+      timingText: asNullable(item.timingText),
+      sortOrder: index,
+    })),
   };
 
   return {

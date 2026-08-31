@@ -15,6 +15,7 @@ const expectedTables = [
   "recipe_ingredients",
   "recipe_steps",
   "step_ingredients",
+  "recipe_preparations",
 ];
 
 describe("recipe management migration", () => {
@@ -92,7 +93,8 @@ describe("recipe management migration", () => {
             'recipes_user_deleted_idx',
             'recipes_title_search_idx',
             'ingredients_name_search_idx',
-            'tags_name_search_idx'
+            'tags_name_search_idx',
+            'recipe_preparations_user_recipe_idx'
           )
         order by indexname
       `,
@@ -100,6 +102,7 @@ describe("recipe management migration", () => {
 
     expect(indexes.rows.map((row) => row.indexname)).toEqual([
       "ingredients_name_search_idx",
+      "recipe_preparations_user_recipe_idx",
       "recipes_title_search_idx",
       "recipes_user_deleted_idx",
       "recipes_user_favorite_idx",
@@ -120,5 +123,19 @@ describe("recipe management migration", () => {
       "recipe_media_insert",
       "recipe_media_select",
     ]);
+  });
+
+  it("requires a preparation time or preserved timing text", async () => {
+    await expect(database.query(
+      `insert into public.recipe_preparations
+        (id, user_id, recipe_id, instruction, lead_time_minutes, timing_text, sort_order)
+       values ($1, $2, $3, $4, null, null, 0)`,
+      [
+        "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+        "11111111-1111-4111-8111-111111111111",
+        "22222222-2222-4222-8222-222222222222",
+        "浸泡",
+      ],
+    )).rejects.toThrow();
   });
 });

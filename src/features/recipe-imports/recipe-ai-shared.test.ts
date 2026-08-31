@@ -42,4 +42,21 @@ describe("recipe AI shared helpers", () => {
       steps: [{ instruction: "炸五分钟", timerSeconds: 300 }],
     });
   });
+
+  it("keeps precise and text-only advance preparations, including model aliases", () => {
+    const output = JSON.stringify({
+      title: "绿豆牛肉",
+      ingredients: [{ name: "牛肉", groupType: "main", quantity: 300, unit: "克" }],
+      steps: [{ instruction: "下锅炒熟", ingredientNames: [] }],
+      prepTasks: [
+        { ingredient: "牛肉", instruction: "加入调料抓匀腌制", durationMinutes: 30 },
+        { ingredient: "绿豆", instruction: "加水浸泡", timeText: "提前一晚" },
+      ],
+    });
+
+    expect(parseRecipeImportDraftOutput(output).preparations).toEqual([
+      { ingredientName: "牛肉", instruction: "加入调料抓匀腌制", leadTimeMinutes: 30, timingText: null },
+      { ingredientName: "绿豆", instruction: "加水浸泡", leadTimeMinutes: null, timingText: "提前一晚" },
+    ]);
+  });
 });

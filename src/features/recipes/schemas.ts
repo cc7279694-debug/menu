@@ -51,6 +51,27 @@ const stepSchema = z.object({
   ingredientLinks: z.array(ingredientLinkSchema),
 });
 
+export const recipePreparationSchema = z
+  .object({
+    preparationId: uuidSchema,
+    recipeIngredientId: nullableUuid,
+    instruction: z.string().trim().min(1).max(500),
+    leadTimeMinutes: nullableNumber(z.number().int().min(1).max(43200)),
+    timingText: nullableText(60),
+    sortOrder: z.number().int().nonnegative(),
+  })
+  .superRefine((value, context) => {
+    if (value.leadTimeMinutes === null && value.timingText === null) {
+      context.addIssue({
+        code: "custom",
+        path: ["leadTimeMinutes"],
+        message: "请填写提前时间或文字时间",
+      });
+    }
+  });
+
+export type RecipePreparationInput = z.output<typeof recipePreparationSchema>;
+
 const recipeSaveInputBaseSchema = z.object({
   recipeId: uuidSchema,
   title: z.string().trim().min(1).max(100),
@@ -64,6 +85,7 @@ const recipeSaveInputBaseSchema = z.object({
   personalNotes: nullableText(4000),
   ingredients: z.array(ingredientSchema).min(1),
   steps: z.array(stepSchema).min(1),
+  preparations: z.array(recipePreparationSchema).max(30),
 });
 
 export const recipeSaveInputSchema = recipeSaveInputBaseSchema
@@ -114,6 +136,28 @@ export const recipeSaveInputSchema = recipeSaveInputBaseSchema
         linkIds.add(link.recipeIngredientId);
       });
     });
+
+    const preparationIds = new Set<string>();
+    value.preparations.forEach((preparation, index) => {
+      if (preparationIds.has(preparation.preparationId)) {
+        context.addIssue({
+          code: "custom",
+          path: ["preparations", index, "preparationId"],
+          message: "准备事项不能重复",
+        });
+      }
+      preparationIds.add(preparation.preparationId);
+      if (
+        preparation.recipeIngredientId !== null &&
+        !ingredientIds.has(preparation.recipeIngredientId)
+      ) {
+        context.addIssue({
+          code: "custom",
+          path: ["preparations", index, "recipeIngredientId"],
+          message: "准备事项食材必须来自当前菜谱",
+        });
+      }
+    });
   })
   .transform((value) => ({
     ...value,
@@ -123,6 +167,10 @@ export const recipeSaveInputSchema = recipeSaveInputBaseSchema
     })),
     steps: value.steps.map((step, sortOrder) => ({
       ...step,
+      sortOrder,
+    })),
+    preparations: value.preparations.map((preparation, sortOrder) => ({
+      ...preparation,
       sortOrder,
     })),
   }));

@@ -21,12 +21,12 @@ import {
 
 const baseRecipe = (id: string, lastOpenedAt: string): OfflineRecipeSnapshot => ({
   userId: "user-a", recipeId: id, cachedAt: lastOpenedAt, lastOpenedAt,
-  dataVersion: 1,
+  dataVersion: 2,
   recipe: {
     id, title: id, description: null, coverUrl: null, coverPath: null,
     baseServings: 1, prepMinutes: null, cookMinutes: null, isFavorite: false,
     category: null, tags: [], updatedAt: lastOpenedAt, personalNotes: null,
-    ingredients: [], steps: [],
+    preparationCount: 0, maxLeadTimeMinutes: null, ingredients: [], steps: [], preparations: [],
   },
 });
 
@@ -87,7 +87,7 @@ describe("offline database", () => {
   });
 
   it("removes incompatible records instead of returning them", async () => {
-    await putRecipeSnapshot({ ...baseRecipe("bad", "2026-08-27T00:00:00.000Z"), dataVersion: 2 as 1 });
+    await putRecipeSnapshot({ ...baseRecipe("bad", "2026-08-27T00:00:00.000Z"), dataVersion: 1 as 2 });
     expect(await getRecipeSnapshot("user-a", "bad")).toBeNull();
     await putShoppingSnapshot({ ...shoppingSnapshot, dataVersion: 2 as 1 });
     expect(await getShoppingSnapshot("user-a")).toBeNull();

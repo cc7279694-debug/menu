@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { FavoriteButton } from "@/features/recipes/components/favorite-button";
 import { RestoreButton } from "@/features/recipes/components/restore-button";
 import type { RecipeSummary } from "@/features/recipes/types";
+import { formatPreparationLeadTime } from "@/features/recipes/preparation-time";
 
 export function RecipeCard({ recipe, deleted = false }: { recipe: RecipeSummary; deleted?: boolean }) {
   const content = (
@@ -17,6 +18,7 @@ export function RecipeCard({ recipe, deleted = false }: { recipe: RecipeSummary;
         <div className="flex items-start justify-between gap-3"><h2 className="line-clamp-2 font-semibold">{recipe.title}</h2>{recipe.category && <Badge variant="secondary">{recipe.category.name}</Badge>}</div>
         {recipe.description && <p className="line-clamp-2 text-sm text-muted-foreground">{recipe.description}</p>}
         <p className="text-sm text-muted-foreground">{`${recipe.baseServings} 人份 · ${formatMinutes(recipe.prepMinutes, recipe.cookMinutes)}`}</p>
+        {recipe.preparationCount > 0 && <p className="text-sm font-medium text-amber-700 dark:text-amber-300">{recipe.maxLeadTimeMinutes ? `${formatPreparationLeadTime(recipe.maxLeadTimeMinutes, null).replace("提前 ", "需提前 ")}准备` : "有提前准备事项"}</p>}
         <div className="flex flex-wrap gap-1">{recipe.tags.map((tag) => <Badge key={tag.id} variant="outline">{tag.name}</Badge>)}</div>
       </div>
     </>

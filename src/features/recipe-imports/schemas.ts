@@ -28,6 +28,14 @@ export const recipeImportDraftModelSchema = z.object({
     timerSeconds: z.number().int().min(1).max(86400).nullable(),
     ingredientNames: z.array(z.string().trim().min(1).max(80)).max(30),
   })).min(1).max(100),
+  preparations: z.array(z.object({
+    ingredientName: modelNullableText(80),
+    instruction: z.string().trim().min(1).max(500),
+    leadTimeMinutes: modelNullableInteger(1, 43200),
+    timingText: modelNullableText(60),
+  }).refine((item) => item.leadTimeMinutes !== null || item.timingText !== null, {
+    message: "提前准备必须包含精确时间或文字时间",
+  })).max(30).default([]),
   warnings: z.array(z.string().trim().min(1).max(200)).max(20),
 });
 

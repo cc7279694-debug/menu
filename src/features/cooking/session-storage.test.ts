@@ -24,6 +24,7 @@ const recipe: CookingSessionRecipe = {
   updatedAt: "2026-08-23T12:00:00.000Z",
   baseServings: 2,
   ingredients: [],
+  preparations: [{ id: "prep-1" }, { id: "prep-2" }],
   steps: [
     { id: "step-2", sortOrder: 2, ingredientLinks: [] },
     { id: "step-1", sortOrder: 1, ingredientLinks: [] },
@@ -45,9 +46,22 @@ describe("versioned cooking session storage", () => {
       targetServings: 4,
       currentStepId: "step-1",
       timers: [],
+      completedPreparationIds: [],
+      preparationsConfirmedAt: null,
       startedAt: 1_000,
       updatedAt: 1_000,
     });
+  });
+
+  it("loads legacy sessions with empty preparation state and filters unknown ids", () => {
+    const session = createCookingSession(recipe, 2, 1_000);
+    const legacy = { ...session } as Partial<typeof session>;
+    delete legacy.completedPreparationIds;
+    delete legacy.preparationsConfirmedAt;
+    const storage = storageWith({ ...legacy, completedPreparationIds: ["prep-1", "removed"] });
+
+    const loaded = loadCookingSession(storage, recipe);
+    expect(loaded).toMatchObject({ completedPreparationIds: ["prep-1"], preparationsConfirmedAt: null });
   });
 
   it("uses the recipe base servings when requested servings are out of range", () => {

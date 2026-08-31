@@ -48,6 +48,7 @@ describe("step ingredient projection", () => {
         { id: "salt", name: "盐", quantity: null, quantityText: "少许", unit: null, preparationNote: null, sortOrder: 1 },
         { id: "oil", name: "油", quantity: 1, quantityText: null, unit: "勺", preparationNote: null, sortOrder: 2 },
       ],
+      preparations: [],
       steps: [
         {
           id: "step-1",
@@ -76,6 +77,7 @@ describe("step ingredient projection", () => {
       ingredients: [
         { id: "stock", name: "高汤", quantity: null, quantityText: "按需", unit: "毫升", preparationNote: null, sortOrder: 0 },
       ],
+      preparations: [],
       steps: [
         {
           id: "step-1",

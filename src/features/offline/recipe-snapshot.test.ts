@@ -19,6 +19,8 @@ const recipe: RecipeDetail = {
   isFavorite: true,
   category: { id: "cat-a", name: "快手菜" },
   tags: [{ id: "tag-a", name: "家常" }],
+  preparationCount: 0,
+  maxLeadTimeMinutes: null,
   updatedAt: NOW,
   personalNotes: "少油",
   ingredients: [{
@@ -33,6 +35,7 @@ const recipe: RecipeDetail = {
       quantityTextOverride: null, note: "切碎",
     }],
   }],
+  preparations: [{ id: "prep-a", recipeIngredientId: "ingredient-a", ingredientName: "鸡蛋", instruction: "提前腌制", leadTimeMinutes: 240, timingText: null, sortOrder: 0 }],
 };
 
 describe("toOfflineRecipeSnapshot", () => {
@@ -45,7 +48,10 @@ describe("toOfflineRecipeSnapshot", () => {
     expect(snapshot.recipe.steps[0]).toMatchObject({ imageUrl: null, imagePath: null });
     snapshot.recipe.steps[0].ingredientLinks[0].note = "已修改";
     expect(recipe.steps[0].ingredientLinks[0].note).toBe("切碎");
-    expect(snapshot.dataVersion).toBe(1);
+    expect(snapshot.dataVersion).toBe(2);
+    expect(snapshot.recipe.preparations).toEqual(recipe.preparations);
+    snapshot.recipe.preparations[0].instruction = "已修改";
+    expect(recipe.preparations[0].instruction).toBe("提前腌制");
     expect(snapshot.cachedAt).toBe(NOW);
     expect(snapshot.lastOpenedAt).toBe(NOW);
     expect(snapshot.recipe).not.toBe(recipe);

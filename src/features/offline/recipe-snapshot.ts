@@ -12,13 +12,14 @@ export function toOfflineRecipeSnapshot(
     recipeId: recipe.id,
     cachedAt: timestamp,
     lastOpenedAt: timestamp,
-    dataVersion: 1,
+    dataVersion: 2,
     recipe: {
       ...recipe,
       coverUrl: null,
       coverPath: null,
       ingredients: recipe.ingredients.map((ingredient) => ({ ...ingredient })),
       tags: recipe.tags.map((tag) => ({ ...tag })),
+      preparations: recipe.preparations.map((preparation) => ({ ...preparation })),
       steps: recipe.steps.map((step) => ({
         ...step,
         imageUrl: null,
