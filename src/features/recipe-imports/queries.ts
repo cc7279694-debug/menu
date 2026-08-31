@@ -1,6 +1,6 @@
 import { getServerAuthContext } from "@/lib/supabase/server-auth";
 import { recipeAiProviderSchema, type RecipeAiProvider, type RecipeImportDraft, type RecipeImportJob, type RecipeImportStatus } from "@/features/recipe-imports/schemas";
-import { recipeImportDraftSchema } from "@/features/recipe-imports/schemas";
+import { parseStoredRecipeImportDraft } from "@/features/recipe-imports/quality-review";
 
 export const RECIPE_IMPORT_BUCKET = "recipe-imports";
 
@@ -14,7 +14,7 @@ function aiProvider(value: unknown): RecipeAiProvider {
 }
 
 export function mapRecipeImportJob(row: Record<string, unknown>): RecipeImportJob {
-  const draftResult = row.draft ? recipeImportDraftSchema.safeParse(row.draft) : null;
+  const draft = row.draft ? parseStoredRecipeImportDraft(row.draft) : null;
   return {
     id: String(row.id),
     sourceType: row.source_type as RecipeImportJob["sourceType"],
@@ -25,7 +25,7 @@ export function mapRecipeImportJob(row: Record<string, unknown>): RecipeImportJo
     sourcePlatform: typeof row.source_platform === "string" ? row.source_platform : null,
     imagePaths: stringArray(row.image_paths),
     status: row.status as RecipeImportStatus,
-    draft: draftResult?.success ? draftResult.data : null,
+    draft,
     warnings: stringArray(row.warnings),
     errorCode: typeof row.error_code === "string" ? row.error_code : null,
     recipeId: typeof row.recipe_id === "string" ? row.recipe_id : null,

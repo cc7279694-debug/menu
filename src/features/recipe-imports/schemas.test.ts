@@ -5,6 +5,7 @@ import {
   createRecipeImportSchema,
   recipeAiProviderSchema,
   recipeImportDraftSchema,
+  recipeImportDraftModelSchema,
 } from "@/features/recipe-imports/schemas";
 
 const validDraft = {
@@ -48,9 +49,35 @@ const validDraft = {
 
 describe("recipe import schemas", () => {
   it("accepts a structured draft with seasoning and heat fields", () => {
-    const parsed = recipeImportDraftSchema.parse(validDraft);
+    const parsed = recipeImportDraftModelSchema.parse(validDraft);
     expect(parsed.ingredients[1]?.groupType).toBe("seasoning");
     expect(parsed.steps[0]?.heatLevel).toBe("中火");
+  });
+
+  it("separates AI field checks from server confirmation metadata", () => {
+    const model = recipeImportDraftModelSchema.parse({
+      ...validDraft,
+      fieldChecks: [
+        { path: "ingredients.0.quantity", status: "missing", label: "鱼片的用量", message: "来源没有给出重量" },
+      ],
+    });
+
+    expect(model.fieldChecks[0]?.status).toBe("missing");
+    expect(recipeImportDraftModelSchema.safeParse({
+      ...validDraft,
+      confirmedAt: "2026-08-31T10:00:00.000Z",
+    }).success).toBe(false);
+
+    const stored = recipeImportDraftSchema.parse({
+      ...validDraft,
+      review: {
+        fieldChecks: model.fieldChecks,
+        requiresConfirmation: true,
+        confirmedAt: null,
+      },
+    });
+    expect(stored.review.requiresConfirmation).toBe(true);
+    expect(stored.review.confirmedAt).toBeNull();
   });
 
   it("rejects an empty recipe or too many warnings", () => {

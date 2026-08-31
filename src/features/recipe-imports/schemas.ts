@@ -5,7 +5,41 @@ const modelNullableInteger = (min: number, max: number) => z.number().int().min(
 
 export const ingredientGroupSchema = z.enum(["main", "seasoning", "other"]);
 
-export const recipeImportDraftModelSchema = z.object({
+const ingredientDraftSchema = z.object({
+  name: z.string().trim().min(1).max(80),
+  groupType: ingredientGroupSchema,
+  quantity: z.number().positive().nullable(),
+  quantityText: modelNullableText(40),
+  unit: modelNullableText(20),
+  preparationNote: modelNullableText(120),
+});
+
+const stepDraftSchema = z.object({
+  instruction: z.string().trim().min(1).max(2000),
+  heatLevel: modelNullableText(60),
+  timerSeconds: z.number().int().min(1).max(86400).nullable(),
+  ingredientNames: z.array(z.string().trim().min(1).max(80)).max(30),
+});
+
+const preparationDraftSchema = z.object({
+  ingredientName: modelNullableText(80),
+  instruction: z.string().trim().min(1).max(500),
+  leadTimeMinutes: modelNullableInteger(1, 43200),
+  timingText: modelNullableText(60),
+}).refine((item) => item.leadTimeMinutes !== null || item.timingText !== null, {
+  message: "提前准备必须包含精确时间或文字时间",
+});
+
+export const recipeImportFieldStatusSchema = z.enum(["explicit", "inferred", "missing"]);
+
+export const recipeImportFieldCheckSchema = z.object({
+  path: z.string().trim().min(1).max(120),
+  status: recipeImportFieldStatusSchema,
+  label: z.string().trim().min(1).max(120),
+  message: modelNullableText(200),
+});
+
+const recipeImportDraftContentSchema = z.object({
   title: z.string().trim().min(1).max(100),
   description: modelNullableText(500),
   baseServings: z.number().positive().max(1000),
@@ -14,32 +48,25 @@ export const recipeImportDraftModelSchema = z.object({
   personalNotes: modelNullableText(4000),
   suggestedCategoryName: modelNullableText(40),
   suggestedTagNames: z.array(z.string().trim().min(1).max(40)).max(12),
-  ingredients: z.array(z.object({
-    name: z.string().trim().min(1).max(80),
-    groupType: ingredientGroupSchema,
-    quantity: z.number().positive().nullable(),
-    quantityText: modelNullableText(40),
-    unit: modelNullableText(20),
-    preparationNote: modelNullableText(120),
-  })).min(1).max(100),
-  steps: z.array(z.object({
-    instruction: z.string().trim().min(1).max(2000),
-    heatLevel: modelNullableText(60),
-    timerSeconds: z.number().int().min(1).max(86400).nullable(),
-    ingredientNames: z.array(z.string().trim().min(1).max(80)).max(30),
-  })).min(1).max(100),
-  preparations: z.array(z.object({
-    ingredientName: modelNullableText(80),
-    instruction: z.string().trim().min(1).max(500),
-    leadTimeMinutes: modelNullableInteger(1, 43200),
-    timingText: modelNullableText(60),
-  }).refine((item) => item.leadTimeMinutes !== null || item.timingText !== null, {
-    message: "提前准备必须包含精确时间或文字时间",
-  })).max(30).default([]),
+  ingredients: z.array(ingredientDraftSchema).min(1).max(100),
+  steps: z.array(stepDraftSchema).min(1).max(100),
+  preparations: z.array(preparationDraftSchema).max(30).default([]),
   warnings: z.array(z.string().trim().min(1).max(200)).max(20),
 });
 
-export const recipeImportDraftSchema = recipeImportDraftModelSchema;
+export const recipeImportDraftModelSchema = recipeImportDraftContentSchema.extend({
+  fieldChecks: z.array(recipeImportFieldCheckSchema).max(300).default([]),
+}).strict();
+
+export const recipeImportReviewSchema = z.object({
+  fieldChecks: z.array(recipeImportFieldCheckSchema).max(300),
+  requiresConfirmation: z.boolean(),
+  confirmedAt: z.string().datetime({ offset: true }).nullable(),
+});
+
+export const recipeImportDraftSchema = recipeImportDraftContentSchema.extend({
+  review: recipeImportReviewSchema,
+}).strict();
 export const recipeImportJsonSchema = z.toJSONSchema(recipeImportDraftModelSchema);
 
 export const recipeAiProviderSchema = z.enum(["auto", "qwen", "gemini"]);
@@ -59,6 +86,10 @@ export const attachRecipeImportImagesSchema = z.object({
 export const processRecipeImportSchema = z.object({ importId: z.string().uuid() });
 
 export type RecipeImportDraft = z.infer<typeof recipeImportDraftSchema>;
+export type RecipeImportModelDraft = z.infer<typeof recipeImportDraftModelSchema>;
+export type RecipeImportFieldStatus = z.infer<typeof recipeImportFieldStatusSchema>;
+export type RecipeImportFieldCheck = z.infer<typeof recipeImportFieldCheckSchema>;
+export type RecipeImportReview = z.infer<typeof recipeImportReviewSchema>;
 export type RecipeImportStatus =
   | "queued"
   | "fetching"
