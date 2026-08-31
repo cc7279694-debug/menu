@@ -13,6 +13,7 @@
     "test:shopping": "vitest run src/features/shopping src/test/database/shopping-list-migration.test.ts src/test/database/shopping-list-security.test.ts",
     "test:plan": "vitest run src/features/meal-plans src/test/database/meal-plan-migration.test.ts src/test/database/meal-plan-security.test.ts --pool=threads --maxWorkers=1 --no-file-parallelism",
     "test:history": "vitest run src/features/cooking-history src/features/cooking/components/cooking-screen.test.tsx src/features/meal-plans src/features/recipes/components/recipe-detail.test.tsx src/test/database/cooking-history-migration.test.ts src/test/database/cooking-history-security.test.ts --pool=threads --maxWorkers=1 --no-file-parallelism",
+    "test:imports": "vitest run src/features/recipe-imports src/app/api/recipe-imports --pool=threads --maxWorkers=1 --no-file-parallelism",
     "test:recipes": "vitest run src/features/recipes",
     "test:watch": "vitest"
   },

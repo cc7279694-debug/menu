@@ -54,6 +54,13 @@
 - 当前版本不提供完整历史中心、记录编辑、家庭共享或离线历史同步。
 - 新增数据库迁移为 `supabase/migrations/20260831094439_cooking_history.sql`；执行前必须再次确认目标 Supabase 项目。
 
+## AI 导入审核
+
+- 默认使用 Qwen 3.8 Flash；自动模式仅在可恢复失败时尝试已配置的 Gemini。
+- “来源明确”表示 AI 在输入内容中识别到明确依据，不代表人工核验。
+- 数量、火候或时间无法确认时保持为空，并在保存前要求用户检查。
+- 链接无法公开读取时，可改用粘贴文案或上传截图。
+
 ## 本地要求
 
 - Node.js 22 或兼容 Next.js 15 的较新 LTS 版本
@@ -96,6 +103,7 @@ GEMINI_RECIPE_AI_MODEL=gemini-3.7-flash
 
 ```powershell
 npm.cmd test
+npm.cmd run test:imports
 npm.cmd run test:shopping
 npm.cmd run test:plan
 npm.cmd run typecheck
