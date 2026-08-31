@@ -1,6 +1,7 @@
 import "server-only";
 
-import { recipeImportDraftSchema, type RecipeDraftExtractor, type SourceDocument } from "@/features/recipe-imports/schemas";
+import { recipeImportDraftModelSchema, type RecipeDraftExtractor, type SourceDocument } from "@/features/recipe-imports/schemas";
+import { buildRecipeImportQualityDraft } from "@/features/recipe-imports/quality-review";
 
 export const RECIPE_IMPORT_SYSTEM_PROMPT = [
   "你是食序 ORDINE 的菜谱整理器。请把用户提供的公开菜谱资料整理成结构化 JSON。",
@@ -10,6 +11,9 @@ export const RECIPE_IMPORT_SYSTEM_PROMPT = [
   "把准备时间和烹饪时间用分钟表示；每个步骤的 timerSeconds 使用秒数。",
   "食材用量请拆分保存：quantity 只放可确认的数字，unit 只放独立单位，quantityText 保留无法安全拆成数字的原文（如适量、少许、一包、大量油）。例如：豆瓣酱2勺→name=豆瓣酱、quantity=2、unit=勺、quantityText=null；干锅酱一包→name=干锅酱、quantity=null、unit=null、quantityText=一包。不要把单位丢掉，也不要在 quantityText 已包含单位时重复填写 unit。",
   "把来源明确提到的腌制、浸泡、解冻、醒发、静置、回温等做饭前任务放入 preparations。精确时间统一换算为分钟；提前一晚、泡至变软等保留在 timingText。来源未说明的时间不要凭常识补写，并在 warnings 中提醒用户确认。切片、切块、洗净等即时处理仍放在食材 preparationNote。",
+  "为 title、份数、总准备/烹饪时间、每个食材用量/单位/分组、每个步骤火候/计时/关联食材、每项提前准备时间、分类和标签返回 fieldChecks。",
+  "status 只能是 explicit、inferred 或 missing。来源直接写出或画面明确显示时用 explicit；根据上下文整理或归类用 inferred；无法确认用 missing。",
+  "关键数量、火候和时间无法确认时必须返回 null，不能按常识补写。分类和标签可以推断，但必须标记 inferred；不要自动创造营养结论。",
   "只输出 JSON 对象，不要输出 Markdown、解释或额外文字。",
 ].join("\n");
 
@@ -155,9 +159,18 @@ function normalizeDraftModel(value: unknown, sourceText = ""): unknown {
   });
   const title = nullableText(draft.title) ?? nullableText(draft.name);
   const warnings = stringArray(draft.warnings);
+  const rawFieldChecks = Array.isArray(input.fieldChecks) ? input.fieldChecks : Array.isArray(draft.fieldChecks) ? draft.fieldChecks : [];
+  const fieldChecks = rawFieldChecks.flatMap((item) => {
+    if (!item || typeof item !== "object") return [];
+    const check = item as Record<string, unknown>;
+    const path = nullableText(check.path);
+    const label = nullableText(check.label);
+    const status = check.status === "explicit" || check.status === "inferred" || check.status === "missing" ? check.status : null;
+    if (!path || !label || !status) return [];
+    return [{ path, label, status, message: nullableText(check.message) }];
+  });
   if (!title) warnings.push("菜谱标题未从来源确认，请在保存前补充。");
   return {
-    ...draft,
     title: title ?? "未命名菜谱",
     description: nullableText(draft.description),
     baseServings: nullableNumber(draft.baseServings) ?? nullableNumber(draft.servings) ?? 2,
@@ -170,11 +183,14 @@ function normalizeDraftModel(value: unknown, sourceText = ""): unknown {
     steps,
     preparations,
     warnings,
+    fieldChecks,
   };
 }
 
 export function parseRecipeImportDraftOutput(outputText: string, sourceText = "") {
-  return recipeImportDraftSchema.parse(normalizeDraftModel(JSON.parse(outputText) as unknown, sourceText));
+  const normalized = normalizeDraftModel(JSON.parse(outputText) as unknown, sourceText);
+  const model = recipeImportDraftModelSchema.parse(normalized);
+  return buildRecipeImportQualityDraft(model);
 }
 
 export type RecipeAiExtractor = RecipeDraftExtractor;

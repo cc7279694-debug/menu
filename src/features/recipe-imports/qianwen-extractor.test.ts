@@ -19,6 +19,20 @@ const draft = {
   warnings: [],
 };
 
+const explicitDraft = {
+  ...draft,
+  fieldChecks: [
+    { path: "prepMinutes", label: "总准备时间", status: "explicit", message: null },
+    { path: "cookMinutes", label: "总烹饪时间", status: "explicit", message: null },
+    { path: "ingredients.0.quantity", label: "第 1 项食材数量", status: "explicit", message: null },
+    { path: "ingredients.0.unit", label: "第 1 项食材单位", status: "explicit", message: null },
+    { path: "steps.0.heatLevel", label: "第 1 步火候", status: "explicit", message: null },
+    { path: "steps.0.timerSeconds", label: "第 1 步计时", status: "explicit", message: null },
+    { path: "suggestedCategoryName", label: "建议分类", status: "explicit", message: null },
+    { path: "suggestedTagNames", label: "建议标签", status: "explicit", message: null },
+  ],
+};
+
 const document = {
   platform: "example",
   title: "番茄炒蛋",
@@ -35,14 +49,14 @@ function response(body: unknown, status = 200) {
 describe("QianWen recipe draft extractor", () => {
   it("requests structured JSON and validates the returned draft", async () => {
     const fetchImpl = vi.fn<typeof fetch>().mockResolvedValue(response({
-      choices: [{ message: { content: JSON.stringify(draft) } }],
+      choices: [{ message: { content: JSON.stringify(explicitDraft) } }],
     }));
     const extractor = createQianwenRecipeDraftExtractor({
       fetchImpl,
       env: { API_KEY: "sk-test", RECIPE_AI_MODEL: "qwen3.8-flash" },
     });
 
-    await expect(extractor.extract({ document, imageUrls: ["https://example.com/image.webp"] })).resolves.toEqual(draft);
+    await expect(extractor.extract({ document, imageUrls: ["https://example.com/image.webp"] })).resolves.toMatchObject({ ...draft, review: { requiresConfirmation: false, confirmedAt: null } });
 
     const [url, init] = fetchImpl.mock.calls[0] ?? [];
     expect(url).toBe("https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions");
@@ -58,7 +72,7 @@ describe("QianWen recipe draft extractor", () => {
 
   it("uses the OpenAI-compatible multimodal content for video sources", async () => {
     const fetchImpl = vi.fn<typeof fetch>().mockResolvedValue(response({
-      choices: [{ message: { content: JSON.stringify(draft) } }],
+      choices: [{ message: { content: JSON.stringify(explicitDraft) } }],
     }));
     const extractor = createQianwenRecipeDraftExtractor({
       fetchImpl,
@@ -68,7 +82,7 @@ describe("QianWen recipe draft extractor", () => {
     await expect(extractor.extract({
       document: { ...document, videoUrls: ["https://example.com/recipe.mp4"] },
       imageUrls: [],
-    })).resolves.toEqual(draft);
+    })).resolves.toMatchObject({ ...draft, review: { requiresConfirmation: false, confirmedAt: null } });
 
     const [url, init] = fetchImpl.mock.calls[0] ?? [];
     expect(url).toBe("https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions");
@@ -98,14 +112,14 @@ describe("QianWen recipe draft extractor", () => {
 
   it("passes images as OpenAI-compatible multimodal content", async () => {
     const fetchImpl = vi.fn<typeof fetch>().mockResolvedValue(response({
-      choices: [{ message: { content: JSON.stringify(draft) } }],
+      choices: [{ message: { content: JSON.stringify(explicitDraft) } }],
     }));
     const extractor = createQianwenRecipeDraftExtractor({
       fetchImpl,
       env: { API_KEY: "sk-test", RECIPE_AI_MODEL: "qwen3.7-flash" },
     });
 
-    await expect(extractor.extract({ document, imageUrls: ["https://example.com/image.avif"] })).resolves.toEqual(draft);
+    await expect(extractor.extract({ document, imageUrls: ["https://example.com/image.avif"] })).resolves.toMatchObject({ ...draft, review: { requiresConfirmation: false, confirmedAt: null } });
     const payload = JSON.parse(String(fetchImpl.mock.calls[0]?.[1]?.body));
     expect(payload.messages[1].content).toContainEqual({ type: "image_url", image_url: { url: "https://example.com/image.avif" } });
   });
@@ -114,13 +128,13 @@ describe("QianWen recipe draft extractor", () => {
     const fetchImpl = vi.fn<typeof fetch>()
       .mockResolvedValueOnce(response({ code: "invalid_parameter_error", message: "Failed to download multimodal content" }, 400))
       .mockResolvedValueOnce(new Response(new Uint8Array([1, 2, 3]), { status: 200, headers: { "content-type": "image/jpeg" } }))
-      .mockResolvedValueOnce(response({ choices: [{ message: { content: JSON.stringify(draft) } }] }));
+      .mockResolvedValueOnce(response({ choices: [{ message: { content: JSON.stringify(explicitDraft) } }] }));
     const extractor = createQianwenRecipeDraftExtractor({
       fetchImpl,
       env: { API_KEY: "sk-test", RECIPE_AI_MODEL: "qwen3.8-flash" },
     });
 
-    await expect(extractor.extract({ document, imageUrls: ["https://sns-webpic-qc.xhscdn.com/example.jpg"] })).resolves.toEqual(draft);
+    await expect(extractor.extract({ document, imageUrls: ["https://sns-webpic-qc.xhscdn.com/example.jpg"] })).resolves.toMatchObject({ ...draft, review: { requiresConfirmation: false, confirmedAt: null } });
 
     const retryPayload = JSON.parse(String(fetchImpl.mock.calls[2]?.[1]?.body));
     expect(retryPayload.messages[1].content).toContainEqual({
@@ -134,6 +148,7 @@ describe("QianWen recipe draft extractor", () => {
       title: "干锅脆鱼",
       ingredients: [{ name: "鱼片", groupType: "主料", quantity: "适量" }],
       steps: [{ instruction: { text: "炸至金黄" }, timerSeconds: "120", ingredientNames: [] }],
+      fieldChecks: [{ path: "steps.0.timerSeconds", label: "第 1 步计时", status: "explicit", message: null }],
     }) } }] }));
     const extractor = createQianwenRecipeDraftExtractor({
       fetchImpl,
@@ -158,6 +173,10 @@ describe("QianWen recipe draft extractor", () => {
       ingredients: [{ name: "猪里脊", groupType: "主料", quantity: null, quantityText: "适量" }],
       steps: [{ instruction: { description: { text: "腌制肉丝" } }, ingredientNames: [] }],
       warnings: [],
+      fieldChecks: [
+        { path: "prepMinutes", label: "总准备时间", status: "explicit", message: null },
+        { path: "cookMinutes", label: "总烹饪时间", status: "explicit", message: null },
+      ],
     }) } }] }));
     const extractor = createQianwenRecipeDraftExtractor({ fetchImpl, env: { API_KEY: "sk-test", RECIPE_AI_MODEL: "qwen3.8-flash" } });
     await expect(extractor.extract({ document, imageUrls: [] })).resolves.toMatchObject({

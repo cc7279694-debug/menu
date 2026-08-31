@@ -31,6 +31,7 @@ describe("recipe AI shared helpers", () => {
       title: "干锅脆鱼",
       ingredients: [{ name: "鱼片", groupType: "主料", quantity: 200, unit: "克" }],
       steps: [{ instruction: "炸五分钟", timerSeconds: "300", ingredientNames: [] }],
+      fieldChecks: [{ path: "steps.0.timerSeconds", status: "explicit", label: "第 1 步计时", message: null }],
     }) } }] };
 
     const output = readOpenAiOutputText(payload);
@@ -40,7 +41,28 @@ describe("recipe AI shared helpers", () => {
       baseServings: 2,
       ingredients: [{ name: "鱼片", quantity: 200, unit: "克", groupType: "main" }],
       steps: [{ instruction: "炸五分钟", timerSeconds: 300 }],
+      review: { requiresConfirmation: true, confirmedAt: null },
     });
+  });
+
+  it("clears an inferred total time and preserves field status", () => {
+    const output = JSON.stringify({
+      title: "干锅脆鱼",
+      ingredients: [{ name: "鱼片", groupType: "main", quantity: 200, unit: "克" }],
+      steps: [{ instruction: "炸五分钟", timerSeconds: 300, ingredientNames: [] }],
+      prepMinutes: 15,
+      fieldChecks: [
+        { path: "prepMinutes", status: "inferred", label: "准备时间", message: "根据步骤估算" },
+        { path: "steps.0.timerSeconds", status: "explicit", label: "第 1 步计时", message: null },
+      ],
+    });
+
+    const draft = parseRecipeImportDraftOutput(output, document.text);
+    expect(draft.prepMinutes).toBeNull();
+    expect(draft.review.fieldChecks).toEqual(expect.arrayContaining([
+      expect.objectContaining({ path: "prepMinutes", status: "inferred" }),
+      expect.objectContaining({ path: "steps.0.timerSeconds", status: "explicit" }),
+    ]));
   });
 
   it("keeps precise and text-only advance preparations, including model aliases", () => {
@@ -51,6 +73,10 @@ describe("recipe AI shared helpers", () => {
       prepTasks: [
         { ingredient: "牛肉", instruction: "加入调料抓匀腌制", durationMinutes: 30 },
         { ingredient: "绿豆", instruction: "加水浸泡", timeText: "提前一晚" },
+      ],
+      fieldChecks: [
+        { path: "preparations.0.leadTimeMinutes", status: "explicit", label: "第 1 项提前准备精确时间", message: null },
+        { path: "preparations.1.timingText", status: "explicit", label: "第 2 项提前准备文字时间", message: null },
       ],
     });
 

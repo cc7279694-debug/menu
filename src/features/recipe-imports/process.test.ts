@@ -35,6 +35,7 @@ describe("recipe import process state machine", () => {
       suggestedCategoryName: null, suggestedTagNames: [],
       ingredients: [{ name: "鸡蛋", groupType: "main", quantity: 2, quantityText: null, unit: "个", preparationNote: null }],
       steps: [{ instruction: "炒熟", heatLevel: "中火", timerSeconds: null, ingredientNames: ["鸡蛋"] }], preparations: [], warnings: [],
+      review: { fieldChecks: [], requiresConfirmation: false, confirmedAt: null },
     };
     const update = vi.fn().mockResolvedValue({ data: { id: "job" }, error: null });
     const job = { id: "job", user_id: "user", source_type: "text", source_text: "鸡蛋两个，中火炒熟。".repeat(5), source_url: null, source_title: null, source_author: null, source_platform: null, image_paths: [], status: "queued", draft: null, warnings: [], error_code: null, recipe_id: null, expires_at: "future" };
