@@ -3,6 +3,7 @@ import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import type { OfflineRecipeDetail } from "@/features/offline/types";
 import { RecipePreparationList } from "@/features/recipes/components/recipe-preparation-list";
+import { RecipeNutritionCard } from "@/features/recipes/components/recipe-nutrition";
 
 function quantity(quantity: number | null, text: string | null, unit: string | null) {
   return `${text ?? (quantity === null ? "适量" : quantity)}${unit ? ` ${unit}` : ""}`;
@@ -33,6 +34,8 @@ export function OfflineRecipeDetail({ recipe }: { recipe: OfflineRecipeDetail })
       </div>
 
       <RecipePreparationList preparations={recipe.preparations} />
+
+      <RecipeNutritionCard nutrition={recipe.nutrition} />
 
       <section className="grid gap-6 lg:grid-cols-[minmax(16rem,0.8fr)_minmax(0,1.2fr)]">
         <div className="rounded-2xl border bg-card p-5">

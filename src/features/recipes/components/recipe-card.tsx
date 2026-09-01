@@ -18,6 +18,7 @@ export function RecipeCard({ recipe, deleted = false }: { recipe: RecipeSummary;
         <div className="flex items-start justify-between gap-3"><h2 className="line-clamp-2 font-semibold">{recipe.title}</h2>{recipe.category && <Badge variant="secondary">{recipe.category.name}</Badge>}</div>
         {recipe.description && <p className="line-clamp-2 text-sm text-muted-foreground">{recipe.description}</p>}
         <p className="text-sm text-muted-foreground">{`${recipe.baseServings} 人份 · ${formatMinutes(recipe.prepMinutes, recipe.cookMinutes)}`}</p>
+        {recipe.nutrition && <p className="text-sm text-muted-foreground">{formatNutritionSummary(recipe.nutrition)}</p>}
         {recipe.preparationCount > 0 && <p className="text-sm font-medium text-amber-700 dark:text-amber-300">{recipe.maxLeadTimeMinutes ? `${formatPreparationLeadTime(recipe.maxLeadTimeMinutes, null).replace("提前 ", "需提前 ")}准备` : "有提前准备事项"}</p>}
         <div className="flex flex-wrap gap-1">{recipe.tags.map((tag) => <Badge key={tag.id} variant="outline">{tag.name}</Badge>)}</div>
       </div>
@@ -38,4 +39,12 @@ export function RecipeCard({ recipe, deleted = false }: { recipe: RecipeSummary;
 function formatMinutes(prep: number | null, cook: number | null) {
   const total = (prep ?? 0) + (cook ?? 0);
   return total > 0 ? `${total} 分钟` : "时间未设置";
+}
+
+function formatNutritionSummary(nutrition: NonNullable<RecipeSummary["nutrition"]>) {
+  const values = [
+    nutrition.caloriesKcal === null ? null : `${nutrition.caloriesKcal} 千卡`,
+    nutrition.proteinGrams === null ? null : `蛋白质 ${nutrition.proteinGrams}g`,
+  ].filter(Boolean);
+  return values.join(" · ");
 }

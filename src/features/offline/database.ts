@@ -47,7 +47,7 @@ async function safe<T>(operation: (database: IDBPDatabase<OrdineOfflineSchema>) 
   }
 }
 
-const compatibleRecipe = (value: { dataVersion?: number }): boolean => value.dataVersion === 2;
+const compatibleRecipe = (value: { dataVersion?: number }): boolean => value.dataVersion === 3;
 const compatibleShopping = (value: { dataVersion?: number }): boolean => value.dataVersion === 1;
 const mutationId = () => globalThis.crypto?.randomUUID?.() ?? `${Date.now()}-${Math.random()}`;
 

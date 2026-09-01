@@ -7,6 +7,7 @@ import type { RecipeDetail as RecipeDetailValue } from "@/features/recipes/types
 import { RecipePreparationList } from "@/features/recipes/components/recipe-preparation-list";
 import { CookingHistorySection } from "@/features/cooking-history/components/cooking-history-section";
 import type { RecipeCookingHistory } from "@/features/cooking-history/types";
+import { RecipeNutritionCard } from "@/features/recipes/components/recipe-nutrition";
 
 const emptyCookingHistory: RecipeCookingHistory = {
   stats: { totalCount: 0, ratedCount: 0, averageRating: null, latestImprovementNotes: null },
@@ -52,6 +53,8 @@ export function RecipeDetailView({ recipe, cookingHistory = emptyCookingHistory 
       {recipe.coverUrl && <img alt={`${recipe.title}封面`} className="max-h-[28rem] w-full rounded-2xl object-cover" decoding="async" height={800} loading="eager" src={recipe.coverUrl} width={1200} />}
 
       <RecipePreparationList preparations={recipe.preparations} />
+
+      <RecipeNutritionCard nutrition={recipe.nutrition} />
 
       <section className="grid gap-6 lg:grid-cols-[minmax(16rem,0.8fr)_minmax(0,1.2fr)]">
         <div className="rounded-2xl border bg-card p-5">

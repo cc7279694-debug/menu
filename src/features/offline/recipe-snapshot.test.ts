@@ -21,6 +21,7 @@ const recipe: RecipeDetail = {
   tags: [{ id: "tag-a", name: "家常" }],
   preparationCount: 0,
   maxLeadTimeMinutes: null,
+  nutrition: { caloriesKcal: 320, proteinGrams: 28, fatGrams: null, carbsGrams: null, isEstimated: true },
   updatedAt: NOW,
   personalNotes: "少油",
   ingredients: [{
@@ -48,7 +49,8 @@ describe("toOfflineRecipeSnapshot", () => {
     expect(snapshot.recipe.steps[0]).toMatchObject({ imageUrl: null, imagePath: null });
     snapshot.recipe.steps[0].ingredientLinks[0].note = "已修改";
     expect(recipe.steps[0].ingredientLinks[0].note).toBe("切碎");
-    expect(snapshot.dataVersion).toBe(2);
+    expect(snapshot.dataVersion).toBe(3);
+    expect(snapshot.recipe.nutrition).toMatchObject({ caloriesKcal: 320, proteinGrams: 28 });
     expect(snapshot.recipe.preparations).toEqual(recipe.preparations);
     snapshot.recipe.preparations[0].instruction = "已修改";
     expect(recipe.preparations[0].instruction).toBe("提前腌制");

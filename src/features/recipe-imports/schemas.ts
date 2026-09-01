@@ -3,6 +3,14 @@ import { z } from "zod";
 const modelNullableText = (max: number) => z.string().trim().max(max).nullable();
 const modelNullableInteger = (min: number, max: number) => z.number().int().min(min).max(max).nullable();
 
+const nutritionDraftSchema = z.object({
+  caloriesKcal: z.number().finite().min(0).max(100000).nullable(),
+  proteinGrams: z.number().finite().min(0).max(10000).nullable(),
+  fatGrams: z.number().finite().min(0).max(10000).nullable(),
+  carbsGrams: z.number().finite().min(0).max(10000).nullable(),
+  isEstimated: z.boolean().default(true),
+});
+
 export const ingredientGroupSchema = z.enum(["main", "seasoning", "other"]);
 
 const ingredientDraftSchema = z.object({
@@ -52,6 +60,7 @@ const recipeImportDraftContentSchema = z.object({
   steps: z.array(stepDraftSchema).min(1).max(100),
   preparations: z.array(preparationDraftSchema).max(30).default([]),
   warnings: z.array(z.string().trim().min(1).max(200)).max(20),
+  nutrition: nutritionDraftSchema.nullable().optional(),
 });
 
 export const recipeImportDraftModelSchema = recipeImportDraftContentSchema.extend({

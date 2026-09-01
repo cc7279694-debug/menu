@@ -12,7 +12,7 @@ export function toOfflineRecipeSnapshot(
     recipeId: recipe.id,
     cachedAt: timestamp,
     lastOpenedAt: timestamp,
-    dataVersion: 2,
+    dataVersion: 3,
     recipe: {
       ...recipe,
       coverUrl: null,

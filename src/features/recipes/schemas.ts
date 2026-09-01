@@ -21,6 +21,23 @@ const nullableUuid = z.preprocess(
   uuidSchema.nullable(),
 );
 
+const nullableNutritionNumber = (
+  max: number,
+) => z.preprocess(
+  (value) => (value === "" || (typeof value === "number" && Number.isNaN(value)) ? null : value),
+  z.number().finite().min(0).max(max).nullable(),
+);
+
+export const recipeNutritionSchema = z.object({
+  caloriesKcal: nullableNutritionNumber(100000).default(null),
+  proteinGrams: nullableNutritionNumber(10000).default(null),
+  fatGrams: nullableNutritionNumber(10000).default(null),
+  carbsGrams: nullableNutritionNumber(10000).default(null),
+  isEstimated: z.boolean().default(false),
+});
+
+export type RecipeNutritionInput = z.output<typeof recipeNutritionSchema>;
+
 export const recipeIngredientGroupSchema = z.enum(["main", "seasoning", "other"]);
 
 const ingredientLinkSchema = z.object({
@@ -83,6 +100,7 @@ const recipeSaveInputBaseSchema = z.object({
   prepMinutes: nullableNumber(z.number().int().min(0).max(10080)),
   cookMinutes: nullableNumber(z.number().int().min(0).max(10080)),
   personalNotes: nullableText(4000),
+  nutrition: recipeNutritionSchema.nullable().optional(),
   ingredients: z.array(ingredientSchema).min(1),
   steps: z.array(stepSchema).min(1),
   preparations: z.array(recipePreparationSchema).max(30),
@@ -90,6 +108,20 @@ const recipeSaveInputBaseSchema = z.object({
 
 export const recipeSaveInputSchema = recipeSaveInputBaseSchema
   .superRefine((value, context) => {
+    if (
+      value.nutrition &&
+      value.nutrition.caloriesKcal === null &&
+      value.nutrition.proteinGrams === null &&
+      value.nutrition.fatGrams === null &&
+      value.nutrition.carbsGrams === null
+    ) {
+      context.addIssue({
+        code: "custom",
+        path: ["nutrition"],
+        message: "至少填写一项营养值，或留空不保存",
+      });
+    }
+
     if (new Set(value.tagIds).size !== value.tagIds.length) {
       context.addIssue({ code: "custom", path: ["tagIds"], message: "标签不能重复" });
     }

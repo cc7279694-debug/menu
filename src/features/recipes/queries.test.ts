@@ -12,6 +12,7 @@ import {
   listRecipePageData,
   listRecipeSummaries,
   mapRecipeSearchRow,
+  parseRecipeSearchNutrition,
   parseRecipeSearchTags,
 } from "@/features/recipes/queries";
 
@@ -91,6 +92,13 @@ describe("recipe query view mapping", () => {
         category_id: "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb",
         category_name: "家常菜",
         tags: [{ id: "cccccccc-cccc-4ccc-8ccc-cccccccccccc", name: "快手" }],
+        nutrition: {
+          caloriesKcal: 320,
+          proteinGrams: 28,
+          fatGrams: null,
+          carbsGrams: null,
+          isEstimated: true,
+        },
         preparation_count: 0,
         max_lead_time_minutes: null,
         updated_at: "2026-08-23T00:00:00.000Z",
@@ -105,6 +113,37 @@ describe("recipe query view mapping", () => {
       coverUrl: "https://signed.test/cover",
       category: { name: "家常菜" },
       tags: [{ name: "快手" }],
+      nutrition: { caloriesKcal: 320, proteinGrams: 28, isEstimated: true },
+    });
+  });
+
+  it("ignores malformed nutrition JSON and keeps partial values", () => {
+    const summary = mapRecipeSearchRow(
+      {
+        recipe_id: "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+        title: "番茄炒蛋",
+        description: null,
+        cover_path: null,
+        base_servings: 2,
+        prep_minutes: null,
+        cook_minutes: null,
+        is_favorite: false,
+        category_id: null,
+        category_name: null,
+        tags: [],
+        nutrition: { caloriesKcal: "320", proteinGrams: 28, isEstimated: true },
+        preparation_count: 0,
+        max_lead_time_minutes: null,
+        updated_at: "2026-08-23T00:00:00.000Z",
+        total_count: 1,
+      },
+      {},
+    );
+
+    expect(summary.nutrition).toMatchObject({ caloriesKcal: null, proteinGrams: 28, isEstimated: true });
+    expect(parseRecipeSearchNutrition({ caloriesKcal: 120, proteinGrams: null, fatGrams: null, carbsGrams: null, isEstimated: false })).toMatchObject({
+      caloriesKcal: 120,
+      isEstimated: false,
     });
   });
 

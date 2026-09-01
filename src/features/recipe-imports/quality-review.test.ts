@@ -19,6 +19,7 @@ const modelDraft: RecipeImportModelDraft = {
   steps: [{ instruction: "鱼片下锅炸。", heatLevel: null, timerSeconds: 300, ingredientNames: ["鱼片"] }],
   preparations: [{ ingredientName: "鱼片", instruction: "提前腌制", leadTimeMinutes: 30, timingText: null }],
   warnings: [],
+  nutrition: { caloriesKcal: 480, proteinGrams: 32, fatGrams: null, carbsGrams: null, isEstimated: false },
   fieldChecks: [
     { path: "prepMinutes", status: "inferred", label: "准备时间", message: "根据步骤估算" },
     { path: "ingredients.0.quantity", status: "explicit", label: "鱼片的用量", message: null },
@@ -74,5 +75,19 @@ describe("recipe import quality review", () => {
     const result = buildRecipeImportQualityDraft(modelDraft);
 
     expect(recipeImportDraftSchema.safeParse(result).success).toBe(true);
+  });
+
+  it("keeps AI nutrition values as estimates and flags missing metrics", () => {
+    const result = buildRecipeImportQualityDraft({
+      ...modelDraft,
+      nutrition: { caloriesKcal: 480, proteinGrams: null, fatGrams: null, carbsGrams: null, isEstimated: false },
+      fieldChecks: [{ path: "nutrition.caloriesKcal", status: "inferred", label: "每份热量", message: null }],
+    });
+
+    expect(result.nutrition).toMatchObject({ caloriesKcal: 480, proteinGrams: null, isEstimated: true });
+    expect(result.review.fieldChecks).toEqual(expect.arrayContaining([
+      expect.objectContaining({ path: "nutrition.proteinGrams", status: "missing" }),
+    ]));
+    expect(result.review.requiresConfirmation).toBe(true);
   });
 });

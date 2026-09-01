@@ -38,6 +38,14 @@ export function mapImportDraftToRecipeSaveInput(input: {
   const warnings = input.draft.warnings.length
     ? `AI 整理提示：\n${input.draft.warnings.map((warning) => `- ${warning}`).join("\n")}`
     : null;
+  const nutrition = input.draft.nutrition && [
+    input.draft.nutrition.caloriesKcal,
+    input.draft.nutrition.proteinGrams,
+    input.draft.nutrition.fatGrams,
+    input.draft.nutrition.carbsGrams,
+  ].some((metric) => metric !== null)
+    ? { ...input.draft.nutrition, isEstimated: true }
+    : null;
 
   const value: RecipeSaveInput = {
     recipeId,
@@ -50,6 +58,7 @@ export function mapImportDraftToRecipeSaveInput(input: {
     prepMinutes: input.draft.prepMinutes,
     cookMinutes: input.draft.cookMinutes,
     personalNotes: [input.draft.personalNotes, warnings].filter(Boolean).join("\n\n") || null,
+    nutrition,
     ingredients: input.draft.ingredients.map((ingredient, index) => ({
       recipeIngredientId: recipeIngredientIds[index]!,
       name: ingredient.name,

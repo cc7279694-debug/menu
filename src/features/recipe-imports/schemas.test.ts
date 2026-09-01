@@ -45,6 +45,7 @@ const validDraft = {
   ],
   preparations: [],
   warnings: [],
+  nutrition: null,
 };
 
 describe("recipe import schemas", () => {
@@ -52,6 +53,14 @@ describe("recipe import schemas", () => {
     const parsed = recipeImportDraftModelSchema.parse(validDraft);
     expect(parsed.ingredients[1]?.groupType).toBe("seasoning");
     expect(parsed.steps[0]?.heatLevel).toBe("中火");
+  });
+
+  it("accepts partial nutrition facts while keeping missing metrics nullable", () => {
+    const parsed = recipeImportDraftModelSchema.parse({
+      ...validDraft,
+      nutrition: { caloriesKcal: 380, proteinGrams: 26, fatGrams: null, carbsGrams: null, isEstimated: false },
+    });
+    expect(parsed.nutrition).toMatchObject({ caloriesKcal: 380, proteinGrams: 26, fatGrams: null });
   });
 
   it("separates AI field checks from server confirmation metadata", () => {

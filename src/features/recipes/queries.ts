@@ -4,6 +4,7 @@ import type { Database, Json } from "@/lib/supabase/database.types";
 import type {
   RecipeDetail,
   RecipeListResult,
+  RecipeNutrition,
   RecipeSelectionSummary,
   RecipeSummary,
 } from "@/features/recipes/types";
@@ -33,6 +34,32 @@ export function parseRecipeSearchTags(value: Json): Array<{ id: string; name: st
   });
 }
 
+function parseNullableNutritionNumber(value: unknown): number | null {
+  return typeof value === "number" && Number.isFinite(value) && value >= 0 ? value : null;
+}
+
+export function parseRecipeSearchNutrition(value: Json | null | undefined): RecipeNutrition | null {
+  if (typeof value !== "object" || value === null || Array.isArray(value)) {
+    return null;
+  }
+
+  const nutrition = value as Record<string, Json | undefined>;
+  const result: RecipeNutrition = {
+    caloriesKcal: parseNullableNutritionNumber(nutrition.caloriesKcal),
+    proteinGrams: parseNullableNutritionNumber(nutrition.proteinGrams),
+    fatGrams: parseNullableNutritionNumber(nutrition.fatGrams),
+    carbsGrams: parseNullableNutritionNumber(nutrition.carbsGrams),
+    isEstimated: typeof nutrition.isEstimated === "boolean" ? nutrition.isEstimated : true,
+  };
+
+  return result.caloriesKcal === null &&
+    result.proteinGrams === null &&
+    result.fatGrams === null &&
+    result.carbsGrams === null
+    ? null
+    : result;
+}
+
 export function mapRecipeSearchRow(
   row: SearchRow,
   signedUrls: Record<string, string | null>,
@@ -52,6 +79,7 @@ export function mapRecipeSearchRow(
     tags: parseRecipeSearchTags(row.tags),
     preparationCount: Number(row.preparation_count ?? 0),
     maxLeadTimeMinutes: row.max_lead_time_minutes,
+    nutrition: parseRecipeSearchNutrition(row.nutrition),
     updatedAt: row.updated_at,
   };
 }
@@ -243,7 +271,7 @@ export async function getRecipeDetail(recipeId: string): Promise<RecipeDetail | 
     return null;
   }
 
-  const [categoryResult, recipeTagsResult, recipeIngredientsResult, stepsResult, preparationsResult, sourceResult] = await Promise.all([
+  const [categoryResult, recipeTagsResult, recipeIngredientsResult, stepsResult, preparationsResult, sourceResult, nutritionResult] = await Promise.all([
     recipeResult.data.category_id
       ? supabase.from("categories").select("id, name").eq("id", recipeResult.data.category_id).eq("user_id", user.id).maybeSingle()
       : Promise.resolve({ data: null, error: null }),
@@ -267,9 +295,10 @@ export async function getRecipeDetail(recipeId: string): Promise<RecipeDetail | 
       .eq("user_id", user.id)
       .order("sort_order", { ascending: true }),
     supabase.from("recipe_sources").select("source_type, source_url, source_title, source_author, source_platform").eq("recipe_id", recipeId).eq("user_id", user.id).maybeSingle(),
+    supabase.from("recipe_nutrition").select("calories_kcal, protein_grams, fat_grams, carbs_grams, is_estimated").eq("recipe_id", recipeId).eq("user_id", user.id).maybeSingle(),
   ]);
 
-  if (categoryResult.error || recipeTagsResult.error || recipeIngredientsResult.error || stepsResult.error || preparationsResult.error || sourceResult.error) {
+  if (categoryResult.error || recipeTagsResult.error || recipeIngredientsResult.error || stepsResult.error || preparationsResult.error || sourceResult.error || nutritionResult.error) {
     throw new Error("菜谱内容暂时无法加载");
   }
 
@@ -346,6 +375,13 @@ export async function getRecipeDetail(recipeId: string): Promise<RecipeDetail | 
       null,
     ),
     personalNotes: recipeResult.data.personal_notes,
+    nutrition: nutritionResult.data ? {
+      caloriesKcal: nutritionResult.data.calories_kcal === null ? null : Number(nutritionResult.data.calories_kcal),
+      proteinGrams: nutritionResult.data.protein_grams === null ? null : Number(nutritionResult.data.protein_grams),
+      fatGrams: nutritionResult.data.fat_grams === null ? null : Number(nutritionResult.data.fat_grams),
+      carbsGrams: nutritionResult.data.carbs_grams === null ? null : Number(nutritionResult.data.carbs_grams),
+      isEstimated: nutritionResult.data.is_estimated,
+    } : null,
     updatedAt: recipeResult.data.updated_at,
     ingredients: (recipeIngredientsResult.data ?? []).map((ingredient) => ({
       id: ingredient.id,

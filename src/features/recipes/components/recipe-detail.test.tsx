@@ -22,6 +22,7 @@ const recipe: RecipeDetail = {
   tags: [{ id: "cccccccc-cccc-4ccc-8ccc-cccccccccccc", name: "快手" }],
   preparationCount: 3,
   maxLeadTimeMinutes: 240,
+  nutrition: { caloriesKcal: 320, proteinGrams: 28, fatGrams: null, carbsGrams: 12, isEstimated: true },
   personalNotes: "少放一点盐",
   updatedAt: "2026-08-23T00:00:00Z",
   ingredients: [{ id: "dddddddd-dddd-4ddd-8ddd-dddddddddddd", name: "鸡蛋", quantity: 2, quantityText: null, unit: "个", preparationNote: null, groupType: "main", sortOrder: 0 }],
@@ -46,6 +47,10 @@ describe("RecipeDetailView", () => {
     expect(screen.getByText("少放一点盐")).toBeInTheDocument();
     expect(screen.getByText("火候：中火")).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "提前准备" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "每份营养" })).toBeInTheDocument();
+    expect(screen.getByText("320千卡")).toBeInTheDocument();
+    expect(screen.getByText("蛋白质")).toBeInTheDocument();
+    expect(screen.getByText("估算")).toBeInTheDocument();
     expect(screen.getByText("鸡蛋 · 提前 4 小时浸泡")).toBeInTheDocument();
     expect(screen.getByText("鸡蛋 · 腌制入味")).toBeInTheDocument();
     expect(screen.getByText("提前一晚 · 提前解冻")).toBeInTheDocument();

@@ -2,6 +2,14 @@ export type ActionResult<T> =
   | { ok: true; data: T }
   | { ok: false; message: string; fieldErrors?: Record<string, string[]> };
 
+export type RecipeNutrition = {
+  caloriesKcal: number | null;
+  proteinGrams: number | null;
+  fatGrams: number | null;
+  carbsGrams: number | null;
+  isEstimated: boolean;
+};
+
 export type RecipeSummary = {
   id: string;
   title: string;
@@ -15,6 +23,7 @@ export type RecipeSummary = {
   tags: Array<{ id: string; name: string }>;
   preparationCount: number;
   maxLeadTimeMinutes: number | null;
+  nutrition?: RecipeNutrition | null;
   updatedAt: string;
 };
 

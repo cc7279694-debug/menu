@@ -14,6 +14,10 @@ const rootPaths = new Set([
   "cookMinutes",
   "suggestedCategoryName",
   "suggestedTagNames",
+  "nutrition.caloriesKcal",
+  "nutrition.proteinGrams",
+  "nutrition.fatGrams",
+  "nutrition.carbsGrams",
 ]);
 
 const indexedFields = {
@@ -53,6 +57,10 @@ function fieldLabel(draft: RecipeImportModelDraft, path: string): string {
     cookMinutes: "总烹饪时间",
     suggestedCategoryName: "建议分类",
     suggestedTagNames: "建议标签",
+    "nutrition.caloriesKcal": "每份热量",
+    "nutrition.proteinGrams": "每份蛋白质",
+    "nutrition.fatGrams": "每份脂肪",
+    "nutrition.carbsGrams": "每份碳水",
   };
   if (rootLabels[path]) return rootLabels[path];
   const parsed = parseIndexedPath(path);
@@ -110,6 +118,12 @@ function createMissingChecks(draft: RecipeImportModelDraft, checks: RecipeImport
     if (!hasValue(preparation.leadTimeMinutes) && !hasValue(preparation.timingText)) add(path, null);
     else add(path, preparation.leadTimeMinutes ?? preparation.timingText);
   });
+  if (draft.nutrition) {
+    add("nutrition.caloriesKcal", draft.nutrition.caloriesKcal);
+    add("nutrition.proteinGrams", draft.nutrition.proteinGrams);
+    add("nutrition.fatGrams", draft.nutrition.fatGrams);
+    add("nutrition.carbsGrams", draft.nutrition.carbsGrams);
+  }
   if (draft.suggestedCategoryName) add("suggestedCategoryName", draft.suggestedCategoryName);
   if (draft.suggestedTagNames.length) add("suggestedTagNames", draft.suggestedTagNames);
   return additions;
@@ -166,6 +180,17 @@ export function buildRecipeImportQualityDraft(model: RecipeImportModelDraft): Re
       ...preparation,
       leadTimeMinutes: checksByPath.get(`preparations.${index}.leadTimeMinutes`)?.status === "missing" ? null : preparation.leadTimeMinutes,
     })),
+    ...(model.nutrition === undefined ? {} : {
+      nutrition: model.nutrition && (
+        model.nutrition.caloriesKcal !== null ||
+        model.nutrition.proteinGrams !== null ||
+        model.nutrition.fatGrams !== null ||
+        model.nutrition.carbsGrams !== null
+      ) ? {
+        ...model.nutrition,
+        isEstimated: true,
+      } : null,
+    }),
   };
 
   const warnings = [...new Set([

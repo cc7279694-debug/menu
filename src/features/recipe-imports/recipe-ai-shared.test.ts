@@ -31,6 +31,7 @@ describe("recipe AI shared helpers", () => {
       title: "干锅脆鱼",
       ingredients: [{ name: "鱼片", groupType: "主料", quantity: 200, unit: "克" }],
       steps: [{ instruction: "炸五分钟", timerSeconds: "300", ingredientNames: [] }],
+      nutrition: { caloriesKcal: "420", proteinGrams: 30, fatGrams: null, carbsGrams: null, isEstimated: false },
       fieldChecks: [{ path: "steps.0.timerSeconds", status: "explicit", label: "第 1 步计时", message: null }],
     }) } }] };
 
@@ -41,6 +42,7 @@ describe("recipe AI shared helpers", () => {
       baseServings: 2,
       ingredients: [{ name: "鱼片", quantity: 200, unit: "克", groupType: "main" }],
       steps: [{ instruction: "炸五分钟", timerSeconds: 300 }],
+      nutrition: { caloriesKcal: 420, proteinGrams: 30, fatGrams: null, carbsGrams: null, isEstimated: true },
       review: { requiresConfirmation: true, confirmedAt: null },
     });
   });
@@ -50,6 +52,7 @@ describe("recipe AI shared helpers", () => {
       title: "干锅脆鱼",
       ingredients: [{ name: "鱼片", groupType: "main", quantity: 200, unit: "克" }],
       steps: [{ instruction: "炸五分钟", timerSeconds: 300, ingredientNames: [] }],
+      nutrition: { caloriesKcal: 420, proteinGrams: 30, fatGrams: null, carbsGrams: null, isEstimated: false },
       prepMinutes: 15,
       fieldChecks: [
         { path: "prepMinutes", status: "inferred", label: "准备时间", message: "根据步骤估算" },
@@ -59,6 +62,7 @@ describe("recipe AI shared helpers", () => {
 
     const draft = parseRecipeImportDraftOutput(output, document.text);
     expect(draft.prepMinutes).toBeNull();
+    expect(draft.nutrition).toMatchObject({ caloriesKcal: 420, proteinGrams: 30, isEstimated: true });
     expect(draft.review.fieldChecks).toEqual(expect.arrayContaining([
       expect.objectContaining({ path: "prepMinutes", status: "inferred" }),
       expect.objectContaining({ path: "steps.0.timerSeconds", status: "explicit" }),

@@ -21,6 +21,7 @@ function validInput(overrides: Partial<RecipeSaveInput> = {}): RecipeSaveInput {
     prepMinutes: 5,
     cookMinutes: 10,
     personalNotes: "",
+    nutrition: null,
     ingredients: [
       {
         recipeIngredientId: ingredientId,
@@ -198,5 +199,38 @@ describe("recipe save schema", () => {
     expect(() => recipeSaveInputSchema.parse(validInput({ steps: [] }))).toThrow();
     expect(() => recipeSaveInputSchema.parse(validInput({ baseServings: 0 }))).toThrow();
     expect(() => recipeSaveInputSchema.parse(validInput({ title: "" }))).toThrow();
+  });
+
+  it("accepts partial per-serving nutrition and normalizes empty metrics", () => {
+    const result = recipeSaveInputSchema.parse(validInput({
+      nutrition: {
+        caloriesKcal: 0,
+        proteinGrams: 24.5,
+        fatGrams: null,
+        carbsGrams: null,
+        isEstimated: false,
+      },
+    }));
+
+    expect(result.nutrition).toEqual({
+      caloriesKcal: 0,
+      proteinGrams: 24.5,
+      fatGrams: null,
+      carbsGrams: null,
+      isEstimated: false,
+    });
+    expect(recipeSaveInputSchema.parse(validInput({ nutrition: null })).nutrition).toBeNull();
+  });
+
+  it("rejects nutrition values outside supported ranges or with no metric", () => {
+    expect(() => recipeSaveInputSchema.parse(validInput({
+      nutrition: { caloriesKcal: -1, proteinGrams: null, fatGrams: null, carbsGrams: null, isEstimated: true },
+    }))).toThrow();
+    expect(() => recipeSaveInputSchema.parse(validInput({
+      nutrition: { caloriesKcal: null, proteinGrams: 10001, fatGrams: null, carbsGrams: null, isEstimated: true },
+    }))).toThrow();
+    expect(() => recipeSaveInputSchema.parse(validInput({
+      nutrition: { caloriesKcal: null, proteinGrams: null, fatGrams: null, carbsGrams: null, isEstimated: true },
+    }))).toThrow();
   });
 });

@@ -13,6 +13,7 @@ export function recipeDetailToSaveInput(detail: RecipeDetail): RecipeSaveInput {
     prepMinutes: detail.prepMinutes,
     cookMinutes: detail.cookMinutes,
     personalNotes: detail.personalNotes,
+    nutrition: detail.nutrition ?? null,
     ingredients: detail.ingredients.map((ingredient) => ({
       recipeIngredientId: ingredient.id,
       name: ingredient.name,

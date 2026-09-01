@@ -112,6 +112,28 @@ export type Database = {
         Update: Partial<Database["public"]["Tables"]["recipe_preparations"]["Insert"]>;
         Relationships: [];
       };
+      recipe_nutrition: {
+        Row: {
+          user_id: string;
+          recipe_id: string;
+          calories_kcal: number | null;
+          protein_grams: number | null;
+          fat_grams: number | null;
+          carbs_grams: number | null;
+          is_estimated: boolean;
+        } & Timestamps;
+        Insert: {
+          user_id: string;
+          recipe_id: string;
+          calories_kcal?: number | null;
+          protein_grams?: number | null;
+          fat_grams?: number | null;
+          carbs_grams?: number | null;
+          is_estimated?: boolean;
+        };
+        Update: Partial<Database["public"]["Tables"]["recipe_nutrition"]["Insert"]>;
+        Relationships: [];
+      };
       recipe_import_jobs: {
         Row: {
           id: string;
@@ -385,6 +407,7 @@ export type Database = {
           category_id: string | null;
           category_name: string | null;
           tags: Json;
+          nutrition: Json | null;
           preparation_count: number;
           max_lead_time_minutes: number | null;
           updated_at: string;

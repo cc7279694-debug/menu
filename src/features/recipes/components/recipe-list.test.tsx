@@ -19,7 +19,10 @@ const recipe: RecipeSummary = {
   cookMinutes: 10,
   isFavorite: false,
   category: { id: "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb", name: "家常菜" },
-  tags: [{ id: "cccccccc-cccc-4ccc-8ccc-cccccccccccc", name: "快手" }],
+  tags: [
+    { id: "cccccccc-cccc-4ccc-8ccc-cccccccccccc", name: "快手" },
+    { id: "dddddddd-dddd-4ddd-8ddd-dddddddddddd", name: "减脂" },
+  ],
   preparationCount: 1,
   maxLeadTimeMinutes: 240,
   updatedAt: "2026-08-23T00:00:00.000Z",
@@ -60,6 +63,10 @@ describe("recipe discovery components", () => {
     expect(screen.getByRole("search")).toHaveAttribute("method", "get");
     expect(screen.getByDisplayValue("番茄")).toBeInTheDocument();
     expect(screen.getByRole("combobox", { name: "分类" })).toHaveValue(recipe.category!.id);
+    expect(screen.getByRole("link", { name: "减脂" })).toHaveAttribute(
+      "href",
+      `/recipes?q=%E7%95%AA%E8%8C%84&category=${recipe.category!.id}&tag=dddddddd-dddd-4ddd-8ddd-dddddddddddd`,
+    );
   });
 
   it("keeps the current page scope when paginating favorites", () => {

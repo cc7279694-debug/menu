@@ -18,6 +18,7 @@ import type { ActionResult } from "@/features/recipes/types";
 import { ImagePicker } from "@/features/recipes/components/image-picker";
 import { combineTimerParts, splitTimerSeconds } from "@/features/recipes/timer-input";
 import { RecipePreparationsEditor } from "@/features/recipes/components/recipe-preparations-editor";
+import { RecipeNutritionEditor } from "@/features/recipes/components/recipe-nutrition";
 
 type TaxonomyOption = { id: string; name: string };
 
@@ -123,6 +124,7 @@ function createEmptyRecipe(): RecipeSaveInput {
     prepMinutes: null,
     cookMinutes: null,
     personalNotes: null,
+    nutrition: null,
     ingredients: [{
       recipeIngredientId: crypto.randomUUID(),
       name: "",
@@ -144,6 +146,13 @@ function createEmptyRecipe(): RecipeSaveInput {
     }],
     preparations: [],
   };
+}
+
+function normalizeNutrition(value: RecipeSaveInput["nutrition"]): RecipeSaveInput["nutrition"] {
+  if (!value || [value.caloriesKcal, value.proteinGrams, value.fatGrams, value.carbsGrams].every((metric) => metric === null || metric === undefined)) {
+    return null;
+  }
+  return value;
 }
 
 export function RecipeEditor({
@@ -200,7 +209,7 @@ export function RecipeEditor({
 
   const onSubmit = async (rawValue: RecipeSaveInput) => {
     setServerMessage(null);
-    const parsed = recipeSaveInputSchema.safeParse(rawValue);
+    const parsed = recipeSaveInputSchema.safeParse({ ...rawValue, nutrition: normalizeNutrition(rawValue.nutrition) });
     if (!parsed.success) {
       setServerMessage("请检查菜谱内容后再保存");
       setError("title", { message: "请先填写菜谱名称" });
@@ -419,6 +428,8 @@ export function RecipeEditor({
         </div>
         <div className="md:col-span-2"><ImagePicker label="菜谱封面" onChange={(file) => { setCoverFile(file); setCoverRemoved(!file); }} previewUrl={coverRemoved ? null : coverPreviewUrl} value={coverFile} /></div>
       </section>
+
+      <RecipeNutritionEditor control={control} errors={errors} register={register} setValue={setValue} />
 
       <RecipePreparationsEditor control={control} errors={errors} register={register} setValue={setValue} />
 

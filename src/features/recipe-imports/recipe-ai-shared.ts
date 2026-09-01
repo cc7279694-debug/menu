@@ -11,6 +11,7 @@ export const RECIPE_IMPORT_SYSTEM_PROMPT = [
   "把准备时间和烹饪时间用分钟表示；每个步骤的 timerSeconds 使用秒数。",
   "食材用量请拆分保存：quantity 只放可确认的数字，unit 只放独立单位，quantityText 保留无法安全拆成数字的原文（如适量、少许、一包、大量油）。例如：豆瓣酱2勺→name=豆瓣酱、quantity=2、unit=勺、quantityText=null；干锅酱一包→name=干锅酱、quantity=null、unit=null、quantityText=一包。不要把单位丢掉，也不要在 quantityText 已包含单位时重复填写 unit。",
   "把来源明确提到的腌制、浸泡、解冻、醒发、静置、回温等做饭前任务放入 preparations。精确时间统一换算为分钟；提前一晚、泡至变软等保留在 timingText。来源未说明的时间不要凭常识补写，并在 warnings 中提醒用户确认。切片、切块、洗净等即时处理仍放在食材 preparationNote。",
+  "营养信息字段 nutrition 为可选对象，按每份记录 caloriesKcal、proteinGrams、fatGrams、carbsGrams。只有来源明确写出或图片清楚显示的数值才填写，其余保持 null；AI 整理出的数值一律 isEstimated=true。不要根据食材或常识计算，不要输出医疗、减脂或增肌结论。",
   "为 title、份数、总准备/烹饪时间、每个食材用量/单位/分组、每个步骤火候/计时/关联食材、每项提前准备时间、分类和标签返回 fieldChecks。",
   "status 只能是 explicit、inferred 或 missing。来源直接写出或画面明确显示时用 explicit；根据上下文整理或归类用 inferred；无法确认用 missing。",
   "关键数量、火候和时间无法确认时必须返回 null，不能按常识补写。分类和标签可以推断，但必须标记 inferred；不要自动创造营养结论。",
@@ -66,6 +67,23 @@ function nullableNumber(value: unknown): number | null {
   if (typeof value === "number" && Number.isFinite(value)) return value;
   if (typeof value === "string" && value.trim() && /^\d+(?:\.\d+)?$/.test(value.trim())) return Number(value);
   return null;
+}
+
+function boundedNullableNumber(value: unknown, max: number): number | null {
+  const number = nullableNumber(value);
+  return number !== null && number >= 0 && number <= max ? number : null;
+}
+
+function normalizeNutrition(value: unknown): unknown {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return null;
+  const nutrition = value as Record<string, unknown>;
+  return {
+    caloriesKcal: boundedNullableNumber(nutrition.caloriesKcal ?? nutrition.calories ?? nutrition.kcal, 100000),
+    proteinGrams: boundedNullableNumber(nutrition.proteinGrams ?? nutrition.protein, 10000),
+    fatGrams: boundedNullableNumber(nutrition.fatGrams ?? nutrition.fat, 10000),
+    carbsGrams: boundedNullableNumber(nutrition.carbsGrams ?? nutrition.carbs ?? nutrition.carbohydrates, 10000),
+    isEstimated: typeof nutrition.isEstimated === "boolean" ? nutrition.isEstimated : true,
+  };
 }
 
 function stringArray(value: unknown): string[] {
@@ -158,6 +176,8 @@ function normalizeDraftModel(value: unknown, sourceText = ""): unknown {
     };
   });
   const title = nullableText(draft.title) ?? nullableText(draft.name);
+  const hasNutrition = Object.prototype.hasOwnProperty.call(draft, "nutrition") || Object.prototype.hasOwnProperty.call(draft, "nutritionFacts");
+  const nutrition = normalizeNutrition(draft.nutrition ?? draft.nutritionFacts);
   const warnings = stringArray(draft.warnings);
   const rawFieldChecks = Array.isArray(input.fieldChecks) ? input.fieldChecks : Array.isArray(draft.fieldChecks) ? draft.fieldChecks : [];
   const fieldChecks = rawFieldChecks.flatMap((item) => {
@@ -182,6 +202,7 @@ function normalizeDraftModel(value: unknown, sourceText = ""): unknown {
     ingredients,
     steps,
     preparations,
+    ...(hasNutrition ? { nutrition } : {}),
     warnings,
     fieldChecks,
   };

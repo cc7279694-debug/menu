@@ -29,7 +29,7 @@ const recipe: OfflineRecipeSnapshot = {
   recipeId: RECIPE_ID,
   cachedAt: "2026-08-28T00:00:00.000Z",
   lastOpenedAt: "2026-08-28T00:00:00.000Z",
-  dataVersion: 2,
+  dataVersion: 3,
   recipe: {
     id: RECIPE_ID,
     title: "番茄炒蛋",
