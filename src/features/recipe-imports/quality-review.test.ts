@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import type { RecipeImportModelDraft } from "@/features/recipe-imports/schemas";
+import { recipeImportDraftSchema, type RecipeImportModelDraft } from "@/features/recipe-imports/schemas";
 import { buildRecipeImportQualityDraft } from "@/features/recipe-imports/quality-review";
 
 const modelDraft: RecipeImportModelDraft = {
@@ -68,5 +68,11 @@ describe("recipe import quality review", () => {
     ]));
     expect(result.warnings[0]).toBe("请确认");
     expect(new Set(result.warnings).size).toBe(result.warnings.length);
+  });
+
+  it("returns a draft accepted by the stored draft schema", () => {
+    const result = buildRecipeImportQualityDraft(modelDraft);
+
+    expect(recipeImportDraftSchema.safeParse(result).success).toBe(true);
   });
 });

@@ -106,7 +106,9 @@ function createMissingChecks(draft: RecipeImportModelDraft, checks: RecipeImport
     add(`steps.${index}.timerSeconds`, step.timerSeconds);
   });
   draft.preparations.forEach((preparation, index) => {
-    if (!hasValue(preparation.leadTimeMinutes) && !hasValue(preparation.timingText)) add(`preparations.${index}.leadTimeMinutes`, null);
+    const path = `preparations.${index}.leadTimeMinutes`;
+    if (!hasValue(preparation.leadTimeMinutes) && !hasValue(preparation.timingText)) add(path, null);
+    else add(path, preparation.leadTimeMinutes ?? preparation.timingText);
   });
   if (draft.suggestedCategoryName) add("suggestedCategoryName", draft.suggestedCategoryName);
   if (draft.suggestedTagNames.length) add("suggestedTagNames", draft.suggestedTagNames);
@@ -120,7 +122,8 @@ export function isRecipeImportFieldPath(path: string, draft: RecipeImportModelDr
 }
 
 export function buildRecipeImportQualityDraft(model: RecipeImportModelDraft): RecipeImportDraft {
-  const initialChecks = model.fieldChecks
+  const { fieldChecks: modelFieldChecks, ...modelContent } = model;
+  const initialChecks = modelFieldChecks
     .filter((check) => isRecipeImportFieldPath(check.path, model))
     .map((check) => ({
       ...check,
@@ -142,7 +145,7 @@ export function buildRecipeImportQualityDraft(model: RecipeImportModelDraft): Re
     .slice(0, 300);
 
   const normalized = {
-    ...model,
+    ...modelContent,
     ingredients: model.ingredients.map((ingredient, index) => {
       const quantityCheck = checksByPath.get(`ingredients.${index}.quantity`);
       const unitCheck = checksByPath.get(`ingredients.${index}.unit`);
@@ -161,7 +164,7 @@ export function buildRecipeImportQualityDraft(model: RecipeImportModelDraft): Re
     })),
     preparations: model.preparations.map((preparation, index) => ({
       ...preparation,
-      leadTimeMinutes: checksByPath.get(`preparations.${index}.leadTimeMinutes`)?.status === "explicit" ? preparation.leadTimeMinutes : null,
+      leadTimeMinutes: checksByPath.get(`preparations.${index}.leadTimeMinutes`)?.status === "missing" ? null : preparation.leadTimeMinutes,
     })),
   };
 
