@@ -83,7 +83,7 @@ export function ImportProgress({ importId, initialStatus, initialErrorCode }: { 
 
   return (
     <section aria-live="polite" className="space-y-5 rounded-2xl border bg-card p-6 shadow-sm">
-      <div><p className="text-sm text-muted-foreground">食序 ORDINE</p><h1 className="mt-1 text-2xl font-semibold">正在生成菜谱卡</h1></div>
+      <div><p className="text-sm text-muted-foreground">谱序 RECIPIO</p><h1 className="mt-1 text-2xl font-semibold">正在生成菜谱卡</h1></div>
       <p>{labels[initialStatus]}</p>
       {initialStatus === "failed" ? <div className="space-y-3"><p className="text-sm font-medium text-destructive">{failure.title}</p><p className="text-sm text-destructive">{failure.description}</p>{retryMessage && <p className="text-sm text-destructive" role="alert">{retryMessage}</p>}<div className="flex flex-wrap gap-2">{failure.retryable && <button className="rounded-lg bg-primary px-3 py-2 text-sm text-primary-foreground disabled:opacity-60" disabled={isRetrying} onClick={retry} type="button">{isRetrying ? "重试中…" : "重新尝试"}</button>}<Link className="rounded-lg border px-3 py-2 text-sm" href="/recipes/import?mode=images">上传截图</Link><Link className="rounded-lg border px-3 py-2 text-sm" href="/recipes/import?mode=text">粘贴文案</Link><Link className="rounded-lg border px-3 py-2 text-sm" href="/recipes/import">重新选择来源</Link></div></div> : null}
     </section>

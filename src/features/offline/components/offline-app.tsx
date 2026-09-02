@@ -120,7 +120,7 @@ function OfflineFrame({ target, children }: { target: OfflineTarget; children: R
   return (
     <div className="min-h-dvh bg-background px-4 py-5 sm:px-6">
       <div className="mx-auto flex max-w-5xl items-center justify-between gap-3 border-b pb-4">
-        <span className="font-semibold tracking-tight">食序 ORDINE</span>
+        <span className="font-semibold tracking-tight">谱序 RECIPIO</span>
         <a className="inline-flex min-h-11 items-center rounded-lg border px-3 text-sm" href={targetHref(target)}>返回在线页面</a>
       </div>
       <div className="mx-auto max-w-5xl py-6">{children}</div>

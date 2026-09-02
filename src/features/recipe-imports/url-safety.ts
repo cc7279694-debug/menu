@@ -6,7 +6,7 @@ import { isIP } from "node:net";
 const MAX_BODY_BYTES = 2 * 1024 * 1024;
 const MAX_REDIRECTS = 3;
 const REQUEST_TIMEOUT_MS = 10_000;
-const USER_AGENT = "ORDINE-recipe-import/1.0";
+const USER_AGENT = "RECIPIO-recipe-import/1.0";
 const XHS_HOSTS = new Set(["xhslink.cn", "xiaohongshu.com", "xhscdn.com"]);
 
 export type PublicLookup = (
