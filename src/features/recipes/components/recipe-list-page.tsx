@@ -4,6 +4,7 @@ import { RecipeGrid } from "@/features/recipes/components/recipe-grid";
 import { RecipeListEmpty } from "@/features/recipes/components/recipe-list-empty";
 import { RecipePagination } from "@/features/recipes/components/recipe-pagination";
 import { RecipeSearchFilters } from "@/features/recipes/components/recipe-search-filters";
+import { InstallAppButton } from "@/features/pwa/components/install-app-button";
 import { parseRecipeListQuery, type RecipeListQuery } from "@/features/recipes/query-params";
 import { listRecipePageData } from "@/features/recipes/queries";
 
@@ -32,7 +33,8 @@ export async function RecipeListPage({ searchParams, favoriteOnly = false, title
           <p className="text-sm text-muted-foreground">把做过的菜，整理成下一次能照着做的步骤。</p>
           <h1 className="mt-1 text-3xl font-semibold tracking-tight">{title}</h1>
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
+          {!favoriteOnly && <InstallAppButton />}
           {!favoriteOnly && <Link className="rounded-lg border px-3 py-2 text-sm" href="/recipes?view=trash">回收站</Link>}
           {!favoriteOnly && <Link className="rounded-lg border px-3 py-2 text-sm" href="/recipes/import">从来源生成</Link>}
           <Link className="rounded-lg bg-primary px-3 py-2 text-sm text-primary-foreground" href="/recipes/new">新建菜谱</Link>
