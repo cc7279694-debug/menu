@@ -22,6 +22,8 @@ import { RecipeNutritionEditor } from "@/features/recipes/components/recipe-nutr
 import { analyzeNutritionAction } from "@/features/nutrition-analysis/actions";
 import { buildRecipeIngredientText } from "@/features/nutrition-analysis/ingredient-text";
 import type { NutritionAnalysisResult } from "@/features/nutrition-analysis/types";
+import { deleteRecipeDraft, getLatestRecipeDraft, getRecipeDraft, putRecipeDraft } from "@/features/offline/database";
+import { saveRecipeLocally } from "@/features/offline/recipe-mutations";
 
 type TaxonomyOption = { id: string; name: string };
 
@@ -37,6 +39,7 @@ type RecipeEditorProps = {
   importReview?: RecipeImportReview;
   onSaved: (recipeId: string) => void;
   saveRecipe?: (input: unknown) => Promise<ActionResult<{ recipeId: string }>>;
+  localFirstUserId?: string;
 };
 
 function StepTimerFields({
@@ -170,6 +173,7 @@ export function RecipeEditor({
   importReview,
   onSaved,
   saveRecipe = saveRecipeAction,
+  localFirstUserId,
 }: RecipeEditorProps) {
   const defaultValues = useMemo(() => initialValue ?? createEmptyRecipe(), [initialValue]);
   const [categories, setCategories] = useState(initialCategories);
@@ -183,6 +187,9 @@ export function RecipeEditor({
   const [isAnalyzingNutrition, setIsAnalyzingNutrition] = useState(false);
   const [nutritionAnalysisResult, setNutritionAnalysisResult] = useState<NutritionAnalysisResult | null>(null);
   const [nutritionAnalysisMessage, setNutritionAnalysisMessage] = useState<string | null>(null);
+  const [draftKey, setDraftKey] = useState(importId ?? defaultValues.recipeId);
+  const [draftLoaded, setDraftLoaded] = useState(!localFirstUserId);
+  const [draftMessage, setDraftMessage] = useState<string | null>(null);
   const [newCategory, setNewCategory] = useState("");
   const [newTag, setNewTag] = useState("");
   const reviewCheckboxRef = useRef<HTMLInputElement>(null);
@@ -194,6 +201,8 @@ export function RecipeEditor({
     control,
     handleSubmit,
     getValues,
+    watch,
+    reset,
     setError,
     setValue,
     formState: { errors, isDirty },
@@ -201,6 +210,53 @@ export function RecipeEditor({
   const ingredientFields = useFieldArray({ control, name: "ingredients", keyName: "fieldKey" });
   const stepFields = useFieldArray({ control, name: "steps", keyName: "fieldKey" });
   const selectedTags = useWatch({ control, name: "tagIds" }) ?? [];
+
+  useEffect(() => {
+    if (!localFirstUserId) return;
+    let cancelled = false;
+    const draftPromise = mode === "create" && !importId
+      ? getLatestRecipeDraft(localFirstUserId)
+      : getRecipeDraft(localFirstUserId, draftKey);
+    void draftPromise
+      .then((draft) => {
+        if (cancelled) return;
+        if (draft) {
+          const parsed = recipeSaveInputSchema.safeParse(draft.payload);
+          if (parsed.success) {
+            reset(parsed.data);
+            setDraftKey(draft.draftId);
+            setDraftMessage("已恢复本机草稿");
+          }
+        }
+        setDraftLoaded(true);
+      })
+      .catch(() => {
+        if (!cancelled) setDraftLoaded(true);
+      });
+    return () => { cancelled = true; };
+  }, [draftKey, importId, localFirstUserId, mode, reset]);
+
+  useEffect(() => {
+    if (!localFirstUserId || !draftLoaded) return;
+    let timer: number | null = null;
+    const subscription = watch((value) => {
+      if (timer !== null) window.clearTimeout(timer);
+      timer = window.setTimeout(() => {
+        void putRecipeDraft({
+          userId: localFirstUserId,
+          draftId: draftKey,
+          updatedAt: new Date().toISOString(),
+          payload: value,
+        })
+          .then(() => setDraftMessage("草稿已保存到本机"))
+          .catch(() => undefined);
+      }, 700);
+    });
+    return () => {
+      subscription.unsubscribe();
+      if (timer !== null) window.clearTimeout(timer);
+    };
+  }, [draftKey, draftLoaded, localFirstUserId, watch]);
 
   useEffect(() => {
     const warn = (event: BeforeUnloadEvent) => {
@@ -215,6 +271,7 @@ export function RecipeEditor({
 
   const onSubmit = async (rawValue: RecipeSaveInput) => {
     setServerMessage(null);
+    setDraftMessage(null);
     const parsed = recipeSaveInputSchema.safeParse({ ...rawValue, nutrition: normalizeNutrition(rawValue.nutrition) });
     if (!parsed.success) {
       setServerMessage("请检查菜谱内容后再保存");
@@ -239,6 +296,15 @@ export function RecipeEditor({
         }
       }
       const hasMedia = Boolean(coverFile) || Object.values(stepFiles).some(Boolean);
+      if (localFirstUserId && !importId && !hasMedia && !coverRemoved) {
+        try {
+          const localResult = await saveRecipeLocally({ userId: localFirstUserId, input: parsed.data, draftId: draftKey });
+          onSaved(localResult.recipeId);
+          return;
+        } catch {
+          // If local storage is unavailable, preserve the existing online save path.
+        }
+      }
       let media: { coverPath: string | null; stepPaths: Record<string, string>; uploadedPaths: string[] } = {
         coverPath: null,
         stepPaths: {},
@@ -284,6 +350,7 @@ export function RecipeEditor({
           return;
         }
       }
+      void deleteRecipeDraft(userId, draftKey).catch(() => undefined);
       const previousMedia = {
         coverPath: initialValue?.coverPath ?? null,
         stepPaths: Object.fromEntries((initialValue?.steps ?? []).flatMap((step) => step.imagePath ? [[step.stepId, step.imagePath]] : [])),
@@ -417,6 +484,7 @@ export function RecipeEditor({
       </div>
 
       {serverMessage && <p className="rounded-lg bg-destructive/10 p-3 text-sm text-destructive" role="alert">{serverMessage}</p>}
+      {draftMessage && <p aria-live="polite" className="rounded-lg bg-muted p-3 text-sm text-muted-foreground" role="status">{draftMessage}</p>}
 
       {importReview && <RecipeImportReviewPanel acknowledged={reviewAcknowledged} checkboxRef={reviewCheckboxRef} onAcknowledgedChange={setReviewAcknowledged} review={importReview} />}
 

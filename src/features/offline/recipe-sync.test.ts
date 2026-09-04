@@ -37,6 +37,7 @@ function createDependencies(queue: LocalMutationRecord[], submitMutation: Recipe
     submitMutation,
     markFailed,
     deleteIfCurrent,
+    deleteDraft: vi.fn(async () => undefined),
   };
   return { dependencies, deleteIfCurrent, markFailed };
 }

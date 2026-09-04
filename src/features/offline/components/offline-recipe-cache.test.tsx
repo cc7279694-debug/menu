@@ -6,13 +6,14 @@ import type { OfflineRecipeSnapshot } from "../types";
 
 import { OfflineRecipeCache } from "./offline-recipe-cache";
 
-const { rememberOfflineProfile, putRecipeSnapshot, cacheRecipeMediaFromUrl } = vi.hoisted(() => ({
+const { getRecipeSnapshot, rememberOfflineProfile, putRecipeSnapshot, cacheRecipeMediaFromUrl } = vi.hoisted(() => ({
+  getRecipeSnapshot: vi.fn().mockResolvedValue(null),
   rememberOfflineProfile: vi.fn<(userId: string, authenticatedAt: string) => Promise<void>>().mockResolvedValue(undefined),
   putRecipeSnapshot: vi.fn<(snapshot: OfflineRecipeSnapshot) => Promise<void>>().mockResolvedValue(undefined),
   cacheRecipeMediaFromUrl: vi.fn().mockResolvedValue(undefined),
 }));
 
-vi.mock("../database", () => ({ rememberOfflineProfile, putRecipeSnapshot }));
+vi.mock("../database", () => ({ getRecipeSnapshot, rememberOfflineProfile, putRecipeSnapshot }));
 vi.mock("../media-cache", () => ({ cacheRecipeMediaFromUrl }));
 
 const USER_ID = "user-a";

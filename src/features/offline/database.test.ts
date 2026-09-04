@@ -9,7 +9,9 @@ import {
   deleteRecipeMutationIfCurrent,
   deleteShoppingToggleIfCurrent,
   deleteRecipeSnapshot,
+  deleteRecipeDraft,
   getLastOfflineProfile,
+  getRecipeDraft,
   getRecipeSnapshot,
   getShoppingSnapshot,
   listRecipeMutationQueue,
@@ -19,6 +21,7 @@ import {
   markShoppingToggleAttemptFailed,
   markRecipeMutationAttemptFailed,
   putRecipeSnapshot,
+  putRecipeDraft,
   putRecipeSummaryPage,
   queueRecipeMutation,
   putShoppingSnapshot,
@@ -140,6 +143,22 @@ describe("offline database", () => {
     expect(await listRecipeMutationQueue("user-a")).toMatchObject([{ attemptCount: 1, lastError: "网络暂不可用" }]);
     expect(await deleteRecipeMutationIfCurrent({ ...second, id: "stale" })).toBe(false);
     expect(await deleteRecipeMutationIfCurrent(second)).toBe(true);
+  });
+
+  it("stores drafts by user and keeps a save mutation alongside status changes", async () => {
+    const payload = { recipeId: "recipe-draft", title: "离线菜谱", ingredients: [], steps: [] };
+    await putRecipeDraft({ userId: "user-a", draftId: "recipe-draft", updatedAt: "2026-08-27T00:00:00.000Z", payload });
+    expect(await getRecipeDraft("user-a", "recipe-draft")).toMatchObject({ payload });
+    expect(await getRecipeDraft("user-b", "recipe-draft")).toBeNull();
+
+    const first = await queueRecipeMutation({ userId: "user-a", recipeId: "recipe-draft", kind: "save", input: payload });
+    const second = await queueRecipeMutation({ userId: "user-a", recipeId: "recipe-draft", kind: "save", input: { ...payload, title: "更新后的离线菜谱" } });
+    await queueRecipeMutation({ userId: "user-a", recipeId: "recipe-draft", kind: "move-to-trash" });
+    expect(first.id).not.toBe(second.id);
+    expect(await listRecipeMutationQueue("user-a")).toHaveLength(2);
+
+    await deleteRecipeDraft("user-a", "recipe-draft");
+    expect(await getRecipeDraft("user-a", "recipe-draft")).toBeNull();
   });
 
   it("updates the shopping item and coalesces the toggle queue in one operation", async () => {

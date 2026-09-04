@@ -4,7 +4,7 @@ import { useEffect } from "react";
 
 import type { RecipeDetail } from "@/features/recipes/types";
 
-import { rememberOfflineProfile, putRecipeSnapshot } from "../database";
+import { getRecipeSnapshot, rememberOfflineProfile, putRecipeSnapshot } from "../database";
 import { cacheRecipeMediaFromUrl } from "../media-cache";
 import { toOfflineRecipeSnapshot } from "../recipe-snapshot";
 
@@ -36,8 +36,12 @@ export function OfflineRecipeCache({ userId, recipe, onCacheError }: OfflineReci
         url: step.imageUrl,
       }).catch(() => undefined);
     }
-    void rememberOfflineProfile(userId, now)
-      .then(() => putRecipeSnapshot(toOfflineRecipeSnapshot(userId, recipe, now)))
+    void getRecipeSnapshot(userId, recipe.id)
+      .then((existing) => {
+        if (existing && existing.recipe.updatedAt > recipe.updatedAt) return;
+        return rememberOfflineProfile(userId, now)
+          .then(() => putRecipeSnapshot(toOfflineRecipeSnapshot(userId, recipe, now)));
+      })
       .catch(() => onCacheError?.());
   }, [userId, recipe, onCacheError]);
 

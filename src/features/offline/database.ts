@@ -6,6 +6,7 @@ import {
   type RecipioLocalDatabase,
   type LocalRecipeSummaryRecord,
   type LocalMutationRecord,
+  type LocalRecipeDraftRecord,
 } from "./local-db";
 import type {
   OfflineProfile,
@@ -60,6 +61,29 @@ export function getLastOfflineProfile(): Promise<OfflineProfile | null> {
   return safe(async (database) => {
     const profiles = await database.profiles.toArray();
     return profiles.sort((a, b) => b.lastAuthenticatedAt.localeCompare(a.lastAuthenticatedAt))[0] ?? null;
+  });
+}
+
+export function putRecipeDraft(record: LocalRecipeDraftRecord): Promise<void> {
+  return safe(async (database) => {
+    await database.recipeDrafts.put(record);
+  });
+}
+
+export function getRecipeDraft(userId: string, draftId: string): Promise<LocalRecipeDraftRecord | null> {
+  return safe(async (database) => (await database.recipeDrafts.get([userId, draftId])) ?? null);
+}
+
+export function getLatestRecipeDraft(userId: string): Promise<LocalRecipeDraftRecord | null> {
+  return safe(async (database) => {
+    const drafts = await database.recipeDrafts.where("userId").equals(userId).sortBy("updatedAt");
+    return drafts.at(-1) ?? null;
+  });
+}
+
+export function deleteRecipeDraft(userId: string, draftId: string): Promise<void> {
+  return safe(async (database) => {
+    await database.recipeDrafts.delete([userId, draftId]);
   });
 }
 
@@ -149,7 +173,7 @@ export function listRecipeSummaryPage(userId: string, deleted: boolean): Promise
   });
 }
 
-export type RecipeMutationKind = "set-favorite" | "move-to-trash" | "restore" | "permanently-delete";
+export type RecipeMutationKind = "save" | "set-favorite" | "move-to-trash" | "restore" | "permanently-delete";
 
 export function updateRecipeSummaryCache(
   userId: string,
@@ -182,6 +206,8 @@ export function queueRecipeMutation(input: {
   recipeId: string;
   kind: RecipeMutationKind;
   favorite?: boolean;
+  input?: unknown;
+  draftId?: string;
 }): Promise<LocalMutationRecord> {
   return safe(async (database) => {
     const previous = await database.mutationQueue
@@ -189,6 +215,12 @@ export function queueRecipeMutation(input: {
       .equals(input.userId)
       .filter((record) => record.entity === "recipe" && record.entityId === input.recipeId)
       .toArray();
+    const isStatus = (kind: unknown) => kind === "set-favorite" || kind === "move-to-trash" || kind === "restore" || kind === "permanently-delete";
+    const kindOf = (record: LocalMutationRecord): unknown => (
+      record.payload && typeof record.payload === "object"
+        ? (record.payload as { kind?: unknown }).kind
+        : undefined
+    );
     const record: LocalMutationRecord = {
       id: mutationId(),
       userId: input.userId,
@@ -201,10 +233,17 @@ export function queueRecipeMutation(input: {
       payload: {
         kind: input.kind,
         ...(input.kind === "set-favorite" ? { favorite: input.favorite === true } : {}),
+        ...(input.kind === "save" ? { input: input.input, draftId: input.draftId ?? input.recipeId } : {}),
       },
     };
     await database.transaction("rw", database.mutationQueue, async () => {
-      for (const old of previous) await database.mutationQueue.delete(old.id);
+      for (const old of previous) {
+        const oldKind = kindOf(old);
+        const shouldCoalesce = input.kind === "save"
+          ? oldKind === "save"
+          : isStatus(input.kind) && isStatus(oldKind);
+        if (shouldCoalesce) await database.mutationQueue.delete(old.id);
+      }
       await database.mutationQueue.put(record);
     });
     return record;

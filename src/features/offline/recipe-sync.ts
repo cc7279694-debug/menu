@@ -1,4 +1,5 @@
 import {
+  deleteRecipeDraft,
   deleteRecipeMutationIfCurrent,
   listRecipeMutationQueue,
   markRecipeMutationAttemptFailed,
@@ -16,6 +17,7 @@ export type RecipeSyncDependencies = {
   submitMutation: typeof syncRecipeMutationAction;
   markFailed: typeof markRecipeMutationAttemptFailed;
   deleteIfCurrent: typeof deleteRecipeMutationIfCurrent;
+  deleteDraft: typeof deleteRecipeDraft;
 };
 
 const defaultDependencies: RecipeSyncDependencies = {
@@ -23,6 +25,7 @@ const defaultDependencies: RecipeSyncDependencies = {
   submitMutation: syncRecipeMutationAction,
   markFailed: markRecipeMutationAttemptFailed,
   deleteIfCurrent: deleteRecipeMutationIfCurrent,
+  deleteDraft: deleteRecipeDraft,
 };
 
 const NETWORK_FAILURE_MESSAGE = "网络恢复后仍无法同步";
@@ -30,6 +33,7 @@ const INVALID_MUTATION_MESSAGE = "本地操作格式无效，请重新操作";
 const syncPromises = new Map<string, Promise<RecipeSyncResult>>();
 
 type RecipeMutationPayload =
+  | { kind: "save"; input: unknown; draftId?: string }
   | { kind: "set-favorite"; favorite: boolean }
   | { kind: "move-to-trash" | "restore" | "permanently-delete" };
 
@@ -38,6 +42,9 @@ function parsePayload(record: LocalMutationRecord): RecipeMutationPayload | null
   const payload = record.payload as Record<string, unknown>;
   if (payload.kind === "set-favorite" && typeof payload.favorite === "boolean") {
     return { kind: payload.kind, favorite: payload.favorite };
+  }
+  if (payload.kind === "save" && payload.input !== undefined) {
+    return { kind: payload.kind, input: payload.input, draftId: typeof payload.draftId === "string" ? payload.draftId : undefined };
   }
   if (payload.kind === "move-to-trash" || payload.kind === "restore" || payload.kind === "permanently-delete") {
     return { kind: payload.kind };
@@ -70,6 +77,7 @@ async function runRecipeMutationSync(userId: string, dependencies: RecipeSyncDep
       if (result.ok) {
         syncedCount += 1;
         await dependencies.deleteIfCurrent(record);
+        if (payload.kind === "save") await dependencies.deleteDraft(record.userId, payload.draftId ?? record.entityId).catch(() => undefined);
         continue;
       }
 

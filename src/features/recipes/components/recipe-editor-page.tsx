@@ -20,5 +20,5 @@ type RecipeEditorPageProps = {
 
 export function RecipeEditorPage(props: RecipeEditorPageProps) {
   const router = useRouter();
-  return <RecipeEditor {...props} onSaved={(recipeId) => router.push(`/recipes/${recipeId}`)} />;
+  return <RecipeEditor {...props} localFirstUserId={props.userId} onSaved={(recipeId) => router.push(`/recipes/${recipeId}`)} />;
 }

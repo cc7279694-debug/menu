@@ -246,6 +246,7 @@ export async function permanentlyDeleteRecipeAction(recipeId: string): Promise<A
 }
 
 const recipeMutationSchema = z.discriminatedUnion("kind", [
+  z.object({ recipeId: uuidSchema, kind: z.literal("save"), input: recipeSaveInputSchema }),
   z.object({ recipeId: uuidSchema, kind: z.literal("set-favorite"), favorite: z.boolean() }),
   z.object({ recipeId: uuidSchema, kind: z.literal("move-to-trash") }),
   z.object({ recipeId: uuidSchema, kind: z.literal("restore") }),
@@ -257,6 +258,10 @@ export async function syncRecipeMutationAction(input: unknown): Promise<ActionRe
   const parsed = recipeMutationSchema.safeParse(input);
   if (!parsed.success) return invalidId();
 
+  if (parsed.data.kind === "save") {
+    const saved = await saveRecipeAction(parsed.data.input);
+    return saved.ok ? { ok: true, data: null } : saved;
+  }
   if (parsed.data.kind === "set-favorite") {
     return setRecipeFavoriteAction(parsed.data.recipeId, parsed.data.favorite);
   }
