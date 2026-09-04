@@ -6,6 +6,8 @@ import {
   emailSchema,
   nextPathSchema,
   otpSchema,
+  passwordSchema,
+  type PasswordActionState,
   type AuthActionState,
 } from "@/features/auth/schemas";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
@@ -65,6 +67,60 @@ export async function verifyEmailOtp(
   }
 
   redirect(nextPath);
+}
+
+export async function signInWithPassword(
+  _previousState: AuthActionState,
+  formData: FormData,
+): Promise<AuthActionState> {
+  const parsedEmail = emailSchema.safeParse(formData.get("email"));
+  const parsedPassword = passwordSchema.safeParse(formData.get("password"));
+  const nextPath = nextPathSchema.parse(formData.get("next")?.toString());
+
+  if (!parsedEmail.success || !parsedPassword.success) {
+    return { status: "error", message: "邮箱或密码格式不正确" };
+  }
+
+  const supabase = await createServerSupabaseClient();
+  const { error } = await supabase.auth.signInWithPassword({
+    email: parsedEmail.data,
+    password: parsedPassword.data,
+  });
+
+  if (error) {
+    return { status: "error", message: "邮箱或密码不正确，请重试" };
+  }
+
+  redirect(nextPath);
+}
+
+export async function setPassword(
+  _previousState: PasswordActionState,
+  formData: FormData,
+): Promise<PasswordActionState> {
+  const parsedPassword = passwordSchema.safeParse(formData.get("password"));
+  const parsedConfirmation = passwordSchema.safeParse(
+    formData.get("confirmPassword"),
+  );
+
+  if (!parsedPassword.success || !parsedConfirmation.success) {
+    return { status: "error", message: "密码至少需要 6 位" };
+  }
+
+  if (parsedPassword.data !== parsedConfirmation.data) {
+    return { status: "error", message: "两次输入的密码不一致" };
+  }
+
+  const supabase = await createServerSupabaseClient();
+  const { error } = await supabase.auth.updateUser({
+    password: parsedPassword.data,
+  });
+
+  if (error) {
+    return { status: "error", message: "密码保存失败，请稍后重试" };
+  }
+
+  return { status: "success", message: "密码已保存，现在可以用密码登录" };
 }
 
 export async function signOut(): Promise<void> {

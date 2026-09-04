@@ -4,6 +4,7 @@ import {
   emailSchema,
   nextPathSchema,
   otpSchema,
+  passwordSchema,
 } from "@/features/auth/schemas";
 
 describe("authentication schemas", () => {
@@ -21,5 +22,10 @@ describe("authentication schemas", () => {
     expect(otpSchema.parse("123456")).toBe("123456");
     expect(() => otpSchema.parse("12345")).toThrow();
     expect(() => otpSchema.parse("12345a")).toThrow();
+  });
+
+  it("requires a password with at least six characters", () => {
+    expect(passwordSchema.parse("cook123")).toBe("cook123");
+    expect(() => passwordSchema.parse("12345")).toThrow();
   });
 });

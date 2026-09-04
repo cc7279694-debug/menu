@@ -2,7 +2,11 @@
 
 import { useActionState, useEffect, useState } from "react";
 
-import { requestEmailOtp, verifyEmailOtp } from "@/features/auth/actions";
+import {
+  requestEmailOtp,
+  signInWithPassword,
+  verifyEmailOtp,
+} from "@/features/auth/actions";
 import { INITIAL_AUTH_STATE } from "@/features/auth/schemas";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -18,6 +22,7 @@ export function LoginForm({
   nextPath = "/recipes",
 }: LoginFormProps) {
   const [phase, setPhase] = useState<"email" | "otp">("email");
+  const [mode, setMode] = useState<"otp" | "password">("otp");
   const [verifiedEmail, setVerifiedEmail] = useState("");
   const [requestState, requestAction, requestPending] = useActionState(
     requestEmailOtp,
@@ -25,6 +30,10 @@ export function LoginForm({
   );
   const [verifyState, verifyAction, verifyPending] = useActionState(
     verifyEmailOtp,
+    INITIAL_AUTH_STATE,
+  );
+  const [passwordState, passwordAction, passwordPending] = useActionState(
+    signInWithPassword,
     INITIAL_AUTH_STATE,
   );
 
@@ -37,7 +46,13 @@ export function LoginForm({
 
   if (phase === "email") {
     return (
-      <form action={requestAction} className="space-y-4">
+      <form
+        action={mode === "otp" ? requestAction : passwordAction}
+        className="space-y-4"
+      >
+        {mode === "password" && (
+          <input name="next" type="hidden" value={nextPath} />
+        )}
         <div className="space-y-2">
           <Label htmlFor="email">邮箱地址</Label>
           <Input
@@ -48,12 +63,49 @@ export function LoginForm({
             required
           />
         </div>
+        {mode === "password" && (
+          <div className="space-y-2">
+            <Label htmlFor="password">登录密码</Label>
+            <Input
+              id="password"
+              name="password"
+              type="password"
+              autoComplete="current-password"
+              minLength={6}
+              required
+            />
+          </div>
+        )}
         <p aria-live="polite" className="text-sm text-muted-foreground">
-          {requestState.message ?? initialMessage}
+          {(mode === "otp" ? requestState.message : passwordState.message) ??
+            initialMessage}
         </p>
-        <Button className="w-full" disabled={requestPending} type="submit">
-          {requestPending ? "正在发送…" : "发送验证码"}
+        <Button
+          className="w-full"
+          disabled={mode === "otp" ? requestPending : passwordPending}
+          type="submit"
+        >
+          {mode === "otp"
+            ? requestPending
+              ? "正在发送…"
+              : "发送验证码"
+            : passwordPending
+              ? "正在登录…"
+              : "密码登录"}
         </Button>
+        <Button
+          className="w-full"
+          onClick={() => setMode(mode === "otp" ? "password" : "otp")}
+          type="button"
+          variant="ghost"
+        >
+          {mode === "otp" ? "改用密码登录" : "使用邮箱验证码"}
+        </Button>
+        {mode === "password" && (
+          <p className="text-xs text-muted-foreground">
+            还没有设置密码？先用验证码登录，再到“设置”中保存密码。
+          </p>
+        )}
       </form>
     );
   }
@@ -87,6 +139,17 @@ export function LoginForm({
         variant="ghost"
       >
         更换邮箱
+      </Button>
+      <Button
+        className="w-full"
+        onClick={() => {
+          setPhase("email");
+          setMode("password");
+        }}
+        type="button"
+        variant="ghost"
+      >
+        改用密码登录
       </Button>
     </form>
   );

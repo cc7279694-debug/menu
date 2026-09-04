@@ -11,6 +11,10 @@ export const otpSchema = z
   .trim()
   .regex(/^\d{6}$/, "请输入 6 位验证码");
 
+export const passwordSchema = z
+  .string()
+  .min(6, "密码至少需要 6 位");
+
 export const nextPathSchema = z
   .string()
   .optional()
@@ -23,9 +27,16 @@ export const nextPathSchema = z
   });
 
 export type AuthActionState = {
-  status: "idle" | "code-sent" | "error";
+  status: "idle" | "code-sent" | "success" | "error";
   message?: string;
   email?: string;
 };
 
 export const INITIAL_AUTH_STATE: AuthActionState = { status: "idle" };
+
+export type PasswordActionState = {
+  status: "idle" | "success" | "error";
+  message?: string;
+};
+
+export const INITIAL_PASSWORD_STATE: PasswordActionState = { status: "idle" };
