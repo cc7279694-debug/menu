@@ -103,7 +103,7 @@ export function OfflineApp() {
   if (empty) return <OfflineMessage href={targetHref(target)} title="没有可用的离线数据" />;
   if (!data) return <main className="mx-auto max-w-3xl space-y-4 px-4 py-8"><p className="text-sm text-muted-foreground">正在读取本机离线数据…</p></main>;
   if (target.kind === "recipe-list") {
-    return <OfflineFrame target={target}><OfflineRecipeList snapshots={data.recipes} /></OfflineFrame>;
+    return <OfflineFrame target={target}><OfflineRecipeList snapshots={data.recipes} userId={data.profile.userId} /></OfflineFrame>;
   }
   if (target.kind === "shopping") {
     return <OfflineFrame target={target}>{data.shopping ? <OfflineShoppingList snapshot={data.shopping} userId={data.profile.userId} /> : <OfflineMessage href={targetHref(target)} title="没有可用的离线购物清单" />}</OfflineFrame>;
@@ -113,7 +113,7 @@ export function OfflineApp() {
   if (target.kind === "cooking") {
     return <OfflineFrame target={target}><CookingScreen recipe={safeRecipe} requestedServings={target.servings ?? safeRecipe.baseServings} restart={target.restart} /></OfflineFrame>;
   }
-  return <OfflineFrame target={target}><OfflineRecipeDetail recipe={safeRecipe} /></OfflineFrame>;
+  return <OfflineFrame target={target}><OfflineRecipeDetail recipe={safeRecipe} userId={data.profile.userId} /></OfflineFrame>;
 }
 
 function OfflineFrame({ target, children }: { target: OfflineTarget; children: ReactNode }) {

@@ -12,6 +12,7 @@ const databaseMocks = vi.hoisted(() => ({
 }));
 
 vi.mock("@/features/offline/database", () => databaseMocks);
+vi.mock("@/features/offline/media-cache", () => ({ getRecipeMedia: vi.fn().mockResolvedValue(null) }));
 vi.mock("@/features/cooking/components/cooking-screen", () => ({
   CookingScreen: ({ recipe }: { recipe: { title: string; coverUrl: string | null; coverPath: string | null; steps: Array<{ imageUrl: string | null; imagePath: string | null }> } }) => (
     <div data-cover-path={recipe.coverPath ?? "null"} data-cover-url={recipe.coverUrl ?? "null"} data-step-image-path={recipe.steps[0]?.imagePath ?? "null"} data-step-image-url={recipe.steps[0]?.imageUrl ?? "null"} data-testid="offline-cooking-screen">正在烹饪：{recipe.title}</div>

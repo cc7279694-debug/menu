@@ -182,6 +182,7 @@ export function clearOfflineData(): Promise<void> {
         database.cookingSessions,
         database.mutationQueue,
         database.syncMeta,
+        database.media,
       ],
       async () => {
         await Promise.all([
@@ -193,6 +194,7 @@ export function clearOfflineData(): Promise<void> {
           database.cookingSessions.clear(),
           database.mutationQueue.clear(),
           database.syncMeta.clear(),
+          database.media.clear(),
         ]);
       },
     );

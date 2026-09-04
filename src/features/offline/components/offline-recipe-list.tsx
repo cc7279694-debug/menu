@@ -1,8 +1,9 @@
 import Link from "next/link";
 
 import type { OfflineRecipeSnapshot } from "@/features/offline/types";
+import { OfflineCachedMedia } from "@/features/offline/components/offline-cached-media";
 
-export function OfflineRecipeList({ snapshots }: { snapshots: OfflineRecipeSnapshot[] }) {
+export function OfflineRecipeList({ snapshots, userId }: { snapshots: OfflineRecipeSnapshot[]; userId: string }) {
   return (
     <section aria-labelledby="offline-recipe-list-heading" className="space-y-4">
       <div>
@@ -19,6 +20,14 @@ export function OfflineRecipeList({ snapshots }: { snapshots: OfflineRecipeSnaps
             href={`/offline/app?path=${encodeURIComponent(`/recipes/${snapshot.recipeId}`)}`}
             key={snapshot.recipeId}
           >
+            <OfflineCachedMedia
+              alt={`${snapshot.recipe.title}封面`}
+              className="aspect-[4/3] w-full rounded-xl object-cover"
+              fallbackClassName="flex aspect-[4/3] items-center justify-center rounded-xl bg-muted/20 text-sm text-muted-foreground"
+              mediaId="cover"
+              recipeId={snapshot.recipeId}
+              userId={userId}
+            />
             <h2 className="font-semibold">{snapshot.recipe.title}</h2>
             <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">{snapshot.recipe.description ?? "暂无简介"}</p>
             <p className="mt-3 text-xs text-muted-foreground">{snapshot.recipe.ingredients.length} 项食材 · {snapshot.recipe.steps.length} 个步骤</p>

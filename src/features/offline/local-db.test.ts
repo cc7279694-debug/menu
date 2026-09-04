@@ -9,6 +9,8 @@ import {
   getLocalDatabase,
 } from "./local-db";
 import type { OfflineRecipeSnapshot, OfflineShoppingSnapshot } from "./types";
+import type { LocalRecipeMediaRecord } from "./local-db";
+import { clearOfflineData } from "./database";
 
 describe("Recipio local database foundation", () => {
   beforeEach(async () => {
@@ -29,7 +31,67 @@ describe("Recipio local database foundation", () => {
       "cookingSessions",
       "mutationQueue",
       "syncMeta",
+      "media",
     ]));
+  });
+
+  it("keeps cached media scoped to its recipe and user", async () => {
+    const database = await getLocalDatabase();
+    const media: LocalRecipeMediaRecord = {
+      userId: "user-a",
+      recipeId: "recipe-a",
+      mediaId: "cover",
+      sourceKey: "recipe-media/recipe-a/cover.webp",
+      mimeType: "image/webp",
+      byteSize: 3,
+      cachedAt: "2026-09-04T00:00:00.000Z",
+      blob: new Blob(["img"], { type: "image/webp" }),
+    };
+
+    await database.media.put(media);
+
+    expect(await database.media.get(["user-a", "recipe-a", "cover"])).toMatchObject({ sourceKey: media.sourceKey });
+    expect(await database.media.get(["user-b", "recipe-a", "cover"])).toBeUndefined();
+  });
+
+  it("upgrades a previously opened local database before using media", async () => {
+    const legacyLocal = await openDB(RECIPIO_LOCAL_DB_NAME, 1, {
+      upgrade(database) {
+        database.createObjectStore("profiles", { keyPath: "userId" });
+        database.createObjectStore("recipes", { keyPath: ["userId", "recipeId"] });
+        database.createObjectStore("shoppingSnapshots", { keyPath: "userId" });
+        database.createObjectStore("shoppingToggleQueue", { keyPath: ["userId", "listId", "itemId"] });
+        database.createObjectStore("meta", { keyPath: "id" });
+        database.createObjectStore("recipeDrafts", { keyPath: ["userId", "draftId"] });
+        database.createObjectStore("cookingSessions", { keyPath: ["userId", "recipeId"] });
+        database.createObjectStore("mutationQueue", { keyPath: "id" });
+        database.createObjectStore("syncMeta", { keyPath: ["userId", "scope"] });
+      },
+    });
+    legacyLocal.close();
+
+    const database = await getLocalDatabase();
+
+    expect(database.verno).toBe(2);
+    expect(database.tables.map((table) => table.name)).toContain("media");
+  });
+
+  it("clears cached media with the rest of the offline data", async () => {
+    const database = await getLocalDatabase();
+    await database.media.put({
+      userId: "user-a",
+      recipeId: "recipe-a",
+      mediaId: "cover",
+      sourceKey: "cover",
+      mimeType: "image/webp",
+      byteSize: 3,
+      cachedAt: "2026-09-04T00:00:00.000Z",
+      blob: new Blob(["img"], { type: "image/webp" }),
+    });
+
+    await clearOfflineData();
+
+    expect(await database.media.count()).toBe(0);
   });
 
   it("keeps user-owned stores isolated by user id", async () => {

@@ -2,6 +2,7 @@ import Link from "next/link";
 
 import { Badge } from "@/components/ui/badge";
 import type { OfflineRecipeDetail } from "@/features/offline/types";
+import { OfflineCachedMedia } from "@/features/offline/components/offline-cached-media";
 import { RecipePreparationList } from "@/features/recipes/components/recipe-preparation-list";
 import { RecipeNutritionCard } from "@/features/recipes/components/recipe-nutrition";
 
@@ -9,7 +10,7 @@ function quantity(quantity: number | null, text: string | null, unit: string | n
   return `${text ?? (quantity === null ? "适量" : quantity)}${unit ? ` ${unit}` : ""}`;
 }
 
-export function OfflineRecipeDetail({ recipe }: { recipe: OfflineRecipeDetail }) {
+export function OfflineRecipeDetail({ recipe, userId }: { recipe: OfflineRecipeDetail; userId: string }) {
   return (
     <main className="space-y-7">
       <div className="flex flex-wrap items-center justify-between gap-3">
@@ -29,9 +30,14 @@ export function OfflineRecipeDetail({ recipe }: { recipe: OfflineRecipeDetail })
         <p className="mt-3 text-sm text-muted-foreground">{recipe.baseServings} 人份 · {recipe.prepMinutes ?? 0} 分钟准备 · {recipe.cookMinutes ?? 0} 分钟烹饪</p>
       </header>
 
-      <div aria-label="菜谱图片离线不可用" className="flex aspect-[4/3] items-center justify-center rounded-2xl border border-dashed bg-muted/20 text-sm text-muted-foreground" role="img">
-        离线模式暂不加载图片
-      </div>
+      <OfflineCachedMedia
+        alt={`${recipe.title}封面`}
+        fallbackClassName="flex aspect-[4/3] items-center justify-center rounded-2xl border border-dashed bg-muted/20 text-sm text-muted-foreground"
+        fallbackLabel="菜谱图片离线不可用"
+        mediaId="cover"
+        recipeId={recipe.id}
+        userId={userId}
+      />
 
       <RecipePreparationList preparations={recipe.preparations} />
 
@@ -57,6 +63,14 @@ export function OfflineRecipeDetail({ recipe }: { recipe: OfflineRecipeDetail })
                 <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-primary text-sm font-semibold text-primary-foreground">{index + 1}</span>
                 <div className="min-w-0 space-y-3">
                   <p className="whitespace-pre-wrap leading-7">{step.instruction}</p>
+                  <OfflineCachedMedia
+                    alt={`步骤 ${index + 1} 图片`}
+                    className="max-h-72 w-full rounded-xl object-cover"
+                    fallbackClassName="hidden"
+                    mediaId={`step:${step.id}`}
+                    recipeId={recipe.id}
+                    userId={userId}
+                  />
                   {step.timerSeconds && <p className="text-sm text-muted-foreground">计时 {Math.ceil(step.timerSeconds / 60)} 分钟</p>}
                 </div>
               </div>

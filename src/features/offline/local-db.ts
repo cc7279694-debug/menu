@@ -9,7 +9,7 @@ import type {
 } from "./types";
 
 export const RECIPIO_LOCAL_DB_NAME = "recipio-local-v2";
-export const RECIPIO_LOCAL_DB_VERSION = 1;
+export const RECIPIO_LOCAL_DB_VERSION = 2;
 export const LEGACY_OFFLINE_DB_NAME = "ordine-offline";
 export const LEGACY_MIGRATION_META_ID = "legacy-idb-migration-v1";
 
@@ -24,6 +24,17 @@ export type LocalRecipeDraftRecord = {
   draftId: string;
   updatedAt: string;
   payload: unknown;
+};
+
+export type LocalRecipeMediaRecord = {
+  userId: string;
+  recipeId: string;
+  mediaId: string;
+  sourceKey: string;
+  mimeType: string;
+  byteSize: number;
+  cachedAt: string;
+  blob: Blob;
 };
 
 export type LocalCookingSessionRecord = {
@@ -62,11 +73,12 @@ export class RecipioLocalDatabase extends Dexie {
   cookingSessions!: Table<LocalCookingSessionRecord, IndexableType>;
   mutationQueue!: Table<LocalMutationRecord, IndexableType>;
   syncMeta!: Table<LocalSyncMetaRecord, IndexableType>;
+  media!: Table<LocalRecipeMediaRecord, IndexableType>;
 
   constructor() {
     super(RECIPIO_LOCAL_DB_NAME);
 
-    this.version(RECIPIO_LOCAL_DB_VERSION).stores({
+    const stores = {
       profiles: "userId",
       recipes: "[userId+recipeId], userId, recipeId, lastOpenedAt",
       shoppingSnapshots: "userId, listId",
@@ -76,7 +88,20 @@ export class RecipioLocalDatabase extends Dexie {
       cookingSessions: "[userId+recipeId], userId, updatedAt",
       mutationQueue: "id, userId, queuedAt",
       syncMeta: "[userId+scope], userId, scope, updatedAt",
+      media: "[userId+recipeId+mediaId], userId, recipeId, mediaId, cachedAt",
+    } as const;
+    this.version(1).stores({
+      profiles: stores.profiles,
+      recipes: stores.recipes,
+      shoppingSnapshots: stores.shoppingSnapshots,
+      shoppingToggleQueue: stores.shoppingToggleQueue,
+      meta: stores.meta,
+      recipeDrafts: stores.recipeDrafts,
+      cookingSessions: stores.cookingSessions,
+      mutationQueue: stores.mutationQueue,
+      syncMeta: stores.syncMeta,
     });
+    this.version(RECIPIO_LOCAL_DB_VERSION).stores(stores);
   }
 }
 
