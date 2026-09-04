@@ -43,6 +43,26 @@ describe("Qwen nutrition analyzer", () => {
     await expect(make(503).analyze(input)).rejects.toThrow("AI 服务暂时不可用");
   });
 
+  it("retries a transient provider failure once", async () => {
+    const fetchImpl = vi.fn<typeof fetch>()
+      .mockResolvedValueOnce(response({ code: "internal_error" }, 503))
+      .mockResolvedValueOnce(response({
+        choices: [{ message: { content: JSON.stringify({
+          total: { caloriesKcal: 200, proteinGrams: 20, fatGrams: 5, carbsGrams: 10 },
+          ingredients: [], assumptions: [], omittedItems: [], confidence: "medium",
+        }) } }],
+      }));
+    const analyzer = createQianwenNutritionAnalyzer({
+      fetchImpl,
+      env: { API_KEY: "sk-test", RECIPE_AI_MODEL: "qwen3.8-flash" },
+    });
+
+    await expect(analyzer.analyze(input)).resolves.toMatchObject({
+      total: { caloriesKcal: 200, proteinGrams: 20 },
+    });
+    expect(fetchImpl).toHaveBeenCalledTimes(2);
+  });
+
   it("reports unavailable model and insufficient input distinctly", async () => {
     const unavailable = createQianwenNutritionAnalyzer({
       fetchImpl: vi.fn<typeof fetch>().mockResolvedValue(response({ code: "ModelNotFound", message: "model unavailable" }, 400)),

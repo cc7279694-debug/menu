@@ -10,6 +10,7 @@ import { buildNutritionAnalysisUserPrompt, NUTRITION_ANALYSIS_RULES } from "@/fe
 import type { NutritionAnalyzer } from "@/features/nutrition-analysis/types";
 
 const CHAT_COMPLETIONS_URL = "https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions";
+const TRANSIENT_RETRY_DELAY_MS = 300;
 
 export type QianwenNutritionAnalyzerOptions = {
   fetchImpl?: typeof fetch;
@@ -31,6 +32,14 @@ function providerError(status: number, details?: { code?: string; message?: stri
   if (status === 429) return new Error("AI 服务请求过于频繁");
   if (status >= 500) return new Error("AI 服务暂时不可用");
   return new Error("营养分析失败");
+}
+
+function isTransientProviderError(error: Error): boolean {
+  return error.message === "AI 服务暂时不可用";
+}
+
+async function waitBeforeTransientRetry(): Promise<void> {
+  await new Promise((resolve) => setTimeout(resolve, TRANSIENT_RETRY_DELAY_MS));
 }
 
 async function readProviderError(response: Response): Promise<{ code?: string; message?: string }> {
@@ -132,33 +141,49 @@ export function createQianwenNutritionAnalyzer(options: QianwenNutritionAnalyzer
 
   return {
     async analyze(input) {
-      let response: Response;
-      try {
-        response = await fetchImpl(CHAT_COMPLETIONS_URL, {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${env.API_KEY}`,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            model: env.RECIPE_AI_MODEL,
-            messages: [
-              { role: "system", content: NUTRITION_ANALYSIS_RULES },
-              { role: "user", content: buildNutritionAnalysisUserPrompt(input) },
-            ],
-            response_format: { type: "json_object" },
-            temperature: 0.1,
-            stream: false,
-            enable_thinking: false,
-          }),
-        });
-      } catch {
-        throw new Error("AI 服务暂时不可用");
+      let response: Response | undefined;
+      for (let attempt = 0; attempt < 2; attempt += 1) {
+        try {
+          response = await fetchImpl(CHAT_COMPLETIONS_URL, {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${env.API_KEY}`,
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              model: env.RECIPE_AI_MODEL,
+              messages: [
+                { role: "system", content: NUTRITION_ANALYSIS_RULES },
+                { role: "user", content: buildNutritionAnalysisUserPrompt(input) },
+              ],
+              response_format: { type: "json_object" },
+              temperature: 0.1,
+              stream: false,
+              enable_thinking: false,
+            }),
+          });
+        } catch {
+          if (attempt === 0) {
+            await waitBeforeTransientRetry();
+            continue;
+          }
+          throw new Error("AI 服务暂时不可用");
+        }
+
+        if (response.ok) break;
+
+        const error = providerError(
+          response.status,
+          await readProviderError(response),
+        );
+        if (attempt === 0 && isTransientProviderError(error)) {
+          await waitBeforeTransientRetry();
+          continue;
+        }
+        throw error;
       }
 
-      if (!response.ok) {
-        throw providerError(response.status, await readProviderError(response));
-      }
+      if (!response?.ok) throw new Error("AI 服务暂时不可用");
 
       try {
         const payload = (await response.json()) as unknown;
