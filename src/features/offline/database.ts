@@ -4,6 +4,7 @@ import {
   __resetLocalDatabaseForTests,
   getLocalDatabase,
   type RecipioLocalDatabase,
+  type LocalRecipeSummaryRecord,
 } from "./local-db";
 import type {
   OfflineProfile,
@@ -11,6 +12,7 @@ import type {
   OfflineShoppingSnapshot,
   OfflineShoppingToggle,
 } from "./types";
+import type { RecipeSummary } from "@/features/recipes/types";
 
 const STORAGE_ERROR = "OFFLINE_STORAGE_UNAVAILABLE";
 
@@ -100,6 +102,48 @@ export function getRecipeSnapshot(userId: string, recipeId: string): Promise<Off
   });
 }
 
+export function putRecipeSummaryPage(
+  userId: string,
+  summaries: RecipeSummary[],
+  deleted: boolean,
+): Promise<void> {
+  return safe(async (database) => {
+    const cachedAt = new Date().toISOString();
+    const records: LocalRecipeSummaryRecord[] = summaries.map((summary) => ({
+      userId,
+      recipeId: summary.id,
+      cachedAt,
+      deleted,
+      summary: {
+        ...summary,
+        coverUrl: null,
+        category: summary.category ? { ...summary.category } : null,
+        tags: summary.tags.map((tag) => ({ ...tag })),
+        nutrition: summary.nutrition ? { ...summary.nutrition } : null,
+      },
+    }));
+    if (records.length > 0) await database.recipeSummaries.bulkPut(records);
+  });
+}
+
+export function listRecipeSummaryPage(userId: string, deleted: boolean): Promise<RecipeSummary[]> {
+  return safe(async (database) => {
+    const records = await database.recipeSummaries
+      .where("userId")
+      .equals(userId)
+      .filter((record) => record.deleted === deleted)
+      .sortBy("cachedAt");
+    return records
+      .reverse()
+      .map((record) => ({
+        ...record.summary,
+        category: record.summary.category ? { ...record.summary.category } : null,
+        tags: record.summary.tags.map((tag) => ({ ...tag })),
+        nutrition: record.summary.nutrition ? { ...record.summary.nutrition } : null,
+      }));
+  });
+}
+
 export function putShoppingSnapshot(snapshot: OfflineShoppingSnapshot): Promise<void> {
   return safe(async (database) => {
     await database.shoppingSnapshots.put(snapshot);
@@ -183,6 +227,7 @@ export function clearOfflineData(): Promise<void> {
         database.mutationQueue,
         database.syncMeta,
         database.media,
+        database.recipeSummaries,
       ],
       async () => {
         await Promise.all([
@@ -195,6 +240,7 @@ export function clearOfflineData(): Promise<void> {
           database.mutationQueue.clear(),
           database.syncMeta.clear(),
           database.media.clear(),
+          database.recipeSummaries.clear(),
         ]);
       },
     );

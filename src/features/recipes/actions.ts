@@ -3,13 +3,21 @@
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
-import { recipeSaveInputSchema } from "@/features/recipes/schemas";
-import type { ActionResult } from "@/features/recipes/types";
+import { recipeListQuerySchema, recipeSaveInputSchema } from "@/features/recipes/schemas";
+import { getRecipeDetail, listRecipePageData } from "@/features/recipes/queries";
+import { getRecipeCookingHistory } from "@/features/cooking-history/queries";
+import type { RecipeListQuery } from "@/features/recipes/query-params";
+import type { ActionResult, RecipeDetail } from "@/features/recipes/types";
+import type { RecipeCookingHistory } from "@/features/cooking-history/types";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { getServerAuthContext } from "@/lib/supabase/server-auth";
 import type { Json } from "@/lib/supabase/database.types";
 
 const nameSchema = z.string().trim().min(1, "名称不能为空").max(40, "名称不能超过 40 个字");
 const uuidSchema = z.string().uuid();
+
+type RecipeListPageData = Awaited<ReturnType<typeof listRecipePageData>> & { userId: string };
+type RecipeDetailPageData = { recipe: RecipeDetail; cookingHistory: RecipeCookingHistory; userId: string };
 
 function validationErrors(error: z.ZodError): Record<string, string[]> {
   return error.issues.reduce<Record<string, string[]>>((result, issue) => {
@@ -25,8 +33,41 @@ async function getUser() {
   return { supabase, user: error ? null : user };
 }
 
-function invalidId(): ActionResult<null> {
+function invalidId<T = null>(): ActionResult<T> {
   return { ok: false, message: "请求参数无效" };
+}
+
+export async function loadRecipeListAction(input: RecipeListQuery): Promise<ActionResult<RecipeListPageData>> {
+  const parsed = recipeListQuerySchema.safeParse(input);
+  if (!parsed.success) return { ok: false, message: "请求参数无效" };
+
+  const { user, error } = await getServerAuthContext();
+  if (error || !user) return { ok: false, message: "请先登录后查看菜谱" };
+
+  try {
+    const pageData = await listRecipePageData(parsed.data);
+    return { ok: true, data: { ...pageData, userId: user.id } };
+  } catch {
+    return { ok: false, message: "菜谱列表暂时无法加载" };
+  }
+}
+
+export async function loadRecipeDetailAction(recipeId: string): Promise<ActionResult<RecipeDetailPageData>> {
+  if (!uuidSchema.safeParse(recipeId).success) return invalidId();
+
+  const { user, error } = await getServerAuthContext();
+  if (error || !user) return { ok: false, message: "请先登录后查看菜谱" };
+
+  try {
+    const [recipe, cookingHistory] = await Promise.all([
+      getRecipeDetail(recipeId),
+      getRecipeCookingHistory(recipeId),
+    ]);
+    if (!recipe) return { ok: false, message: "菜谱不存在或已删除" };
+    return { ok: true, data: { recipe, cookingHistory, userId: user.id } };
+  } catch {
+    return { ok: false, message: "菜谱暂时无法加载" };
+  }
 }
 
 export async function saveRecipeAction(input: unknown): Promise<ActionResult<{ recipeId: string }>> {

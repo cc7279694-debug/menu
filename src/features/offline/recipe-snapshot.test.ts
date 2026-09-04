@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import type { RecipeDetail } from "@/features/recipes/types";
 
-import { toOfflineRecipeSnapshot } from "./recipe-snapshot";
+import { toOfflineRecipeSnapshot, toOfflineRecipeSummary } from "./recipe-snapshot";
 
 const USER_ID = "user-a";
 const NOW = "2026-08-27T00:00:00.000Z";
@@ -59,5 +59,30 @@ describe("toOfflineRecipeSnapshot", () => {
     expect(snapshot.recipe).not.toBe(recipe);
     expect(snapshot.recipe.steps).not.toBe(recipe.steps);
     expect(recipe.coverUrl).toBe("https://example.invalid/cover.jpg");
+  });
+});
+
+describe("toOfflineRecipeSummary", () => {
+  it("projects a cached detail into the list shape without retaining remote image URLs", () => {
+    const snapshot = toOfflineRecipeSnapshot(USER_ID, recipe, NOW);
+    const summary = toOfflineRecipeSummary(snapshot);
+
+    expect(summary).toMatchObject({
+      id: recipe.id,
+      title: recipe.title,
+      coverUrl: null,
+      baseServings: recipe.baseServings,
+      prepMinutes: recipe.prepMinutes,
+      cookMinutes: recipe.cookMinutes,
+      isFavorite: recipe.isFavorite,
+      category: recipe.category,
+      tags: recipe.tags,
+      preparationCount: recipe.preparationCount,
+      maxLeadTimeMinutes: recipe.maxLeadTimeMinutes,
+      nutrition: recipe.nutrition,
+      updatedAt: recipe.updatedAt,
+    });
+    expect(summary).not.toBe(snapshot.recipe);
+    expect(summary.tags).not.toBe(snapshot.recipe.tags);
   });
 });

@@ -11,10 +11,12 @@ import {
   getLastOfflineProfile,
   getRecipeSnapshot,
   getShoppingSnapshot,
+  listRecipeSummaryPage,
   listRecipeSnapshots,
   listShoppingToggleQueue,
   markShoppingToggleAttemptFailed,
   putRecipeSnapshot,
+  putRecipeSummaryPage,
   putShoppingSnapshot,
   queueShoppingToggle,
   rememberOfflineProfile,
@@ -70,6 +72,29 @@ describe("offline database", () => {
     await putRecipeSnapshot(baseRecipe("recipe-to-delete", "2026-08-27T00:00:00.000Z"));
     await deleteRecipeSnapshot("user-a", "recipe-to-delete");
     expect(await getRecipeSnapshot("user-a", "recipe-to-delete")).toBeNull();
+  });
+
+  it("stores recipe list summaries per user and deletion scope", async () => {
+    await putRecipeSummaryPage("user-a", [{
+      id: "recipe-summary",
+      title: "摘要菜谱",
+      description: null,
+      coverUrl: "https://example.invalid/cover.jpg",
+      baseServings: 2,
+      prepMinutes: null,
+      cookMinutes: null,
+      isFavorite: false,
+      category: null,
+      tags: [],
+      preparationCount: 0,
+      maxLeadTimeMinutes: null,
+      nutrition: null,
+      updatedAt: "2026-08-27T00:00:00.000Z",
+    }], false);
+
+    expect(await listRecipeSummaryPage("user-a", false)).toMatchObject([{ id: "recipe-summary", title: "摘要菜谱", coverUrl: null }]);
+    expect(await listRecipeSummaryPage("user-a", true)).toEqual([]);
+    expect(await listRecipeSummaryPage("user-b", false)).toEqual([]);
   });
 
   it("updates the shopping item and coalesces the toggle queue in one operation", async () => {

@@ -7,9 +7,10 @@ import type {
   OfflineShoppingSnapshot,
   OfflineShoppingToggle,
 } from "./types";
+import type { RecipeSummary } from "@/features/recipes/types";
 
 export const RECIPIO_LOCAL_DB_NAME = "recipio-local-v2";
-export const RECIPIO_LOCAL_DB_VERSION = 2;
+export const RECIPIO_LOCAL_DB_VERSION = 3;
 export const LEGACY_OFFLINE_DB_NAME = "ordine-offline";
 export const LEGACY_MIGRATION_META_ID = "legacy-idb-migration-v1";
 
@@ -35,6 +36,14 @@ export type LocalRecipeMediaRecord = {
   byteSize: number;
   cachedAt: string;
   blob: Blob;
+};
+
+export type LocalRecipeSummaryRecord = {
+  userId: string;
+  recipeId: string;
+  cachedAt: string;
+  deleted: boolean;
+  summary: RecipeSummary;
 };
 
 export type LocalCookingSessionRecord = {
@@ -74,6 +83,7 @@ export class RecipioLocalDatabase extends Dexie {
   mutationQueue!: Table<LocalMutationRecord, IndexableType>;
   syncMeta!: Table<LocalSyncMetaRecord, IndexableType>;
   media!: Table<LocalRecipeMediaRecord, IndexableType>;
+  recipeSummaries!: Table<LocalRecipeSummaryRecord, IndexableType>;
 
   constructor() {
     super(RECIPIO_LOCAL_DB_NAME);
@@ -89,6 +99,7 @@ export class RecipioLocalDatabase extends Dexie {
       mutationQueue: "id, userId, queuedAt",
       syncMeta: "[userId+scope], userId, scope, updatedAt",
       media: "[userId+recipeId+mediaId], userId, recipeId, mediaId, cachedAt",
+      recipeSummaries: "[userId+recipeId], userId, recipeId, cachedAt, deleted",
     } as const;
     this.version(1).stores({
       profiles: stores.profiles,

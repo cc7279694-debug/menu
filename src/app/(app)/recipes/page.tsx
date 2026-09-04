@@ -1,5 +1,5 @@
-import { RecipeListPage } from "@/features/recipes/components/recipe-list-page";
+import { RecipeListLocalFirstPage } from "@/features/recipes/components/recipe-list-local-first-page";
 
-export default async function RecipesPage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
-  return <RecipeListPage searchParams={searchParams} title="我的菜谱" />;
+export default function RecipesPage() {
+  return <RecipeListLocalFirstPage title="我的菜谱" />;
 }

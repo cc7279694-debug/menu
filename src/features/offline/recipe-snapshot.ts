@@ -1,4 +1,4 @@
-import type { RecipeDetail } from "@/features/recipes/types";
+import type { RecipeDetail, RecipeSummary } from "@/features/recipes/types";
 
 import type { OfflineRecipeSnapshot } from "./types";
 
@@ -27,5 +27,25 @@ export function toOfflineRecipeSnapshot(
         ingredientLinks: step.ingredientLinks.map((link) => ({ ...link })),
       })),
     },
+  };
+}
+
+export function toOfflineRecipeSummary(snapshot: OfflineRecipeSnapshot): RecipeSummary {
+  const { recipe } = snapshot;
+  return {
+    id: recipe.id,
+    title: recipe.title,
+    description: recipe.description,
+    coverUrl: null,
+    baseServings: recipe.baseServings,
+    prepMinutes: recipe.prepMinutes,
+    cookMinutes: recipe.cookMinutes,
+    isFavorite: recipe.isFavorite,
+    category: recipe.category ? { ...recipe.category } : null,
+    tags: recipe.tags.map((tag) => ({ ...tag })),
+    preparationCount: recipe.preparationCount,
+    maxLeadTimeMinutes: recipe.maxLeadTimeMinutes,
+    nutrition: recipe.nutrition ? { ...recipe.nutrition } : null,
+    updatedAt: recipe.updatedAt,
   };
 }

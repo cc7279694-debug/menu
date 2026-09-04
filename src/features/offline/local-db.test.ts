@@ -32,6 +32,7 @@ describe("Recipio local database foundation", () => {
       "mutationQueue",
       "syncMeta",
       "media",
+      "recipeSummaries",
     ]));
   });
 
@@ -72,7 +73,7 @@ describe("Recipio local database foundation", () => {
 
     const database = await getLocalDatabase();
 
-    expect(database.verno).toBe(2);
+    expect(database.verno).toBe(3);
     expect(database.tables.map((table) => table.name)).toContain("media");
   });
 
