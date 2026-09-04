@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, type ReactNode } from "react";
+import { useSearchParams } from "next/navigation";
 
 import { CookingScreen } from "@/features/cooking/components/cooking-screen";
 import {
@@ -67,15 +68,19 @@ function sanitizeOfflineRecipe(recipe: OfflineRecipeSnapshot["recipe"]): Offline
 }
 
 export function OfflineApp() {
+  const searchParams = useSearchParams();
+  const rawPath = searchParams.get("path") ?? "/recipes";
   const [target, setTarget] = useState<OfflineTarget | null>(null);
   const [data, setData] = useState<OfflineData | null>(null);
   const [error, setError] = useState(false);
   const [empty, setEmpty] = useState(false);
 
   useEffect(() => {
-    const rawPath = new URLSearchParams(window.location.search).get("path") ?? "/recipes";
     const nextTarget = parseOfflineTarget(rawPath);
     setTarget(nextTarget);
+    setData(null);
+    setError(false);
+    setEmpty(false);
     if (nextTarget.kind === "unsupported") return;
 
     let cancelled = false;
@@ -95,7 +100,7 @@ export function OfflineApp() {
       .then((nextData) => { if (!cancelled && nextData) setData(nextData); })
       .catch(() => { if (!cancelled) setError(true); });
     return () => { cancelled = true; };
-  }, []);
+  }, [rawPath]);
 
   if (!target) return <main className="mx-auto max-w-3xl space-y-4 px-4 py-8"><p className="text-sm text-muted-foreground">正在读取本机离线数据…</p></main>;
   if (target.kind === "unsupported") return <OfflineMessage title="该页面暂不支持离线使用" />;

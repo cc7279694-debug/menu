@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import type { OfflineRecipeSnapshot, OfflineShoppingSnapshot } from "@/features/offline/types";
@@ -10,9 +10,13 @@ const databaseMocks = vi.hoisted(() => ({
   getShoppingSnapshot: vi.fn(),
   queueShoppingToggle: vi.fn(),
 }));
+const navigationMocks = vi.hoisted(() => ({
+  useSearchParams: vi.fn(() => new URLSearchParams(window.location.search)),
+}));
 
 vi.mock("@/features/offline/database", () => databaseMocks);
 vi.mock("@/features/offline/media-cache", () => ({ getRecipeMedia: vi.fn().mockResolvedValue(null) }));
+vi.mock("next/navigation", () => navigationMocks);
 vi.mock("@/features/cooking/components/cooking-screen", () => ({
   CookingScreen: ({ recipe }: { recipe: { title: string; coverUrl: string | null; coverPath: string | null; steps: Array<{ imageUrl: string | null; imagePath: string | null }> } }) => (
     <div data-cover-path={recipe.coverPath ?? "null"} data-cover-url={recipe.coverUrl ?? "null"} data-step-image-path={recipe.steps[0]?.imagePath ?? "null"} data-step-image-url={recipe.steps[0]?.imageUrl ?? "null"} data-testid="offline-cooking-screen">正在烹饪：{recipe.title}</div>
@@ -98,6 +102,20 @@ describe("OfflineApp", () => {
     expect(screen.getByText("炒熟鸡蛋")).toBeInTheDocument();
     expect(screen.getByText("提前 4 小时")).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /收藏|编辑/ })).not.toBeInTheDocument();
+  });
+
+  it("updates the rendered target when the offline path changes without remounting", async () => {
+    setTarget("/recipes");
+    const view = render(<OfflineApp />);
+
+    expect(await screen.findByRole("heading", { name: "最近离线菜谱" })).toBeInTheDocument();
+
+    await act(async () => {
+      window.history.pushState({}, "", `/offline/app?path=${encodeURIComponent(`/recipes/${RECIPE_ID}`)}`);
+      view.rerender(<OfflineApp />);
+    });
+
+    expect(await screen.findByRole("heading", { name: "食材清单" })).toBeInTheDocument();
   });
 
   it("renders cooking for an encoded cooking target", async () => {
