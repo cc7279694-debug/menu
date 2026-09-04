@@ -66,6 +66,10 @@ export function putRecipeSnapshot(snapshot: OfflineRecipeSnapshot): Promise<void
   return safe(async (database) => { await database.put("recipes", snapshot, [snapshot.userId, snapshot.recipeId]); });
 }
 
+export function deleteRecipeSnapshot(userId: string, recipeId: string): Promise<void> {
+  return safe(async (database) => { await database.delete("recipes", [userId, recipeId]); });
+}
+
 export function listRecipeSnapshots(userId: string): Promise<OfflineRecipeSnapshot[]> {
   return safe(async (database) => {
     const tx = database.transaction("recipes", "readwrite");

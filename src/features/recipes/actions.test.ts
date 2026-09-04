@@ -10,7 +10,7 @@ vi.mock("@/lib/supabase/server", () => ({
 }));
 vi.mock("next/cache", () => ({ revalidatePath: mocks.revalidatePath }));
 
-import { saveRecipeAction, setRecipeFavoriteAction } from "@/features/recipes/actions";
+import { permanentlyDeleteRecipeAction, saveRecipeAction, setRecipeFavoriteAction } from "@/features/recipes/actions";
 
 const recipeInput = {
   recipeId: "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
@@ -123,5 +123,38 @@ describe("recipe actions", () => {
     });
     expect(supabase.from).toHaveBeenCalledWith("recipes");
     expect(chain.eq).toHaveBeenCalledWith("user_id", "11111111-1111-4111-8111-111111111111");
+  });
+
+  it("permanently deletes only a recipe already in the trash", async () => {
+    const lookup = {
+      eq: vi.fn().mockReturnThis(),
+      not: vi.fn().mockReturnThis(),
+      maybeSingle: vi.fn().mockResolvedValue({ data: { cover_path: null }, error: null }),
+    };
+    const deletion = {
+      eq: vi.fn().mockReturnThis(),
+      not: vi.fn().mockReturnThis(),
+      select: vi.fn().mockReturnThis(),
+      maybeSingle: vi.fn().mockResolvedValue({ data: { id: recipeInput.recipeId }, error: null }),
+    };
+    const steps = {
+      eq: vi.fn().mockReturnThis(),
+      then: (resolve: (value: { data: never[]; error: null }) => unknown) => resolve({ data: [], error: null }),
+    };
+    const supabase = createSupabase({
+      from: vi.fn()
+        .mockReturnValueOnce({ select: vi.fn().mockReturnValue(lookup) })
+        .mockReturnValueOnce({ select: vi.fn().mockReturnValue(steps) })
+        .mockReturnValueOnce({ delete: vi.fn().mockReturnValue(deletion) }),
+    });
+    mocks.createServerSupabaseClient.mockResolvedValue(supabase);
+
+    await expect(permanentlyDeleteRecipeAction(recipeInput.recipeId)).resolves.toEqual({
+      ok: true,
+      data: null,
+    });
+    expect(lookup.not).toHaveBeenCalledWith("deleted_at", "is", null);
+    expect(deletion.not).toHaveBeenCalledWith("deleted_at", "is", null);
+    expect(mocks.revalidatePath).toHaveBeenCalledWith("/recipes");
   });
 });

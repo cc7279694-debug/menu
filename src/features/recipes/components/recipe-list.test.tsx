@@ -39,7 +39,14 @@ describe("recipe discovery components", () => {
     expect(screen.getByText(/2 人份/)).toBeInTheDocument();
     expect(screen.getByText("需提前 4 小时准备")).toBeInTheDocument();
     expect(screen.getByText("家常菜")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "移入回收站" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "收藏" })).toBeInTheDocument();
+  });
+
+  it("offers permanent deletion for recipes in the trash", () => {
+    render(<RecipeCard deleted recipe={recipe} />);
+
+    expect(screen.getByRole("button", { name: "永久删除" })).toBeInTheDocument();
   });
 
   it("shows distinct empty states for filtered and trash lists", () => {

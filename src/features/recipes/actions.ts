@@ -151,3 +151,55 @@ export async function moveRecipeToTrashAction(recipeId: string) {
 export async function restoreRecipeAction(recipeId: string) {
   return updateRecipe(recipeId, { deleted_at: null }, (query) => query.not("deleted_at", "is", null));
 }
+
+export async function permanentlyDeleteRecipeAction(recipeId: string): Promise<ActionResult<null>> {
+  if (!uuidSchema.safeParse(recipeId).success) {
+    return invalidId();
+  }
+
+  const { supabase, user } = await getUser();
+  if (!user) {
+    return { ok: false, message: "请先登录后再操作" };
+  }
+
+  const recipeResult = await supabase
+    .from("recipes")
+    .select("cover_path")
+    .eq("id", recipeId)
+    .eq("user_id", user.id)
+    .not("deleted_at", "is", null)
+    .maybeSingle();
+  if (recipeResult.error || !recipeResult.data) {
+    return { ok: false, message: "只能永久删除回收站中的菜谱" };
+  }
+
+  const stepResult = await supabase
+    .from("recipe_steps")
+    .select("image_path")
+    .eq("recipe_id", recipeId)
+    .eq("user_id", user.id);
+  const mediaPaths = [
+    recipeResult.data.cover_path,
+    ...(stepResult.data ?? []).map((step) => step.image_path),
+  ].filter((path): path is string => Boolean(path));
+
+  const deleted = await supabase
+    .from("recipes")
+    .delete()
+    .eq("id", recipeId)
+    .eq("user_id", user.id)
+    .not("deleted_at", "is", null)
+    .select("id")
+    .maybeSingle();
+  if (deleted.error || !deleted.data) {
+    return { ok: false, message: "菜谱永久删除失败，请稍后重试" };
+  }
+
+  if (mediaPaths.length) {
+    await supabase.storage.from("recipe-media").remove(mediaPaths);
+  }
+
+  revalidatePath("/recipes");
+  revalidatePath(`/recipes/${recipeId}`);
+  return { ok: true, data: null };
+}

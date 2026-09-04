@@ -7,6 +7,7 @@ import {
   clearOfflineData,
   __resetOfflineDatabaseForTests,
   deleteShoppingToggleIfCurrent,
+  deleteRecipeSnapshot,
   getLastOfflineProfile,
   getRecipeSnapshot,
   getShoppingSnapshot,
@@ -63,6 +64,12 @@ describe("offline database", () => {
   it("does not expose another user's shopping snapshot", async () => {
     await putShoppingSnapshot(shoppingSnapshot);
     expect(await getShoppingSnapshot("user-b")).toBeNull();
+  });
+
+  it("removes a deleted recipe from the offline cache for the current user", async () => {
+    await putRecipeSnapshot(baseRecipe("recipe-to-delete", "2026-08-27T00:00:00.000Z"));
+    await deleteRecipeSnapshot("user-a", "recipe-to-delete");
+    expect(await getRecipeSnapshot("user-a", "recipe-to-delete")).toBeNull();
   });
 
   it("updates the shopping item and coalesces the toggle queue in one operation", async () => {

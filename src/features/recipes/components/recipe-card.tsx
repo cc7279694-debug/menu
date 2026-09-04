@@ -2,6 +2,8 @@ import Link from "next/link";
 
 import { Badge } from "@/components/ui/badge";
 import { FavoriteButton } from "@/features/recipes/components/favorite-button";
+import { PermanentDeleteButton } from "@/features/recipes/components/permanent-delete-button";
+import { MoveToTrashButton } from "@/features/recipes/components/move-to-trash-button";
 import { RestoreButton } from "@/features/recipes/components/restore-button";
 import type { RecipeSummary } from "@/features/recipes/types";
 import { formatPreparationLeadTime } from "@/features/recipes/preparation-time";
@@ -29,7 +31,7 @@ export function RecipeCard({ recipe, deleted = false }: { recipe: RecipeSummary;
     <article className="overflow-hidden rounded-2xl border bg-card transition hover:-translate-y-0.5 hover:shadow-sm">
       {deleted ? <div>{content}</div> : <Link className="block" href={`/recipes/${recipe.id}`}>{content}</Link>}
       <div className="flex items-center justify-between gap-2 border-t px-4 py-3">
-        {deleted ? <RestoreButton recipeId={recipe.id} /> : <FavoriteButton initialFavorite={recipe.isFavorite} recipeId={recipe.id} />}
+        {deleted ? <div className="flex flex-wrap gap-2"><RestoreButton recipeId={recipe.id} /><PermanentDeleteButton recipeId={recipe.id} /></div> : <div className="flex flex-wrap items-center gap-2"><FavoriteButton initialFavorite={recipe.isFavorite} recipeId={recipe.id} /><MoveToTrashButton recipeId={recipe.id} /></div>}
         {!deleted && <Link className="text-sm text-muted-foreground underline" href={`/recipes/${recipe.id}/edit`}>编辑</Link>}
       </div>
     </article>
