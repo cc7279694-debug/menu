@@ -47,6 +47,30 @@ function response(body: unknown, status = 200) {
 }
 
 describe("QianWen recipe draft extractor", () => {
+  it("includes nutrition analysis in the same request and keeps inferred values for review", async () => {
+    const fetchImpl = vi.fn<typeof fetch>().mockResolvedValue(response({
+      choices: [{ message: { content: JSON.stringify({
+        ...draft,
+        nutrition: { caloriesKcal: 460, proteinGrams: 31, fatGrams: null, carbsGrams: null, isEstimated: false },
+        fieldChecks: [{ path: "nutrition.caloriesKcal", label: "每份热量", status: "inferred", message: null }],
+      }) } }],
+    }));
+    const extractor = createQianwenRecipeDraftExtractor({
+      fetchImpl,
+      env: { API_KEY: "sk-test", RECIPE_AI_MODEL: "qwen3.8-flash" },
+    });
+
+    await expect(extractor.extract({ document, imageUrls: [] })).resolves.toMatchObject({
+      nutrition: { caloriesKcal: 460, proteinGrams: 31, isEstimated: true },
+      review: { requiresConfirmation: true, confirmedAt: null },
+    });
+    expect(fetchImpl).toHaveBeenCalledTimes(1);
+
+    const payload = JSON.parse(String(fetchImpl.mock.calls[0]?.[1]?.body));
+    expect(payload.messages[0].content).toContain("食材用量与基础份数足以支持日常参考时，可以分析每份营养并标记 inferred");
+    expect(payload.messages[0].content).toContain("关键用量不足时保持 null、标记 missing，并在 warnings 中说明原因");
+  });
+
   it("requests structured JSON and validates the returned draft", async () => {
     const fetchImpl = vi.fn<typeof fetch>().mockResolvedValue(response({
       choices: [{ message: { content: JSON.stringify(explicitDraft) } }],

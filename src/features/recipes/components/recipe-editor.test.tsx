@@ -11,6 +11,7 @@ const importActionMocks = vi.hoisted(() => ({
   confirm: vi.fn().mockResolvedValue({ ok: true, data: null }),
   finalize: vi.fn().mockResolvedValue({ ok: true, data: null }),
 }));
+const nutritionActionMocks = vi.hoisted(() => ({ analyze: vi.fn() }));
 
 vi.mock("@/lib/supabase/browser", () => ({
   getBrowserSupabaseClient: () => ({
@@ -21,10 +22,58 @@ vi.mock("@/features/recipe-imports/actions", () => ({
   confirmRecipeImportReviewAction: importActionMocks.confirm,
   finalizeRecipeImportAction: importActionMocks.finalize,
 }));
+vi.mock("@/features/nutrition-analysis/actions", () => ({ analyzeNutritionAction: nutritionActionMocks.analyze }));
 
 const userId = "11111111-1111-4111-8111-111111111111";
 
 describe("RecipeEditor", () => {
+  it("fills per-serving nutrition from the current ingredients without saving", async () => {
+    const user = userEvent.setup();
+    const initialValue: RecipeSaveInput = {
+      recipeId: "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+      title: "番茄炒蛋",
+      description: null,
+      categoryId: null,
+      tagIds: [],
+      coverPath: null,
+      baseServings: 2,
+      prepMinutes: null,
+      cookMinutes: null,
+      personalNotes: null,
+      nutrition: null,
+      ingredients: [{ recipeIngredientId: "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb", name: "牛肉", quantity: 200, quantityText: null, unit: "克", preparationNote: null, sortOrder: 0 }],
+      steps: [{ stepId: "cccccccc-cccc-4ccc-8ccc-cccccccccccc", instruction: "煎熟", imagePath: null, timerSeconds: null, sortOrder: 0, ingredientLinks: [] }],
+      preparations: [],
+    };
+    nutritionActionMocks.analyze.mockResolvedValue({
+      ok: true,
+      data: {
+        total: { caloriesKcal: 400, proteinGrams: 40, fatGrams: null, carbsGrams: null },
+        perServing: { caloriesKcal: 200, proteinGrams: 20, fatGrams: null, carbsGrams: null },
+        ingredients: [], assumptions: ["按生重"], omittedItems: [], confidence: "medium",
+      },
+    });
+    const saveRecipe = vi.fn();
+    render(<RecipeEditor mode="edit" userId={userId} categories={[]} tags={[]} initialValue={initialValue} onSaved={vi.fn()} saveRecipe={saveRecipe} />);
+
+    await user.click(screen.getByRole("button", { name: "AI 营养分析" }));
+    await waitFor(() => expect(nutritionActionMocks.analyze).toHaveBeenCalled());
+    await waitFor(() => expect(screen.getByRole("status")).toHaveTextContent("已填入每份营养，请检查后保存"));
+    expect(nutritionActionMocks.analyze).toHaveBeenCalledWith({ ingredientText: "牛肉 200克", servings: 2 });
+    expect(screen.getByLabelText("热量（千卡）")).toHaveValue(200);
+    expect(screen.getByLabelText("蛋白质（克）")).toHaveValue(20);
+    expect(screen.getByText("已填入每份营养，请检查后保存")).toBeInTheDocument();
+    expect(saveRecipe).not.toHaveBeenCalled();
+  });
+
+  it("asks for an ingredient before analysis when names are blank", async () => {
+    const user = userEvent.setup();
+    render(<RecipeEditor mode="create" userId={userId} categories={[]} tags={[]} onSaved={vi.fn()} />);
+    await user.click(screen.getByRole("button", { name: "AI 营养分析" }));
+    expect(await screen.findByRole("alert")).toHaveTextContent("请先填写至少一种食材和用量");
+    expect(nutritionActionMocks.analyze).not.toHaveBeenCalled();
+  });
+
   it("requires confirmation before saving an imported draft", async () => {
     const user = userEvent.setup();
     const initialValue: RecipeSaveInput = {

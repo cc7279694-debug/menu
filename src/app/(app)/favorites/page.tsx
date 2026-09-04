@@ -1,5 +1,6 @@
-import { RecipeListPage } from "@/features/recipes/components/recipe-list-page";
+import { redirect } from "next/navigation";
 
 export default async function FavoritesPage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
-  return <RecipeListPage favoriteOnly searchParams={searchParams} title="我的收藏" />;
+  void searchParams;
+  redirect("/nutrition");
 }

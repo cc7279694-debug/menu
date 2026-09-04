@@ -19,6 +19,9 @@ import { ImagePicker } from "@/features/recipes/components/image-picker";
 import { combineTimerParts, splitTimerSeconds } from "@/features/recipes/timer-input";
 import { RecipePreparationsEditor } from "@/features/recipes/components/recipe-preparations-editor";
 import { RecipeNutritionEditor } from "@/features/recipes/components/recipe-nutrition";
+import { analyzeNutritionAction } from "@/features/nutrition-analysis/actions";
+import { buildRecipeIngredientText } from "@/features/nutrition-analysis/ingredient-text";
+import type { NutritionAnalysisResult } from "@/features/nutrition-analysis/types";
 
 type TaxonomyOption = { id: string; name: string };
 
@@ -177,6 +180,9 @@ export function RecipeEditor({
   const [removedStepIds, setRemovedStepIds] = useState<Set<string>>(new Set());
   const [serverMessage, setServerMessage] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
+  const [isAnalyzingNutrition, setIsAnalyzingNutrition] = useState(false);
+  const [nutritionAnalysisResult, setNutritionAnalysisResult] = useState<NutritionAnalysisResult | null>(null);
+  const [nutritionAnalysisMessage, setNutritionAnalysisMessage] = useState<string | null>(null);
   const [newCategory, setNewCategory] = useState("");
   const [newTag, setNewTag] = useState("");
   const reviewCheckboxRef = useRef<HTMLInputElement>(null);
@@ -300,6 +306,33 @@ export function RecipeEditor({
       setServerMessage(error instanceof Error ? error.message : "菜谱保存失败，请稍后重试");
     } finally {
       setIsSaving(false);
+    }
+  };
+
+  const analyzeCurrentNutrition = async () => {
+    const ingredientText = buildRecipeIngredientText(getValues("ingredients"));
+    if (!ingredientText) {
+      setNutritionAnalysisResult(null);
+      setNutritionAnalysisMessage("请先填写至少一种食材和用量");
+      return;
+    }
+
+    setIsAnalyzingNutrition(true);
+    setNutritionAnalysisMessage(null);
+    try {
+      const result = await analyzeNutritionAction({ ingredientText, servings: getValues("baseServings") });
+      if (!result.ok) {
+        setNutritionAnalysisResult(null);
+        setNutritionAnalysisMessage(result.message);
+        return;
+      }
+      setValue("nutrition", { ...result.data.perServing, isEstimated: true }, { shouldDirty: true, shouldValidate: true });
+      setNutritionAnalysisResult(result.data);
+    } catch {
+      setNutritionAnalysisResult(null);
+      setNutritionAnalysisMessage("营养分析失败，请稍后重试");
+    } finally {
+      setIsAnalyzingNutrition(false);
     }
   };
 
@@ -429,7 +462,16 @@ export function RecipeEditor({
         <div className="md:col-span-2"><ImagePicker label="菜谱封面" onChange={(file) => { setCoverFile(file); setCoverRemoved(!file); }} previewUrl={coverRemoved ? null : coverPreviewUrl} value={coverFile} /></div>
       </section>
 
-      <RecipeNutritionEditor control={control} errors={errors} register={register} setValue={setValue} />
+      <RecipeNutritionEditor
+        analysisMessage={nutritionAnalysisMessage}
+        analysisResult={nutritionAnalysisResult}
+        control={control}
+        errors={errors}
+        isAnalyzing={isAnalyzingNutrition}
+        onAnalyze={analyzeCurrentNutrition}
+        register={register}
+        setValue={setValue}
+      />
 
       <RecipePreparationsEditor control={control} errors={errors} register={register} setValue={setValue} />
 

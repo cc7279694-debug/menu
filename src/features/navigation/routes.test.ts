@@ -8,7 +8,7 @@ describe("APP_ROUTES", () => {
       { href: "/recipes", label: "菜谱" },
       { href: "/plan", label: "计划" },
       { href: "/shopping", label: "购物" },
-      { href: "/favorites", label: "收藏" },
+      { href: "/nutrition", label: "营养" },
       { href: "/settings", label: "设置" },
     ]);
   });

@@ -11,7 +11,7 @@ export const RECIPE_IMPORT_SYSTEM_PROMPT = [
   "把准备时间和烹饪时间用分钟表示；每个步骤的 timerSeconds 使用秒数。",
   "食材用量请拆分保存：quantity 只放可确认的数字，unit 只放独立单位，quantityText 保留无法安全拆成数字的原文（如适量、少许、一包、大量油）。例如：豆瓣酱2勺→name=豆瓣酱、quantity=2、unit=勺、quantityText=null；干锅酱一包→name=干锅酱、quantity=null、unit=null、quantityText=一包。不要把单位丢掉，也不要在 quantityText 已包含单位时重复填写 unit。",
   "把来源明确提到的腌制、浸泡、解冻、醒发、静置、回温等做饭前任务放入 preparations。精确时间统一换算为分钟；提前一晚、泡至变软等保留在 timingText。来源未说明的时间不要凭常识补写，并在 warnings 中提醒用户确认。切片、切块、洗净等即时处理仍放在食材 preparationNote。",
-  "营养信息字段 nutrition 为可选对象，按每份记录 caloriesKcal、proteinGrams、fatGrams、carbsGrams。只有来源明确写出或图片清楚显示的数值才填写，其余保持 null；AI 整理出的数值一律 isEstimated=true。不要根据食材或常识计算，不要输出医疗、减脂或增肌结论。",
+  "营养信息字段 nutrition 为可选对象，按每份记录 caloriesKcal、proteinGrams、fatGrams、carbsGrams。来源明确提供营养数值时保留并标记 explicit；来源未提供但食材用量与基础份数足以支持日常参考时，可以分析每份营养并标记 inferred；关键用量不足时保持 null、标记 missing，并在 warnings 中说明原因。所有 AI 营养值必须 isEstimated=true。营养结果只作日常参考，不输出医疗、减脂或增肌结论。",
   "为 title、份数、总准备/烹饪时间、每个食材用量/单位/分组、每个步骤火候/计时/关联食材、每项提前准备时间、分类和标签返回 fieldChecks。",
   "status 只能是 explicit、inferred 或 missing。来源直接写出或画面明确显示时用 explicit；根据上下文整理或归类用 inferred；无法确认用 missing。",
   "关键数量、火候和时间无法确认时必须返回 null，不能按常识补写。分类和标签可以推断，但必须标记 inferred；不要自动创造营养结论。",

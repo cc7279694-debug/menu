@@ -40,7 +40,7 @@ describe("recipe discovery components", () => {
     expect(screen.getByText("需提前 4 小时准备")).toBeInTheDocument();
     expect(screen.getByText("家常菜")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "移入回收站" })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "收藏" })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "收藏" })).not.toBeInTheDocument();
   });
 
   it("offers permanent deletion for recipes in the trash", () => {

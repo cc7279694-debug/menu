@@ -20,7 +20,7 @@ describe("RecipeNutritionCard", () => {
     expect(screen.getByRole("heading", { name: "每份营养" })).toBeInTheDocument();
     expect(screen.getByText("420千卡")).toBeInTheDocument();
     expect(screen.getByText("18.5克")).toBeInTheDocument();
-    expect(screen.getByText("估算")).toBeInTheDocument();
+    expect(screen.getByText("AI 参考值")).toBeInTheDocument();
     expect(screen.queryByText("蛋白质")).not.toBeInTheDocument();
   });
 

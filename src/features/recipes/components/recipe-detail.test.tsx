@@ -50,7 +50,8 @@ describe("RecipeDetailView", () => {
     expect(screen.getByRole("heading", { name: "每份营养" })).toBeInTheDocument();
     expect(screen.getByText("320千卡")).toBeInTheDocument();
     expect(screen.getByText("蛋白质")).toBeInTheDocument();
-    expect(screen.getByText("估算")).toBeInTheDocument();
+    expect(screen.getByText("AI 参考值")).toBeInTheDocument();
+    expect(screen.queryByText("收藏")).not.toBeInTheDocument();
     expect(screen.getByText("鸡蛋 · 提前 4 小时浸泡")).toBeInTheDocument();
     expect(screen.getByText("鸡蛋 · 腌制入味")).toBeInTheDocument();
     expect(screen.getByText("提前一晚 · 提前解冻")).toBeInTheDocument();

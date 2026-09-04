@@ -45,7 +45,7 @@ export function RecipeDetailView({ recipe, cookingHistory = emptyCookingHistory 
           <div className="mt-3 flex flex-wrap gap-1">{recipe.tags.map((tag) => <Badge key={tag.id} variant="outline">{tag.name}</Badge>)}</div>
         </div>
         <div className="space-y-3">
-          <RecipeActions isFavorite={recipe.isFavorite} recipeId={recipe.id} />
+          <RecipeActions recipeId={recipe.id} />
           <CookingEntry recipe={recipe} />
         </div>
       </div>

@@ -6,6 +6,7 @@ import {
   buildRecipeImportSourceText,
   parseRecipeImportDraftOutput,
   readOpenAiOutputText,
+  RECIPE_IMPORT_SYSTEM_PROMPT,
 } from "@/features/recipe-imports/recipe-ai-shared";
 
 const document = {
@@ -18,6 +19,14 @@ const document = {
 };
 
 describe("recipe AI shared helpers", () => {
+  it("asks the importer to distinguish explicit, inferred, and missing nutrition facts", () => {
+    expect(RECIPE_IMPORT_SYSTEM_PROMPT).not.toContain("不要根据食材或常识计算");
+    expect(RECIPE_IMPORT_SYSTEM_PROMPT).toContain("来源明确提供营养数值时保留并标记 explicit");
+    expect(RECIPE_IMPORT_SYSTEM_PROMPT).toContain("食材用量与基础份数足以支持日常参考时，可以分析每份营养并标记 inferred");
+    expect(RECIPE_IMPORT_SYSTEM_PROMPT).toContain("关键用量不足时保持 null、标记 missing，并在 warnings 中说明原因");
+    expect(RECIPE_IMPORT_SYSTEM_PROMPT).toContain("所有 AI 营养值必须 isEstimated=true");
+  });
+
   it("builds a clearly delimited source prompt", () => {
     const text = buildRecipeImportSourceText(document);
     expect(text).toContain("平台：小红书");

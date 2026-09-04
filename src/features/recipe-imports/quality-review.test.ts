@@ -90,4 +90,37 @@ describe("recipe import quality review", () => {
     ]));
     expect(result.review.requiresConfirmation).toBe(true);
   });
+
+  it("keeps explicit nutrition values without adding a confirmation requirement for them", () => {
+    const result = buildRecipeImportQualityDraft({
+      ...modelDraft,
+      nutrition: { caloriesKcal: 520, proteinGrams: 35, fatGrams: 18, carbsGrams: 42, isEstimated: false },
+      fieldChecks: [
+        { path: "nutrition.caloriesKcal", status: "explicit", label: "每份热量", message: null },
+        { path: "nutrition.proteinGrams", status: "explicit", label: "每份蛋白质", message: null },
+        { path: "nutrition.fatGrams", status: "explicit", label: "每份脂肪", message: null },
+        { path: "nutrition.carbsGrams", status: "explicit", label: "每份碳水", message: null },
+      ],
+    });
+
+    expect(result.nutrition).toEqual({ caloriesKcal: 520, proteinGrams: 35, fatGrams: 18, carbsGrams: 42, isEstimated: true });
+    expect(result.review.fieldChecks.filter((check) => check.path.startsWith("nutrition.")).every((check) => check.status === "explicit")).toBe(true);
+  });
+
+  it("keeps an all-missing nutrition draft empty and asks the user to confirm it", () => {
+    const result = buildRecipeImportQualityDraft({
+      ...modelDraft,
+      nutrition: { caloriesKcal: null, proteinGrams: null, fatGrams: null, carbsGrams: null, isEstimated: false },
+      fieldChecks: [],
+    });
+
+    expect(result.nutrition).toBeNull();
+    expect(result.review.fieldChecks).toEqual(expect.arrayContaining([
+      expect.objectContaining({ path: "nutrition.caloriesKcal", status: "missing" }),
+      expect.objectContaining({ path: "nutrition.proteinGrams", status: "missing" }),
+      expect.objectContaining({ path: "nutrition.fatGrams", status: "missing" }),
+      expect.objectContaining({ path: "nutrition.carbsGrams", status: "missing" }),
+    ]));
+    expect(result.review.requiresConfirmation).toBe(true);
+  });
 });
