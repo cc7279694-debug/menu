@@ -49,6 +49,83 @@ async function readProviderError(response: Response): Promise<{ code?: string; m
   }
 }
 
+type RecordLike = Record<string, unknown>;
+
+function asRecord(value: unknown): RecordLike {
+  return value && typeof value === "object" && !Array.isArray(value) ? value as RecordLike : {};
+}
+
+function firstValue(record: RecordLike, keys: string[]): unknown {
+  for (const key of keys) {
+    if (Object.prototype.hasOwnProperty.call(record, key) && record[key] !== undefined) return record[key];
+  }
+  return null;
+}
+
+function numericValue(value: unknown): number | null {
+  if (typeof value === "number") return Number.isFinite(value) ? value : null;
+  if (typeof value !== "string" || !value.trim()) return null;
+  const match = value.replaceAll(",", "").match(/-?\d+(?:\.\d+)?/);
+  if (!match) return null;
+  const parsed = Number(match[0]);
+  return Number.isFinite(parsed) ? parsed : null;
+}
+
+function normalizeMetrics(value: unknown): RecordLike {
+  const record = asRecord(value);
+  return {
+    caloriesKcal: numericValue(firstValue(record, ["caloriesKcal", "calories", "kcal", "热量", "卡路里"])),
+    proteinGrams: numericValue(firstValue(record, ["proteinGrams", "protein", "蛋白质"])),
+    fatGrams: numericValue(firstValue(record, ["fatGrams", "fat", "脂肪"])),
+    carbsGrams: numericValue(firstValue(record, ["carbsGrams", "carbs", "carbohydrates", "碳水"])),
+  };
+}
+
+function normalizeText(value: unknown): string | null {
+  if (typeof value === "string" && value.trim()) return value.trim();
+  if (typeof value === "number" && Number.isFinite(value)) return String(value);
+  return null;
+}
+
+function normalizeTextArray(value: unknown): string[] {
+  if (Array.isArray(value)) return value.flatMap((item) => { const text = normalizeText(item); return text ? [text] : []; });
+  const text = normalizeText(value);
+  return text ? [text] : [];
+}
+
+function normalizeConfidence(value: unknown): "high" | "medium" | "low" {
+  if (value === "high" || value === "较高") return "high";
+  if (value === "medium" || value === "中等") return "medium";
+  return "low";
+}
+
+function normalizeIngredient(value: unknown): RecordLike {
+  const record = asRecord(value);
+  return {
+    name: normalizeText(firstValue(record, ["name", "ingredient", "食材"])) ?? "未命名食材",
+    normalizedAmount: normalizeText(firstValue(record, ["normalizedAmount", "amount", "quantity", "用量"])),
+    caloriesKcal: numericValue(firstValue(record, ["caloriesKcal", "calories", "kcal", "热量", "卡路里"])),
+    proteinGrams: numericValue(firstValue(record, ["proteinGrams", "protein", "蛋白质"])),
+  };
+}
+
+function normalizeNutritionModelOutput(value: unknown): unknown {
+  const root = asRecord(value);
+  const nestedNutrition = asRecord(firstValue(root, ["nutrition", "result", "data"]));
+  const source = Object.keys(nestedNutrition).length > 0 ? { ...root, ...nestedNutrition } : root;
+  const total = firstValue(source, ["total", "totalNutrition", "nutritionTotal"]);
+  const rawIngredients = firstValue(source, ["ingredients", "ingredientContributions", "items"]);
+  const ingredients = Array.isArray(rawIngredients) ? rawIngredients.map(normalizeIngredient) : [];
+
+  return {
+    total: normalizeMetrics(total ?? source),
+    ingredients,
+    assumptions: normalizeTextArray(firstValue(source, ["assumptions", "notes", "分析说明"])),
+    omittedItems: normalizeTextArray(firstValue(source, ["omittedItems", "omitted", "未计入"])),
+    confidence: normalizeConfidence(firstValue(source, ["confidence", "可信度"])),
+  };
+}
+
 export function createQianwenNutritionAnalyzer(options: QianwenNutritionAnalyzerOptions = {}): NutritionAnalyzer {
   const fetchImpl = options.fetchImpl ?? fetch;
   const env = options.env ?? getRecipeAiEnv();
@@ -87,7 +164,7 @@ export function createQianwenNutritionAnalyzer(options: QianwenNutritionAnalyzer
         const payload = (await response.json()) as unknown;
         const outputText = readOpenAiOutputText(payload);
         if (!outputText) throw new Error("missing output");
-        const parsed = nutritionAnalysisModelSchema.parse(JSON.parse(outputText));
+        const parsed = nutritionAnalysisModelSchema.parse(normalizeNutritionModelOutput(JSON.parse(outputText)));
         return normalizeNutritionAnalysis(parsed, input.servings);
       } catch (error) {
         if (error instanceof NutritionAnalysisInsufficientError) throw error;

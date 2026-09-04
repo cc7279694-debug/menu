@@ -8,6 +8,7 @@ describe("nutrition analysis prompt", () => {
     expect(NUTRITION_ANALYSIS_RULES).toContain("可食用量");
     expect(NUTRITION_ANALYSIS_RULES).toContain("生熟");
     expect(NUTRITION_ANALYSIS_RULES).toContain("omittedItems");
+    expect(NUTRITION_ANALYSIS_RULES).toContain("normalizedAmount");
     expect(NUTRITION_ANALYSIS_RULES).toContain("医疗建议");
     expect(NUTRITION_ANALYSIS_RULES).toContain("JSON");
   });

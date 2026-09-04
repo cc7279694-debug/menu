@@ -64,4 +64,21 @@ describe("Qwen nutrition analyzer", () => {
     });
     await expect(analyzer.analyze(input)).rejects.toThrow("营养分析失败");
   });
+
+  it("normalizes common nutrition aliases and ignores extra model explanations", async () => {
+    const analyzer = createQianwenNutritionAnalyzer({
+      fetchImpl: vi.fn<typeof fetch>().mockResolvedValue(response({ choices: [{ message: { content: JSON.stringify({
+        totalNutrition: { calories: "601.4", protein: "50.24", fat: "20.36", carbohydrates: "70.25" },
+        ingredientContributions: [{ name: "牛肉", amount: "200克", calories: "400", protein: "42", fat: "18", note: "按生重" }],
+        assumptions: ["熟米饭按熟重理解"], omittedItems: [], confidence: "medium", explanation: "仅作日常参考",
+      }) } }] })),
+      env: { API_KEY: "sk-test", RECIPE_AI_MODEL: "qwen3.8-flash" },
+    });
+
+    await expect(analyzer.analyze(input)).resolves.toMatchObject({
+      total: { caloriesKcal: 601, proteinGrams: 50.2, fatGrams: 20.4, carbsGrams: 70.3 },
+      ingredients: [{ name: "牛肉", normalizedAmount: "200克", caloriesKcal: 400, proteinGrams: 42 }],
+      perServing: { caloriesKcal: 301, proteinGrams: 25.1 },
+    });
+  });
 });
