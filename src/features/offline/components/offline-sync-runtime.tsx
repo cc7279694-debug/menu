@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 
 import { syncShoppingToggleQueue } from "../shopping-sync";
+import { syncRecipeMutationQueue } from "../recipe-sync";
 
 type OfflineSyncRuntimeProps = { userId: string };
 
@@ -15,16 +16,19 @@ export function OfflineSyncRuntime({ userId }: OfflineSyncRuntimeProps) {
       if (!navigator.onLine || inFlightRef.current) return;
 
       setMessage("正在同步");
-      const inFlight = syncShoppingToggleQueue(userId)
-        .then((result) => {
-          if (result.status === "idle") {
-            setMessage(null);
-          } else if (result.status === "synced") {
-            setMessage(result.syncedCount > 0 ? `${result.syncedCount} 项已同步` : null);
-          } else if (result.status === "auth-required") {
+      const inFlight = Promise.all([
+        syncShoppingToggleQueue(userId),
+        syncRecipeMutationQueue(userId),
+      ])
+        .then(([shopping, recipes]) => {
+          const results = [shopping, recipes];
+          if (results.some((result) => result.status === "auth-required")) {
             setMessage("请重新登录");
-          } else {
+          } else if (results.some((result) => result.status === "failed")) {
             setMessage("同步失败，操作已保留");
+          } else {
+            const syncedCount = results.reduce((total, result) => total + result.syncedCount, 0);
+            setMessage(syncedCount > 0 ? `${syncedCount} 项已同步` : null);
           }
         })
         .catch(() => setMessage("同步失败，操作已保留"))
@@ -35,7 +39,11 @@ export function OfflineSyncRuntime({ userId }: OfflineSyncRuntimeProps) {
 
     sync();
     window.addEventListener("online", sync);
-    return () => window.removeEventListener("online", sync);
+    window.addEventListener("recipio:sync-requested", sync);
+    return () => {
+      window.removeEventListener("online", sync);
+      window.removeEventListener("recipio:sync-requested", sync);
+    };
   }, [userId]);
 
   if (!message) return null;

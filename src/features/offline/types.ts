@@ -18,6 +18,8 @@ export type OfflineRecipeSnapshot = {
   cachedAt: string;
   lastOpenedAt: string;
   dataVersion: 3;
+  /** Local tombstone state used when a cached recipe is moved to trash offline. */
+  deleted?: boolean;
   recipe: OfflineRecipeDetail;
 };
 

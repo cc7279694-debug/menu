@@ -5,6 +5,7 @@ import {
   getLocalDatabase,
   type RecipioLocalDatabase,
   type LocalRecipeSummaryRecord,
+  type LocalMutationRecord,
 } from "./local-db";
 import type {
   OfflineProfile,
@@ -74,9 +75,13 @@ export function deleteRecipeSnapshot(userId: string, recipeId: string): Promise<
   });
 }
 
-export function listRecipeSnapshots(userId: string): Promise<OfflineRecipeSnapshot[]> {
+export function listRecipeSnapshots(userId: string, deleted = false): Promise<OfflineRecipeSnapshot[]> {
   return safe(async (database) => {
-    const all = (await database.recipes.where("userId").equals(userId).sortBy("lastOpenedAt")).reverse();
+    const all = (await database.recipes
+      .where("userId")
+      .equals(userId)
+      .filter((snapshot) => (snapshot.deleted ?? false) === deleted)
+      .sortBy("lastOpenedAt")).reverse();
     const result = await database.transaction("rw", database.recipes, async () => (
       removeIncompatible(
         database.recipes,
@@ -141,6 +146,94 @@ export function listRecipeSummaryPage(userId: string, deleted: boolean): Promise
         tags: record.summary.tags.map((tag) => ({ ...tag })),
         nutrition: record.summary.nutrition ? { ...record.summary.nutrition } : null,
       }));
+  });
+}
+
+export type RecipeMutationKind = "set-favorite" | "move-to-trash" | "restore" | "permanently-delete";
+
+export function updateRecipeSummaryCache(
+  userId: string,
+  recipeId: string,
+  patch: { deleted?: boolean; isFavorite?: boolean },
+): Promise<void> {
+  return safe(async (database) => {
+    const record = await database.recipeSummaries.get([userId, recipeId]);
+    if (!record) return;
+    await database.recipeSummaries.put({
+      ...record,
+      cachedAt: new Date().toISOString(),
+      deleted: patch.deleted ?? record.deleted,
+      summary: {
+        ...record.summary,
+        isFavorite: patch.isFavorite ?? record.summary.isFavorite,
+      },
+    });
+  });
+}
+
+export function deleteRecipeSummaryCache(userId: string, recipeId: string): Promise<void> {
+  return safe(async (database) => {
+    await database.recipeSummaries.delete([userId, recipeId]);
+  });
+}
+
+export function queueRecipeMutation(input: {
+  userId: string;
+  recipeId: string;
+  kind: RecipeMutationKind;
+  favorite?: boolean;
+}): Promise<LocalMutationRecord> {
+  return safe(async (database) => {
+    const previous = await database.mutationQueue
+      .where("userId")
+      .equals(input.userId)
+      .filter((record) => record.entity === "recipe" && record.entityId === input.recipeId)
+      .toArray();
+    const record: LocalMutationRecord = {
+      id: mutationId(),
+      userId: input.userId,
+      entity: "recipe",
+      entityId: input.recipeId,
+      operation: input.kind === "permanently-delete" ? "delete" : "update",
+      queuedAt: new Date().toISOString(),
+      attemptCount: 0,
+      lastError: null,
+      payload: {
+        kind: input.kind,
+        ...(input.kind === "set-favorite" ? { favorite: input.favorite === true } : {}),
+      },
+    };
+    await database.transaction("rw", database.mutationQueue, async () => {
+      for (const old of previous) await database.mutationQueue.delete(old.id);
+      await database.mutationQueue.put(record);
+    });
+    return record;
+  });
+}
+
+export function listRecipeMutationQueue(userId: string): Promise<LocalMutationRecord[]> {
+  return safe(async (database) => database.mutationQueue
+    .where("userId")
+    .equals(userId)
+    .filter((record) => record.entity === "recipe")
+    .sortBy("queuedAt"));
+}
+
+export function markRecipeMutationAttemptFailed(record: LocalMutationRecord, message: string): Promise<void> {
+  return safe(async (database) => {
+    const current = await database.mutationQueue.get(record.id);
+    if (current) {
+      await database.mutationQueue.put({ ...current, attemptCount: current.attemptCount + 1, lastError: message });
+    }
+  });
+}
+
+export function deleteRecipeMutationIfCurrent(record: LocalMutationRecord): Promise<boolean> {
+  return safe(async (database) => {
+    const current = await database.mutationQueue.get(record.id);
+    if (!current) return false;
+    await database.mutationQueue.delete(record.id);
+    return true;
   });
 }
 

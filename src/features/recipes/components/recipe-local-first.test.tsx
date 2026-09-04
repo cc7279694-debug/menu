@@ -8,6 +8,7 @@ const mocks = vi.hoisted(() => ({
   getLastOfflineProfile: vi.fn(),
   listRecipeSnapshots: vi.fn(),
   listRecipeSummaryPage: vi.fn(),
+  rememberOfflineProfile: vi.fn(),
   putRecipeSummaryPage: vi.fn(),
   getRecipeSnapshot: vi.fn(),
   loadRecipeListAction: vi.fn(),
@@ -18,6 +19,7 @@ vi.mock("@/features/offline/database", () => ({
   getLastOfflineProfile: mocks.getLastOfflineProfile,
   listRecipeSnapshots: mocks.listRecipeSnapshots,
   listRecipeSummaryPage: mocks.listRecipeSummaryPage,
+  rememberOfflineProfile: mocks.rememberOfflineProfile,
   putRecipeSummaryPage: mocks.putRecipeSummaryPage,
   getRecipeSnapshot: mocks.getRecipeSnapshot,
 }));
@@ -89,6 +91,8 @@ describe("recipe local-first pages", () => {
     mocks.getLastOfflineProfile.mockResolvedValue({ userId: USER_ID, lastAuthenticatedAt: updatedAt });
     mocks.listRecipeSnapshots.mockResolvedValue([snapshot]);
     mocks.listRecipeSummaryPage.mockResolvedValue([]);
+    mocks.rememberOfflineProfile.mockResolvedValue(undefined);
+    mocks.putRecipeSummaryPage.mockResolvedValue(undefined);
     mocks.getRecipeSnapshot.mockResolvedValue(snapshot);
   });
 

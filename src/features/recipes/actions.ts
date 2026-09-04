@@ -244,3 +244,23 @@ export async function permanentlyDeleteRecipeAction(recipeId: string): Promise<A
   revalidatePath(`/recipes/${recipeId}`);
   return { ok: true, data: null };
 }
+
+const recipeMutationSchema = z.discriminatedUnion("kind", [
+  z.object({ recipeId: uuidSchema, kind: z.literal("set-favorite"), favorite: z.boolean() }),
+  z.object({ recipeId: uuidSchema, kind: z.literal("move-to-trash") }),
+  z.object({ recipeId: uuidSchema, kind: z.literal("restore") }),
+  z.object({ recipeId: uuidSchema, kind: z.literal("permanently-delete") }),
+]);
+
+/** Server entry point for replaying an offline recipe status mutation. */
+export async function syncRecipeMutationAction(input: unknown): Promise<ActionResult<null>> {
+  const parsed = recipeMutationSchema.safeParse(input);
+  if (!parsed.success) return invalidId();
+
+  if (parsed.data.kind === "set-favorite") {
+    return setRecipeFavoriteAction(parsed.data.recipeId, parsed.data.favorite);
+  }
+  if (parsed.data.kind === "move-to-trash") return moveRecipeToTrashAction(parsed.data.recipeId);
+  if (parsed.data.kind === "restore") return restoreRecipeAction(parsed.data.recipeId);
+  return permanentlyDeleteRecipeAction(parsed.data.recipeId);
+}

@@ -15,6 +15,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { moveRecipeToTrashAction } from "@/features/recipes/actions";
+import { applyRecipeMutationLocally } from "@/features/offline/recipe-mutations";
 
 export function MoveToTrashButton({ recipeId }: { recipeId: string }) {
   const router = useRouter();
@@ -23,6 +24,14 @@ export function MoveToTrashButton({ recipeId }: { recipeId: string }) {
   const [pending, startTransition] = useTransition();
 
   const moveToTrash = () => startTransition(async () => {
+    const local = await applyRecipeMutationLocally({ recipeId, kind: "move-to-trash" }).catch(() => null);
+    if (local) {
+      setOpen(false);
+      router.push("/recipes?view=trash");
+      router.refresh();
+      return;
+    }
+
     const result = await moveRecipeToTrashAction(recipeId);
     if (!result.ok) {
       setMessage(result.message);

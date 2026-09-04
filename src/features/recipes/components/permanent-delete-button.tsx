@@ -15,6 +15,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { permanentlyDeleteRecipeAction } from "@/features/recipes/actions";
+import { applyRecipeMutationLocally } from "@/features/offline/recipe-mutations";
 import { deleteRecipeSnapshot, getLastOfflineProfile } from "@/features/offline/database";
 
 export function PermanentDeleteButton({ recipeId }: { recipeId: string }) {
@@ -24,6 +25,13 @@ export function PermanentDeleteButton({ recipeId }: { recipeId: string }) {
   const [pending, startTransition] = useTransition();
 
   const permanentlyDelete = () => startTransition(async () => {
+    const local = await applyRecipeMutationLocally({ recipeId, kind: "permanently-delete" }).catch(() => null);
+    if (local) {
+      setOpen(false);
+      router.refresh();
+      return;
+    }
+
     const result = await permanentlyDeleteRecipeAction(recipeId);
     if (!result.ok) {
       setMessage(result.message);

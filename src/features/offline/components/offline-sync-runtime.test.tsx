@@ -2,8 +2,10 @@ import { render, screen, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const syncShoppingToggleQueue = vi.hoisted(() => vi.fn());
+const syncRecipeMutationQueue = vi.hoisted(() => vi.fn());
 
 vi.mock("../shopping-sync", () => ({ syncShoppingToggleQueue }));
+vi.mock("../recipe-sync", () => ({ syncRecipeMutationQueue }));
 
 import { OfflineSyncRuntime } from "./offline-sync-runtime";
 
@@ -18,6 +20,8 @@ function deferred<T>() {
 describe("OfflineSyncRuntime", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    syncShoppingToggleQueue.mockResolvedValue({ status: "idle", syncedCount: 0, remainingCount: 0 });
+    syncRecipeMutationQueue.mockResolvedValue({ status: "idle", syncedCount: 0, remainingCount: 0 });
     Object.defineProperty(window.navigator, "onLine", { configurable: true, value: true });
   });
 
@@ -37,6 +41,16 @@ describe("OfflineSyncRuntime", () => {
 
     pending.resolve({ status: "synced", syncedCount: 2, remainingCount: 0 });
     await waitFor(() => expect(screen.getByRole("status")).toHaveTextContent("2 项已同步"));
+  });
+
+  it("starts recipe synchronization after a local mutation requests a retry", async () => {
+    syncShoppingToggleQueue.mockResolvedValueOnce({ status: "idle", syncedCount: 0, remainingCount: 0 });
+    syncRecipeMutationQueue.mockResolvedValueOnce({ status: "synced", syncedCount: 1, remainingCount: 0 });
+    render(<OfflineSyncRuntime userId={USER_ID} />);
+
+    await waitFor(() => expect(syncRecipeMutationQueue).toHaveBeenCalledTimes(1));
+    window.dispatchEvent(new Event("recipio:sync-requested"));
+    await waitFor(() => expect(syncRecipeMutationQueue).toHaveBeenCalledTimes(2));
   });
 
   it("announces retained operations when synchronization fails", async () => {

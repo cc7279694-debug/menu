@@ -6,20 +6,25 @@ import type { OfflineRecipeSnapshot, OfflineShoppingSnapshot } from "./types";
 import {
   clearOfflineData,
   __resetOfflineDatabaseForTests,
+  deleteRecipeMutationIfCurrent,
   deleteShoppingToggleIfCurrent,
   deleteRecipeSnapshot,
   getLastOfflineProfile,
   getRecipeSnapshot,
   getShoppingSnapshot,
+  listRecipeMutationQueue,
   listRecipeSummaryPage,
   listRecipeSnapshots,
   listShoppingToggleQueue,
   markShoppingToggleAttemptFailed,
+  markRecipeMutationAttemptFailed,
   putRecipeSnapshot,
   putRecipeSummaryPage,
+  queueRecipeMutation,
   putShoppingSnapshot,
   queueShoppingToggle,
   rememberOfflineProfile,
+  updateRecipeSummaryCache,
 } from "./database";
 
 const baseRecipe = (id: string, lastOpenedAt: string): OfflineRecipeSnapshot => ({
@@ -74,6 +79,15 @@ describe("offline database", () => {
     expect(await getRecipeSnapshot("user-a", "recipe-to-delete")).toBeNull();
   });
 
+  it("keeps local trash state separate from active cached recipes", async () => {
+    await putRecipeSnapshot(baseRecipe("recipe-trash", "2026-08-27T00:00:00.000Z"));
+    await putRecipeSnapshot({ ...baseRecipe("recipe-trash-offline", "2026-08-27T00:01:00.000Z"), deleted: true });
+
+    expect(await listRecipeSnapshots("user-a")).toHaveLength(1);
+    expect((await listRecipeSnapshots("user-a"))[0]?.recipeId).toBe("recipe-trash");
+    expect(await listRecipeSnapshots("user-a", true)).toMatchObject([{ recipeId: "recipe-trash-offline" }]);
+  });
+
   it("stores recipe list summaries per user and deletion scope", async () => {
     await putRecipeSummaryPage("user-a", [{
       id: "recipe-summary",
@@ -95,6 +109,37 @@ describe("offline database", () => {
     expect(await listRecipeSummaryPage("user-a", false)).toMatchObject([{ id: "recipe-summary", title: "摘要菜谱", coverUrl: null }]);
     expect(await listRecipeSummaryPage("user-a", true)).toEqual([]);
     expect(await listRecipeSummaryPage("user-b", false)).toEqual([]);
+  });
+
+  it("updates a cached summary and coalesces queued recipe mutations", async () => {
+    await putRecipeSummaryPage("user-a", [{
+      id: "recipe-mutation",
+      title: "待同步菜谱",
+      description: null,
+      coverUrl: null,
+      baseServings: 2,
+      prepMinutes: null,
+      cookMinutes: null,
+      isFavorite: false,
+      category: null,
+      tags: [],
+      preparationCount: 0,
+      maxLeadTimeMinutes: null,
+      nutrition: null,
+      updatedAt: "2026-08-27T00:00:00.000Z",
+    }], false);
+    await updateRecipeSummaryCache("user-a", "recipe-mutation", { deleted: true, isFavorite: true });
+    expect(await listRecipeSummaryPage("user-a", true)).toMatchObject([{ id: "recipe-mutation", isFavorite: true }]);
+    expect(await listRecipeSummaryPage("user-a", false)).toEqual([]);
+
+    const first = await queueRecipeMutation({ userId: "user-a", recipeId: "recipe-mutation", kind: "move-to-trash" });
+    const second = await queueRecipeMutation({ userId: "user-a", recipeId: "recipe-mutation", kind: "restore" });
+    expect(second.id).not.toBe(first.id);
+    expect(await listRecipeMutationQueue("user-a")).toMatchObject([{ entityId: "recipe-mutation", payload: { kind: "restore" } }]);
+    await markRecipeMutationAttemptFailed(second, "网络暂不可用");
+    expect(await listRecipeMutationQueue("user-a")).toMatchObject([{ attemptCount: 1, lastError: "网络暂不可用" }]);
+    expect(await deleteRecipeMutationIfCurrent({ ...second, id: "stale" })).toBe(false);
+    expect(await deleteRecipeMutationIfCurrent(second)).toBe(true);
   });
 
   it("updates the shopping item and coalesces the toggle queue in one operation", async () => {

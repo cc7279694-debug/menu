@@ -9,6 +9,7 @@ import {
   getLastOfflineProfile,
   listRecipeSnapshots,
   listRecipeSummaryPage,
+  rememberOfflineProfile,
   putRecipeSummaryPage,
 } from "@/features/offline/database";
 import { toOfflineRecipeSummary } from "@/features/offline/recipe-snapshot";
@@ -63,8 +64,7 @@ export function RecipeListLocalFirstPage({ title, favoriteOnly = false }: { titl
           if (!profile) return [];
           const summaries = await listRecipeSummaryPage(profile.userId, query.deletedOnly);
           if (summaries.length > 0) return summaries;
-          if (query.deletedOnly) return [];
-          const snapshots = await listRecipeSnapshots(profile.userId);
+          const snapshots = await listRecipeSnapshots(profile.userId, query.deletedOnly);
           return snapshots.map(toOfflineRecipeSummary);
         })
         .catch(() => [])
@@ -78,7 +78,10 @@ export function RecipeListLocalFirstPage({ title, favoriteOnly = false }: { titl
     void loadRecipeListAction(query).then((result) => {
       if (cancelled) return;
       if (result.ok) {
-        if (useLocal) void putRecipeSummaryPage(result.data.userId, result.data.items, query.deletedOnly).catch(() => undefined);
+        void rememberOfflineProfile(result.data.userId, new Date().toISOString()).catch(() => undefined);
+        if (useLocal) {
+          void putRecipeSummaryPage(result.data.userId, result.data.items, query.deletedOnly).catch(() => undefined);
+        }
         setState({ ...result.data, loading: false, notice: null });
         return;
       }

@@ -10,7 +10,12 @@ vi.mock("@/lib/supabase/server", () => ({
 }));
 vi.mock("next/cache", () => ({ revalidatePath: mocks.revalidatePath }));
 
-import { permanentlyDeleteRecipeAction, saveRecipeAction, setRecipeFavoriteAction } from "@/features/recipes/actions";
+import {
+  permanentlyDeleteRecipeAction,
+  saveRecipeAction,
+  setRecipeFavoriteAction,
+  syncRecipeMutationAction,
+} from "@/features/recipes/actions";
 
 const recipeInput = {
   recipeId: "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
@@ -123,6 +128,16 @@ describe("recipe actions", () => {
     });
     expect(supabase.from).toHaveBeenCalledWith("recipes");
     expect(chain.eq).toHaveBeenCalledWith("user_id", "11111111-1111-4111-8111-111111111111");
+  });
+
+  it("rejects malformed offline mutation payloads before touching Supabase", async () => {
+    mocks.createServerSupabaseClient.mockResolvedValue(createSupabase());
+
+    await expect(syncRecipeMutationAction({ recipeId: "not-a-uuid", kind: "move-to-trash" })).resolves.toEqual({
+      ok: false,
+      message: "请求参数无效",
+    });
+    expect(mocks.createServerSupabaseClient).not.toHaveBeenCalled();
   });
 
   it("permanently deletes only a recipe already in the trash", async () => {
