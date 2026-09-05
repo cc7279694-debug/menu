@@ -5,6 +5,7 @@ import {
   cookingSessionKey,
   createCookingSession,
   loadCookingSession,
+  parseCookingSession,
   saveCookingSession,
 } from "./session-storage";
 import type { CookingSessionRecipe } from "./types";
@@ -62,6 +63,17 @@ describe("versioned cooking session storage", () => {
 
     const loaded = loadCookingSession(storage, recipe);
     expect(loaded).toMatchObject({ completedPreparationIds: ["prep-1"], preparationsConfirmedAt: null });
+  });
+
+  it("parses a session value without requiring Storage", () => {
+    const session = createCookingSession(recipe, 2, 1_000);
+    expect(parseCookingSession({ ...session, completedPreparationIds: ["prep-1", "removed"] }, recipe))
+      .toMatchObject({ completedPreparationIds: ["prep-1"], preparationsConfirmedAt: null });
+  });
+
+  it("rejects a session value when the recipe version changes", () => {
+    const session = createCookingSession(recipe, 2, 1_000);
+    expect(parseCookingSession({ ...session, recipeUpdatedAt: "old" }, recipe)).toBeNull();
   });
 
   it("uses the recipe base servings when requested servings are out of range", () => {

@@ -49,12 +49,10 @@ export function createCookingSession(recipe: CookingSessionRecipe, targetServing
   };
 }
 
-export function loadCookingSession(storage: Storage, recipe: CookingSessionRecipe): CookingSessionV1 | null {
+export function parseCookingSession(value: unknown, recipe: CookingSessionRecipe): CookingSessionV1 | null {
   try {
     if (!recipe.id || !recipe.updatedAt || recipe.steps.some((step) => !Number.isFinite(step.sortOrder))) return null;
-    const raw = storage.getItem(cookingSessionKey(recipe.id));
-    if (!raw) return null;
-    const parsed = cookingSessionSchema.safeParse(JSON.parse(raw));
+    const parsed = cookingSessionSchema.safeParse(value);
     if (!parsed.success) return null;
     const session = parsed.data;
     if (session.recipeId !== recipe.id || session.recipeUpdatedAt !== recipe.updatedAt) return null;
@@ -62,6 +60,16 @@ export function loadCookingSession(storage: Storage, recipe: CookingSessionRecip
     if (session.timers.some((timer) => !recipe.steps.some((step) => step.id === timer.stepId))) return null;
     const preparationIds = new Set(recipe.preparations.map((preparation) => preparation.id));
     return { ...session, completedPreparationIds: session.completedPreparationIds.filter((id) => preparationIds.has(id)) };
+  } catch {
+    return null;
+  }
+}
+
+export function loadCookingSession(storage: Storage, recipe: CookingSessionRecipe): CookingSessionV1 | null {
+  try {
+    const raw = storage.getItem(cookingSessionKey(recipe.id));
+    if (!raw) return null;
+    return parseCookingSession(JSON.parse(raw), recipe);
   } catch {
     return null;
   }
