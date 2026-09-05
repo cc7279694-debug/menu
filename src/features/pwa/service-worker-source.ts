@@ -1,4 +1,5 @@
-export const PWA_CACHE_PREFIX = "food-sequence-public-shell" as const;
+export const PWA_CACHE_PREFIX = "recipio-public-shell" as const;
+export const PWA_LEGACY_CACHE_PREFIXES = ["food-sequence-public-shell"] as const;
 
 export const PWA_PUBLIC_ASSETS = [
   "/offline.html",
@@ -17,15 +18,19 @@ function sanitizeCacheVersion(version: string) {
 export function buildServiceWorkerSource(cacheVersion: string) {
   const cacheName = `${PWA_CACHE_PREFIX}-${sanitizeCacheVersion(cacheVersion)}`;
   const assets = JSON.stringify(PWA_PUBLIC_ASSETS);
+  const legacyCachePrefixes = JSON.stringify(PWA_LEGACY_CACHE_PREFIXES);
 
   return `
 const CACHE_NAME = ${JSON.stringify(cacheName)};
 const CACHE_PREFIX = ${JSON.stringify(PWA_CACHE_PREFIX)};
+const LEGACY_CACHE_PREFIXES = ${legacyCachePrefixes};
 const PRECACHE_URLS = ${assets};
 const OFFLINE_APP_PATH = "/offline/app";
 const OFFLINE_PRIVATE_ROUTE_PATTERNS = [
   /^\\/recipes$/,
+  /^\\/recipes\\/new$/,
   /^\\/recipes\\/[^/]+$/,
+  /^\\/recipes\\/[^/]+\\/edit$/,
   /^\\/recipes\\/[^/]+\\/cook$/,
   /^\\/shopping$/,
 ];
@@ -87,7 +92,11 @@ self.addEventListener("activate", (event) => {
       .then((keys) =>
         Promise.all(
           keys
-            .filter((key) => key.startsWith(CACHE_PREFIX + "-") && key !== CACHE_NAME)
+            .filter(
+              (key) =>
+                (key.startsWith(CACHE_PREFIX + "-") && key !== CACHE_NAME) ||
+                LEGACY_CACHE_PREFIXES.some((prefix) => key.startsWith(prefix + "-")),
+            )
             .map((key) => caches.delete(key)),
         ),
       )

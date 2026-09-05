@@ -8,7 +8,7 @@ import {
 
 describe("public PWA service worker source", () => {
   it("keeps the precache allowlist limited to public shell assets", () => {
-    expect(PWA_CACHE_PREFIX).toBe("food-sequence-public-shell");
+    expect(PWA_CACHE_PREFIX).toBe("recipio-public-shell");
     expect(PWA_PUBLIC_ASSETS).toEqual([
       "/offline.html",
       "/manifest.webmanifest",
@@ -22,7 +22,7 @@ describe("public PWA service worker source", () => {
   it("installs without taking over, cleans old versions and serves only the allowlist", () => {
     const source = buildServiceWorkerSource("qa-v1");
 
-    expect(source).toContain('const CACHE_NAME = "food-sequence-public-shell-qa-v1"');
+    expect(source).toContain('const CACHE_NAME = "recipio-public-shell-qa-v1"');
     expect(source).toContain('const OFFLINE_APP_PATH = "/offline/app"');
     expect(source).toContain('self.addEventListener("install"');
     expect(source).toContain("caches.open(CACHE_NAME)");
@@ -32,6 +32,7 @@ describe("public PWA service worker source", () => {
     expect(source).toContain('event.data?.type === "SKIP_WAITING"');
     expect(source).toContain('self.addEventListener("activate"');
     expect(source).toContain("self.clients.claim()");
+    expect(source).toContain("recipio-public-shell");
     expect(source).toContain("food-sequence-public-shell");
     expect(source).toContain('request.mode === "navigate"');
     expect(source).toContain('caches.match("/offline.html")');
@@ -59,7 +60,22 @@ describe("public PWA service worker source", () => {
   it("sanitizes cache version text before embedding it in JavaScript", () => {
     const source = buildServiceWorkerSource("release/2026 08; evil");
 
-    expect(source).toContain('const CACHE_NAME = "food-sequence-public-shell-release-2026-08-evil"');
+    expect(source).toContain('const CACHE_NAME = "recipio-public-shell-release-2026-08-evil"');
     expect(source).not.toContain("release/2026 08; evil");
+  });
+
+  it("routes offline authoring pages through the cached app shell", () => {
+    const source = buildServiceWorkerSource("qa-v1");
+
+    expect(source).toContain("/^\\/recipes\\/new$/");
+    expect(source).toContain("/^\\/recipes\\/[^/]+\\/edit$/");
+  });
+
+  it("cleans legacy Food Sequence shell caches during activation", () => {
+    const source = buildServiceWorkerSource("qa-v1");
+
+    expect(source).toContain("LEGACY_CACHE_PREFIXES");
+    expect(source).toContain("food-sequence-public-shell");
+    expect(source).toContain("some((prefix) => key.startsWith(prefix + \"-\"))");
   });
 });

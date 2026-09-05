@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 
 const UPDATE_MESSAGE = "发现新版本，更新后可获得最新页面与样式。";
 const OFFLINE_MESSAGE =
-  "当前离线。公共离线页仍可使用，私人菜谱和购物变更需要恢复网络后继续。";
+  "当前离线。菜谱文字、烹饪进度和购物勾选会保存在本机，联网后自动同步；图片和 AI 功能需要联网。";
 
 let registrationPromise: Promise<ServiceWorkerRegistration | null> | null = null;
 let registrationContainer: ServiceWorkerContainer | null = null;
@@ -83,7 +83,7 @@ export function PwaRuntime(): React.ReactElement | null {
       };
 
       registration.addEventListener("updatefound", handleUpdateFound);
-        serviceWorkerContainer.addEventListener(
+      serviceWorkerContainer.addEventListener(
         "controllerchange",
         handleControllerChange,
       );
@@ -125,6 +125,7 @@ export function PwaRuntime(): React.ReactElement | null {
         <div
           aria-live="polite"
           className="rounded-2xl border border-border bg-background/95 p-3 shadow-lg backdrop-blur-sm"
+          role="status"
         >
           <p className="text-sm text-foreground">{UPDATE_MESSAGE}</p>
           <div className="mt-2 flex justify-end gap-2">
@@ -150,6 +151,7 @@ export function PwaRuntime(): React.ReactElement | null {
         <div
           aria-live="polite"
           className="rounded-2xl border border-border bg-background/95 px-3 py-2 text-sm text-foreground shadow-lg backdrop-blur-sm"
+          role="status"
         >
           {OFFLINE_MESSAGE}
         </div>

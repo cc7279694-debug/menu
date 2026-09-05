@@ -136,4 +136,28 @@ describe("PwaRuntime", () => {
     expect(serviceWorker.register).toHaveBeenCalledTimes(1);
     expect(offlineListener).toBeDefined();
   });
+
+  it("keeps the offline notice actionable and exposes status semantics", async () => {
+    installServiceWorkerMock({});
+
+    render(<PwaRuntime />);
+    window.dispatchEvent(new Event("offline"));
+
+    const notice = await screen.findByText(
+      "当前离线。菜谱文字、烹饪进度和购物勾选会保存在本机，联网后自动同步；图片和 AI 功能需要联网。",
+    );
+    expect(notice).toHaveAttribute("role", "status");
+  });
+
+  it("marks the update prompt as a status announcement", async () => {
+    const waitingWorker = createWorker();
+    installServiceWorkerMock({ waiting: waitingWorker });
+
+    render(<PwaRuntime />);
+
+    expect((await screen.findByText("发现新版本，更新后可获得最新页面与样式。")).parentElement).toHaveAttribute(
+      "role",
+      "status",
+    );
+  });
 });
