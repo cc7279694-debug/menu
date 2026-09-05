@@ -16,7 +16,7 @@ describe("GET /sw.js", () => {
       "no-cache, no-store, must-revalidate",
     );
     expect(response.headers.get("service-worker-allowed")).toBe("/");
-    expect(body).toContain("food-sequence-public-shell-commit-123");
+    expect(body).toContain("recipio-public-shell-commit-123");
     expect(body).toContain('const OFFLINE_APP_PATH = "/offline/app"');
     expect(body).toContain("OFFLINE_PRIVATE_ROUTE_PATTERNS");
   });
