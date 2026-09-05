@@ -8,6 +8,9 @@ const databaseMocks = vi.hoisted(() => ({
   listRecipeSnapshots: vi.fn(),
   getRecipeSnapshot: vi.fn(),
   getShoppingSnapshot: vi.fn(),
+  getLatestRecipeDraft: vi.fn(),
+  getRecipeDraft: vi.fn(),
+  listRecipeMedia: vi.fn(),
   queueShoppingToggle: vi.fn(),
 }));
 const navigationMocks = vi.hoisted(() => ({
@@ -15,7 +18,12 @@ const navigationMocks = vi.hoisted(() => ({
 }));
 
 vi.mock("@/features/offline/database", () => databaseMocks);
-vi.mock("@/features/offline/media-cache", () => ({ getRecipeMedia: vi.fn().mockResolvedValue(null) }));
+vi.mock("@/features/offline/media-cache", () => ({ getRecipeMedia: vi.fn().mockResolvedValue(null), listRecipeMedia: databaseMocks.listRecipeMedia }));
+vi.mock("@/features/offline/components/offline-recipe-editor", () => ({
+  OfflineRecipeEditor: ({ mode, snapshot }: { mode: string; snapshot?: OfflineRecipeSnapshot | null }) => (
+    <div data-mode={mode} data-recipe-id={snapshot?.recipeId ?? "new"} data-testid="offline-recipe-editor" />
+  ),
+}));
 vi.mock("next/navigation", () => navigationMocks);
 vi.mock("@/features/cooking/components/cooking-screen", () => ({
   CookingScreen: ({ recipe }: { recipe: { title: string; coverUrl: string | null; coverPath: string | null; steps: Array<{ imageUrl: string | null; imagePath: string | null }> } }) => (
@@ -24,6 +32,7 @@ vi.mock("@/features/cooking/components/cooking-screen", () => ({
 }));
 
 import { OfflineApp } from "@/features/offline/components/offline-app";
+import { parseOfflineTarget } from "@/features/offline/components/offline-app";
 
 const USER_ID = "11111111-1111-4111-8111-111111111111";
 const RECIPE_ID = "22222222-2222-4222-8222-222222222222";
@@ -83,6 +92,9 @@ describe("OfflineApp", () => {
     databaseMocks.listRecipeSnapshots.mockResolvedValue([recipe]);
     databaseMocks.getRecipeSnapshot.mockResolvedValue(recipe);
     databaseMocks.getShoppingSnapshot.mockResolvedValue(shopping);
+    databaseMocks.getLatestRecipeDraft.mockResolvedValue(null);
+    databaseMocks.getRecipeDraft.mockResolvedValue(null);
+    databaseMocks.listRecipeMedia.mockResolvedValue([]);
     databaseMocks.queueShoppingToggle.mockResolvedValue({ userId: USER_ID, listId: LIST_ID, itemId: "item-1", targetChecked: true, clientMutationId: "mutation-1", queuedAt: "2026-08-28T00:00:00.000Z", attemptCount: 0, lastError: null });
   });
 
@@ -92,6 +104,36 @@ describe("OfflineApp", () => {
 
     expect(await screen.findByRole("heading", { name: "最近离线菜谱" })).toBeInTheDocument();
     expect(screen.getByText("番茄炒蛋")).toBeInTheDocument();
+  });
+
+  it("parses offline create and edit targets before the generic detail target", () => {
+    expect(parseOfflineTarget("/recipes/new")).toEqual({ kind: "recipe-create" });
+    expect(parseOfflineTarget(`/recipes/${RECIPE_ID}/edit`)).toEqual({ kind: "recipe-edit", recipeId: RECIPE_ID });
+  });
+
+  it("renders the offline create editor", async () => {
+    setTarget("/recipes/new");
+    render(<OfflineApp />);
+
+    expect(await screen.findByTestId("offline-recipe-editor")).toHaveAttribute("data-mode", "create");
+    expect(screen.getByTestId("offline-recipe-editor")).toHaveAttribute("data-recipe-id", "new");
+  });
+
+  it("renders the offline edit editor with the requested snapshot", async () => {
+    setTarget(`/recipes/${RECIPE_ID}/edit`);
+    render(<OfflineApp />);
+
+    expect(await screen.findByTestId("offline-recipe-editor")).toHaveAttribute("data-mode", "edit");
+    expect(screen.getByTestId("offline-recipe-editor")).toHaveAttribute("data-recipe-id", RECIPE_ID);
+    expect(databaseMocks.listRecipeMedia).toHaveBeenCalledWith(USER_ID, RECIPE_ID);
+  });
+
+  it("explains when the requested recipe is not cached for offline editing", async () => {
+    databaseMocks.getRecipeSnapshot.mockResolvedValue(null);
+    setTarget(`/recipes/${RECIPE_ID}/edit`);
+    render(<OfflineApp />);
+
+    expect(await screen.findByText("这道菜还没有保存到本机，暂时无法离线编辑")).toBeInTheDocument();
   });
 
   it("shows read-only recipe detail without server actions", async () => {

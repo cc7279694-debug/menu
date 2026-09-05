@@ -10,13 +10,18 @@ import {
   getShoppingSnapshot,
   listRecipeSnapshots,
 } from "@/features/offline/database";
+import { OfflineRecipeEditor } from "@/features/offline/components/offline-recipe-editor";
 import { OfflineRecipeDetail } from "@/features/offline/components/offline-recipe-detail";
 import { OfflineRecipeList } from "@/features/offline/components/offline-recipe-list";
 import { OfflineShoppingList } from "@/features/offline/components/offline-shopping-list";
+import { listRecipeMedia } from "@/features/offline/media-cache";
+import type { LocalRecipeMediaRecord } from "@/features/offline/local-db";
 import type { OfflineProfile, OfflineRecipeSnapshot, OfflineShoppingSnapshot } from "@/features/offline/types";
 
 export type OfflineTarget =
   | { kind: "recipe-list" }
+  | { kind: "recipe-create" }
+  | { kind: "recipe-edit"; recipeId: string }
   | { kind: "recipe-detail"; recipeId: string }
   | { kind: "cooking"; recipeId: string; servings: number | null; restart: boolean }
   | { kind: "shopping" }
@@ -26,6 +31,9 @@ export function parseOfflineTarget(rawPath: string): OfflineTarget {
   try {
     const url = new URL(rawPath || "/recipes", window.location.origin);
     if (url.origin !== window.location.origin) return { kind: "unsupported" };
+    if (url.pathname === "/recipes/new") return { kind: "recipe-create" };
+    const editMatch = url.pathname.match(/^\/recipes\/([^/]+)\/edit$/);
+    if (editMatch?.[1]) return { kind: "recipe-edit", recipeId: decodeURIComponent(editMatch[1]) };
     if (url.pathname === "/recipes") return { kind: "recipe-list" };
     if (url.pathname === "/shopping") return { kind: "shopping" };
     const recipeMatch = url.pathname.match(/^\/recipes\/([^/]+)(\/cook)?$/);
@@ -42,6 +50,8 @@ export function parseOfflineTarget(rawPath: string): OfflineTarget {
 
 function targetHref(target: OfflineTarget) {
   if (target.kind === "recipe-list") return "/recipes";
+  if (target.kind === "recipe-create") return "/recipes/new";
+  if (target.kind === "recipe-edit") return `/recipes/${encodeURIComponent(target.recipeId)}/edit`;
   if (target.kind === "shopping") return "/shopping";
   if (target.kind === "recipe-detail") return `/recipes/${encodeURIComponent(target.recipeId)}`;
   if (target.kind === "cooking") {
@@ -51,7 +61,7 @@ function targetHref(target: OfflineTarget) {
   return "/recipes";
 }
 
-type OfflineData = { profile: OfflineProfile; recipes: OfflineRecipeSnapshot[]; recipe: OfflineRecipeSnapshot | null; shopping: OfflineShoppingSnapshot | null };
+type OfflineData = { profile: OfflineProfile; recipes: OfflineRecipeSnapshot[]; recipe: OfflineRecipeSnapshot | null; media: LocalRecipeMediaRecord[]; shopping: OfflineShoppingSnapshot | null };
 
 function sanitizeOfflineRecipe(recipe: OfflineRecipeSnapshot["recipe"]): OfflineRecipeSnapshot["recipe"] {
   return {
@@ -90,12 +100,13 @@ export function OfflineApp() {
           if (!cancelled) setEmpty(true);
           return null;
         }
-        const [recipes, recipe, shopping] = await Promise.all([
+        const [recipes, recipe, media, shopping] = await Promise.all([
           listRecipeSnapshots(profile.userId),
-          nextTarget.kind === "recipe-detail" || nextTarget.kind === "cooking" ? getRecipeSnapshot(profile.userId, nextTarget.recipeId) : Promise.resolve(null),
+          nextTarget.kind === "recipe-detail" || nextTarget.kind === "recipe-edit" || nextTarget.kind === "cooking" ? getRecipeSnapshot(profile.userId, nextTarget.recipeId) : Promise.resolve(null),
+          nextTarget.kind === "recipe-edit" ? listRecipeMedia(profile.userId, nextTarget.recipeId) : Promise.resolve([] as LocalRecipeMediaRecord[]),
           nextTarget.kind === "shopping" ? getShoppingSnapshot(profile.userId) : Promise.resolve(null),
         ]);
-        return { profile, recipes, recipe, shopping };
+        return { profile, recipes, recipe, media, shopping };
       })
       .then((nextData) => { if (!cancelled && nextData) setData(nextData); })
       .catch(() => { if (!cancelled) setError(true); });
@@ -109,6 +120,13 @@ export function OfflineApp() {
   if (!data) return <main className="mx-auto max-w-3xl space-y-4 px-4 py-8"><p className="text-sm text-muted-foreground">正在读取本机离线数据…</p></main>;
   if (target.kind === "recipe-list") {
     return <OfflineFrame target={target}><OfflineRecipeList snapshots={data.recipes} userId={data.profile.userId} /></OfflineFrame>;
+  }
+  if (target.kind === "recipe-create") {
+    return <OfflineFrame target={target}><OfflineRecipeEditor mode="create" media={[]} snapshots={data.recipes} userId={data.profile.userId} /></OfflineFrame>;
+  }
+  if (target.kind === "recipe-edit") {
+    if (!data.recipe) return <OfflineFrame target={target}><OfflineMessage href={targetHref(target)} title="这道菜还没有保存到本机，暂时无法离线编辑" /></OfflineFrame>;
+    return <OfflineFrame target={target}><OfflineRecipeEditor media={data.media} mode="edit" snapshot={data.recipe} snapshots={data.recipes} userId={data.profile.userId} /></OfflineFrame>;
   }
   if (target.kind === "shopping") {
     return <OfflineFrame target={target}>{data.shopping ? <OfflineShoppingList snapshot={data.shopping} userId={data.profile.userId} /> : <OfflineMessage href={targetHref(target)} title="没有可用的离线购物清单" />}</OfflineFrame>;
