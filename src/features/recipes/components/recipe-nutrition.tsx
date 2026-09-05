@@ -67,6 +67,7 @@ export function RecipeNutritionEditor({
   isAnalyzing = false,
   analysisResult = null,
   analysisMessage = null,
+  analysisDisabledReason,
 }: {
   control: Control<RecipeSaveInput>;
   errors: FieldErrors<RecipeSaveInput>;
@@ -76,6 +77,7 @@ export function RecipeNutritionEditor({
   isAnalyzing?: boolean;
   analysisResult?: NutritionAnalysisResult | null;
   analysisMessage?: string | null;
+  analysisDisabledReason?: string;
 }) {
   const nutrition = useWatch({ control, name: "nutrition" });
   const hasMetric = Boolean(nutrition && metricLabels.some(({ key }) => nutrition[key] !== null && nutrition[key] !== undefined));
@@ -113,9 +115,10 @@ export function RecipeNutritionEditor({
         这些数值是 AI 参考值
       </label>
       <div className="flex flex-wrap items-center gap-3">
-        <Button disabled={isAnalyzing} onClick={() => void onAnalyze?.()} type="button" variant="outline">
+        <Button disabled={isAnalyzing || Boolean(analysisDisabledReason)} onClick={() => void onAnalyze?.()} type="button" variant="outline">
           {isAnalyzing ? "正在分析…" : "AI 营养分析"}
         </Button>
+        {analysisDisabledReason && <p className="text-sm text-muted-foreground" role="status">{analysisDisabledReason}</p>}
         {analysisResult && <p className="text-sm text-muted-foreground" role="status">已填入每份营养，请检查后保存</p>}
         {analysisMessage && <p className="text-sm text-destructive" role="alert">{analysisMessage}</p>}
       </div>

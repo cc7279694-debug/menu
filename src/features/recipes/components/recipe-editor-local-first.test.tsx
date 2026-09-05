@@ -8,6 +8,7 @@ const mocks = vi.hoisted(() => ({
   putRecipeDraft: vi.fn().mockResolvedValue(undefined),
   deleteRecipeDraft: vi.fn().mockResolvedValue(undefined),
   saveRecipeLocally: vi.fn().mockResolvedValue({ recipeId: "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa" }),
+  saveRecipeAction: vi.fn(),
 }));
 
 vi.mock("@/features/offline/database", () => ({
@@ -20,7 +21,7 @@ vi.mock("@/features/offline/recipe-mutations", () => ({ saveRecipeLocally: mocks
 vi.mock("@/features/recipes/actions", () => ({
   createCategoryAction: vi.fn(),
   createTagAction: vi.fn(),
-  saveRecipeAction: vi.fn(),
+  saveRecipeAction: mocks.saveRecipeAction,
 }));
 vi.mock("@/features/recipe-imports/actions", () => ({
   confirmRecipeImportReviewAction: vi.fn(),
@@ -73,5 +74,55 @@ describe("RecipeEditor local-first saving", () => {
       input: expect.objectContaining({ recipeId: input.recipeId, title: input.title }),
     }));
     expect(onSaved).toHaveBeenCalledWith(input.recipeId);
+  });
+
+  it("keeps the offline editor local and disables cloud-only controls", async () => {
+    const user = userEvent.setup();
+    const onSaved = vi.fn();
+    render(
+      <RecipeEditor
+        availability="offline"
+        categories={[]}
+        initialValue={input}
+        localFirstUserId={userId}
+        mode="edit"
+        onSaved={onSaved}
+        tags={[]}
+        userId={userId}
+      />,
+    );
+
+    expect(screen.getByText("当前离线，文字内容会先保存在本机，联网后自动同步。")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "AI 营养分析" })).toBeDisabled();
+    expect(screen.getByText("AI 营养分析需要联网；现有营养数据仍可手动修改。")).toBeInTheDocument();
+    expect(screen.queryByLabelText("菜谱封面")).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: "保存菜谱" }));
+
+    await waitFor(() => expect(mocks.saveRecipeLocally).toHaveBeenCalled());
+    expect(mocks.saveRecipeAction).not.toHaveBeenCalled();
+    expect(onSaved).toHaveBeenCalledWith(input.recipeId);
+  });
+
+  it("does not fall back to a cloud save when offline storage fails", async () => {
+    const user = userEvent.setup();
+    mocks.saveRecipeLocally.mockRejectedValueOnce(new Error("storage unavailable"));
+    render(
+      <RecipeEditor
+        availability="offline"
+        categories={[]}
+        initialValue={input}
+        localFirstUserId={userId}
+        mode="edit"
+        onSaved={vi.fn()}
+        tags={[]}
+        userId={userId}
+      />,
+    );
+
+    await user.click(screen.getByRole("button", { name: "保存菜谱" }));
+
+    expect(await screen.findByText("本机保存失败，请检查浏览器存储空间后重试")).toBeInTheDocument();
+    expect(mocks.saveRecipeAction).not.toHaveBeenCalled();
   });
 });

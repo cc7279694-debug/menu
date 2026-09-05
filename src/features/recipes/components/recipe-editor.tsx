@@ -29,6 +29,7 @@ type TaxonomyOption = { id: string; name: string };
 
 type RecipeEditorProps = {
   mode: "create" | "edit";
+  availability?: "online" | "offline";
   userId: string;
   categories: TaxonomyOption[];
   tags: TaxonomyOption[];
@@ -163,6 +164,7 @@ function normalizeNutrition(value: RecipeSaveInput["nutrition"]): RecipeSaveInpu
 
 export function RecipeEditor({
   mode,
+  availability = "online",
   userId,
   categories: initialCategories,
   tags: initialTags,
@@ -175,6 +177,7 @@ export function RecipeEditor({
   saveRecipe = saveRecipeAction,
   localFirstUserId,
 }: RecipeEditorProps) {
+  const isOffline = availability === "offline";
   const defaultValues = useMemo(() => initialValue ?? createEmptyRecipe(), [initialValue]);
   const [categories, setCategories] = useState(initialCategories);
   const [tags, setTags] = useState(initialTags);
@@ -288,6 +291,15 @@ export function RecipeEditor({
     setIsSaving(true);
     let uploadedPaths: string[] = [];
     try {
+      if (isOffline) {
+        try {
+          const localResult = await saveRecipeLocally({ userId: localFirstUserId ?? userId, input: parsed.data, draftId: draftKey });
+          onSaved(localResult.recipeId);
+        } catch {
+          setServerMessage("本机保存失败，请检查浏览器存储空间后重试");
+        }
+        return;
+      }
       if (importId && importReview?.requiresConfirmation) {
         const confirmed = await confirmRecipeImportReviewAction(importId);
         if (!confirmed.ok) {
@@ -484,6 +496,7 @@ export function RecipeEditor({
       </div>
 
       {serverMessage && <p className="rounded-lg bg-destructive/10 p-3 text-sm text-destructive" role="alert">{serverMessage}</p>}
+      {isOffline && <p aria-live="polite" className="rounded-lg bg-muted p-3 text-sm text-muted-foreground" role="status">当前离线，文字内容会先保存在本机，联网后自动同步。</p>}
       {draftMessage && <p aria-live="polite" className="rounded-lg bg-muted p-3 text-sm text-muted-foreground" role="status">{draftMessage}</p>}
 
       {importReview && <RecipeImportReviewPanel acknowledged={reviewAcknowledged} checkboxRef={reviewCheckboxRef} onAcknowledgedChange={setReviewAcknowledged} review={importReview} />}
@@ -516,18 +529,18 @@ export function RecipeEditor({
             <option value="">未分类</option>
             {categories.map((category) => <option key={category.id} value={category.id}>{category.name}</option>)}
           </select>
-          <div className="flex flex-col gap-2 sm:flex-row"><Input aria-label="新分类名称" onChange={(event) => setNewCategory(event.target.value)} value={newCategory} /><Button className="w-full sm:w-auto" onClick={addCategory} type="button" variant="outline">新建分类</Button></div>
+          {isOffline ? <p className="text-sm text-muted-foreground" role="status">新建分类需要联网，当前可使用已缓存分类。</p> : <div className="flex flex-col gap-2 sm:flex-row"><Input aria-label="新分类名称" onChange={(event) => setNewCategory(event.target.value)} value={newCategory} /><Button className="w-full sm:w-auto" onClick={addCategory} type="button" variant="outline">新建分类</Button></div>}
         </div>
         <div className="space-y-2 md:col-span-2">
           <Label>标签</Label>
           <div className="flex flex-wrap gap-3">{tags.map((tag) => <label className="flex items-center gap-2 text-sm" key={tag.id}><input checked={selectedTags.includes(tag.id)} onChange={(event) => setValue("tagIds", event.target.checked ? [...selectedTags, tag.id] : selectedTags.filter((id) => id !== tag.id), { shouldDirty: true })} type="checkbox" />{tag.name}</label>)}</div>
-          <div className="flex flex-col gap-2 sm:flex-row"><Input aria-label="新标签名称" onChange={(event) => setNewTag(event.target.value)} value={newTag} /><Button className="w-full sm:w-auto" onClick={addTag} type="button" variant="outline">新建标签</Button></div>
+          {isOffline ? <p className="text-sm text-muted-foreground" role="status">新建标签需要联网，当前可使用已缓存标签。</p> : <div className="flex flex-col gap-2 sm:flex-row"><Input aria-label="新标签名称" onChange={(event) => setNewTag(event.target.value)} value={newTag} /><Button className="w-full sm:w-auto" onClick={addTag} type="button" variant="outline">新建标签</Button></div>}
         </div>
         <div className="space-y-2 md:col-span-2">
           <Label htmlFor="recipe-notes">个人调整备注</Label>
           <Textarea id="recipe-notes" {...register("personalNotes")} />
         </div>
-        <div className="md:col-span-2"><ImagePicker label="菜谱封面" onChange={(file) => { setCoverFile(file); setCoverRemoved(!file); }} previewUrl={coverRemoved ? null : coverPreviewUrl} value={coverFile} /></div>
+        <div className="md:col-span-2">{isOffline ? <p className="text-sm text-muted-foreground" role="status">图片保持不变，联网后可添加、替换或删除。</p> : <ImagePicker label="菜谱封面" onChange={(file) => { setCoverFile(file); setCoverRemoved(!file); }} previewUrl={coverRemoved ? null : coverPreviewUrl} value={coverFile} />}</div>
       </section>
 
       <RecipeNutritionEditor
@@ -536,6 +549,7 @@ export function RecipeEditor({
         control={control}
         errors={errors}
         isAnalyzing={isAnalyzingNutrition}
+        analysisDisabledReason={isOffline ? "AI 营养分析需要联网；现有营养数据仍可手动修改。" : undefined}
         onAnalyze={analyzeCurrentNutrition}
         register={register}
         setValue={setValue}
@@ -555,7 +569,7 @@ export function RecipeEditor({
             <div className="space-y-4 rounded-xl border p-4" key={field.fieldKey}>
               <div className="flex flex-wrap items-center justify-between gap-2"><h3 className="font-medium">第 {index + 1} 步</h3><div className="flex items-center gap-1"><Button aria-label={`上移步骤 ${index + 1}`} className="px-2" disabled={index === 0} onClick={() => moveStep(index, -1)} type="button" variant="ghost">↑</Button><Button aria-label={`下移步骤 ${index + 1}`} className="px-2" disabled={index === stepFields.fields.length - 1} onClick={() => moveStep(index, 1)} type="button" variant="ghost">↓</Button><Button aria-label={`移除步骤 ${index + 1}`} onClick={() => stepFields.remove(index)} type="button" variant="ghost">移除</Button></div></div>
               <div className="space-y-1"><Label htmlFor={`step-${index}`}>步骤说明</Label><Textarea id={`step-${index}`} {...register(`steps.${index}.instruction`, { required: "请先填写步骤说明" })} />{errors.steps?.[index]?.instruction && <p className="text-sm text-destructive">{errors.steps[index]?.instruction?.message}</p>}</div><div className="space-y-1"><Label htmlFor={`heat-${index}`}>火候（可选）</Label><Input id={`heat-${index}`} placeholder="中火" {...register(`steps.${index}.heatLevel`)} /></div>
-              <div className="grid gap-3 md:grid-cols-2"><StepTimerFields control={control} index={index} setValue={setValue} /><ImagePicker label={`第 ${index + 1} 步图片`} onChange={(file) => { setStepFiles((current) => ({ ...current, [field.stepId]: file })); setRemovedStepIds((current) => { const next = new Set(current); if (file) next.delete(field.stepId); else next.add(field.stepId); return next; }); }} value={stepFiles[field.stepId]} previewUrl={removedStepIds.has(field.stepId) ? null : stepPreviewUrls[field.stepId] ?? null} /></div>
+              <div className="grid gap-3 md:grid-cols-2"><StepTimerFields control={control} index={index} setValue={setValue} />{isOffline ? <p className="self-end text-sm text-muted-foreground" role="status">图片保持不变，联网后可修改。</p> : <ImagePicker label={`第 ${index + 1} 步图片`} onChange={(file) => { setStepFiles((current) => ({ ...current, [field.stepId]: file })); setRemovedStepIds((current) => { const next = new Set(current); if (file) next.delete(field.stepId); else next.add(field.stepId); return next; }); }} value={stepFiles[field.stepId]} previewUrl={removedStepIds.has(field.stepId) ? null : stepPreviewUrls[field.stepId] ?? null} />}</div>
               <StepIngredientLinks control={control} onToggle={toggleStepIngredient} stepIndex={index} />
             </div>
           ))}
