@@ -4,10 +4,11 @@
 
 - 受保护路由：`/recipes/[recipeId]/cook`。
 - 不包含数据库迁移、Supabase API/RPC/Storage、部署或新的服务端接口。
-- 本机进度键为 `food-sequence:cooking:v1:<recipeId>`；Local Storage 仅在当前设备和浏览器中保存，不提供跨设备同步。
+- 本机进度存储在 IndexedDB `recipio-local-v2.cookingSessions`，按 `[userId+recipeId]` 隔离；不提供跨设备同步。
+- 历史 `food-sequence:cooking:v1:<recipeId>` Local Storage 键只用于一次性迁移：IndexedDB 写入成功后删除旧键，写入失败时保留旧键。
 - 计时器保存绝对 `endsAt`，页面回到前台或恢复会从当前时间重新计算剩余时间。
 - Wake Lock 和 Notifications 是渐进增强：不支持、拒绝或失败都不会阻断步骤导航或页面内计时。
-- 模块 4 购物清单与模块 5 离线/IndexedDB 保持延期，未在此模块启动。
+- 菜谱详情的在线烹饪和离线壳共用这套本机会话仓库；没有 `userId` 的独立预览只保留内存状态，不写共享匿名键。
 
 ## 纯函数与组件证据（2026-08-24）
 
@@ -74,3 +75,11 @@ npm.cmd audit --omit=dev
 - 密钥模式扫描只命中已有实施计划中的命令文本，以及 `supabase/config.toml` 对本地 `service_role` 角色的说明；未发现前端 service-role key、JWT 或密码值。
 - `npm.cmd audit --omit=dev`：3 个 high 严重度依赖建议，来自 Next.js 15.5.23 间接依赖的 `postcss` 和 `sharp`。自动修复要求强制升级到破坏性版本 `next@16.3.2`，本模块未执行。
 - 相对基线 `8acd366...HEAD` 的实现范围仅含模块 3 烹饪路由、组件、hooks、纯函数和测试，以及任务计划/报告；没有购物清单、离线/IndexedDB、数据库迁移、部署或无关重构文件。
+
+## LF-6 本地烹饪现场迁移（2026-09-05）
+
+- 新增 `cooking-session-repository.ts`，通过现有 Dexie 数据库的 `cookingSessions` 表读写会话；未提高本地数据库版本，也未新增 Supabase 表、Migration、RLS 或环境变量。
+- 在线详情链路按当前认证用户传递 `userId`，离线壳按最近认证用户传递 `userId`；读取顺序为 IndexedDB → 一次性旧 Local Storage 迁移 → 新会话，用户完成或重新开始时删除对应复合键。
+- IndexedDB 恢复期间显示“正在恢复本机烹饪进度…”，并禁用步骤导航、计时、提前准备确认和完成按钮；恢复后自动解除，不影响内存烹饪兜底。
+- 本地会话包含当前步骤、目标份数、提前准备勾选/确认和多个计时器，计时仍以绝对 `endsAt` 恢复；不跨设备同步、不接入 Supabase mutation queue。
+- 相关组件与仓库测试已覆盖用户隔离、版本/步骤校验、旧键迁移、完成清理、SSR 水合、离线壳身份传递和非阻塞能力降级。LF-6 的完整工程验证与 Preview 浏览器验收需在本分支完成后单独记录。
