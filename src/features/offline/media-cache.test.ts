@@ -6,6 +6,8 @@ import { __resetLocalDatabaseForTests } from "./local-db";
 import {
   cacheRecipeMediaFromUrl,
   getRecipeMedia,
+  listRecipeMedia,
+  rememberRecipeMediaReference,
 } from "./media-cache";
 
 describe("offline recipe media cache", () => {
@@ -39,7 +41,7 @@ describe("offline recipe media cache", () => {
     vi.unstubAllGlobals();
   });
 
-  it("does not write a failed response", async () => {
+  it("preserves a media reference when the image response fails", async () => {
     vi.stubGlobal("fetch", vi.fn().mockResolvedValue({ ok: false, status: 404 }));
 
     await expect(cacheRecipeMediaFromUrl({
@@ -50,7 +52,23 @@ describe("offline recipe media cache", () => {
       url: "https://example.com/missing.webp",
     })).rejects.toThrow("RECIPE_MEDIA_FETCH_FAILED");
 
-    expect(await getRecipeMedia("user-a", "recipe-a", "cover")).toBeNull();
+    expect(await getRecipeMedia("user-a", "recipe-a", "cover")).toMatchObject({
+      sourceKey: "missing",
+      blob: null,
+    });
     vi.unstubAllGlobals();
+  });
+
+  it("stores a metadata-only reference before an image is downloaded", async () => {
+    await rememberRecipeMediaReference({
+      userId: "user-a",
+      recipeId: "recipe-a",
+      mediaId: "cover",
+      sourceKey: "recipe-media/recipe-a/cover.webp",
+    });
+
+    expect(await listRecipeMedia("user-a", "recipe-a")).toMatchObject([
+      { mediaId: "cover", sourceKey: "recipe-media/recipe-a/cover.webp", blob: null },
+    ]);
   });
 });

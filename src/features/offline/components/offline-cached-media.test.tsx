@@ -31,4 +31,12 @@ describe("OfflineCachedMedia", () => {
 
     expect(await screen.findByLabelText("番茄炒蛋封面暂不可用")).toBeInTheDocument();
   });
+
+  it("keeps an accessible placeholder when only the media reference exists", async () => {
+    getRecipeMedia.mockResolvedValue({ blob: null, sourceKey: "recipe-media/cover.webp" });
+
+    render(<OfflineCachedMedia userId="user-a" recipeId="recipe-a" mediaId="cover" alt="番茄炒蛋封面" />);
+
+    expect(await screen.findByLabelText("番茄炒蛋封面暂不可用")).toBeInTheDocument();
+  });
 });

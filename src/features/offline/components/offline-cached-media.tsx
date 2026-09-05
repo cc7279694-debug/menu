@@ -31,7 +31,7 @@ export function OfflineCachedMedia({
 
     void getRecipeMedia(userId, recipeId, mediaId)
       .then((media) => {
-        if (cancelled || !media || typeof URL.createObjectURL !== "function") return;
+        if (cancelled || !media?.blob || typeof URL.createObjectURL !== "function") return;
         createdUrl = URL.createObjectURL(media.blob);
         setObjectUrl(createdUrl);
       })

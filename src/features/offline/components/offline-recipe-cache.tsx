@@ -5,7 +5,7 @@ import { useEffect } from "react";
 import type { RecipeDetail } from "@/features/recipes/types";
 
 import { getRecipeSnapshot, rememberOfflineProfile, putRecipeSnapshot } from "../database";
-import { cacheRecipeMediaFromUrl } from "../media-cache";
+import { cacheRecipeMediaFromUrl, rememberRecipeMediaReference } from "../media-cache";
 import { toOfflineRecipeSnapshot } from "../recipe-snapshot";
 
 type OfflineRecipeCacheProps = {
@@ -18,6 +18,12 @@ export function OfflineRecipeCache({ userId, recipe, onCacheError }: OfflineReci
   useEffect(() => {
     const now = new Date().toISOString();
     if (recipe.coverUrl && recipe.coverPath) {
+      void rememberRecipeMediaReference({
+        userId,
+        recipeId: recipe.id,
+        mediaId: "cover",
+        sourceKey: recipe.coverPath,
+      }).catch(() => undefined);
       void cacheRecipeMediaFromUrl({
         userId,
         recipeId: recipe.id,
@@ -28,6 +34,12 @@ export function OfflineRecipeCache({ userId, recipe, onCacheError }: OfflineReci
     }
     for (const step of recipe.steps) {
       if (!step.imageUrl || !step.imagePath) continue;
+      void rememberRecipeMediaReference({
+        userId,
+        recipeId: recipe.id,
+        mediaId: `step:${step.id}`,
+        sourceKey: step.imagePath,
+      }).catch(() => undefined);
       void cacheRecipeMediaFromUrl({
         userId,
         recipeId: recipe.id,

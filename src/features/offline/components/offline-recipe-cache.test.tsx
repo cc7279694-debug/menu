@@ -6,15 +6,16 @@ import type { OfflineRecipeSnapshot } from "../types";
 
 import { OfflineRecipeCache } from "./offline-recipe-cache";
 
-const { getRecipeSnapshot, rememberOfflineProfile, putRecipeSnapshot, cacheRecipeMediaFromUrl } = vi.hoisted(() => ({
+const { getRecipeSnapshot, rememberOfflineProfile, putRecipeSnapshot, cacheRecipeMediaFromUrl, rememberRecipeMediaReference } = vi.hoisted(() => ({
   getRecipeSnapshot: vi.fn().mockResolvedValue(null),
   rememberOfflineProfile: vi.fn<(userId: string, authenticatedAt: string) => Promise<void>>().mockResolvedValue(undefined),
   putRecipeSnapshot: vi.fn<(snapshot: OfflineRecipeSnapshot) => Promise<void>>().mockResolvedValue(undefined),
   cacheRecipeMediaFromUrl: vi.fn().mockResolvedValue(undefined),
+  rememberRecipeMediaReference: vi.fn().mockResolvedValue(undefined),
 }));
 
 vi.mock("../database", () => ({ getRecipeSnapshot, rememberOfflineProfile, putRecipeSnapshot }));
-vi.mock("../media-cache", () => ({ cacheRecipeMediaFromUrl }));
+vi.mock("../media-cache", () => ({ cacheRecipeMediaFromUrl, rememberRecipeMediaReference }));
 
 const USER_ID = "user-a";
 const recipe: RecipeDetail = {
@@ -104,6 +105,13 @@ describe("OfflineRecipeCache", () => {
     render(<OfflineRecipeCache recipe={recipeWithImages} userId={USER_ID} />);
 
     await waitFor(() => expect(cacheRecipeMediaFromUrl).toHaveBeenCalledTimes(2));
+    expect(rememberRecipeMediaReference).toHaveBeenCalledTimes(2);
+    expect(rememberRecipeMediaReference).toHaveBeenCalledWith({
+      userId: USER_ID,
+      recipeId: recipe.id,
+      mediaId: "cover",
+      sourceKey: "recipes/cover.jpg",
+    });
     expect(cacheRecipeMediaFromUrl).toHaveBeenCalledWith({
       userId: USER_ID,
       recipeId: recipe.id,

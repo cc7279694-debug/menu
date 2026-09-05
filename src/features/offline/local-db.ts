@@ -32,10 +32,10 @@ export type LocalRecipeMediaRecord = {
   recipeId: string;
   mediaId: string;
   sourceKey: string;
-  mimeType: string;
+  mimeType: string | null;
   byteSize: number;
   cachedAt: string;
-  blob: Blob;
+  blob: Blob | null;
 };
 
 export type LocalRecipeSummaryRecord = {
