@@ -26,8 +26,8 @@ vi.mock("@/features/offline/components/offline-recipe-editor", () => ({
 }));
 vi.mock("next/navigation", () => navigationMocks);
 vi.mock("@/features/cooking/components/cooking-screen", () => ({
-  CookingScreen: ({ recipe }: { recipe: { title: string; coverUrl: string | null; coverPath: string | null; steps: Array<{ imageUrl: string | null; imagePath: string | null }> } }) => (
-    <div data-cover-path={recipe.coverPath ?? "null"} data-cover-url={recipe.coverUrl ?? "null"} data-step-image-path={recipe.steps[0]?.imagePath ?? "null"} data-step-image-url={recipe.steps[0]?.imageUrl ?? "null"} data-testid="offline-cooking-screen">正在烹饪：{recipe.title}</div>
+  CookingScreen: ({ recipe, userId }: { recipe: { title: string; coverUrl: string | null; coverPath: string | null; steps: Array<{ imageUrl: string | null; imagePath: string | null }> }; userId?: string | null }) => (
+    <div data-cover-path={recipe.coverPath ?? "null"} data-cover-url={recipe.coverUrl ?? "null"} data-step-image-path={recipe.steps[0]?.imagePath ?? "null"} data-step-image-url={recipe.steps[0]?.imageUrl ?? "null"} data-testid="offline-cooking-screen" data-user-id={userId ?? "null"}>正在烹饪：{recipe.title}</div>
   ),
 }));
 
@@ -164,7 +164,9 @@ describe("OfflineApp", () => {
     setTarget(`/recipes/${RECIPE_ID}/cook?servings=4`);
     render(<OfflineApp />);
 
-    expect(await screen.findByTestId("offline-cooking-screen")).toHaveTextContent("番茄炒蛋");
+    const cookingScreen = await screen.findByTestId("offline-cooking-screen");
+    expect(cookingScreen).toHaveTextContent("番茄炒蛋");
+    expect(cookingScreen).toHaveAttribute("data-user-id", USER_ID);
   });
 
   it("strips media URLs before rendering offline cooking", async () => {

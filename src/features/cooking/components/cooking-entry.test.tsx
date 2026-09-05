@@ -5,7 +5,10 @@ import { renderToString } from "react-dom/server";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { createCookingSession, saveCookingSession } from "@/features/cooking/session-storage";
+import "fake-indexeddb/auto";
+import { __resetOfflineDatabaseForTests } from "@/features/offline/database";
+import { createCookingSession } from "@/features/cooking/session-storage";
+import { getCookingSession, putCookingSession } from "@/features/cooking/cooking-session-repository";
 import type { RecipeDetail } from "@/features/recipes/types";
 
 import { CookingEntry } from "./cooking-entry";
@@ -46,7 +49,12 @@ const recipe: RecipeDetail = {
   preparations: [],
 };
 
-beforeEach(() => localStorage.clear());
+const USER_ID = "11111111-1111-4111-8111-111111111111";
+
+beforeEach(async () => {
+  await __resetOfflineDatabaseForTests();
+  localStorage.clear();
+});
 
 describe("CookingEntry", () => {
   it("uses the recipe base servings by default and links to the normal cooking start", () => {
@@ -75,12 +83,12 @@ describe("CookingEntry", () => {
     expect(screen.queryByRole("link", { name: "开始烹饪" })).not.toBeInTheDocument();
   });
 
-  it("shows resume and restart links for a valid saved session", () => {
-    saveCookingSession(localStorage, createCookingSession(recipe, 4, 1_000));
+  it("shows resume and restart links for a valid saved session", async () => {
+    await putCookingSession(USER_ID, createCookingSession(recipe, 4, 1_000));
 
-    render(<CookingEntry recipe={recipe} />);
+    render(<CookingEntry recipe={recipe} userId={USER_ID} />);
 
-    expect(screen.getByLabelText("目标份数")).toHaveValue(4);
+    await waitFor(() => expect(screen.getByLabelText("目标份数")).toHaveValue(4));
     expect(screen.getByRole("link", { name: "继续上次烹饪" })).toHaveAttribute(
       "href",
       "/recipes/recipe-1/cook?servings=4",
@@ -91,34 +99,34 @@ describe("CookingEntry", () => {
     );
   });
 
-  it("preserves storage when resuming and clears it before restarting", async () => {
+  it("preserves the session when resuming and clears it before restarting", async () => {
     const user = userEvent.setup();
     const session = createCookingSession(recipe, 4, 1_000);
-    saveCookingSession(localStorage, session);
-    render(<CookingEntry recipe={recipe} />);
+    await putCookingSession(USER_ID, session);
+    render(<CookingEntry recipe={recipe} userId={USER_ID} />);
 
-    await user.click(screen.getByRole("link", { name: "继续上次烹饪" }));
-    expect(localStorage.getItem("food-sequence:cooking:v1:recipe-1")).toBe(JSON.stringify(session));
+    await user.click(await screen.findByRole("link", { name: "继续上次烹饪" }));
+    expect(await getCookingSession(USER_ID, recipe)).not.toBeNull();
 
     await user.click(screen.getByRole("link", { name: "重新开始" }));
-    expect(localStorage.getItem("food-sequence:cooking:v1:recipe-1")).toBeNull();
+    await waitFor(async () => expect(await getCookingSession(USER_ID, recipe)).toBeNull());
   });
 
   it("keeps server markup storage-free and restores a saved session after hydration", async () => {
-    saveCookingSession(localStorage, createCookingSession(recipe, 4, 1_000));
+    await putCookingSession(USER_ID, createCookingSession(recipe, 4, 1_000));
     const getItem = vi.spyOn(localStorage, "getItem");
     const setItem = vi.spyOn(localStorage, "setItem");
     const container = document.createElement("div");
     document.body.append(container);
 
-    container.innerHTML = renderToString(<CookingEntry recipe={recipe} />);
+    container.innerHTML = renderToString(<CookingEntry recipe={recipe} userId={USER_ID} />);
 
     expect(getItem).not.toHaveBeenCalled();
     expect(setItem).not.toHaveBeenCalled();
     expect(container.querySelector("input")).toHaveValue(2);
 
     const onRecoverableError = vi.fn();
-    const root = hydrateRoot(container, <CookingEntry recipe={recipe} />, { onRecoverableError });
+    const root = hydrateRoot(container, <CookingEntry recipe={recipe} userId={USER_ID} />, { onRecoverableError });
     await waitFor(() => expect(container.querySelector("input")).toHaveValue(4));
     expect(container.querySelector("a")).toHaveTextContent("继续上次烹饪");
     expect(onRecoverableError).not.toHaveBeenCalled();

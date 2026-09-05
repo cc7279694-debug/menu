@@ -19,20 +19,21 @@ type CookingScreenProps = {
   recipe: RecipeDetail;
   requestedServings: number;
   restart: boolean;
-  userId?: string;
+  userId?: string | null;
   mealPlanEntryId?: string | null;
 };
 
-export function CookingScreen({ recipe, requestedServings, restart, userId = "", mealPlanEntryId = null }: CookingScreenProps) {
+export function CookingScreen({ recipe, requestedServings, restart, userId = null, mealPlanEntryId = null }: CookingScreenProps) {
   const [completed, setCompleted] = useState(false);
   const [completionSaved, setCompletionSaved] = useState(false);
   const [reflectionOpen, setReflectionOpen] = useState(false);
-  const cooking = useCookingSession({ recipe, requestedServings, restart });
+  const cooking = useCookingSession({ recipe, requestedServings, restart, userId });
   const wakeLock = useWakeLock(!completed);
   const ingredients = getStepIngredients(recipe, cooking.currentStep.id, cooking.session.targetServings);
   const timerSeconds = cooking.currentStep.timerSeconds;
   const timerLabel = `第 ${cooking.currentIndex + 1} 步`;
   const capabilityMessages = [
+    !cooking.ready ? "正在恢复本机烹饪进度…" : null,
     !cooking.storageAvailable ? "无法保存烹饪进度，本次烹饪仍可继续。" : null,
     wakeLock.message,
     cooking.notificationMessage,
@@ -61,6 +62,7 @@ export function CookingScreen({ recipe, requestedServings, restart, userId = "",
           onConfirm={cooking.confirmPreparations}
           onSkip={cooking.confirmPreparations}
           onToggle={cooking.togglePreparation}
+          disabled={!cooking.ready}
           preparations={recipe.preparations}
         />
       </main>
@@ -97,7 +99,7 @@ export function CookingScreen({ recipe, requestedServings, restart, userId = "",
           </Dialog>
         )}
         {timerSeconds && timerSeconds > 0 && (
-          <Button className="min-h-11" onClick={() => { void cooking.startTimer(cooking.currentStep.id, timerLabel, timerSeconds); }} type="button">
+          <Button className="min-h-11" disabled={!cooking.ready} onClick={() => { void cooking.startTimer(cooking.currentStep.id, timerLabel, timerSeconds); }} type="button">
             开始本步计时（{formatRemainingSeconds(timerSeconds)}）
           </Button>
         )}
@@ -124,11 +126,11 @@ export function CookingScreen({ recipe, requestedServings, restart, userId = "",
 
       <nav aria-label="烹饪步骤" className="fixed inset-x-0 bottom-[calc(3.5rem+env(safe-area-inset-bottom))] z-30 border-t bg-background/98 p-3 backdrop-blur-sm sm:static sm:rounded-xl sm:border sm:backdrop-blur-0">
         <div className="mx-auto flex max-w-3xl justify-between gap-3">
-          <Button className="min-h-11" disabled={cooking.currentIndex === 0} onClick={cooking.previous} type="button" variant="outline">上一步</Button>
+          <Button className="min-h-11" disabled={!cooking.ready || cooking.currentIndex === 0} onClick={cooking.previous} type="button" variant="outline">上一步</Button>
           {cooking.currentIndex === recipe.steps.length - 1 ? (
-            <Button className="min-h-11" onClick={() => setReflectionOpen(true)} type="button">完成烹饪</Button>
+            <Button className="min-h-11" disabled={!cooking.ready} onClick={() => setReflectionOpen(true)} type="button">完成烹饪</Button>
           ) : (
-            <Button className="min-h-11" onClick={cooking.next} type="button">下一步</Button>
+            <Button className="min-h-11" disabled={!cooking.ready} onClick={cooking.next} type="button">下一步</Button>
           )}
         </div>
       </nav>
@@ -152,7 +154,7 @@ export function CookingScreen({ recipe, requestedServings, restart, userId = "",
         open={reflectionOpen}
         recipeId={recipe.id}
         startedAt={cooking.session.startedAt}
-        userId={userId}
+        userId={userId ?? ""}
       />
     </main>
   );

@@ -34,7 +34,7 @@ vi.mock("@/features/offline/components/offline-recipe-detail", () => ({
   OfflineRecipeDetail: ({ recipe }: { recipe: { title: string } }) => <div data-testid="offline-recipe-detail">本地：{recipe.title}</div>,
 }));
 vi.mock("@/features/recipes/components/recipe-detail", () => ({
-  RecipeDetailView: ({ recipe }: { recipe: { title: string } }) => <div data-testid="recipe-detail-view">云端：{recipe.title}</div>,
+  RecipeDetailView: ({ recipe, userId }: { recipe: { title: string }; userId?: string | null }) => <div data-testid="recipe-detail-view" data-user-id={userId ?? "null"}>云端：{recipe.title}</div>,
 }));
 vi.mock("next/navigation", () => ({
   useSearchParams: () => new URLSearchParams(window.location.search),
@@ -122,6 +122,8 @@ describe("recipe local-first pages", () => {
 
     const remoteDetail = { ...detail, title: "云端番茄炒蛋" };
     resolveRemote({ ok: true, data: { recipe: remoteDetail, cookingHistory: { stats: { totalCount: 0, ratedCount: 0, averageRating: null, latestImprovementNotes: null }, recentRecords: [] }, userId: USER_ID } });
-    expect(await screen.findByTestId("recipe-detail-view")).toHaveTextContent("云端：云端番茄炒蛋");
+    const detailView = await screen.findByTestId("recipe-detail-view");
+    expect(detailView).toHaveTextContent("云端：云端番茄炒蛋");
+    expect(detailView).toHaveAttribute("data-user-id", USER_ID);
   });
 });

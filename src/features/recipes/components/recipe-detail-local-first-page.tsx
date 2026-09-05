@@ -103,7 +103,7 @@ export function RecipeDetailLocalFirstPage({ recipeId }: { recipeId: string }) {
     return (
       <>
         <OfflineRecipeCache recipe={state.remoteRecipe} userId={state.userId} />
-        <RecipeDetailView cookingHistory={state.cookingHistory ?? undefined} recipe={state.remoteRecipe} />
+        <RecipeDetailView cookingHistory={state.cookingHistory ?? undefined} recipe={state.remoteRecipe} userId={state.userId} />
       </>
     );
   }

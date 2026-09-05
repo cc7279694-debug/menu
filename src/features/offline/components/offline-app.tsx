@@ -134,7 +134,7 @@ export function OfflineApp() {
   if (!data.recipe) return <OfflineFrame target={target}><OfflineMessage href={targetHref(target)} title="这道菜还没有保存到本机" /></OfflineFrame>;
   const safeRecipe = sanitizeOfflineRecipe(data.recipe.recipe);
   if (target.kind === "cooking") {
-    return <OfflineFrame target={target}><CookingScreen recipe={safeRecipe} requestedServings={target.servings ?? safeRecipe.baseServings} restart={target.restart} /></OfflineFrame>;
+    return <OfflineFrame target={target}><CookingScreen recipe={safeRecipe} requestedServings={target.servings ?? safeRecipe.baseServings} restart={target.restart} userId={data.profile.userId} /></OfflineFrame>;
   }
   return <OfflineFrame target={target}><OfflineRecipeDetail recipe={safeRecipe} userId={data.profile.userId} /></OfflineFrame>;
 }

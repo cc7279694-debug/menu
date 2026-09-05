@@ -1,11 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { clearCookingSession, loadCookingSession } from "@/features/cooking/session-storage";
+import { deleteCookingSession, getCookingSession, migrateLegacyCookingSession } from "@/features/cooking/cooking-session-repository";
+import { clearCookingSession } from "@/features/cooking/session-storage";
 import { MAX_SERVINGS, MIN_SERVINGS, isValidTargetServings } from "@/features/cooking/servings";
 import type { RecipeDetail } from "@/features/recipes/types";
 
@@ -17,22 +18,39 @@ function getStorage(): Storage | null {
   }
 }
 
-export function CookingEntry({ recipe }: { recipe: RecipeDetail }) {
+export function CookingEntry({ recipe, userId = null }: { recipe: RecipeDetail; userId?: string | null }) {
   const [hasSavedSession, setHasSavedSession] = useState(false);
   const [servings, setServings] = useState(() => String(recipe.baseServings));
+  const editedRef = useRef(false);
 
   useEffect(() => {
-    const storage = getStorage();
-    const savedSession = storage ? loadCookingSession(storage, recipe) : null;
-    setHasSavedSession(savedSession !== null);
-    setServings(String(savedSession?.targetServings ?? recipe.baseServings));
-  }, [recipe]);
+    let cancelled = false;
+    editedRef.current = false;
+    setHasSavedSession(false);
+    setServings(String(recipe.baseServings));
+
+    const restore = async () => {
+      if (!userId) return null;
+      const savedSession = await getCookingSession(userId, recipe)
+        ?? await migrateLegacyCookingSession(userId, recipe, getStorage());
+      return savedSession;
+    };
+
+    void restore().then((savedSession) => {
+      if (cancelled) return;
+      setHasSavedSession(savedSession !== null);
+      if (!editedRef.current) setServings(String(savedSession?.targetServings ?? recipe.baseServings));
+    }).catch(() => undefined);
+
+    return () => { cancelled = true; };
+  }, [recipe, userId]);
 
   const validServings = isValidTargetServings(servings);
   const query = `servings=${encodeURIComponent(servings.trim())}`;
   const href = `/recipes/${recipe.id}/cook?${query}`;
 
   const restart = () => {
+    if (userId) void deleteCookingSession(userId, recipe.id).catch(() => undefined);
     const storage = getStorage();
     if (storage) clearCookingSession(storage, recipe.id);
   };
@@ -52,7 +70,10 @@ export function CookingEntry({ recipe }: { recipe: RecipeDetail }) {
           id={`cooking-servings-${recipe.id}`}
           max={MAX_SERVINGS}
           min={MIN_SERVINGS}
-          onChange={(event) => setServings(event.target.value)}
+          onChange={(event) => {
+            editedRef.current = true;
+            setServings(event.target.value);
+          }}
           step="0.01"
           type="number"
           value={servings}

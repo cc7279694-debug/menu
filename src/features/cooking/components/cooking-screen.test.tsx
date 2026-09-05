@@ -5,8 +5,11 @@ import { renderToString } from "react-dom/server";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
+import "fake-indexeddb/auto";
 import type { RecipeDetail } from "@/features/recipes/types";
-import { cookingSessionKey, createCookingSession } from "@/features/cooking/session-storage";
+import { getCookingSession, putCookingSession } from "@/features/cooking/cooking-session-repository";
+import { __resetOfflineDatabaseForTests } from "@/features/offline/database";
+import { createCookingSession } from "@/features/cooking/session-storage";
 
 import { CookingScreen } from "./cooking-screen";
 
@@ -73,7 +76,10 @@ const recipe: RecipeDetail = {
   preparations: [],
 };
 
-beforeEach(() => {
+const USER_ID = "11111111-1111-4111-8111-111111111111";
+
+beforeEach(async () => {
+  await __resetOfflineDatabaseForTests();
   localStorage.clear();
   Object.defineProperty(navigator, "wakeLock", { configurable: true, value: supportedWakeLock() });
   Object.defineProperty(globalThis, "Notification", {
@@ -93,13 +99,13 @@ describe("CookingScreen", () => {
   it("keeps server markup storage-free and restores the saved step after hydration", async () => {
     const saved = createCookingSession(recipe, 2, 1_000);
     saved.currentStepId = "step-2";
-    localStorage.setItem(cookingSessionKey(recipe.id), JSON.stringify(saved));
+    await putCookingSession(USER_ID, saved);
     const getItem = vi.spyOn(localStorage, "getItem");
     const setItem = vi.spyOn(localStorage, "setItem");
     const container = document.createElement("div");
     document.body.append(container);
 
-    container.innerHTML = renderToString(<CookingScreen recipe={recipe} requestedServings={2} restart={false} />);
+    container.innerHTML = renderToString(<CookingScreen recipe={recipe} requestedServings={2} restart={false} userId={USER_ID} />);
 
     expect(getItem).not.toHaveBeenCalled();
     expect(setItem).not.toHaveBeenCalled();
@@ -108,7 +114,7 @@ describe("CookingScreen", () => {
     const onRecoverableError = vi.fn();
     const root = hydrateRoot(
       container,
-      <CookingScreen recipe={recipe} requestedServings={2} restart={false} />,
+      <CookingScreen recipe={recipe} requestedServings={2} restart={false} userId={USER_ID} />,
       { onRecoverableError },
     );
     await waitFor(() => expect(container).toHaveTextContent("下锅翻炒"));
@@ -199,15 +205,16 @@ describe("CookingScreen", () => {
     expect(screen.getByRole("listitem", { name: /第 2 步/ })).toBeInTheDocument();
   });
 
-  it("opens a reflection dialog before clearing the cooking session", () => {
-    render(<CookingScreen recipe={recipe} requestedServings={2} restart={false} />);
+  it("opens a reflection dialog before clearing the cooking session", async () => {
+    render(<CookingScreen recipe={recipe} requestedServings={2} restart={false} userId={USER_ID} />);
+    await waitFor(() => expect(screen.queryByText("正在恢复本机烹饪进度…")).not.toBeInTheDocument());
     fireEvent.click(screen.getByRole("button", { name: "下一步" }));
     fireEvent.click(screen.getByRole("button", { name: "下一步" }));
-    expect(localStorage.getItem(cookingSessionKey(recipe.id))).not.toBeNull();
+    await waitFor(async () => expect(await getCookingSession(USER_ID, recipe)).not.toBeNull());
 
     fireEvent.click(screen.getByRole("button", { name: "完成烹饪" }));
 
-    expect(localStorage.getItem(cookingSessionKey(recipe.id))).not.toBeNull();
+    expect(await getCookingSession(USER_ID, recipe)).not.toBeNull();
     expect(screen.getByRole("dialog", { name: "记录这次烹饪" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "返回继续烹饪" })).toBeInTheDocument();
   });
@@ -244,14 +251,14 @@ describe("CookingScreen", () => {
     expect(screen.getByText("下锅翻炒")).toBeInTheDocument();
   });
 
-  it("keeps step navigation available with a non-blocking warning when local storage throws", () => {
+  it("keeps step navigation available in memory mode without a user id", () => {
     Object.defineProperty(globalThis, "localStorage", {
       configurable: true,
       get() { throw new Error("blocked"); },
     });
     render(<CookingScreen recipe={recipe} requestedServings={2} restart={false} />);
 
-    expect(screen.getByRole("status")).toHaveTextContent("无法保存烹饪进度，本次烹饪仍可继续。");
+    expect(screen.queryByRole("status")).not.toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "下一步" }));
     expect(screen.getByText("下锅翻炒")).toBeInTheDocument();
   });

@@ -29,7 +29,7 @@ function formatTimer(seconds: number): string {
   return `${Math.floor(seconds / 60)} 分 ${String(seconds % 60).padStart(2, "0")} 秒`;
 }
 
-export function RecipeDetailView({ recipe, cookingHistory = emptyCookingHistory }: { recipe: RecipeDetailValue; cookingHistory?: RecipeCookingHistory }) {
+export function RecipeDetailView({ recipe, cookingHistory = emptyCookingHistory, userId = null }: { recipe: RecipeDetailValue; cookingHistory?: RecipeCookingHistory; userId?: string | null }) {
   const ingredients = new Map(recipe.ingredients.map((ingredient) => [ingredient.id, ingredient]));
   return (
     <main className="space-y-8">
@@ -46,7 +46,7 @@ export function RecipeDetailView({ recipe, cookingHistory = emptyCookingHistory 
         </div>
         <div className="space-y-3">
           <RecipeActions recipeId={recipe.id} />
-          <CookingEntry recipe={recipe} />
+          <CookingEntry recipe={recipe} userId={userId} />
         </div>
       </div>
 
