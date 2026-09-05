@@ -62,6 +62,7 @@ export type LocalMutationRecord = {
   queuedAt: string;
   attemptCount: number;
   lastError: string | null;
+  lastAttemptAt?: string;
   payload: unknown;
 };
 

@@ -15,6 +15,7 @@ import {
   getRecipeSnapshot,
   getShoppingSnapshot,
   listRecipeMutationQueue,
+  getOfflineSyncSummary,
   listRecipeSummaryPage,
   listRecipeSnapshots,
   listShoppingToggleQueue,
@@ -140,7 +141,7 @@ describe("offline database", () => {
     expect(second.id).not.toBe(first.id);
     expect(await listRecipeMutationQueue("user-a")).toMatchObject([{ entityId: "recipe-mutation", payload: { kind: "restore" } }]);
     await markRecipeMutationAttemptFailed(second, "网络暂不可用");
-    expect(await listRecipeMutationQueue("user-a")).toMatchObject([{ attemptCount: 1, lastError: "网络暂不可用" }]);
+    expect(await listRecipeMutationQueue("user-a")).toMatchObject([{ attemptCount: 1, lastError: "网络暂不可用", lastAttemptAt: expect.any(String) }]);
     expect(await deleteRecipeMutationIfCurrent({ ...second, id: "stale" })).toBe(false);
     expect(await deleteRecipeMutationIfCurrent(second)).toBe(true);
   });
@@ -178,8 +179,31 @@ describe("offline database", () => {
     const failed = (await listShoppingToggleQueue("user-a"))[0];
     expect(failed.attemptCount).toBe(1);
     expect(failed.lastError).toBe("网络暂不可用");
+    expect(failed.lastAttemptAt).toEqual(expect.any(String));
     expect(await deleteShoppingToggleIfCurrent({ ...record, clientMutationId: "stale" })).toBe(false);
     expect(await deleteShoppingToggleIfCurrent(failed)).toBe(true);
+  });
+
+  it("summarizes pending and failed local mutations per user", async () => {
+    const failedRecipe = await queueRecipeMutation({ userId: "user-a", recipeId: "recipe-summary", kind: "move-to-trash" });
+    await markRecipeMutationAttemptFailed(failedRecipe, "菜谱同步失败");
+    await queueRecipeMutation({ userId: "user-a", recipeId: "recipe-summary-2", kind: "restore" });
+
+    await putShoppingSnapshot(shoppingSnapshot);
+    const failedShopping = await queueShoppingToggle({ userId: "user-a", listId: "list-a", itemId: "item-a", targetChecked: true });
+    await markShoppingToggleAttemptFailed(failedShopping, "购物同步失败");
+
+    const summary = await getOfflineSyncSummary("user-a");
+    expect(summary.pendingCount).toBe(3);
+    expect(summary.failedCount).toBe(2);
+    expect(summary.lastError).toBe("购物同步失败");
+    expect(summary.lastAttemptAt).toEqual(expect.any(String));
+    await expect(getOfflineSyncSummary("user-b")).resolves.toEqual({
+      pendingCount: 0,
+      failedCount: 0,
+      lastError: null,
+      lastAttemptAt: null,
+    });
   });
 
   it("removes incompatible records instead of returning them", async () => {

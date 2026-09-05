@@ -262,7 +262,12 @@ export function markRecipeMutationAttemptFailed(record: LocalMutationRecord, mes
   return safe(async (database) => {
     const current = await database.mutationQueue.get(record.id);
     if (current) {
-      await database.mutationQueue.put({ ...current, attemptCount: current.attemptCount + 1, lastError: message });
+      await database.mutationQueue.put({
+        ...current,
+        attemptCount: current.attemptCount + 1,
+        lastError: message,
+        lastAttemptAt: new Date().toISOString(),
+      });
     }
   });
 }
@@ -330,9 +335,39 @@ export function markShoppingToggleAttemptFailed(record: OfflineShoppingToggle, m
         ...current,
         attemptCount: current.attemptCount + 1,
         lastError: message,
+        lastAttemptAt: new Date().toISOString(),
       });
     }
   });
+}
+
+export type OfflineSyncSummary = {
+  pendingCount: number;
+  failedCount: number;
+  lastError: string | null;
+  lastAttemptAt: string | null;
+};
+
+export async function getOfflineSyncSummary(userId: string): Promise<OfflineSyncSummary> {
+  const [recipes, shopping] = await Promise.all([
+    listRecipeMutationQueue(userId),
+    listShoppingToggleQueue(userId),
+  ]);
+  const records = [...recipes, ...shopping];
+  const failed = records
+    .filter((record) => Boolean(record.lastError))
+    .sort((a, b) => (a.lastAttemptAt ?? a.queuedAt).localeCompare(b.lastAttemptAt ?? b.queuedAt));
+  const lastAttemptAt = records
+    .map((record) => record.lastAttemptAt)
+    .filter((value): value is string => Boolean(value))
+    .sort()
+    .at(-1) ?? null;
+  return {
+    pendingCount: records.length,
+    failedCount: failed.length,
+    lastError: failed.at(-1)?.lastError ?? null,
+    lastAttemptAt,
+  };
 }
 
 export function deleteShoppingToggleIfCurrent(record: OfflineShoppingToggle): Promise<boolean> {

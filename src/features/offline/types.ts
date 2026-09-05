@@ -41,4 +41,5 @@ export type OfflineShoppingToggle = {
   queuedAt: string;
   attemptCount: number;
   lastError: string | null;
+  lastAttemptAt?: string;
 };
