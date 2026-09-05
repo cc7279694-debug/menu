@@ -5,11 +5,14 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { RecipeDetail } from "@/features/recipes/types";
 
 import {
-  clearCookingSession,
   createCookingSession,
-  loadCookingSession,
-  saveCookingSession,
 } from "../session-storage";
+import {
+  deleteCookingSession,
+  getCookingSession,
+  migrateLegacyCookingSession,
+  putCookingSession,
+} from "../cooking-session-repository";
 import {
   cancelStepTimer,
   dismissStepTimer,
@@ -28,6 +31,7 @@ export type CookingSessionController = {
   storageAvailable: boolean;
   notificationStatus: CookingNotificationStatus;
   notificationMessage: string | null;
+  ready: boolean;
   previous(): void;
   next(): void;
   restart(targetServings: number): void;
@@ -46,6 +50,7 @@ type UseCookingSessionOptions = {
   recipe: RecipeDetail;
   requestedServings: number;
   restart: boolean;
+  userId?: string | null;
 };
 
 function getStorage(): Storage | null {
@@ -62,6 +67,7 @@ function notificationApi(): typeof Notification | null {
 
 export function useCookingSession(options: UseCookingSessionOptions): CookingSessionController {
   const recipe = options.recipe;
+  const userId = options.userId ?? null;
   const orderedSteps = useMemo(
     () => [...recipe.steps].sort((left, right) => left.sortOrder - right.sortOrder || left.id.localeCompare(right.id)),
     [recipe.steps],
@@ -70,9 +76,10 @@ export function useCookingSession(options: UseCookingSessionOptions): CookingSes
   const [now, setNow] = useState(0);
   const [storageAvailable, setStorageAvailable] = useState(true);
   const [notificationStatus, setNotificationStatus] = useState<CookingNotificationStatus>("checking");
-  const initializationKey = `${recipe.id}:${recipe.updatedAt}:${options.requestedServings}:${options.restart}`;
-  const [initializedKey, setInitializedKey] = useState<string | null>(null);
-  const storageRef = useRef<Storage | null>(null);
+  const initializationKey = `${recipe.id}:${recipe.updatedAt}:${options.requestedServings}:${options.restart}:${userId ?? "memory"}`;
+  const [ready, setReady] = useState(() => userId === null);
+  const persistEnabledRef = useRef(false);
+  const writeChainRef = useRef(Promise.resolve());
   const skipNextPersistenceRef = useRef(false);
   const notifiedTimerKeysRef = useRef(new Set<string>());
   const notificationPermissionRef = useRef<NotificationPermission | null>(null);
@@ -81,40 +88,60 @@ export function useCookingSession(options: UseCookingSessionOptions): CookingSes
     setSession((previous) => update(previous, Date.now()));
   }, []);
 
+  const enqueuePersistence = useCallback((operation: () => Promise<void>) => {
+    const next = writeChainRef.current.then(operation, operation);
+    writeChainRef.current = next.catch(() => undefined);
+    return next;
+  }, []);
+
   useEffect(() => {
-    const storage = getStorage();
-    storageRef.current = storage;
-
-    if (!storage) {
-      setStorageAvailable(false);
-      setSession(createCookingSession(recipe, options.requestedServings));
-      setNow(Date.now());
-      setInitializedKey(initializationKey);
-      return;
-    }
-
-    if (options.restart) clearCookingSession(storage, recipe.id);
-    const restored = options.restart ? null : loadCookingSession(storage, recipe);
-    const nextSession = restored ?? createCookingSession(recipe, options.requestedServings);
-
+    let cancelled = false;
+    persistEnabledRef.current = false;
+    setReady(userId === null);
     setStorageAvailable(true);
-    setSession(nextSession);
-    setNow(Date.now());
-    setInitializedKey(initializationKey);
-  }, [initializationKey, options.requestedServings, options.restart, recipe]);
+    setSession(createCookingSession(recipe, options.requestedServings, 0));
+    setNow(0);
+
+    const initialize = async () => {
+      let nextSession = createCookingSession(recipe, options.requestedServings);
+      if (userId !== null) {
+        try {
+          if (options.restart) {
+            await deleteCookingSession(userId, recipe.id);
+          } else {
+            nextSession = await getCookingSession(userId, recipe)
+              ?? await migrateLegacyCookingSession(userId, recipe, getStorage())
+              ?? nextSession;
+          }
+        } catch {
+          setStorageAvailable(false);
+        }
+      }
+      if (cancelled) return;
+      setSession(nextSession);
+      setNow(Date.now());
+      persistEnabledRef.current = true;
+      setReady(true);
+    };
+
+    void initialize();
+    return () => {
+      cancelled = true;
+      persistEnabledRef.current = false;
+    };
+  }, [initializationKey, options.requestedServings, options.restart, recipe, userId]);
 
   useEffect(() => {
-    if (initializedKey !== initializationKey) return;
+    if (!ready || !persistEnabledRef.current || userId === null) return;
     if (skipNextPersistenceRef.current) {
       skipNextPersistenceRef.current = false;
       return;
     }
 
-    const storage = storageRef.current;
-    if (!storage || saveCookingSession(storage, session)) return;
-    storageRef.current = null;
-    setStorageAvailable(false);
-  }, [initializationKey, initializedKey, session]);
+    void enqueuePersistence(() => putCookingSession(userId, session).catch(() => {
+      setStorageAvailable(false);
+    }));
+  }, [enqueuePersistence, initializationKey, ready, session, userId]);
 
   useEffect(() => {
     const notification = notificationApi();
@@ -181,19 +208,25 @@ export function useCookingSession(options: UseCookingSessionOptions): CookingSes
   }, [orderedSteps, updateSession]);
 
   const restart = useCallback((targetServings: number) => {
-    const storage = storageRef.current;
-    if (storage) clearCookingSession(storage, recipe.id);
+    if (userId !== null) {
+      void enqueuePersistence(() => deleteCookingSession(userId, recipe.id).catch(() => {
+        setStorageAvailable(false);
+      }));
+    }
     const next = createCookingSession(recipe, targetServings);
     setSession(next);
     setNow(Date.now());
-  }, [recipe]);
+  }, [enqueuePersistence, recipe, userId]);
 
   const complete = useCallback(() => {
-    const storage = storageRef.current;
-    if (storage) clearCookingSession(storage, recipe.id);
+    if (userId !== null) {
+      void enqueuePersistence(() => deleteCookingSession(userId, recipe.id).catch(() => {
+        setStorageAvailable(false);
+      }));
+    }
     skipNextPersistenceRef.current = true;
     setSession((previous) => ({ ...previous, timers: [], completedPreparationIds: [], preparationsConfirmedAt: null, updatedAt: Date.now() }));
-  }, [recipe.id]);
+  }, [enqueuePersistence, recipe.id, userId]);
 
   const startTimer = useCallback(async (stepId: string, label: string, durationSeconds: number) => {
     const notification = notificationApi();
@@ -265,6 +298,7 @@ export function useCookingSession(options: UseCookingSessionOptions): CookingSes
     progressPercent: orderedSteps.length === 0 ? 0 : Math.round(((currentIndex + 1) / orderedSteps.length) * 100),
     timerViews: session.timers.map((timer) => getTimerView(timer, now)),
     storageAvailable,
+    ready,
     notificationStatus,
     notificationMessage,
     previous: () => moveTo(currentIndex - 1),

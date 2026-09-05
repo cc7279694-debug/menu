@@ -1,8 +1,12 @@
-import { act, renderHook } from "@testing-library/react";
+import "fake-indexeddb/auto";
+
+import { act, renderHook, waitFor } from "@testing-library/react";
 import { StrictMode, type PropsWithChildren } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { cookingSessionKey, createCookingSession } from "../session-storage";
+import { __resetOfflineDatabaseForTests } from "@/features/offline/database";
+import { getCookingSession, putCookingSession } from "../cooking-session-repository";
 import type { RecipeDetail } from "@/features/recipes/types";
 import { useCookingSession } from "./use-cooking-session";
 
@@ -53,7 +57,8 @@ const recipeWithPreparations: RecipeDetail = {
 
 let storage: MemoryStorage;
 
-beforeEach(() => {
+beforeEach(async () => {
+  await __resetOfflineDatabaseForTests();
   vi.useFakeTimers();
   vi.setSystemTime(new Date("2026-08-23T12:00:00.000Z"));
   storage = new MemoryStorage();
@@ -67,6 +72,30 @@ afterEach(() => {
 });
 
 describe("useCookingSession", () => {
+  it("restores the latest session from IndexedDB and reports ready after hydration", async () => {
+    vi.useRealTimers();
+    const saved = createCookingSession(recipe, 4, Date.now());
+    saved.currentStepId = "step-2";
+    await putCookingSession("user-a", saved);
+
+    const { result } = renderHook(() => useCookingSession({ recipe, requestedServings: 2, restart: false, userId: "user-a" }));
+
+    expect(result.current.ready).toBe(false);
+    await waitFor(() => expect(result.current.ready).toBe(true));
+    expect(result.current.currentStep.id).toBe("step-2");
+    expect(result.current.session.targetServings).toBe(4);
+  });
+
+  it("serializes completion after pending writes so a completed session is not resurrected", async () => {
+    vi.useRealTimers();
+    const { result } = renderHook(() => useCookingSession({ recipe, requestedServings: 2, restart: false, userId: "user-a" }));
+    await waitFor(() => expect(result.current.ready).toBe(true));
+
+    act(() => result.current.next());
+    act(() => result.current.complete());
+    await waitFor(async () => expect(await getCookingSession("user-a", recipe)).toBeNull());
+  });
+
   it("does not start a polling interval until a timer is active", async () => {
     const setIntervalSpy = vi.spyOn(window, "setInterval");
     const { result } = renderHook(() => useCookingSession({ recipe, requestedServings: 2, restart: false }));
@@ -81,12 +110,14 @@ describe("useCookingSession", () => {
     setIntervalSpy.mockRestore();
   });
 
-  it("restores the saved step and navigates in sorted step order", () => {
+  it("migrates a saved step and navigates in sorted step order", async () => {
+    vi.useRealTimers();
     const saved = createCookingSession(recipe, 4, Date.now());
     saved.currentStepId = "step-2";
     storage.setItem(cookingSessionKey(recipe.id), JSON.stringify(saved));
 
-    const { result } = renderHook(() => useCookingSession({ recipe, requestedServings: 2, restart: false }));
+    const { result } = renderHook(() => useCookingSession({ recipe, requestedServings: 2, restart: false, userId: "user-a" }));
+    await waitFor(() => expect(result.current.ready).toBe(true));
 
     expect(result.current.currentStep.id).toBe("step-2");
     expect(result.current.currentIndex).toBe(1);
@@ -104,17 +135,20 @@ describe("useCookingSession", () => {
     expect(result.current.currentStep.id).toBe("step-3");
   });
 
-  it("persists navigation with the stable step id", () => {
-    const { result } = renderHook(() => useCookingSession({ recipe, requestedServings: 2, restart: false }));
+  it("persists navigation with the stable step id", async () => {
+    vi.useRealTimers();
+    const { result } = renderHook(() => useCookingSession({ recipe, requestedServings: 2, restart: false, userId: "user-a" }));
+    await waitFor(() => expect(result.current.ready).toBe(true));
 
     act(() => result.current.next());
 
-    const persisted = JSON.parse(storage.getItem(cookingSessionKey(recipe.id)) ?? "") as { currentStepId: string };
-    expect(persisted.currentStepId).toBe("step-2");
+    await waitFor(async () => expect(await getCookingSession("user-a", recipe)).toMatchObject({ currentStepId: "step-2" }));
   });
 
-  it("persists preparation checks and confirmation, while filtering unknown ids", () => {
-    const { result } = renderHook(() => useCookingSession({ recipe: recipeWithPreparations, requestedServings: 2, restart: false }));
+  it("persists preparation checks and confirmation, while filtering unknown ids", async () => {
+    vi.useRealTimers();
+    const { result } = renderHook(() => useCookingSession({ recipe: recipeWithPreparations, requestedServings: 2, restart: false, userId: "user-a" }));
+    await waitFor(() => expect(result.current.ready).toBe(true));
 
     expect(result.current.preparationsComplete).toBe(false);
     act(() => result.current.togglePreparation("prep-1"));
@@ -127,15 +161,18 @@ describe("useCookingSession", () => {
     });
     expect(result.current.preparationsComplete).toBe(true);
     act(() => result.current.confirmPreparations());
-    expect(result.current.session.preparationsConfirmedAt).toBe(Date.now());
+    expect(result.current.session.preparationsConfirmedAt).toEqual(expect.any(Number));
 
-    const persisted = JSON.parse(storage.getItem(cookingSessionKey(recipeWithPreparations.id)) ?? "");
-    expect(persisted.completedPreparationIds).toEqual(["prep-1", "prep-2"]);
-    expect(persisted.preparationsConfirmedAt).toBe(Date.now());
+    await waitFor(async () => expect(await getCookingSession("user-a", recipeWithPreparations)).toMatchObject({
+      completedPreparationIds: ["prep-1", "prep-2"],
+      preparationsConfirmedAt: expect.any(Number),
+    }));
   });
 
-  it("clears preparation state when restarting or completing", () => {
-    const { result } = renderHook(() => useCookingSession({ recipe: recipeWithPreparations, requestedServings: 2, restart: false }));
+  it("clears preparation state when restarting or completing", async () => {
+    vi.useRealTimers();
+    const { result } = renderHook(() => useCookingSession({ recipe: recipeWithPreparations, requestedServings: 2, restart: false, userId: "user-a" }));
+    await waitFor(() => expect(result.current.ready).toBe(true));
     act(() => {
       result.current.togglePreparation("prep-1");
       result.current.confirmPreparations();
@@ -148,47 +185,46 @@ describe("useCookingSession", () => {
     expect(result.current.session.preparationsConfirmedAt).toBeNull();
   });
 
-  it("persists state after React finishes the update instead of writing inside the state updater", () => {
-    const setItem = vi.spyOn(storage, "setItem");
+  it("persists state after React finishes the update instead of writing inside the state updater", async () => {
+    vi.useRealTimers();
     const wrapper = ({ children }: PropsWithChildren) => <StrictMode>{children}</StrictMode>;
     const { result } = renderHook(
-      () => useCookingSession({ recipe, requestedServings: 2, restart: false }),
+      () => useCookingSession({ recipe, requestedServings: 2, restart: false, userId: "user-a" }),
       { wrapper },
     );
-    setItem.mockClear();
+    await waitFor(() => expect(result.current.ready).toBe(true));
 
-    act(() => {
-      result.current.next();
-      expect(setItem).not.toHaveBeenCalled();
-    });
+    act(() => result.current.next());
 
-    expect(setItem).toHaveBeenCalledTimes(1);
+    await waitFor(async () => expect(await getCookingSession("user-a", recipe)).toMatchObject({ currentStepId: "step-2" }));
   });
 
   it("persists timer starts, cancellations, dismissals, and restarts", async () => {
-    const { result } = renderHook(() => useCookingSession({ recipe, requestedServings: 2, restart: false }));
+    vi.useRealTimers();
+    const { result } = renderHook(() => useCookingSession({ recipe, requestedServings: 2, restart: false, userId: "user-a" }));
+    await waitFor(() => expect(result.current.ready).toBe(true));
 
     await act(async () => { await result.current.startTimer("step-1", "煮沸", 120); });
-    expect(JSON.parse(storage.getItem(cookingSessionKey(recipe.id)) ?? "").timers).toMatchObject([
+    await waitFor(async () => expect(await getCookingSession("user-a", recipe)).toMatchObject({ timers: [
       { stepId: "step-1", label: "煮沸", durationSeconds: 120 },
-    ]);
+    ] }));
 
     act(() => result.current.cancelTimer("step-1"));
-    expect(JSON.parse(storage.getItem(cookingSessionKey(recipe.id)) ?? "").timers).toEqual([]);
+    await waitFor(async () => expect(await getCookingSession("user-a", recipe)).toMatchObject({ timers: [] }));
 
     await act(async () => { await result.current.startTimer("step-2", "焖煮", 60); });
     act(() => result.current.dismissTimer("step-2"));
-    expect(JSON.parse(storage.getItem(cookingSessionKey(recipe.id)) ?? "").timers).toEqual([]);
+    await waitFor(async () => expect(await getCookingSession("user-a", recipe)).toMatchObject({ timers: [] }));
 
     act(() => result.current.restart(4));
-    expect(JSON.parse(storage.getItem(cookingSessionKey(recipe.id)) ?? "")).toMatchObject({
+    await waitFor(async () => expect(await getCookingSession("user-a", recipe)).toMatchObject({
       targetServings: 4,
       currentStepId: "step-1",
       timers: [],
-    });
+    }));
   });
 
-  it("keeps navigation available when local storage cannot be accessed", () => {
+  it("keeps navigation available in memory mode without a user id", () => {
     Object.defineProperty(globalThis, "localStorage", {
       configurable: true,
       get() { throw new Error("blocked"); },
@@ -196,7 +232,7 @@ describe("useCookingSession", () => {
 
     const { result } = renderHook(() => useCookingSession({ recipe, requestedServings: 2, restart: false }));
 
-    expect(result.current.storageAvailable).toBe(false);
+    expect(result.current.storageAvailable).toBe(true);
     expect(result.current.session.startedAt).toBe(Date.now());
     act(() => result.current.next());
     expect(result.current.currentStep.id).toBe("step-2");
@@ -217,14 +253,16 @@ describe("useCookingSession", () => {
   });
 
   it("clears persisted session and timers on completion", async () => {
-    const { result } = renderHook(() => useCookingSession({ recipe, requestedServings: 2, restart: false }));
+    vi.useRealTimers();
+    const { result } = renderHook(() => useCookingSession({ recipe, requestedServings: 2, restart: false, userId: "user-a" }));
+    await waitFor(() => expect(result.current.ready).toBe(true));
     await act(async () => {
       await result.current.startTimer("step-1", "煮沸", 120);
     });
 
     act(() => result.current.complete());
 
-    expect(storage.getItem(cookingSessionKey(recipe.id))).toBeNull();
+    await waitFor(async () => expect(await getCookingSession("user-a", recipe)).toBeNull());
     expect(result.current.session.timers).toEqual([]);
   });
 
