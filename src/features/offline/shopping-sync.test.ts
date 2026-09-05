@@ -51,7 +51,7 @@ function createDependencies(queue: OfflineShoppingToggle[], options: {
   const savedSnapshots: OfflineShoppingSnapshot[] = [];
   const markFailed = vi.fn(async (current: OfflineShoppingToggle, message: string) => {
     const index = queue.findIndex((candidate) => candidate.clientMutationId === current.clientMutationId);
-    if (index >= 0) queue[index] = { ...queue[index], attemptCount: queue[index].attemptCount + 1, lastError: message };
+    if (index >= 0) queue[index] = { ...queue[index], attemptCount: queue[index].attemptCount + 1, lastError: message, lastAttemptAt: new Date().toISOString() };
   });
   const deleteIfCurrent = vi.fn(async (current: OfflineShoppingToggle) => {
     const index = queue.findIndex((candidate) => (
@@ -112,8 +112,24 @@ describe("syncShoppingToggleQueue", () => {
     const result = await syncShoppingToggleQueue(USER_ID, dependencies);
 
     expect(result).toMatchObject({ status: "failed", syncedCount: 0, remainingCount: 1 });
-    expect(queue[0]).toMatchObject({ attemptCount: 1, lastError: "网络恢复后仍无法同步" });
+    expect(queue[0]).toMatchObject({ attemptCount: 1, lastError: "网络恢复后仍无法同步", lastAttemptAt: expect.any(String) });
     expect(markFailed).toHaveBeenCalledWith(record(), "网络恢复后仍无法同步");
+  });
+
+  it("retries a retained network failure and removes it after success", async () => {
+    const queue = [record()];
+    const submitToggle = vi.fn<ShoppingSyncDependencies["submitToggle"]>()
+      .mockResolvedValueOnce({ ok: false as const, code: "REQUEST_FAILED", message: "暂时失败" })
+      .mockResolvedValueOnce({
+        ok: true as const,
+        data: { itemId: "item-a", isChecked: true, updatedAt: "2026-08-27T08:01:00.000Z" },
+      });
+    const { dependencies } = createDependencies(queue, { submitToggle });
+
+    await expect(syncShoppingToggleQueue(USER_ID, dependencies)).resolves.toMatchObject({ status: "failed", remainingCount: 1 });
+    await expect(syncShoppingToggleQueue(USER_ID, dependencies)).resolves.toEqual({ status: "synced", syncedCount: 1, remainingCount: 0 });
+    expect(queue).toEqual([]);
+    expect(submitToggle).toHaveBeenCalledTimes(2);
   });
 
   it("retains a business-error record until the refreshed list confirms that its target is stale", async () => {

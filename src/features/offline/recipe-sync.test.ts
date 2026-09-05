@@ -30,7 +30,7 @@ function createDependencies(queue: LocalMutationRecord[], submitMutation: Recipe
   });
   const markFailed = vi.fn(async (current: LocalMutationRecord, message: string) => {
     const index = queue.findIndex((candidate) => candidate.id === current.id);
-    if (index >= 0) queue[index] = { ...queue[index], attemptCount: queue[index].attemptCount + 1, lastError: message };
+    if (index >= 0) queue[index] = { ...queue[index], attemptCount: queue[index].attemptCount + 1, lastError: message, lastAttemptAt: new Date().toISOString() };
   });
   const dependencies: RecipeSyncDependencies = {
     listQueue: vi.fn(async () => [...queue]),
@@ -70,7 +70,20 @@ describe("syncRecipeMutationQueue", () => {
       status: "failed", remainingCount: 1,
     });
     expect(markFailed).toHaveBeenCalledWith(record(), "菜谱状态更新失败，请稍后重试");
-    expect(queue[0]).toMatchObject({ attemptCount: 1, lastError: "菜谱状态更新失败，请稍后重试" });
+    expect(queue[0]).toMatchObject({ attemptCount: 1, lastError: "菜谱状态更新失败，请稍后重试", lastAttemptAt: expect.any(String) });
+  });
+
+  it("retries a retained failure and removes it after the next successful submission", async () => {
+    const queue = [record()];
+    const submitMutation = vi.fn<RecipeSyncDependencies["submitMutation"]>()
+      .mockResolvedValueOnce({ ok: false as const, message: "暂时失败" })
+      .mockResolvedValueOnce({ ok: true as const, data: null });
+    const { dependencies } = createDependencies(queue, submitMutation);
+
+    await expect(syncRecipeMutationQueue(USER_ID, dependencies)).resolves.toMatchObject({ status: "failed", remainingCount: 1 });
+    await expect(syncRecipeMutationQueue(USER_ID, dependencies)).resolves.toEqual({ status: "synced", syncedCount: 1, remainingCount: 0 });
+    expect(queue).toEqual([]);
+    expect(submitMutation).toHaveBeenCalledTimes(2);
   });
 
   it("stops and preserves the queue when login is required", async () => {

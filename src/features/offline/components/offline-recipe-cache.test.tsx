@@ -1,5 +1,5 @@
 import { render, waitFor } from "@testing-library/react";
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import type { RecipeDetail } from "@/features/recipes/types";
 import type { OfflineRecipeSnapshot } from "../types";
@@ -24,6 +24,41 @@ const recipe: RecipeDetail = {
 };
 
 describe("OfflineRecipeCache", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("does not overwrite a newer local snapshot with an older remote recipe", async () => {
+    getRecipeSnapshot.mockResolvedValueOnce({
+      userId: USER_ID,
+      recipeId: recipe.id,
+      cachedAt: "2026-08-27T00:00:00.000Z",
+      lastOpenedAt: "2026-08-27T00:00:00.000Z",
+      dataVersion: 3,
+      recipe: { ...recipe, updatedAt: "2026-08-28T00:00:00.000Z" },
+    });
+
+    render(<OfflineRecipeCache recipe={recipe} userId={USER_ID} />);
+
+    await waitFor(() => expect(getRecipeSnapshot).toHaveBeenCalled());
+    expect(putRecipeSnapshot).not.toHaveBeenCalled();
+  });
+
+  it("overwrites an older local snapshot when the remote recipe is newer", async () => {
+    getRecipeSnapshot.mockResolvedValueOnce({
+      userId: USER_ID,
+      recipeId: recipe.id,
+      cachedAt: "2026-08-27T00:00:00.000Z",
+      lastOpenedAt: "2026-08-27T00:00:00.000Z",
+      dataVersion: 3,
+      recipe: { ...recipe, updatedAt: "2026-08-26T00:00:00.000Z" },
+    });
+
+    render(<OfflineRecipeCache recipe={recipe} userId={USER_ID} />);
+
+    await waitFor(() => expect(putRecipeSnapshot).toHaveBeenCalled());
+  });
+
   it("remembers the authenticated profile then stores one recipe snapshot", async () => {
     render(<OfflineRecipeCache recipe={recipe} userId={USER_ID} />);
 
