@@ -35,6 +35,12 @@ describe("public PWA service worker source", () => {
     expect(source).toContain("recipio-public-shell");
     expect(source).toContain("food-sequence-public-shell");
     expect(source).toContain('request.mode === "navigate"');
+    expect(source).toContain("const NAVIGATION_TIMEOUT_MS = 3500");
+    expect(source).toContain("function fetchNavigation(request)");
+    expect(source).toContain("const controller = new AbortController()");
+    expect(source).toContain("controller.abort()");
+    expect(source).toContain("clearTimeout(timeoutId)");
+    expect(source).toContain("fetchNavigation(request)");
     expect(source).toContain('caches.match("/offline.html")');
     expect(source).toContain('pathname.startsWith("/_next/static/")');
     expect(source).toContain("cache.match(OFFLINE_APP_PATH)");

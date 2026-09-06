@@ -35,6 +35,17 @@ const OFFLINE_PRIVATE_ROUTE_PATTERNS = [
   /^\\/shopping$/,
 ];
 const STATIC_ATTRIBUTE_PATTERN = /(?:src|href)=["']([^"']+)["']/gi;
+const NAVIGATION_TIMEOUT_MS = 3500;
+
+async function fetchNavigation(request) {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), NAVIGATION_TIMEOUT_MS);
+  try {
+    return await fetch(request, { signal: controller.signal });
+  } finally {
+    clearTimeout(timeoutId);
+  }
+}
 
 function discoverStaticDependencies(markup) {
   const dependencies = [];
@@ -114,7 +125,7 @@ self.addEventListener("fetch", (event) => {
   if (request.mode === "navigate") {
     if (url.pathname === OFFLINE_APP_PATH) {
       event.respondWith(
-        fetch(request).catch(() =>
+        fetchNavigation(request).catch(() =>
           caches.open(CACHE_NAME).then((cache) => cache.match(OFFLINE_APP_PATH)),
         ),
       );
@@ -123,7 +134,7 @@ self.addEventListener("fetch", (event) => {
 
     if (OFFLINE_PRIVATE_ROUTE_PATTERNS.some((pattern) => pattern.test(url.pathname))) {
       event.respondWith(
-        fetch(request).catch(() => {
+        fetchNavigation(request).catch(() => {
           const redirectPath =
             OFFLINE_APP_PATH + "?path=" + encodeURIComponent(url.pathname + url.search);
           return Response.redirect(new URL(redirectPath, self.location.origin), 302);
@@ -132,7 +143,7 @@ self.addEventListener("fetch", (event) => {
       return;
     }
 
-    event.respondWith(fetch(request).catch(() => caches.match("/offline.html")));
+    event.respondWith(fetchNavigation(request).catch(() => caches.match("/offline.html")));
     return;
   }
 
