@@ -14,7 +14,7 @@ describe("OfflineConnectionAction", () => {
   it("waits for the network before allowing a return to the online page", async () => {
     render(<OfflineConnectionAction href="/recipes" />);
 
-    expect(screen.getByRole("button", { name: "等待网络恢复" })).toBeDisabled();
+    expect(await screen.findByRole("button", { name: "等待网络恢复" })).toBeDisabled();
 
     window.dispatchEvent(new Event("online"));
 

@@ -7,12 +7,11 @@ export type OfflineConnectionActionProps = {
 };
 
 export function OfflineConnectionAction({ href }: OfflineConnectionActionProps) {
-  const [isOnline, setIsOnline] = useState(() =>
-    typeof navigator === "undefined" ? true : navigator.onLine,
-  );
+  const [isOnline, setIsOnline] = useState(true);
   const [hasRecovered, setHasRecovered] = useState(false);
 
   useEffect(() => {
+    setIsOnline(navigator.onLine);
     const handleOnline = () => {
       setIsOnline(true);
       setHasRecovered(true);
