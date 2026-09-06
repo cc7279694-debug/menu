@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 
 import { Button } from "@/components/ui/button";
+import { shouldCheckForPwaUpdate } from "../update-policy";
 
 const UPDATE_MESSAGE = "发现新版本，更新后可获得最新页面与样式。";
 const OFFLINE_MESSAGE =
@@ -37,20 +38,45 @@ export function PwaRuntime(): React.ReactElement | null {
   const [isOffline, setIsOffline] = useState(false);
   const [waitingWorker, setWaitingWorker] = useState<ServiceWorker | null>(null);
   const hasReloadedRef = useRef(false);
+  const lastUpdateCheckAtRef = useRef<number | null>(null);
 
   useEffect(() => {
     setIsOffline(!navigator.onLine);
-
-    const handleOffline = () => setIsOffline(true);
-    const handleOnline = () => setIsOffline(false);
-    window.addEventListener("offline", handleOffline);
-    window.addEventListener("online", handleOnline);
 
     let cancelled = false;
     let registration: ServiceWorkerRegistration | null = null;
     let installingWorker: ServiceWorker | null = null;
     let cleanupRegistration = () => undefined;
     const serviceWorkerContainer = navigator.serviceWorker;
+
+    const requestUpdateCheck = () => {
+      if (
+        !registration ||
+        typeof registration.update !== "function" ||
+        !shouldCheckForPwaUpdate(lastUpdateCheckAtRef.current, Date.now())
+      ) {
+        return;
+      }
+
+      lastUpdateCheckAtRef.current = Date.now();
+      void registration.update().catch(() => undefined);
+    };
+
+    const handleOffline = () => setIsOffline(true);
+    const handleOnline = () => {
+      setIsOffline(false);
+      requestUpdateCheck();
+    };
+    const handleFocus = () => requestUpdateCheck();
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "visible") {
+        requestUpdateCheck();
+      }
+    };
+    window.addEventListener("offline", handleOffline);
+    window.addEventListener("online", handleOnline);
+    window.addEventListener("focus", handleFocus);
+    document.addEventListener("visibilitychange", handleVisibilityChange);
 
     const handleControllerChange = () => {
       if (!cancelled && !hasReloadedRef.current) {
@@ -76,6 +102,7 @@ export function PwaRuntime(): React.ReactElement | null {
       if (registration.waiting) {
         setWaitingWorker(registration.waiting);
       }
+      requestUpdateCheck();
 
       const handleUpdateFound = () => {
         installingWorker = registration?.installing ?? null;
@@ -105,6 +132,8 @@ export function PwaRuntime(): React.ReactElement | null {
       cancelled = true;
       window.removeEventListener("offline", handleOffline);
       window.removeEventListener("online", handleOnline);
+      window.removeEventListener("focus", handleFocus);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
       navigator.serviceWorker?.removeEventListener(
         "controllerchange",
         handleControllerChange,

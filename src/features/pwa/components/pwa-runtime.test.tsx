@@ -160,4 +160,33 @@ describe("PwaRuntime", () => {
       "status",
     );
   });
+
+  it("checks for updates when the app resumes without polling repeatedly", async () => {
+    const update = vi.fn().mockResolvedValue(undefined);
+    const serviceWorker = installServiceWorkerMock({ update });
+
+    render(<PwaRuntime />);
+    await waitFor(() => expect(serviceWorker.register).toHaveBeenCalledTimes(1));
+
+    window.dispatchEvent(new Event("online"));
+    window.dispatchEvent(new Event("focus"));
+    Object.defineProperty(document, "visibilityState", {
+      configurable: true,
+      value: "visible",
+    });
+    document.dispatchEvent(new Event("visibilitychange"));
+
+    await waitFor(() => expect(update).toHaveBeenCalledTimes(1));
+  });
+
+  it("ignores a failed background update check", async () => {
+    const update = vi.fn().mockRejectedValue(new Error("offline"));
+    const serviceWorker = installServiceWorkerMock({ update });
+
+    render(<PwaRuntime />);
+    await waitFor(() => expect(serviceWorker.register).toHaveBeenCalledTimes(1));
+    window.dispatchEvent(new Event("online"));
+
+    await waitFor(() => expect(update).toHaveBeenCalledTimes(1));
+  });
 });
