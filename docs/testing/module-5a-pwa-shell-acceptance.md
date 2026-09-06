@@ -1,44 +1,50 @@
-# 模块 5A：PWA 公共壳与更新验收记录
+# 模块 5A / PWA 深化验收记录
 
 ## 范围
 
-本次只交付 PWA 安装壳、公共离线页、严格的公共资源缓存白名单、用户确认更新提示和网络状态提示。没有新增数据库迁移、Supabase 表、RPC、Storage、业务 API 或大型依赖；IndexedDB 私有快照与离线购物同步保留到模块 5B。
+本次在既有 PWA 公共壳和 IndexedDB 离线基础上，补齐安装引导、前台更新检查、弱网导航回退、离线返回动作和独立窗口安全区适配。没有新增数据库迁移、Supabase 表、RPC、Storage、业务 API 或第三方 PWA 依赖；更新仍由用户确认后才接管。
+
+## 交付内容
+
+- `InstallAppButton` 会监听原生安装能力和 `appinstalled`，不支持原生提示时按 Android、iOS Safari、桌面浏览器显示手动安装步骤。
+- Service Worker 注册完成、网络恢复、窗口重新获得焦点或页面回到前台时检查更新，最短间隔为 5 分钟；更新检查失败静默忽略。
+- 所有同源导航请求使用 3.5 秒 AbortController 超时；超时后沿用离线页或 `/offline/app` 私有离线入口。
+- 离线页面的返回动作根据 `navigator.onLine` 显示链接或禁用按钮，网络恢复后提示用户手动返回，不自动跳转。
+- Manifest 增加稳定 `id` 和 `orientation: any`；根布局启用 `viewport-fit=cover`，应用和离线壳使用安全区间距。
 
 ## 代码级验证
 
 | 检查 | 结果 |
 | --- | --- |
-| Manifest、图标、离线页测试 | 通过（3/3） |
-| Service Worker 源码与 `/sw.js` 路由测试 | 通过（4/4） |
-| PWA 运行时更新/断网组件测试 | 通过（5/5） |
-| 认证中间件公共资源放行测试 | 通过（5/5，含既有路由访问测试） |
-| TypeScript | 通过 |
-| ESLint | 通过；保留既有 4 条 `<img>` 性能建议 |
-| 生产构建 | 通过；Next.js 15.5.23，生成 `/manifest.webmanifest` 与 `/sw.js` |
+| 安装能力模型测试 | 通过（4/4） |
+| 安装按钮与平台安装步骤测试 | 通过（7/7） |
+| PWA 运行时与前台更新策略测试 | 通过（12/12） |
+| Service Worker 源码与导航超时测试 | 通过（6/6） |
+| 离线返回动作、离线页面与安全区测试 | 通过（24/24） |
+| Manifest、图标与离线页测试 | 通过（3/3） |
+| 相关回归测试 | 通过（27 个文件，130 个测试） |
+| TypeScript | 通过（`npm.cmd run typecheck`） |
+| ESLint | 通过（0 错误；保留既有 5 条 `<img>` 性能警告） |
+| Production build | 通过（Next.js 15.5.23） |
 | `git diff --check` | 通过 |
+| 敏感信息扫描 | 未发现密钥；命令仅命中 README 中的空环境变量示例 |
 
-前端与数据库测试的完整串行 runner 在本机 Node/Vitest worker 阶段出现无输出长驻进程，已停止以避免持续占用内存；本次新增及相关路由定向测试共 17/17 通过。该 runner 状态属于本机测试基础设施限制，不能替代完整回归结论。
+以上相关回归使用单 worker 串行运行，避免本机 Vitest worker 长驻；完整构建和类型检查也已在本分支执行。
 
-## 缓存安全验收
+## 安全边界
 
-预期 Cache Storage 只出现一个以 `food-sequence-public-shell-` 开头的缓存，且只包含：
+- Service Worker 公共缓存白名单仍只包含离线页、Manifest、图标和离线壳发现的同源静态依赖。
+- 不缓存 `/api/`、Supabase 请求、登录后 HTML、菜谱数据或购物清单数据。
+- 不在 Service Worker 中自动执行 `skipWaiting()`；用户点击“立即更新”后才发送消息。
+- 弱网超时只作用于导航请求，不改变 API、Supabase 或私有数据的缓存策略。
 
-- `/offline.html`
-- `/manifest.webmanifest`
-- `/icons/icon-192.png`
-- `/icons/icon-512.png`
-- `/icons/icon-maskable-512.png`
-- `/apple-touch-icon.png`
-
-不得出现 `/api/`、`/_next/`、Supabase 请求、登录后 HTML、菜谱数据或购物清单数据。生产 HTTP 冒烟已确认：Manifest、Service Worker、离线页和 192px 图标均返回 200；Service Worker 包含 `qa-v1` 版本、无 `cache.put`、无私有/API/Next 路径；未登录 `/recipes` 保持 307 认证跳转。
-
-## 浏览器与移动端验收
+## 浏览器验收
 
 需要在桌面浏览器和 360px、390px、430px 视口确认：
 
-- 首屏和页面切换无空白等待，PWA 状态卡片不遮挡主要操作；
-- 离线页可独立显示，恢复网络后可回到应用；
-- 新 worker 等待时只显示更新提示，不自动刷新；点击“稍后”保留旧 worker，点击“立即更新”后只刷新一次；
-- 页面无横向溢出，控制台无新增错误或警告。
+- 安装入口在支持原生提示的浏览器调用原生提示，在 iOS Safari 和无原生提示环境显示对应手册；已安装状态不可重复触发。
+- 首屏和页面切换在弱网下不会无限等待；离线页面可以回到应用，网络恢复后需要用户点击返回。
+- 新 worker 等待时只显示更新提示，不自动刷新；点击“稍后”保持旧 worker，点击“立即更新”后只刷新一次。
+- 刘海屏或独立窗口中顶部和底部内容不被系统安全区或底部导航遮挡，页面无横向溢出。
 
-当前环境的 Opera 浏览器连接需要重新认证，未能完成真实安装、Cache Storage 面板、离线切换和 Lighthouse 采集；这些项目不以 HTTP 冒烟或静态检查冒充完成，待浏览器连接恢复后补验。
+浏览器 Preview 验收仍需在本分支推送后补做；不以静态检查替代真实安装、Cache Storage、离线切换和视口检查。
