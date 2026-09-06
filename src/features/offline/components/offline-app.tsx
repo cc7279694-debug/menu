@@ -17,6 +17,7 @@ import { OfflineShoppingList } from "@/features/offline/components/offline-shopp
 import { listRecipeMedia } from "@/features/offline/media-cache";
 import type { LocalRecipeMediaRecord } from "@/features/offline/local-db";
 import type { OfflineProfile, OfflineRecipeSnapshot, OfflineShoppingSnapshot } from "@/features/offline/types";
+import { OfflineConnectionAction } from "@/features/pwa/components/offline-connection-action";
 
 export type OfflineTarget =
   | { kind: "recipe-list" }
@@ -141,10 +142,10 @@ export function OfflineApp() {
 
 function OfflineFrame({ target, children }: { target: OfflineTarget; children: ReactNode }) {
   return (
-    <div className="min-h-dvh bg-background px-4 py-5 sm:px-6">
+    <div className="pwa-offline-frame min-h-dvh bg-background px-4 sm:px-6">
       <div className="mx-auto flex max-w-5xl items-center justify-between gap-3 border-b pb-4">
         <span className="font-semibold tracking-tight">谱序 RECIPIO</span>
-        <a className="inline-flex min-h-11 items-center rounded-lg border px-3 text-sm" href={targetHref(target)}>返回在线页面</a>
+        <OfflineConnectionAction href={targetHref(target)} />
       </div>
       <div className="mx-auto max-w-5xl py-6">{children}</div>
     </div>
@@ -152,5 +153,5 @@ function OfflineFrame({ target, children }: { target: OfflineTarget; children: R
 }
 
 function OfflineMessage({ href = "/recipes", title }: { href?: string; title: string }) {
-  return <main aria-live="polite" className="mx-auto max-w-xl rounded-2xl border bg-card p-6 text-center" role="status"><h1 className="text-xl font-semibold">{title}</h1><p className="mt-2 text-sm text-muted-foreground">恢复网络后可继续使用完整功能。</p><a className="mt-4 inline-flex min-h-11 items-center rounded-lg border px-3 text-sm" href={href}>返回在线页面</a></main>;
+  return <main aria-live="polite" className="mx-auto max-w-xl rounded-2xl border bg-card p-6 text-center" role="status"><h1 className="text-xl font-semibold">{title}</h1><p className="mt-2 text-sm text-muted-foreground">恢复网络后可继续使用完整功能。</p><div className="mt-4"><OfflineConnectionAction href={href} /></div></main>;
 }

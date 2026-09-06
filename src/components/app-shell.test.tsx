@@ -22,5 +22,6 @@ describe("AppShell", () => {
     expect(
       screen.getByRole("navigation", { name: "手机主导航" }),
     ).toBeInTheDocument();
+    expect(screen.getByRole("main")).toHaveClass("pwa-shell-content");
   });
 });

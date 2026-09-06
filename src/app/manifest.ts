@@ -6,10 +6,12 @@ export default function manifest(): MetadataRoute.Manifest {
   return {
     name: PROJECT_META.name,
     short_name: PROJECT_META.shortName,
+    id: "/",
     description: PROJECT_META.description,
     start_url: "/recipes",
     scope: "/",
     display: "standalone",
+    orientation: "any",
     lang: "zh-CN",
     theme_color: "#27231f",
     background_color: "#faf8f3",

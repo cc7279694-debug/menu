@@ -55,6 +55,23 @@ body {
   font-family: Arial, Helvetica, sans-serif;
 }
 
+.pwa-shell-content {
+  padding-top: max(1.5rem, env(safe-area-inset-top));
+  padding-bottom: max(6rem, calc(5rem + env(safe-area-inset-bottom)));
+}
+
+.pwa-offline-frame {
+  padding-top: max(1.25rem, env(safe-area-inset-top));
+  padding-bottom: max(1.25rem, env(safe-area-inset-bottom));
+}
+
+@media (min-width: 48rem) {
+  .pwa-shell-content {
+    padding-top: 2rem;
+    padding-bottom: 2rem;
+  }
+}
+
 :focus-visible {
   outline: 2px solid var(--ring);
   outline-offset: 2px;

@@ -8,7 +8,7 @@ export function AppShell({ children, userId }: { children: ReactNode; userId?: s
   return (
     <div className="min-h-dvh md:grid md:grid-cols-[16rem_1fr]">
       <DesktopSidebar />
-      <main className="mx-auto w-full max-w-6xl px-4 py-6 pb-24 md:px-8 md:pb-8">
+      <main className="pwa-shell-content mx-auto w-full max-w-6xl px-4 md:px-8">
         {children}
       </main>
       <MobileBottomNav />

@@ -25,9 +25,11 @@ describe("PWA public shell", () => {
     expect(result).toMatchObject({
       name: "谱序 RECIPIO",
       short_name: "谱序",
+      id: "/",
       start_url: "/recipes",
       scope: "/",
       display: "standalone",
+      orientation: "any",
       lang: "zh-CN",
       theme_color: "#27231f",
       background_color: "#faf8f3",
