@@ -46,9 +46,31 @@ describe("InstallAppButton", () => {
 
     await user.click(screen.getByRole("button", { name: "下载应用" }));
 
-    expect(await screen.findByRole("status")).toHaveTextContent(
-      "请打开浏览器菜单，选择“安装应用”或“添加到主屏幕”。",
-    );
+    expect(screen.getByRole("status", { hidden: true })).toHaveTextContent("请查看安装步骤。");
+    expect(screen.getByRole("dialog", { name: "安装谱序" })).toBeInTheDocument();
+  });
+
+  it("opens Safari instructions for an iOS browser without a native prompt", async () => {
+    Object.defineProperty(navigator, "userAgent", {
+      configurable: true,
+      value: "Mozilla/5.0 (iPhone) AppleWebKit/605.1.15 Version/18.0 Mobile Safari/604.1",
+    });
+    const user = userEvent.setup();
+    render(<InstallAppButton />);
+
+    await user.click(screen.getByRole("button", { name: "下载应用" }));
+
+    expect(await screen.findByRole("dialog", { name: "安装谱序" })).toBeInTheDocument();
+    expect(screen.getByText("点击 Safari 底部或顶部的分享按钮。")).toBeInTheDocument();
+  });
+
+  it("marks the app installed after the browser emits appinstalled", async () => {
+    render(<InstallAppButton />);
+    window.dispatchEvent(new Event("appinstalled"));
+
+    await waitFor(() => {
+      expect(screen.getByRole("button", { name: "应用已安装" })).toBeDisabled();
+    });
   });
 
   it("marks the app as installed when it is already running standalone", async () => {

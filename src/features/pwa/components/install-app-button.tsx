@@ -4,28 +4,41 @@ import { Download } from "lucide-react";
 import { useEffect, useState } from "react";
 
 import { Button } from "@/components/ui/button";
+import { InstallAppDialog } from "./install-app-dialog";
+import {
+  detectPwaInstallPlatform,
+  isPwaStandalone,
+  type PwaInstallPlatform,
+} from "../install-capability";
 
 type InstallPromptEvent = Event & {
   prompt: () => Promise<void>;
   userChoice: Promise<{ outcome: "accepted" | "dismissed" }>;
 };
 
-function isStandaloneMode() {
-  const navigatorWithStandalone = navigator as Navigator & { standalone?: boolean };
-  return (
-    (typeof window.matchMedia === "function" &&
-      window.matchMedia("(display-mode: standalone)").matches) ||
-    navigatorWithStandalone.standalone === true
-  );
-}
-
 export function InstallAppButton() {
   const [installPrompt, setInstallPrompt] = useState<InstallPromptEvent | null>(null);
   const [isInstalled, setIsInstalled] = useState(false);
+  const [platform, setPlatform] = useState<PwaInstallPlatform>("other");
+  const [dialogOpen, setDialogOpen] = useState(false);
   const [status, setStatus] = useState<string | null>(null);
 
   useEffect(() => {
-    setIsInstalled(isStandaloneMode());
+    const navigatorWithStandalone = navigator as Navigator & { standalone?: boolean };
+    setIsInstalled(
+      isPwaStandalone({
+        displayModeStandalone:
+          typeof window.matchMedia === "function" &&
+          window.matchMedia("(display-mode: standalone)").matches,
+        navigatorStandalone: navigatorWithStandalone.standalone,
+      }),
+    );
+    setPlatform(
+      detectPwaInstallPlatform({
+        userAgent: navigator.userAgent,
+        maxTouchPoints: navigator.maxTouchPoints,
+      }),
+    );
 
     const handleBeforeInstallPrompt = (event: Event) => {
       event.preventDefault();
@@ -50,45 +63,68 @@ export function InstallAppButton() {
     if (isInstalled) return;
 
     if (!installPrompt) {
-      setStatus("请打开浏览器菜单，选择“安装应用”或“添加到主屏幕”。");
+      setStatus("请查看安装步骤。");
+      setDialogOpen(true);
       return;
     }
 
     const prompt = installPrompt;
     setInstallPrompt(null);
-    await prompt.prompt();
+    try {
+      await prompt.prompt();
+    } catch {
+      setStatus("浏览器没有完成安装，请按下面步骤手动安装。");
+      setDialogOpen(true);
+      return;
+    }
 
-    const choice = await prompt.userChoice;
+    let choice: Awaited<InstallPromptEvent["userChoice"]>;
+    try {
+      choice = await prompt.userChoice;
+    } catch {
+      setStatus("浏览器没有完成安装，请按下面步骤手动安装。");
+      setDialogOpen(true);
+      return;
+    }
+
     if (choice.outcome === "accepted") {
       setIsInstalled(true);
     }
-    setStatus(
-      choice.outcome === "accepted"
-        ? "应用已准备安装"
-        : "已取消安装，你仍可在浏览器菜单中稍后安装。",
-    );
+    if (choice.outcome === "accepted") {
+      setStatus("应用已准备安装");
+    } else {
+      setStatus("已取消安装，你仍可按下面步骤手动安装。");
+      setDialogOpen(true);
+    }
   }
 
   return (
-    <div className="flex flex-col items-start gap-1">
-      <Button
-        aria-describedby={status ? "install-app-status" : undefined}
-        aria-label={isInstalled ? "应用已安装" : "下载应用"}
-        disabled={isInstalled}
-        onClick={() => {
-          void handleInstall();
-        }}
-        type="button"
-        variant="outline"
-      >
-        <Download aria-hidden="true" />
-        {isInstalled ? "应用已安装" : "下载应用"}
-      </Button>
-      {status ? (
-        <p id="install-app-status" role="status" className="max-w-56 text-xs text-muted-foreground">
-          {status}
-        </p>
-      ) : null}
-    </div>
+    <>
+      <div className="flex flex-col items-start gap-1">
+        <Button
+          aria-describedby={status ? "install-app-status" : undefined}
+          aria-label={isInstalled ? "应用已安装" : "下载应用"}
+          disabled={isInstalled}
+          onClick={() => {
+            void handleInstall();
+          }}
+          type="button"
+          variant="outline"
+        >
+          <Download aria-hidden="true" />
+          {isInstalled ? "应用已安装" : "下载应用"}
+        </Button>
+        {status ? (
+          <p id="install-app-status" role="status" className="max-w-56 text-xs text-muted-foreground">
+            {status}
+          </p>
+        ) : null}
+      </div>
+      <InstallAppDialog
+        onOpenChange={setDialogOpen}
+        open={dialogOpen}
+        platform={platform}
+      />
+    </>
   );
 }
