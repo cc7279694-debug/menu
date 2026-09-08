@@ -17,9 +17,14 @@ export function OfflineRecipeDetail({ recipe, userId }: { recipe: OfflineRecipeD
         <Link className="inline-flex min-h-11 items-center text-sm text-muted-foreground underline" href={`/offline/app?path=${encodeURIComponent("/recipes")}`}>
           返回离线菜谱
         </Link>
-        <Link className="inline-flex min-h-11 items-center rounded-lg bg-primary px-3 text-sm font-medium text-primary-foreground" href={`/offline/app?path=${encodeURIComponent(`/recipes/${recipe.id}/cook`)}`}>
-          开始烹饪
-        </Link>
+        <div className="flex flex-wrap items-center gap-2">
+          <Link className="inline-flex min-h-11 items-center rounded-lg border px-3 text-sm font-medium" href={`/offline/app?path=${encodeURIComponent(`/recipes/${recipe.id}/edit`)}`}>
+            编辑菜谱
+          </Link>
+          <Link className="inline-flex min-h-11 items-center rounded-lg bg-primary px-3 text-sm font-medium text-primary-foreground" href={`/offline/app?path=${encodeURIComponent(`/recipes/${recipe.id}/cook`)}`}>
+            开始烹饪
+          </Link>
+        </div>
       </div>
       <header>
         <div className="flex flex-wrap items-center gap-2">

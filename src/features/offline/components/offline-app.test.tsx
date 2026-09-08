@@ -2,6 +2,7 @@ import { act, fireEvent, render, screen, waitFor } from "@testing-library/react"
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import type { OfflineRecipeSnapshot, OfflineShoppingSnapshot } from "@/features/offline/types";
+import type { LocalRecipeRecord } from "@/features/local-data/types";
 
 const databaseMocks = vi.hoisted(() => ({
   getLastOfflineProfile: vi.fn(),
@@ -16,12 +17,18 @@ const databaseMocks = vi.hoisted(() => ({
 const navigationMocks = vi.hoisted(() => ({
   useSearchParams: vi.fn(() => new URLSearchParams(window.location.search)),
 }));
+const localRecipeMocks = vi.hoisted(() => ({
+  list: vi.fn(),
+  get: vi.fn(),
+  save: vi.fn(),
+}));
 
 vi.mock("@/features/offline/database", () => databaseMocks);
+vi.mock("@/features/local-data/local-recipe-service", () => ({ localRecipeService: localRecipeMocks }));
 vi.mock("@/features/offline/media-cache", () => ({ getRecipeMedia: vi.fn().mockResolvedValue(null), listRecipeMedia: databaseMocks.listRecipeMedia }));
 vi.mock("@/features/offline/components/offline-recipe-editor", () => ({
-  OfflineRecipeEditor: ({ mode, snapshot }: { mode: string; snapshot?: OfflineRecipeSnapshot | null }) => (
-    <div data-mode={mode} data-recipe-id={snapshot?.recipeId ?? "new"} data-testid="offline-recipe-editor" />
+  OfflineRecipeEditor: ({ mode, snapshot, userId }: { mode: string; snapshot?: OfflineRecipeSnapshot | null; userId: string }) => (
+    <div data-mode={mode} data-recipe-id={snapshot?.recipeId ?? "new"} data-testid="offline-recipe-editor" data-user-id={userId} />
   ),
 }));
 vi.mock("next/navigation", () => navigationMocks);
@@ -81,6 +88,30 @@ const shopping: OfflineShoppingSnapshot = {
   },
 };
 
+const localRecipe: LocalRecipeRecord = {
+  id: RECIPE_ID,
+  title: "本地葱油拌面",
+  description: "无需账号也能读取",
+  categoryId: null,
+  categoryName: null,
+  tagIds: [],
+  tags: [],
+  isFavorite: false,
+  coverPath: null,
+  baseServings: 1,
+  prepMinutes: 3,
+  cookMinutes: 8,
+  personalNotes: null,
+  nutrition: null,
+  ingredients: [{ id: "ingredient-local", name: "面条", quantity: 1, quantityText: null, unit: "份", preparationNote: null, sortOrder: 0 }],
+  steps: [{ id: "step-local", instruction: "煮面拌匀", imagePath: null, imageUrl: null, timerSeconds: null, sortOrder: 0, ingredientLinks: [] }],
+  preparations: [],
+  source: null,
+  createdAt: "2026-09-08T08:00:00.000Z",
+  updatedAt: "2026-09-08T08:00:00.000Z",
+  deletedAt: null,
+};
+
 function setTarget(path: string) {
   window.history.replaceState({}, "", `/offline/app?path=${encodeURIComponent(path)}`);
 }
@@ -96,6 +127,40 @@ describe("OfflineApp", () => {
     databaseMocks.getRecipeDraft.mockResolvedValue(null);
     databaseMocks.listRecipeMedia.mockResolvedValue([]);
     databaseMocks.queueShoppingToggle.mockResolvedValue({ userId: USER_ID, listId: LIST_ID, itemId: "item-1", targetChecked: true, clientMutationId: "mutation-1", queuedAt: "2026-08-28T00:00:00.000Z", attemptCount: 0, lastError: null });
+    localRecipeMocks.list.mockResolvedValue([]);
+    localRecipeMocks.get.mockResolvedValue(null);
+    localRecipeMocks.save.mockResolvedValue(localRecipe);
+  });
+
+  it("renders repository recipes without an authenticated offline profile", async () => {
+    localRecipeMocks.list.mockResolvedValue([localRecipe]);
+    databaseMocks.getLastOfflineProfile.mockResolvedValue(null);
+    setTarget("/recipes");
+
+    render(<OfflineApp />);
+
+    expect(await screen.findByText("本地葱油拌面")).toBeInTheDocument();
+  });
+
+  it("allows creating the first repository recipe without an offline profile", async () => {
+    databaseMocks.getLastOfflineProfile.mockResolvedValue(null);
+    setTarget("/recipes/new");
+
+    render(<OfflineApp />);
+
+    expect(await screen.findByTestId("offline-recipe-editor")).toHaveAttribute("data-user-id", "local-device");
+  });
+
+  it("falls back to the legacy snapshot when the requested recipe is not in the repository", async () => {
+    localRecipeMocks.list.mockResolvedValue([
+      { ...localRecipe, id: "88888888-8888-4888-8888-888888888888" },
+    ]);
+    localRecipeMocks.get.mockResolvedValue(null);
+    setTarget(`/recipes/${RECIPE_ID}`);
+
+    render(<OfflineApp />);
+
+    expect(await screen.findByRole("heading", { name: "番茄炒蛋" })).toBeInTheDocument();
   });
 
   it("shows recent cached recipes for the recipe list target", async () => {
@@ -104,6 +169,10 @@ describe("OfflineApp", () => {
 
     expect(await screen.findByRole("heading", { name: "最近离线菜谱" })).toBeInTheDocument();
     expect(screen.getByText("番茄炒蛋")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "新建菜谱" })).toHaveAttribute(
+      "href",
+      `/offline/app?path=${encodeURIComponent("/recipes/new")}`,
+    );
   });
 
   it("parses offline create and edit targets before the generic detail target", () => {
@@ -144,6 +213,10 @@ describe("OfflineApp", () => {
     expect(screen.getByText("炒熟鸡蛋")).toBeInTheDocument();
     expect(screen.getByText("提前 4 小时")).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /收藏|编辑/ })).not.toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "编辑菜谱" })).toHaveAttribute(
+      "href",
+      `/offline/app?path=${encodeURIComponent(`/recipes/${RECIPE_ID}/edit`)}`,
+    );
   });
 
   it("updates the rendered target when the offline path changes without remounting", async () => {

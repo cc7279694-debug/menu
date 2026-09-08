@@ -47,7 +47,12 @@ export type LocalRecipePayload = {
   title: string;
   description: string | null;
   categoryId: string | null;
+  /** Display label stored with the recipe so taxonomy remains usable offline. */
+  categoryName?: string | null;
   tagIds: string[];
+  /** Display labels stored with the recipe so taxonomy remains usable offline. */
+  tags?: Array<{ id: string; name: string }>;
+  isFavorite?: boolean;
   coverPath: string | null;
   baseServings: number;
   prepMinutes: number | null;

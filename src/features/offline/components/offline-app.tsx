@@ -18,6 +18,8 @@ import { listRecipeMedia } from "@/features/offline/media-cache";
 import type { LocalRecipeMediaRecord } from "@/features/offline/local-db";
 import type { OfflineProfile, OfflineRecipeSnapshot, OfflineShoppingSnapshot } from "@/features/offline/types";
 import { OfflineConnectionAction } from "@/features/pwa/components/offline-connection-action";
+import { localRecipeRecordToOfflineSnapshot, LOCAL_DEVICE_OWNER_ID } from "@/features/local-data/local-recipe-mapper";
+import { localRecipeService } from "@/features/local-data/local-recipe-service";
 
 export type OfflineTarget =
   | { kind: "recipe-list" }
@@ -62,7 +64,27 @@ function targetHref(target: OfflineTarget) {
   return "/recipes";
 }
 
-type OfflineData = { profile: OfflineProfile; recipes: OfflineRecipeSnapshot[]; recipe: OfflineRecipeSnapshot | null; media: LocalRecipeMediaRecord[]; shopping: OfflineShoppingSnapshot | null };
+type OfflineData = {
+  profile: OfflineProfile;
+  recipes: OfflineRecipeSnapshot[];
+  recipe: OfflineRecipeSnapshot | null;
+  media: LocalRecipeMediaRecord[];
+  shopping: OfflineShoppingSnapshot | null;
+  localRepositoryAvailable: boolean;
+};
+
+const localDeviceProfile: OfflineProfile = {
+  userId: LOCAL_DEVICE_OWNER_ID,
+  lastAuthenticatedAt: "1970-01-01T00:00:00.000Z",
+};
+
+function isRecipeTarget(target: OfflineTarget): boolean {
+  return target.kind === "recipe-list"
+    || target.kind === "recipe-create"
+    || target.kind === "recipe-edit"
+    || target.kind === "recipe-detail"
+    || target.kind === "cooking";
+}
 
 function sanitizeOfflineRecipe(recipe: OfflineRecipeSnapshot["recipe"]): OfflineRecipeSnapshot["recipe"] {
   return {
@@ -95,10 +117,9 @@ export function OfflineApp() {
     if (nextTarget.kind === "unsupported") return;
 
     let cancelled = false;
-    void getLastOfflineProfile()
-      .then(async (profile) => {
+    const loadLegacyData = async (localRepositoryAvailable: boolean): Promise<OfflineData | null> => {
+      const profile = await getLastOfflineProfile();
         if (!profile) {
-          if (!cancelled) setEmpty(true);
           return null;
         }
         const [recipes, recipe, media, shopping] = await Promise.all([
@@ -107,9 +128,43 @@ export function OfflineApp() {
           nextTarget.kind === "recipe-edit" ? listRecipeMedia(profile.userId, nextTarget.recipeId) : Promise.resolve([] as LocalRecipeMediaRecord[]),
           nextTarget.kind === "shopping" ? getShoppingSnapshot(profile.userId) : Promise.resolve(null),
         ]);
-        return { profile, recipes, recipe, media, shopping };
+        return { profile, recipes, recipe, media, shopping, localRepositoryAvailable };
+    };
+
+    const loadData = async (): Promise<OfflineData | null> => {
+      if (!isRecipeTarget(nextTarget)) return loadLegacyData(false);
+
+      try {
+        const records = await localRecipeService.list();
+        if (records.length > 0 || nextTarget.kind === "recipe-create") {
+          const needsRequestedRecipe = nextTarget.kind === "recipe-detail"
+            || nextTarget.kind === "recipe-edit"
+            || nextTarget.kind === "cooking";
+          const localRecord = needsRequestedRecipe
+            ? await localRecipeService.get(nextTarget.recipeId)
+            : null;
+          if (needsRequestedRecipe && !localRecord) return loadLegacyData(true);
+          return {
+            profile: localDeviceProfile,
+            recipes: records.map(localRecipeRecordToOfflineSnapshot),
+            recipe: localRecord ? localRecipeRecordToOfflineSnapshot(localRecord) : null,
+            media: [],
+            shopping: null,
+            localRepositoryAvailable: true,
+          };
+        }
+        return loadLegacyData(true);
+      } catch {
+        return loadLegacyData(false);
+      }
+    };
+
+    void loadData()
+      .then((nextData) => {
+        if (cancelled) return;
+        if (nextData) setData(nextData);
+        else setEmpty(true);
       })
-      .then((nextData) => { if (!cancelled && nextData) setData(nextData); })
       .catch(() => { if (!cancelled) setError(true); });
     return () => { cancelled = true; };
   }, [rawPath]);
@@ -123,11 +178,11 @@ export function OfflineApp() {
     return <OfflineFrame target={target}><OfflineRecipeList snapshots={data.recipes} userId={data.profile.userId} /></OfflineFrame>;
   }
   if (target.kind === "recipe-create") {
-    return <OfflineFrame target={target}><OfflineRecipeEditor mode="create" media={[]} snapshots={data.recipes} userId={data.profile.userId} /></OfflineFrame>;
+    return <OfflineFrame target={target}><OfflineRecipeEditor mode="create" media={[]} recipeService={data.localRepositoryAvailable ? localRecipeService : null} snapshots={data.recipes} userId={data.profile.userId} /></OfflineFrame>;
   }
   if (target.kind === "recipe-edit") {
     if (!data.recipe) return <OfflineFrame target={target}><OfflineMessage href={targetHref(target)} title="这道菜还没有保存到本机，暂时无法离线编辑" /></OfflineFrame>;
-    return <OfflineFrame target={target}><OfflineRecipeEditor media={data.media} mode="edit" snapshot={data.recipe} snapshots={data.recipes} userId={data.profile.userId} /></OfflineFrame>;
+    return <OfflineFrame target={target}><OfflineRecipeEditor media={data.media} mode="edit" recipeService={data.localRepositoryAvailable ? localRecipeService : null} snapshot={data.recipe} snapshots={data.recipes} userId={data.profile.userId} /></OfflineFrame>;
   }
   if (target.kind === "shopping") {
     return <OfflineFrame target={target}>{data.shopping ? <OfflineShoppingList snapshot={data.shopping} userId={data.profile.userId} /> : <OfflineMessage href={targetHref(target)} title="没有可用的离线购物清单" />}</OfflineFrame>;

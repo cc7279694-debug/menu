@@ -6,9 +6,14 @@ import { OfflineCachedMedia } from "@/features/offline/components/offline-cached
 export function OfflineRecipeList({ snapshots, userId }: { snapshots: OfflineRecipeSnapshot[]; userId: string }) {
   return (
     <section aria-labelledby="offline-recipe-list-heading" className="space-y-4">
-      <div>
-        <h1 className="text-2xl font-semibold" id="offline-recipe-list-heading">最近离线菜谱</h1>
-        <p className="mt-1 text-sm text-muted-foreground">这些菜谱已保存在本机，可在断网时查看和烹饪。</p>
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-semibold" id="offline-recipe-list-heading">最近离线菜谱</h1>
+          <p className="mt-1 text-sm text-muted-foreground">这些菜谱已保存在本机，可在断网时查看和烹饪。</p>
+        </div>
+        <Link className="inline-flex min-h-11 items-center rounded-lg bg-primary px-3 text-sm font-medium text-primary-foreground" href={`/offline/app?path=${encodeURIComponent("/recipes/new")}`}>
+          新建菜谱
+        </Link>
       </div>
       {snapshots.length === 0 ? (
         <p className="rounded-2xl border border-dashed bg-muted/20 p-6 text-sm text-muted-foreground">没有可用的离线菜谱</p>

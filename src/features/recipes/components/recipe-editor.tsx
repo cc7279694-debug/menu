@@ -40,6 +40,7 @@ type RecipeEditorProps = {
   importReview?: RecipeImportReview;
   onSaved: (recipeId: string) => void;
   saveRecipe?: (input: unknown) => Promise<ActionResult<{ recipeId: string }>>;
+  saveLocalRecipe?: (input: RecipeSaveInput) => Promise<{ recipeId: string }>;
   localFirstUserId?: string;
 };
 
@@ -175,6 +176,7 @@ export function RecipeEditor({
   importReview,
   onSaved,
   saveRecipe = saveRecipeAction,
+  saveLocalRecipe,
   localFirstUserId,
 }: RecipeEditorProps) {
   const isOffline = availability === "offline";
@@ -293,7 +295,9 @@ export function RecipeEditor({
     try {
       if (isOffline) {
         try {
-          const localResult = await saveRecipeLocally({ userId: localFirstUserId ?? userId, input: parsed.data, draftId: draftKey });
+          const localResult = saveLocalRecipe
+            ? await saveLocalRecipe(parsed.data)
+            : await saveRecipeLocally({ userId: localFirstUserId ?? userId, input: parsed.data, draftId: draftKey });
           onSaved(localResult.recipeId);
         } catch {
           setServerMessage("本机保存失败，请检查浏览器存储空间后重试");

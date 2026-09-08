@@ -1,6 +1,6 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({
   getLatestRecipeDraft: vi.fn().mockResolvedValue(null),
@@ -52,6 +52,10 @@ const input: RecipeSaveInput = {
 };
 
 describe("RecipeEditor local-first saving", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
   it("saves a text-only recipe locally and navigates without waiting for Supabase", async () => {
     const user = userEvent.setup();
     const onSaved = vi.fn();
@@ -124,5 +128,29 @@ describe("RecipeEditor local-first saving", () => {
 
     expect(await screen.findByText("本机保存失败，请检查浏览器存储空间后重试")).toBeInTheDocument();
     expect(mocks.saveRecipeAction).not.toHaveBeenCalled();
+  });
+
+  it("uses the supplied local repository callback in offline mode", async () => {
+    const user = userEvent.setup();
+    const saveLocalRecipe = vi.fn().mockResolvedValue({ recipeId: input.recipeId });
+    const onSaved = vi.fn();
+    render(
+      <RecipeEditor
+        availability="offline"
+        categories={[]}
+        initialValue={input}
+        mode="edit"
+        onSaved={onSaved}
+        saveLocalRecipe={saveLocalRecipe}
+        tags={[]}
+        userId={userId}
+      />,
+    );
+
+    await user.click(screen.getByRole("button", { name: "保存菜谱" }));
+
+    await waitFor(() => expect(saveLocalRecipe).toHaveBeenCalledWith(expect.objectContaining({ recipeId: input.recipeId, title: input.title })));
+    expect(mocks.saveRecipeLocally).not.toHaveBeenCalled();
+    expect(onSaved).toHaveBeenCalledWith(input.recipeId);
   });
 });
