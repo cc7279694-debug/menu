@@ -33,6 +33,7 @@ describe("Recipio local database foundation", () => {
       "syncMeta",
       "media",
       "recipeSummaries",
+      "localRecipes",
     ]));
   });
 
@@ -73,8 +74,9 @@ describe("Recipio local database foundation", () => {
 
     const database = await getLocalDatabase();
 
-    expect(database.verno).toBe(3);
+    expect(database.verno).toBe(4);
     expect(database.tables.map((table) => table.name)).toContain("media");
+    expect(database.tables.map((table) => table.name)).toContain("localRecipes");
   });
 
   it("clears cached media with the rest of the offline data", async () => {
