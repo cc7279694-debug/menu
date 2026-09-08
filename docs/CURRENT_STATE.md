@@ -37,7 +37,7 @@ Local-only migration, foundation slice.
 
 ## Current Branch / Module
 
-`feat/recipe-app-pwa-deepening` / Module 1: local repository contracts.
+`feat/recipe-app-pwa-deepening` / Module 1 complete; Module 2 is next.
 
 ## Next Recommended Task
 
