@@ -153,7 +153,16 @@ export function OfflineApp() {
             localRepositoryAvailable: true,
           };
         }
-        return loadLegacyData(true);
+        const legacyData = await loadLegacyData(true);
+        if (legacyData || nextTarget.kind !== "recipe-list") return legacyData;
+        return {
+          profile: localDeviceProfile,
+          recipes: [],
+          recipe: null,
+          media: [],
+          shopping: null,
+          localRepositoryAvailable: true,
+        };
       } catch {
         return loadLegacyData(false);
       }

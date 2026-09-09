@@ -151,6 +151,20 @@ describe("OfflineApp", () => {
     expect(await screen.findByTestId("offline-recipe-editor")).toHaveAttribute("data-user-id", "local-device");
   });
 
+  it("offers local recipe creation from the first-use empty list", async () => {
+    localRecipeMocks.list.mockResolvedValue([]);
+    databaseMocks.getLastOfflineProfile.mockResolvedValue(null);
+    setTarget("/recipes");
+
+    render(<OfflineApp />);
+
+    expect(await screen.findByText("没有可用的离线菜谱")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "新建菜谱" })).toHaveAttribute(
+      "href",
+      `/offline/app?path=${encodeURIComponent("/recipes/new")}`,
+    );
+  });
+
   it("falls back to the legacy snapshot when the requested recipe is not in the repository", async () => {
     localRecipeMocks.list.mockResolvedValue([
       { ...localRecipe, id: "88888888-8888-4888-8888-888888888888" },
@@ -302,6 +316,7 @@ describe("OfflineApp", () => {
   });
 
   it("shows an empty state when there is no offline profile", async () => {
+    localRecipeMocks.list.mockRejectedValue(new Error("LOCAL_REPOSITORY_UNAVAILABLE"));
     databaseMocks.getLastOfflineProfile.mockResolvedValue(null);
     setTarget("/recipes");
     render(<OfflineApp />);

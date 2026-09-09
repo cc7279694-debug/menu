@@ -10,10 +10,15 @@ export type LocalRecipeTaxonomy = {
   tags: Array<{ id: string; name: string }>;
 };
 
+export type LocalRecipeSaveSeed = Pick<
+  LocalRecipeRecord,
+  "categoryId" | "categoryName" | "tags" | "isFavorite" | "source"
+>;
+
 export function recipeSaveInputToLocalWriteInput(
   input: RecipeSaveInput,
   taxonomy: LocalRecipeTaxonomy,
-  previous: LocalRecipeRecord | null = null,
+  previous: LocalRecipeSaveSeed | null = null,
 ): LocalRecipeWriteInput {
   const ingredientNames = new Map(
     input.ingredients.map((ingredient) => [ingredient.recipeIngredientId, ingredient.name]),

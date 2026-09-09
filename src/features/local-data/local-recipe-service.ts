@@ -4,6 +4,7 @@ import { createDexieRecipeRepository } from "./dexie-recipe-repository";
 import {
   recipeSaveInputToLocalWriteInput,
   type LocalRecipeTaxonomy,
+  type LocalRecipeSaveSeed,
 } from "./local-recipe-mapper";
 import type { RecipeRepository } from "./recipe-repository";
 import type { LocalRecipeRecord } from "./types";
@@ -18,7 +19,7 @@ export type LocalRecipeListFilters = {
 export type LocalRecipeService = {
   list(filters?: LocalRecipeListFilters): Promise<LocalRecipeRecord[]>;
   get(id: string): Promise<LocalRecipeRecord | null>;
-  save(input: RecipeSaveInput, taxonomy: LocalRecipeTaxonomy): Promise<LocalRecipeRecord>;
+  save(input: RecipeSaveInput, taxonomy: LocalRecipeTaxonomy, seed?: LocalRecipeSaveSeed | null): Promise<LocalRecipeRecord>;
 };
 
 export function createLocalRecipeService(repository: RecipeRepository): LocalRecipeService {
@@ -49,8 +50,8 @@ export function createLocalRecipeService(repository: RecipeRepository): LocalRec
     get(id) {
       return repository.get(id);
     },
-    async save(input, taxonomy) {
-      const previous = await repository.get(input.recipeId);
+    async save(input, taxonomy, seed = null) {
+      const previous = await repository.get(input.recipeId) ?? seed;
       return repository.save(recipeSaveInputToLocalWriteInput(input, taxonomy, previous));
     },
   };
