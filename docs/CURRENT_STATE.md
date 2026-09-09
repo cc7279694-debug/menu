@@ -2,7 +2,7 @@
 
 ## Current Stage
 
-Local-only migration, foundation slice.
+Local-only migration, browser recipe vertical slice.
 
 ## Completed
 
@@ -11,14 +11,16 @@ Local-only migration, foundation slice.
 - Architecture audit confirmed Supabase still owns primary data and server actions.
 - Local-only architecture, roadmap, decisions and audit plan are recorded in the repository.
 - A typed Dexie-backed `RecipeRepository` and version 4 local recipe store are implemented and tested.
+- `/offline/app` can now list, open, create and edit device-local recipes through the repository boundary without requiring a Supabase profile.
+- The existing authenticated Supabase route and legacy offline snapshot cache remain available as transition fallbacks.
+- First-use empty state exposes local recipe creation, and legacy-only recipes preserve favorite/source metadata when promoted locally.
 
 ## In Progress
 
-- Preparing the local recipe list/detail vertical slice to consume the repository boundary.
+- Preparing the local media index so recipe images can follow the same device-owned architecture.
 
 ## Pending
 
-- Local recipe UI wiring.
 - Local media, plan, shopping, cooking history and backup/restore.
 - Vite/Capacitor/SQLite runtime.
 - AI direct-call boundary and final removal of cloud runtime dependencies.
@@ -37,8 +39,8 @@ Local-only migration, foundation slice.
 
 ## Current Branch / Module
 
-`feat/recipe-app-pwa-deepening` / Module 1 complete; Module 2 is next.
+`feat/recipe-app-pwa-deepening` / Modules 1–2 complete; Module 3 is next.
 
 ## Next Recommended Task
 
-Finish and verify the Dexie recipe repository, then wire one recipe list/detail path behind the repository without removing the legacy cloud path.
+Implement the local media index and browser storage tests without making image failures block recipe text.

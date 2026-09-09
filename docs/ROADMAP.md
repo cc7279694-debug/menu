@@ -3,8 +3,8 @@
 ## Phase 1 — Local foundation (In Progress)
 
 - [x] Audit current Supabase, Vercel, PWA and offline boundaries
-- [ ] Repository contracts and Dexie recipe store
-- [ ] Local recipe vertical slice
+- [x] Repository contracts and Dexie recipe store
+- [x] Local recipe vertical slice
 
 ## Phase 2 — Core local features (Planned)
 
