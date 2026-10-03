@@ -37,7 +37,10 @@ const evidence = modes.map(mode => {
 writeFileSync(resolve(destination, "native-checks.json"), JSON.stringify(evidence, null, 2));
 files.push("native-checks.json");
 const hash = bytes => createHash("sha256").update(bytes).digest("hex");
+const acceptanceStatus=readFileSync(sources["checkpoint.md"],"utf8").match(/DAILY_LIBRARY_ANDROID_(?:COMPLETE|PENDING_DEVICE_TEST|BLOCKED)/)?.[0];
+assert(acceptanceStatus,"Checkpoint must declare an honest acceptance status");
 const manifest = {
+  acceptanceStatus,
   baselineCommit: git("rev-parse", baseline),
   headCommit: git("rev-parse", "HEAD"),
   branch: git("branch", "--show-current"),
@@ -57,7 +60,8 @@ files.push("manifest.json");
 const psQuote = text => "'" + text.replaceAll("'", "''") + "'";
 const zip = resolve("artifacts/android-daily/review-packet.zip");
 const command = `$files=@(${files.map(name => psQuote(resolve(destination, name))).join(",")}); Compress-Archive -LiteralPath $files -DestinationPath ${psQuote(zip)} -Force; Add-Type -AssemblyName System.IO.Compression.FileSystem; $archive=[System.IO.Compression.ZipFile]::OpenRead(${psQuote(zip)}); try { if($archive.Entries.Count -ne ${files.length}) { throw 'Unexpected archive contents' }; $archive.Entries | ForEach-Object { $_.FullName } } finally { $archive.Dispose() }`;
-const packed = spawnSync("powershell", ["-NoProfile", "-Command", command], { encoding: "utf8" });
+// Process-local only; do not change the user's persistent execution policy.
+const packed = spawnSync("powershell", ["-NoProfile", "-ExecutionPolicy", "Bypass", "-Command", command], { encoding: "utf8" });
 assert.equal(packed.status, 0, packed.stderr);
 console.log(packed.stdout.trim());
 console.log(JSON.stringify({ path: zip, bytes: readFileSync(zip).length, sha256: hash(readFileSync(zip)), headCommit: manifest.headCommit }, null, 2));
