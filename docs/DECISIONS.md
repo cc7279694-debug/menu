@@ -1,5 +1,27 @@
 # Decisions
 
+## 2026-10-04 — Android 图片从原生选择器直接导入私有目录
+
+### Decision
+
+Android 封面与步骤图使用应用内 Capacitor 插件，系统选择器授权后通过 ContentResolver 流式复制到 filesDir/images，返回既有 UUID 相对路径。保留 Web Preview 的 File/IndexedDB 路径。
+
+### Context
+
+稳定 Android 36 上，系统已授予同一 content URI 的读权限，原生 Filesystem.readFile 可读，而 WebView FileReader 抛 NotReadableError。Android 37 上曾成功，不足以排除跨环境兼容性问题。不能认定缺少 INTERNET 或相册权限是根因。
+
+### Alternatives
+
+放宽权限、升级整个 WebView/Capacitor、重试 FileReader、将 URI 再传回网页；均缺少必要证据，且无法保证当下选图边界可靠。
+
+### Reason
+
+直接在获授权的原生边界复制，避免失败的网页读取路径与大图 Base64 内存开销；不新增 INTERNET、READ_MEDIA、全量相册访问或第三方包。真实原生选择器和文件验收仍必需。
+
+### Consequences
+
+数据库结构与 images 路径契约不变，复制完成后 UI 才替换引用。取消、异常不破坏原有图片/文本；临时文件复制完成并关闭后再重命名。无固定图片大小上限，但按当时剩余空间减 32MiB 预留预算拒绝空间不足；不是无条件磁盘保证。进程强杀遗留部分文件的回收后置，图片本身仍保守保留以保护历史引用。不得把 JVM 单测当作 Android 选图验证。
+
 ## 2026-10-03 — 日常库原生数据验收先于备份
 
 ### Decision

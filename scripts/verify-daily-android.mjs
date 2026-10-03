@@ -5,7 +5,7 @@ import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
 import { device, delay } from "./android-webview.mjs";
 const [adbPath, serial, mode = "inspect"] = process.argv.slice(2);
-assert(["baseline","inspect","fresh","create","flows","sort","media","back","upgrade-baseline","upgrade","picker","save-image"].includes(mode),"Unknown native verification mode");
+assert(["baseline","inspect","fresh","create","flows","sort","media","step-media","cancel-media","back","upgrade-baseline","upgrade","picker","save-image"].includes(mode),"Unknown native verification mode");
 const d = device(adbPath, serial);
 const out = resolve("artifacts/android-daily");
 mkdirSync(out, { recursive: true });
@@ -22,29 +22,30 @@ function dbRead(path, action) {
 const detailReady = "[...document.querySelectorAll('button')].some(b=>b.textContent.trim()==='编辑菜谱')";
 async function save() { await d.click("快速保存菜谱"); await d.wait(detailReady); }
 async function open(title) { await d.click(`打开 ${title}`); await d.wait(detailReady); }
-async function picker() {
+async function picker(index = 0) {
   // Actual Android system picker, not a injected blob or JS filesystem write.
   d.adb("push", resolve("native/public/icon.png"), "/sdcard/Pictures/recipio-native-cover.png");
   d.adb("shell", "am", "broadcast", "-a", "android.intent.action.MEDIA_SCANNER_SCAN_FILE", "-d", "file:///sdcard/Pictures/recipio-native-cover.png");
-  const point = await d.evaluate("(() => {const el=document.querySelector('input[type=file]');el.scrollIntoView({block:'center'});const r=el.getBoundingClientRect();return {x:r.x+r.width/2,y:r.y+r.height/2};})()");
+  const point = await d.evaluate(`(() => {const el=document.querySelectorAll('input[type=file]')[${JSON.stringify(index)}];if(!el)throw new Error('File input absent');el.scrollIntoView({block:'center'});const r=el.getBoundingClientRect();return {x:r.x+r.width/2,y:r.y+r.height/2};})()`);
   await d.command("Input.dispatchMouseEvent", {type:"mousePressed",button:"left",clickCount:1,...point});
   await d.command("Input.dispatchMouseEvent", {type:"mouseReleased",button:"left",clickCount:1,...point});
   await delay(1000);
   d.adb("shell", "uiautomator", "dump", "/sdcard/recipio-picker.xml");
 }
-async function chooseSystemPhoto() {
-  const oldSource=await d.evaluate("document.querySelector('img[alt=\"菜谱封面\"]')?.src || ''");
+async function chooseSystemPhoto(alt = "菜谱封面") {
+  const selectedImage=`[...document.querySelectorAll('img')].find(image=>image.alt===${JSON.stringify(alt)})`;
+  const oldSource=await d.evaluate(`${selectedImage}?.src || ''`);
   let xml;
   for(let i=0;i<15;i++) {
     d.adb("shell","uiautomator","dump","/sdcard/recipio-picker.xml");
     xml=d.adb("shell","cat","/sdcard/recipio-picker.xml");
-    if(xml.includes('content-desc="Photo taken')) break;
+    if(xml.includes('content-desc="Photo taken') || xml.includes('text="recipio-native-cover.png"') || xml.includes('content-desc="recipio-native-cover.png,')) break;
     await delay(250);
   }
-  const node=xml.match(/<node[^>]*content-desc="Photo taken[^>]*bounds="\[(\d+),(\d+)\]\[(\d+),(\d+)\]"/);
+  const node=xml.match(/<node[^>]*(?:content-desc="(?:Photo taken|recipio-native-cover\.png,)[^>]*|text="recipio-native-cover\.png"[^>]*)bounds="\[(\d+),(\d+)\]\[(\d+),(\d+)\]"/);
   assert(node,"No device image in native picker");
   d.adb("shell","input","tap",String((+node[1]+ +node[3])/2),String((+node[2]+ +node[4])/2));
-  const ready=`(()=>{const image=document.querySelector('img[alt="菜谱封面"]');return image?.naturalWidth>0 && image.src!==${JSON.stringify(oldSource)};})()`;
+  const ready=`(()=>{const image=${selectedImage};return image?.naturalWidth>0 && image.src!==${JSON.stringify(oldSource)};})()`;
   // Single-selection Android pickers return immediately; some versions show Done.
   for(let i=0;i<15;i++) {
     if(await d.evaluate(ready)) return;
@@ -175,6 +176,48 @@ try {
       await d.wait("document.querySelector('img[alt=\"可乐鸡翅 封面\"]')?.naturalWidth>0");
       assert.equal((await row()).created_at,before.created_at);
       record("cover reattached for overwrite-upgrade evidence; original creation time unchanged");
+    } else if (mode === "cancel-media") {
+      const before = await row();
+      await open("可乐鸡翅"); await d.click("编辑菜谱");
+      await d.fill("个人备注", "选图取消后保留输入");
+      await picker();
+      const chooser = d.adb("shell", "cat", "/sdcard/recipio-picker.xml");
+      assert(chooser.includes('package="com.google.android.documentsui"'), "Native document picker absent");
+      d.adb("shell", "input", "keyevent", "4");
+      await d.wait("!document.querySelector('[aria-label=\"快速保存菜谱\"]').disabled");
+      assert.equal(await d.evaluate("[...document.querySelectorAll('textarea')].at(-1).value"), "选图取消后保留输入");
+      await d.wait("document.querySelector('img[alt=\"菜谱封面\"]')?.naturalWidth>0");
+      assert.deepEqual(await row(), before);
+      assert.equal(await d.evaluate("!!document.querySelector('[role=alert]')"), false);
+      record("native picker cancellation preserves cover, unsaved text and every recipe field without an error");
+    } else if (mode === "step-media") {
+      const before=await row();
+      assert(before,"Step image fixture recipe absent");
+      const query={database:"recipio",statement:"SELECT * FROM recipe_steps WHERE recipe_id=? AND position=0",values:[before.id]};
+      const firstStep=()=>d.evaluate(`window.Capacitor.Plugins.CapacitorSQLite.query(${JSON.stringify(query)}).then(r=>r.values[0])`);
+      const beforeStep=await firstStep();
+      assert(beforeStep,"Step image fixture first step absent");
+      const imageAlt="步骤 1 参考图";
+      const selectedImage=`[...document.querySelectorAll('img')].find(image=>image.alt===${JSON.stringify(imageAlt)})`;
+      await open("可乐鸡翅"); await d.click("编辑菜谱"); await picker(1); await chooseSystemPhoto(imageAlt); await save();
+      const added=await firstStep();
+      assert.match(added.image_path,/^images\/[a-f0-9-]+\.(png|jpg|webp|avif)$/i);
+      assert.equal(added.instruction,beforeStep.instruction);
+      await d.coldStart(); await open("可乐鸡翅"); await d.wait(`${selectedImage}?.naturalWidth>0`);
+      assert.deepEqual(await firstStep(),added);
+      const persisted=await row();
+      assert.equal(persisted.created_at,before.created_at);
+      assert.equal(persisted.cover_path,before.cover_path);
+      record("system-selected first step image persists in SQLite and renders after flight-mode cold start");
+      await d.click("编辑菜谱"); await d.click("移除步骤图片"); await save();
+      const removed=await firstStep();
+      assert.equal(removed.image_path,null);
+      assert.equal(removed.instruction,beforeStep.instruction);
+      const after=await row();
+      assert.equal(after.created_at,before.created_at);
+      assert.equal(after.cover_path,before.cover_path);
+      assert.equal(await d.evaluate(`!!(${selectedImage})`),false);
+      record("step image removal clears SQLite reference while preserving instruction, cover and creation time");
     } else if (mode === "back") {
       await d.click("我的菜谱");
       await open("可乐鸡翅"); await d.click("编辑菜谱");
@@ -189,7 +232,9 @@ try {
       d.adb("shell","input","keyevent","4"); await delay(300);
       assert.equal(await d.evaluate("[...document.querySelectorAll('textarea')].at(-1).value"),"这条不应保存");
       record("native dirty-back confirmation dismissal preserves input");
-      await d.click("取消");
+      // Return from CDP evaluation before the native confirm blocks the renderer.
+      await d.wait("(() => {const b=[...document.querySelectorAll('button')].find(b=>(b.getAttribute('aria-label')||b.textContent.trim())==='取消');if(!b||b.disabled)return false;setTimeout(()=>b.click(),0);return true;})()");
+      await delay(100);
       d.adb("shell","uiautomator","dump","/sdcard/recipio-dialog.xml");
       const discard=d.adb("shell","cat","/sdcard/recipio-dialog.xml");
       const ok=discard.match(/<node[^>]*text="OK"[^>]*bounds="\[(\d+),(\d+)\]\[(\d+),(\d+)\]"/);

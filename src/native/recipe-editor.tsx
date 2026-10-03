@@ -8,7 +8,7 @@ import {
   type RecipeDetailsInput,
 } from "./recipe-model";
 import { LocalImage } from "./local-image";
-import { saveLocalImage } from "./media";
+import { pickLocalImage, saveLocalImage, usesNativeImagePicker } from "./media";
 
 function numberOrNull(text: string) {
   return text.trim() === "" ? null : Number(text);
@@ -55,12 +55,15 @@ export function RecipeEditor({
     setValue((v) => ({ ...v, ...change }));
   }
   async function image(file: File | undefined, step?: number) {
-    if (!file || lock.current) return;
+    if ((!file && !usesNativeImagePicker()) || lock.current) return;
     lock.current = true;
     setBusy(true);
     setError("");
     try {
-      const path = await saveLocalImage(file);
+      const path = usesNativeImagePicker()
+        ? await pickLocalImage()
+        : file ? await saveLocalImage(file) : null;
+      if (path === null) return;
       setValue((v) =>
         step === undefined
           ? { ...v, coverPath: path }
@@ -231,6 +234,12 @@ export function RecipeEditor({
             <Input
               type="file"
               accept="image/jpeg,image/png,image/webp,image/avif"
+              onClick={(e) => {
+                if (usesNativeImagePicker()) {
+                  e.preventDefault();
+                  void image(undefined);
+                }
+              }}
               onChange={(e) => void image(e.target.files?.[0])}
               className="mt-2"
             />
@@ -366,6 +375,12 @@ export function RecipeEditor({
                 <Input
                   type="file"
                   accept="image/jpeg,image/png,image/webp,image/avif"
+                  onClick={(e) => {
+                    if (usesNativeImagePicker()) {
+                      e.preventDefault();
+                      void image(undefined, i);
+                    }
+                  }}
                   onChange={(e) => void image(e.target.files?.[0], i)}
                 />
               </label>

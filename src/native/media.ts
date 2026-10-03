@@ -1,4 +1,4 @@
-import { Capacitor } from "@capacitor/core";
+import { Capacitor, registerPlugin } from "@capacitor/core";
 import { Directory, Filesystem } from "@capacitor/filesystem";
 import {
   getLocalDatabase,
@@ -13,6 +13,20 @@ const extensions: Record<string, string> = {
   "image/webp": "webp",
   "image/avif": "avif",
 };
+interface LocalImagePickerPlugin {
+  pickImage(): Promise<{ cancelled?: boolean; path?: string }>;
+}
+let nativePicker: LocalImagePickerPlugin | undefined;
+export function usesNativeImagePicker(): boolean {
+  return Capacitor.getPlatform() === "android";
+}
+/** Android copies the selected URI before returning; no WebView FileReader required. */
+export async function pickLocalImage(): Promise<string | null> {
+  if (!usesNativeImagePicker()) throw new Error("本地系统选图仅适用于 Android");
+  nativePicker ??= registerPlugin<LocalImagePickerPlugin>("LocalImagePicker");
+  const result = await nativePicker.pickImage();
+  return result.cancelled === true ? null : localImagePath.parse(result.path);
+}
 export async function saveLocalImage(file: File): Promise<string> {
   const extension = extensions[file.type];
   if (!extension || !file.size)
