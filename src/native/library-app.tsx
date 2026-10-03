@@ -122,6 +122,24 @@ export function LibraryApp({ store }: { store: RecipeLibrary }) {
     setError("");
     window.scrollTo(0, 0);
   }
+  useEffect(() => {
+    const back = (event: Event) => {
+      // The editor owns its dirty/busy guard. Root pages may go to background.
+      if (view === "new" || view === "edit" || view === "home") return;
+      event.preventDefault();
+      if (lock.current) return;
+      if (view === "detail") setView(returnView);
+      else {
+        setView("home");
+        setPage(0);
+        setSearch("");
+        setError("");
+        window.scrollTo(0, 0);
+      }
+    };
+    window.addEventListener("recipio:back", back);
+    return () => window.removeEventListener("recipio:back", back);
+  }, [view, returnView]);
   return (
     <div className="mx-auto min-h-dvh max-w-3xl px-4 pb-28 pt-5 sm:px-8">
       <header className="mb-7 flex items-center justify-between gap-4">

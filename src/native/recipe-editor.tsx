@@ -42,6 +42,15 @@ export function RecipeEditor({
     if (!busy && (!dirty || window.confirm("有未保存的修改，确定放弃吗？")))
       onCancel();
   }
+  useEffect(() => {
+    const back = (event: Event) => {
+      event.preventDefault();
+      // Keep this renderer and the input while a local write is in progress.
+      if (!lock.current) cancel();
+    };
+    window.addEventListener("recipio:back", back);
+    return () => window.removeEventListener("recipio:back", back);
+  });
   function patch(change: Partial<RecipeDetailsInput>) {
     setValue((v) => ({ ...v, ...change }));
   }

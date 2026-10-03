@@ -1,6 +1,6 @@
 # 谱序 RECIPIO 产品基线
 
-依据用户提供的 `E:\CODEX\RECIPIO_CODEX_APK_EXECUTION_PROMPT.md`，并继承 2026-10-03 最新要求：先完善可使用的功能，暂缓 APK 打包与 Android 验收。保留已验证底座，不重复技术路线比较。
+依据用户提供的 `E:\CODEX\RECIPIO_CODEX_APK_EXECUTION_PROMPT.md`；2026-10-03 先完成日常库浏览器实现，随后用户要求 APK-1 Android Native Acceptance Gate。产品范围不变，只补齐原生验收，保留已验证底座，不重复技术路线比较。
 
 ## 定位和导航
 

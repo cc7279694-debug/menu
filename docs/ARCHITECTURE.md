@@ -19,7 +19,9 @@ SQLite schemaVersion=2；v1 名称数据保留，增量添加耗时/份数/热�
 
 Dexie schemaVersion=5，沿用 v4 stores，仅新增 recipeChanges。设备媒体 owner 固定为 recipio-library-preview；旧云缓存清除不得删除此 owner 的文件。图片保守保留，孤立回收后置。不存在云同步、新账户或远程业务主库。
 
-SQLite 使用 Node 原生数据库验证迁移与事务；新版 Android 插件和文件系统尚未验收，用户暂缓打包。下列 APK-0 与旧 Web 内容为历史/保留实现，不代表新版范围。
+SQLite 使用 Node 原生数据库验证迁移与事务；新版原生迁移、空库、部分 CRUD/媒体已在模拟器验证，但关卡仍受测试环境阻塞，证据边界以 CURRENT_STATE 和原生检查点为准。下列 APK-0 与旧 Web 内容为历史/保留实现，不代表新版范围。
+
+Android 系统返回键通过 MainActivity 的 OnBackPressedDispatcher 发出可取消的 `recipio:back` 事件。界面处理详情/列表导航，编辑器沿用未保存确认和写入锁；根页面未拦截时将应用置于后台，不删除数据。没有引入新的路由或数据层。
 
 ## Android APK-0 (2026-10-03)
 

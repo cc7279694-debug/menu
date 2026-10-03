@@ -1,5 +1,15 @@
 # 谱序 RECIPIO
 
+## 当前本地日常菜谱库
+
+新产品入口使用 Vite + React，共享界面通过 Repository 分别访问 Android SQLite/私有文件与浏览器 IndexedDB。核心无账户、无 Supabase/Vercel 运行依赖；旧 Web 代码保留作回退，不代表新产品范围。
+
+本地预览：`npm run dev:local`。Android 构建：`npm run build:apk`，默认生成 `artifacts/recipio-daily-library-v5-debug.apk`，不会覆盖旧 APK-0。也可通过 `scripts/build-apk.ps1` 明确传入 ArtifactName、VersionCode、VersionName。
+
+当前原生验收证据见 [Android 验收记录](docs/verification/daily-library-android.md)，当前状态见 [CURRENT_STATE](docs/CURRENT_STATE.md)。浏览器验证不得冒充原生验证。备份、AI 和烹饪记录仍是后续模块，未实现；备份完成前不要把唯一重要数据存入此版本。
+
+## 保留的旧 Web / PWA 版本
+
 谱序 RECIPIO 是一个中文优先的个人菜谱与分步烹饪 PWA。模块 1 已完成项目基础、邮箱验证码登录、认证路由保护和手机/桌面响应式导航；模块 2 已加入私有菜谱数据模型、菜谱编辑、搜索筛选、收藏、回收站和详情页；模块 3 提供单步引导烹饪；模块 4 提供基于菜谱的在线购物清单；模块 5A 提供安全的 PWA 安装壳、离线公共页和用户确认更新流程；模块 6/7 提供提前准备事项、AI 提取和烹饪前确认；模块 8 提供周菜单、准备提醒和按周生成购物清单。
 
 ## 模块 3：引导烹饪边界

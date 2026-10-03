@@ -1,3 +1,11 @@
+param(
+    [ValidatePattern('^[A-Za-z0-9_-]+\.apk$')]
+    [string]$ArtifactName = 'recipio-daily-library-v5-debug.apk',
+    [ValidateRange(1, 2147483647)]
+    [int]$VersionCode = 5,
+    [ValidatePattern('^[A-Za-z0-9._-]+$')]
+    [string]$VersionName = '0.2.0-daily-library'
+)
 $ErrorActionPreference = 'Stop'
 $taskRoot = Split-Path -Parent $PSScriptRoot
 Push-Location -LiteralPath $taskRoot
@@ -24,12 +32,13 @@ try {
     if (-not $env:ANDROID_HOME) { throw 'Set ANDROID_HOME to an Android SDK with platform 36.' }
     & npm.cmd run sync:android
     if ($LASTEXITCODE -ne 0) { throw 'Static asset build or Capacitor sync failed.' }
-    & ./android/gradlew.bat -p android assembleDebug --console=plain
+    & ./android/gradlew.bat -p android assembleDebug --console=plain "-PapkVersionCode=$VersionCode" "-PapkVersionName=$VersionName"
     if ($LASTEXITCODE -ne 0) { throw 'Android build failed.' }
     New-Item -ItemType Directory -Force artifacts | Out-Null
-    Copy-Item -LiteralPath android/app/build/outputs/apk/debug/app-debug.apk -Destination artifacts/recipio-apk0-debug.apk
-    Get-Item artifacts/recipio-apk0-debug.apk | Select-Object FullName, Length
-    $taskApk = (Get-Item artifacts/recipio-apk0-debug.apk).FullName
+    $taskArtifactPath = Join-Path 'artifacts' $ArtifactName
+    Copy-Item -LiteralPath android/app/build/outputs/apk/debug/app-debug.apk -Destination $taskArtifactPath
+    Get-Item -LiteralPath $taskArtifactPath | Select-Object FullName, Length
+    $taskApk = (Get-Item -LiteralPath $taskArtifactPath).FullName
     $taskSha = [System.Security.Cryptography.SHA256]::Create()
     try {
         $taskHash = [BitConverter]::ToString($taskSha.ComputeHash([System.IO.File]::ReadAllBytes($taskApk))).Replace('-', '')
