@@ -12,11 +12,18 @@ const compat = new FlatCompat({
 const eslintConfig = [
   ...compat.extends("next/core-web-vitals", "next/typescript"),
   {
+    files: ["src/native/**"],
+    // This entry bundles into Capacitor; Next's image runtime cannot run here.
+    rules: { "@next/next/no-img-element": "off" },
+  },
+  {
     ignores: [
       "node_modules/**",
       ".next/**",
       "out/**",
       "build/**",
+      "dist-native/**",
+      "android/**",
       "next-env.d.ts",
     ],
   },

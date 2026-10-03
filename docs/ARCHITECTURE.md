@@ -1,5 +1,17 @@
 # Architecture
 
+## Android APK-0 (2026-10-03)
+
+`native/index.html` → `src/native/main.tsx` → 现有 UI 组件 → `RecipeNameStore` → `SqlDriver` → Capacitor Community SQLite → 本机 `recipioSQLite.db`。
+
+独立 Vite 入口输出 `dist-native`，Capacitor 将资源装入 APK；没有 server.url、登录、Supabase、远程字体或运行时网络依赖。APK-0 不申请 INTERNET。旧 Next.js 工程保留不变。
+
+schemaVersion=1，插件 `addUpgradeStatement` 注册 migration，再打开版本化连接。`recipes` 存名称、UUID、加入/修改时间与 5 秒内部删除时间；名称约束、参数化 SQL、加入时间排序、100 条分页。窗口内撤销恢复原行，超时/重启清理；无回收站、同步字段或图片 Blob。
+
+SQL 使用 Node 原生 SQLite 作契约测试；Android 插件、安装、飞行模式、持久化另行验证，不由浏览器测试替代。后续增量扩展 migration，不清数据库。
+
+以下描述保留的旧 Web 架构，并非 Android 运行依赖。
+
 ## Current transition state
 
 Next.js App Router renders the application. Supabase Auth, Postgres, Storage and Server Actions currently provide the primary data path. Dexie/IndexedDB caches selected recipes, drafts, shopping state and cooking sessions.

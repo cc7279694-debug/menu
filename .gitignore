@@ -19,6 +19,16 @@
 
 # production
 /build
+/dist-native/
+/artifacts/
+/android/.gradle/
+/android/**/build/
+/android/local.properties
+/android/app/src/main/assets/public/
+/android/app/src/main/assets/capacitor.config.json
+/android/app/src/main/assets/capacitor.plugins.json
+*.jks
+*.keystore
 
 # misc
 .DS_Store

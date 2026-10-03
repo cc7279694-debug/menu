@@ -3,6 +3,11 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
+    "dev:apk": "vite --config vite.native.config.mts",
+    "build:apk": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/build-apk.ps1",
+    "build:apk:web": "vite build --config vite.native.config.mts",
+    "sync:android": "npm run build:apk:web && cap sync android",
+    "test:apk": "vitest run src/native",
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
@@ -19,6 +24,9 @@
   },
   "dependencies": {
     "@base-ui/react": "^1.7.0",
+    "@capacitor-community/sqlite": "8.1.1",
+    "@capacitor/android": "8.5.2",
+    "@capacitor/core": "8.5.2",
     "@hookform/resolvers": "5.9.1",
     "@supabase/ssr": "^0.12.4",
     "@supabase/supabase-js": "^2.112.3",
@@ -41,6 +49,7 @@
     "zod": "^4.4.3"
   },
   "devDependencies": {
+    "@capacitor/cli": "8.5.2",
     "@electric-sql/pglite": "0.5.6",
     "@eslint/eslintrc": "^3",
     "@tailwindcss/postcss": "^4.3.3",
@@ -58,6 +67,7 @@
     "supabase": "2.115.0",
     "tailwindcss": "^4.3.3",
     "typescript": "^5",
+    "vite": "8.3.2",
     "vitest": "^4.1.11"
   }
 }

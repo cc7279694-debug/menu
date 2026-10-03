@@ -2,7 +2,7 @@
 
 ## Current Stage
 
-Local-only migration, browser recipe vertical slice.
+APK-0 Android local foundation implemented and emulator-verified; awaiting user acceptance.
 
 ## Completed
 
@@ -17,13 +17,12 @@ Local-only migration, browser recipe vertical slice.
 
 ## In Progress
 
-- Preparing the local media index so recipe images can follow the same device-owned architecture.
+- APK-0 user acceptance on a physical phone. No later module has been started.
 
 ## Pending
 
-- Local media, plan, shopping, cooking history and backup/restore.
-- Vite/Capacitor/SQLite runtime.
-- AI direct-call boundary and final removal of cloud runtime dependencies.
+- APK-1 daily recipe library, APK-2 backup, APK-3 cooking records, APK-4 optional AI, APK-5 links/video.
+- Physical-phone, OEM backup behavior and release-signing verification.
 
 ## Current Problems
 
@@ -39,8 +38,16 @@ Local-only migration, browser recipe vertical slice.
 
 ## Current Branch / Module
 
-`feat/recipe-app-pwa-deepening` / Modules 1–2 complete; Module 3 is next.
+`feat/recipio-apk-0` / APK-0 complete on emulator; local commit only, no push or deployment. Previous Web entries above describe preserved legacy assets, not the native runtime.
 
 ## Next Recommended Task
 
-Implement the local media index and browser storage tests without making image failures block recipe text.
+Accept APK-0, then separately authorize APK-1. The superseded Web sequence is not the next task. See `docs/checkpoints/2026-10-03-apk-0.md` for current implementation, artifact and evidence.
+
+## Native implementation / risks
+
+- Bundled Vite/React, Capacitor Android, SQLite schema v1; name-only CRUD/details/search/pagination and five-second delete undo.
+- Flight-mode cold launch, force-stop/reopen and versionCode 1 → 2 overwrite upgrade passed on Android emulator. Actual SQLite integrity checked.
+- No INTERNET permission, no login or hosted runtime; automatic backup disabled and transfer exclusions configured.
+- Debug APK only. Full backup is APK-2; uninstalling or clearing data loses local records.
+- Dependency audit: 21 findings (6 moderate, 14 high, 1 critical), requiring a separate scoped review.

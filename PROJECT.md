@@ -2,7 +2,7 @@
 
 ## Project
 
-个人菜谱与烹饪引导应用。
+个人菜谱库：收进来、整理好、找得到、做得顺，逐渐形成自己的做法。
 
 ## Purpose
 
@@ -16,19 +16,19 @@
 
 - 菜谱来源分散且难以复用。
 - 烹饪时需要稳定、快速、可离线查看。
-- 提前准备、购物和营养信息容易遗漏。
+- 提前准备和关键操作容易遗漏。
 
 ## Core Features
 
-菜谱管理、提前准备、周计划、购物清单、烹饪模式、烹饪历史、AI 导入与营养分析。
+本地搜索与菜谱管理、实际用量、提前准备、关键事项、完整步骤与可选单步/专注模式、轻量做过记录、完整备份。AI 仅在显式录入阶段使用，热量是带「约」的辅助信息。
 
 ## Non-goals
 
-当前不做家庭共享、多设备同步、复杂冲突合并和付费营养数据库。
+不做账户、云同步、社区、收藏、购物清单、菜单规划、通知提醒、推荐算法、复杂标签/版本树、营养管理。旧 Web 模块仅作回退，不代表新版需求。
 
 ## Tech Stack
 
-过渡期保留 Next.js、React、TypeScript、Tailwind、Supabase、Vercel；本地版本逐步采用 IndexedDB/Dexie、Vite、Capacitor、SQLite 和本机文件系统。
+Android：Vite + React + TypeScript + 现有 Tailwind/shadcn + Capacitor + SQLite。静态资源随 APK 安装，不加载线上网站。旧 Next.js/Supabase/Vercel 在迁移期保留；浏览器已有 Dexie 成果可复用。
 
 ## Architecture Summary
 
@@ -40,4 +40,4 @@ React UI 通过业务服务调用 Repository 接口。浏览器使用 IndexedDB�
 
 ## Product Direction
 
-Local-first when possible. Cloud when necessary. 先保证个人单设备离线体验，再评估是否需要重新引入云同步。
+No Account + Local-only。按根目录 Android 执行基线逐模块推进；每个模块独立验收，不重复规划产品。
