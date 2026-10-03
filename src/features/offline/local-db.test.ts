@@ -74,7 +74,7 @@ describe("Recipio local database foundation", () => {
 
     const database = await getLocalDatabase();
 
-    expect(database.verno).toBe(4);
+    expect(database.verno).toBe(5);
     expect(database.tables.map((table) => table.name)).toContain("media");
     expect(database.tables.map((table) => table.name)).toContain("localRecipes");
   });

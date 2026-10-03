@@ -44,6 +44,10 @@ export type LocalRecipePreparation = {
 };
 
 export type LocalRecipePayload = {
+  /** Native-library projection; undefined means an older browser record. */
+  totalMinutes?: number | null;
+  referenceServings?: number | null;
+  keyTips?: Array<{ instruction: string; stepNumber: number | null }>;
   title: string;
   description: string | null;
   categoryId: string | null;

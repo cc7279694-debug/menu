@@ -6,7 +6,7 @@
 
 ## Purpose
 
-把来源杂乱的菜谱整理成可执行步骤，并在厨房场景中快速查看、计时和记录。
+把来源杂乱的菜谱整理成可执行步骤，并在厨房场景中快速查看和记录自己的做法。不内置计时器。
 
 ## Users
 
@@ -40,4 +40,4 @@ React UI 通过业务服务调用 Repository 接口。浏览器使用 IndexedDB�
 
 ## Product Direction
 
-No Account + Local-only。按根目录 Android 执行基线逐模块推进；每个模块独立验收，不重复规划产品。
+No Account + Local-only。基线见 docs/PRODUCT_SPEC.md；先完善功能，APK 打包后置。每个模块独立验收，不重复规划；旧 APK-0 提示不代表当前执行顺序。

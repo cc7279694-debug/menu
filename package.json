@@ -3,6 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
+    "dev:local": "vite --config vite.native.config.mts",
+    "build:local": "vite build --config vite.native.config.mts",
+    "preview:local": "vite preview --config vite.native.config.mts",
     "dev:apk": "vite --config vite.native.config.mts",
     "build:apk": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/build-apk.ps1",
     "build:apk:web": "vite build --config vite.native.config.mts",
@@ -27,6 +30,7 @@
     "@capacitor-community/sqlite": "8.1.1",
     "@capacitor/android": "8.5.2",
     "@capacitor/core": "8.5.2",
+    "@capacitor/filesystem": "8.1.4",
     "@hookform/resolvers": "5.9.1",
     "@supabase/ssr": "^0.12.4",
     "@supabase/supabase-js": "^2.112.3",

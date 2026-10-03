@@ -1,5 +1,27 @@
 # Decisions
 
+## 2026-10-03 — 功能先行，打包后置
+
+### Decision
+
+保留 APK-0，暂缓打包和原生验收，先完善共享客户端日常菜谱库。浏览器复用 Dexie localRecipes/media；Android 继续原 SQLite v1→v2 迁移，图片存私有文件目录。
+
+### Context
+
+用户明确产品尚不够实用，要求优先完善功能。
+
+### Alternatives
+
+立即打包或重建本地库；均不符合当前优先级。
+
+### Reason
+
+统一 RecipeLibrary 契约与领域校验，先验证流程，保留原生路线。设备图片必须与旧云缓存清除隔离。
+
+### Consequences
+
+Web 验证不替代 Android SQLite/文件验证。浏览器预览需本地服务器，不承诺离线冷启动；图片保守保留，备份/回收后续实施。本决定替代 APK-first 执行顺序，不改变产品定位和技术路线。
+
 ## 2026-10-03 — Android APK-first product baseline
 
 ### Decision

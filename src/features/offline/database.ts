@@ -3,6 +3,7 @@ import { type Table } from "dexie";
 import {
   __resetLocalDatabaseForTests,
   getLocalDatabase,
+  LOCAL_LIBRARY_MEDIA_OWNER,
   type RecipioLocalDatabase,
   type LocalRecipeSummaryRecord,
   type LocalMutationRecord,
@@ -406,7 +407,9 @@ export function clearOfflineData(): Promise<void> {
           database.cookingSessions.clear(),
           database.mutationQueue.clear(),
           database.syncMeta.clear(),
-          database.media.clear(),
+          database.media
+            .filter((record) => record.userId !== LOCAL_LIBRARY_MEDIA_OWNER)
+            .delete(),
           database.recipeSummaries.clear(),
         ]);
       },

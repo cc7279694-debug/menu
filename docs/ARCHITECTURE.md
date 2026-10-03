@@ -1,5 +1,26 @@
 # Architecture
 
+## 当前日常菜谱库（2026-10-03）
+
+```text
+native/index.html → native/main.ts → src/native/main.tsx
+  → LibraryApp / RecipeEditor / RecipeDetail
+  → RecipeLibrary + RecipeDetails Zod 校验
+      → PreviewRecipeLibrary → 既有 Dexie localRecipes / recipeChanges
+      → RecipeNameStore → SqlDriver → Android SQLite
+  → LocalImage / media adapter
+      → 浏览器既有 media 表（Blob）
+      → Android Directory.Data/images（路径引用，不存数据库 Blob）
+```
+
+Vite 本地预览可独立运行，无登录、Supabase 请求或远程资源。生产静态入口 CSP 仅允许自身脚本与本地图片；开发 CSP 单独允许本机热更新。浏览器预览没有 Service Worker，离线验证只覆盖已加载页面操作。
+
+SQLite schemaVersion=2；v1 名称数据保留，增量添加耗时/份数/热量/封面路径/备注，以及按位置规范化的食材、步骤、准备、关键事项表，删除级联。修改快照以 before/after JSON 存在 recipe_changes，无历史界面。完整新建与保存通过 executeSet 事务执行，开启外键；5 秒撤销期保存关联数据，过期后清理。
+
+Dexie schemaVersion=5，沿用 v4 stores，仅新增 recipeChanges。设备媒体 owner 固定为 recipio-library-preview；旧云缓存清除不得删除此 owner 的文件。图片保守保留，孤立回收后置。不存在云同步、新账户或远程业务主库。
+
+SQLite 使用 Node 原生数据库验证迁移与事务；新版 Android 插件和文件系统尚未验收，用户暂缓打包。下列 APK-0 与旧 Web 内容为历史/保留实现，不代表新版范围。
+
 ## Android APK-0 (2026-10-03)
 
 `native/index.html` → `src/native/main.tsx` → 现有 UI 组件 → `RecipeNameStore` → `SqlDriver` → Capacitor Community SQLite → 本机 `recipioSQLite.db`。
@@ -16,7 +37,7 @@ SQL 使用 Node 原生 SQLite 作契约测试；Android 插件、安装、飞行
 
 Next.js App Router renders the application. Supabase Auth, Postgres, Storage and Server Actions currently provide the primary data path. Dexie/IndexedDB caches selected recipes, drafts, shopping state and cooking sessions.
 
-## Target local state
+## Legacy target (superseded product scope)
 
 ```text
 React UI

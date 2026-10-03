@@ -3,14 +3,24 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import type { RecipeName, RecipeNameStore } from "./recipe-store";
 import { openRecipeStore } from "./sqlite";
+import { Capacitor } from "@capacitor/core";
+import { PreviewRecipeLibrary } from "./preview-store";
+import type { RecipeLibrary } from "./recipe-model";
+import { LibraryApp } from "./library-app";
 
 export function NativeApp() {
-  const [store, setStore] = useState<RecipeNameStore | null>(null);
+  const [store, setStore] = useState<RecipeLibrary | null>(null);
   const [error, setError] = useState("");
   const [attempt, setAttempt] = useState(0);
   useEffect(() => {
     let alive = true;
-    openRecipeStore()
+    (Capacitor.getPlatform() === "android"
+      ? openRecipeStore()
+      : Promise.resolve(new PreviewRecipeLibrary()).then(async (db) => {
+          await db.purgeExpired();
+          return db;
+        })
+    )
       .then((db) => {
         if (alive) setStore(db);
       })
@@ -21,6 +31,7 @@ export function NativeApp() {
       alive = false;
     };
   }, [attempt]);
+  if (store) return <LibraryApp store={store} />;
   return (
     <main className="mx-auto max-w-2xl px-5 pb-12 pt-6">
       <header className="mb-8 flex items-center gap-3">
@@ -33,11 +44,11 @@ export function NativeApp() {
         />
         <div>
           <h1 className="text-xl font-semibold">谱序 RECIPIO</h1>
-          <p className="text-sm text-muted-foreground">我的本地菜谱 · APK-0</p>
+          <p className="text-sm text-muted-foreground">我的本地菜谱</p>
         </div>
       </header>
       {store ? (
-        <RecipeNames store={store} />
+        <LibraryApp store={store} />
       ) : error ? (
         <section role="alert">
           <p>{error}</p>

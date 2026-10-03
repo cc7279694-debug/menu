@@ -2,7 +2,7 @@ import { Capacitor } from "@capacitor/core";
 import { CapacitorSQLite, SQLiteConnection } from "@capacitor-community/sqlite";
 import {
   RecipeNameStore,
-  schemaStatements,
+  migrationStatements,
   schemaVersion,
 } from "./recipe-store";
 
@@ -24,9 +24,7 @@ async function open(): Promise<RecipeNameStore> {
       "此入口用于 Android APK，浏览器预览不能替代原生 SQLite 验收。",
     );
   }
-  await connection.addUpgradeStatement("recipio", [
-    { toVersion: schemaVersion, statements: schemaStatements },
-  ]);
+  await connection.addUpgradeStatement("recipio", migrationStatements);
   const consistent = await connection.checkConnectionsConsistency();
   const exists = await connection.isConnection("recipio", false);
   const db =
@@ -40,10 +38,14 @@ async function open(): Promise<RecipeNameStore> {
           false,
         );
   if (!(await db.isDBOpen()).result) await db.open();
+  await db.execute("PRAGMA foreign_keys=ON", false);
   const store = new RecipeNameStore({
     query: async (sql, values) => (await db.query(sql, values)).values ?? [],
     run: async (sql, values) =>
       (await db.run(sql, values)).changes?.changes ?? 0,
+    batch: async (statements) => {
+      await db.executeSet(statements, true);
+    },
   });
   await store.purgeExpired();
   return store;

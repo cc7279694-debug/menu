@@ -8,3 +8,21 @@ main {
   padding-top: max(1.5rem, env(safe-area-inset-top));
   padding-bottom: max(3rem, env(safe-area-inset-bottom));
 }
+/* Native-like touch targets; do not change legacy Next components globally. */
+#root button {
+  min-height: 44px;
+}
+#root input,
+#root select {
+  min-height: 44px;
+}
+#root input[type="file"] {
+  height: auto;
+  padding-block: 8px;
+}
+#root > div:first-child {
+  padding-top: calc(20px + env(safe-area-inset-top));
+}
+#root .sticky.bottom-0 {
+  padding-bottom: calc(12px + env(safe-area-inset-bottom));
+}

@@ -1,8 +1,15 @@
 import { z } from "zod";
+import {
+  emptyDetails,
+  recipeDetailsSchema,
+  type RecipeDetails,
+  type RecipeDetailsInput,
+  type DurationFilter,
+} from "./recipe-model";
 
-export const schemaVersion = 1;
+export const schemaVersion = 2;
 export const undoMilliseconds = 5000;
-export const schemaStatements = [
+const versionOneStatements = [
   `CREATE TABLE IF NOT EXISTS recipes (
     id TEXT PRIMARY KEY NOT NULL,
     title TEXT NOT NULL CHECK(length(trim(title)) BETWEEN 1 AND 120),
@@ -12,6 +19,38 @@ export const schemaStatements = [
   );`,
   "CREATE INDEX IF NOT EXISTS recipes_added ON recipes(created_at DESC, id DESC) WHERE deleted_at IS NULL;",
   "CREATE INDEX IF NOT EXISTS recipes_deleted ON recipes(deleted_at) WHERE deleted_at IS NOT NULL;",
+];
+const versionTwoStatements = [
+  "ALTER TABLE recipes ADD COLUMN total_minutes INTEGER CHECK(total_minutes IS NULL OR total_minutes>0);",
+  "ALTER TABLE recipes ADD COLUMN servings REAL CHECK(servings IS NULL OR servings>0);",
+  "ALTER TABLE recipes ADD COLUMN calories_per_serving REAL CHECK(calories_per_serving IS NULL OR calories_per_serving>=0);",
+  "ALTER TABLE recipes ADD COLUMN cover_path TEXT;",
+  "ALTER TABLE recipes ADD COLUMN notes TEXT NOT NULL DEFAULT '';",
+  "CREATE TABLE recipe_ingredients(recipe_id TEXT NOT NULL REFERENCES recipes(id) ON DELETE CASCADE, position INTEGER NOT NULL, name TEXT NOT NULL, amount TEXT NOT NULL, PRIMARY KEY(recipe_id,position));",
+  "CREATE TABLE recipe_steps(recipe_id TEXT NOT NULL REFERENCES recipes(id) ON DELETE CASCADE, position INTEGER NOT NULL, instruction TEXT NOT NULL, image_path TEXT, PRIMARY KEY(recipe_id,position));",
+  "CREATE TABLE recipe_preparations(recipe_id TEXT NOT NULL REFERENCES recipes(id) ON DELETE CASCADE, position INTEGER NOT NULL, instruction TEXT NOT NULL, minutes INTEGER, timing_text TEXT, PRIMARY KEY(recipe_id,position));",
+  "CREATE TABLE recipe_key_tips(recipe_id TEXT NOT NULL REFERENCES recipes(id) ON DELETE CASCADE, position INTEGER NOT NULL, instruction TEXT NOT NULL, step_number INTEGER, PRIMARY KEY(recipe_id,position));",
+  "CREATE TABLE recipe_changes(id TEXT PRIMARY KEY NOT NULL, recipe_id TEXT NOT NULL REFERENCES recipes(id) ON DELETE CASCADE, changed_at TEXT NOT NULL, before_json TEXT NOT NULL, after_json TEXT NOT NULL);",
+  "CREATE INDEX recipe_changes_recipe ON recipe_changes(recipe_id,changed_at);",
+];
+export const migrationStatements = [
+  { toVersion: 1, statements: versionOneStatements },
+  { toVersion: 2, statements: versionTwoStatements },
+];
+// Complete fresh schema used by non-plugin tests. Existing databases use versioned upgrades above.
+export const schemaStatements = [
+  versionOneStatements[0].replace(
+    "deleted_at TEXT",
+    "deleted_at TEXT, total_minutes INTEGER CHECK(total_minutes IS NULL OR total_minutes>0), servings REAL CHECK(servings IS NULL OR servings>0), calories_per_serving REAL CHECK(calories_per_serving IS NULL OR calories_per_serving>=0), cover_path TEXT, notes TEXT NOT NULL DEFAULT ''",
+  ),
+  ...versionOneStatements.slice(1),
+  ...versionTwoStatements
+    .slice(5)
+    .map((sql) =>
+      sql
+        .replace("CREATE TABLE ", "CREATE TABLE IF NOT EXISTS ")
+        .replace("CREATE INDEX ", "CREATE INDEX IF NOT EXISTS "),
+    ),
 ];
 
 const titleSchema = z
@@ -30,10 +69,20 @@ export type RecipeName = {
   title: string;
   createdAt: string;
   updatedAt: string;
+  totalMinutes?: number | null;
+  coverPath?: string | null;
+  caloriesPerServing?: number | null;
+  preparationHint?: string | null;
 };
 export interface SqlDriver {
   query(sql: string, values?: (string | number)[]): Promise<unknown[]>;
   run(sql: string, values?: (string | number)[]): Promise<number>;
+  batch?(
+    statements: Array<{
+      statement: string;
+      values: (string | number | null)[];
+    }>,
+  ): Promise<void>;
 }
 function fromRow(value: unknown): RecipeName {
   const row = rowSchema.parse(value);
@@ -42,6 +91,14 @@ function fromRow(value: unknown): RecipeName {
     title: row.title,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
+    totalMinutes: (value as Record<string, unknown>).total_minutes as
+      number | null | undefined,
+    coverPath: (value as Record<string, unknown>).cover_path as
+      string | null | undefined,
+    caloriesPerServing: (value as Record<string, unknown>)
+      .calories_per_serving as number | null | undefined,
+    preparationHint: (value as Record<string, unknown>).preparation_hint as
+      string | null | undefined,
   };
 }
 
@@ -52,17 +109,177 @@ export class RecipeNameStore {
     private readonly clock = () => new Date(),
   ) {}
 
-  async list(search = "", limit = 100, offset = 0): Promise<RecipeName[]> {
+  async list(
+    search = "",
+    limit = 100,
+    offset = 0,
+    filter: DurationFilter = "all",
+  ): Promise<RecipeName[]> {
     const literal = search.trim().replace(/[\\%_]/g, "\\$&");
     const rows = await this.driver.query(
-      "SELECT id,title,created_at,updated_at FROM recipes WHERE deleted_at IS NULL AND title LIKE ? ESCAPE '\\' ORDER BY created_at DESC,id DESC LIMIT ? OFFSET ?",
+      `SELECT recipes.*, (SELECT instruction FROM recipe_preparations WHERE recipe_id=recipes.id ORDER BY position LIMIT 1) preparation_hint FROM recipes WHERE deleted_at IS NULL AND (title LIKE ? ESCAPE '\\' OR EXISTS(SELECT 1 FROM recipe_ingredients WHERE recipe_id=recipes.id AND name LIKE ? ESCAPE '\\')) ${filter === "short" ? "AND total_minutes<=30" : filter === "medium" ? "AND total_minutes>30 AND total_minutes<=60" : filter === "long" ? "AND total_minutes>60" : ""} ORDER BY created_at DESC,id DESC LIMIT ? OFFSET ?`,
       [
+        `%${literal}%`,
         `%${literal}%`,
         Math.min(100, Math.max(1, Math.floor(limit))),
         Math.max(0, Math.floor(offset)),
       ],
     );
     return rows.map(fromRow);
+  }
+  async getDetails(id: string): Promise<RecipeDetails | null> {
+    const rows = await this.driver.query(
+      "SELECT * FROM recipes WHERE id=? AND deleted_at IS NULL",
+      [id],
+    );
+    if (!rows.length) return null;
+    const row = rows[0] as Record<string, unknown>;
+    const children = await Promise.all(
+      [
+        "recipe_ingredients",
+        "recipe_steps",
+        "recipe_preparations",
+        "recipe_key_tips",
+      ].map((table) =>
+        this.driver.query(
+          `SELECT * FROM ${table} WHERE recipe_id=? ORDER BY position`,
+          [id],
+        ),
+      ),
+    );
+    const input = recipeDetailsSchema.parse({
+      ...emptyDetails(String(row.title)),
+      totalMinutes: row.total_minutes,
+      servings: row.servings,
+      caloriesPerServing: row.calories_per_serving,
+      coverPath: row.cover_path,
+      notes: row.notes,
+      ingredients: children[0].map((value) => {
+        const r = value as Record<string, unknown>;
+        return { name: r.name, amount: r.amount };
+      }),
+      steps: children[1].map((value) => {
+        const r = value as Record<string, unknown>;
+        return { instruction: r.instruction, imagePath: r.image_path };
+      }),
+      preparations: children[2].map((value) => {
+        const r = value as Record<string, unknown>;
+        return {
+          instruction: r.instruction,
+          minutes: r.minutes,
+          timingText: r.timing_text,
+        };
+      }),
+      keyTips: children[3].map((value) => {
+        const r = value as Record<string, unknown>;
+        return { instruction: r.instruction, stepNumber: r.step_number };
+      }),
+    });
+    return { ...fromRow(row), ...input };
+  }
+  async saveDetails(id: string, input: RecipeDetailsInput): Promise<void> {
+    const value = recipeDetailsSchema.parse(input);
+    const before = await this.getDetails(id);
+    if (!before) throw new Error("菜谱已删除或不存在，请返回列表");
+    if (!this.driver.batch) throw new Error("数据层不支持原子保存");
+    await this.writeDetails(id, value, before);
+  }
+  async createDetails(input: RecipeDetailsInput): Promise<RecipeDetails> {
+    const value = recipeDetailsSchema.parse(input);
+    const id = crypto.randomUUID();
+    await this.writeDetails(id, value, null);
+    const saved = await this.getDetails(id);
+    if (!saved) throw new Error("保存后无法读取菜谱");
+    return saved;
+  }
+  private async writeDetails(
+    id: string,
+    value: RecipeDetailsInput,
+    before: RecipeDetails | null,
+  ) {
+    if (!this.driver.batch) throw new Error("数据层不支持原子保存");
+    const now = this.clock().toISOString();
+    const statements: Array<{
+      statement: string;
+      values: (string | number | null)[];
+    }> = [];
+    if (before)
+      statements.push({
+        statement:
+          "UPDATE recipes SET title=?,total_minutes=?,servings=?,calories_per_serving=?,cover_path=?,notes=?,updated_at=? WHERE id=? AND deleted_at IS NULL",
+        values: [
+          value.title,
+          value.totalMinutes,
+          value.servings,
+          value.caloriesPerServing,
+          value.coverPath,
+          value.notes,
+          now,
+          id,
+        ],
+      });
+    else
+      statements.push({
+        statement:
+          "INSERT INTO recipes(id,title,created_at,updated_at,total_minutes,servings,calories_per_serving,cover_path,notes) VALUES(?,?,?,?,?,?,?,?,?)",
+        values: [
+          id,
+          value.title,
+          now,
+          now,
+          value.totalMinutes,
+          value.servings,
+          value.caloriesPerServing,
+          value.coverPath,
+          value.notes,
+        ],
+      });
+    for (const table of [
+      "recipe_ingredients",
+      "recipe_steps",
+      "recipe_preparations",
+      "recipe_key_tips",
+    ])
+      statements.push({
+        statement: `DELETE FROM ${table} WHERE recipe_id=?`,
+        values: [id],
+      });
+    value.ingredients.forEach((r, i) =>
+      statements.push({
+        statement: "INSERT INTO recipe_ingredients VALUES(?,?,?,?)",
+        values: [id, i, r.name, r.amount],
+      }),
+    );
+    value.steps.forEach((r, i) =>
+      statements.push({
+        statement: "INSERT INTO recipe_steps VALUES(?,?,?,?)",
+        values: [id, i, r.instruction, r.imagePath],
+      }),
+    );
+    value.preparations.forEach((r, i) =>
+      statements.push({
+        statement: "INSERT INTO recipe_preparations VALUES(?,?,?,?,?)",
+        values: [id, i, r.instruction, r.minutes, r.timingText],
+      }),
+    );
+    value.keyTips.forEach((r, i) =>
+      statements.push({
+        statement: "INSERT INTO recipe_key_tips VALUES(?,?,?,?)",
+        values: [id, i, r.instruction, r.stepNumber],
+      }),
+    );
+    if (before)
+      statements.push({
+        statement: "INSERT INTO recipe_changes VALUES(?,?,?,?,?)",
+        values: [
+          crypto.randomUUID(),
+          id,
+          now,
+          JSON.stringify(before),
+          JSON.stringify(value),
+        ],
+      });
+    await this.driver.batch(statements);
   }
   async get(id: string): Promise<RecipeName | null> {
     const rows = await this.driver.query(
