@@ -1,7 +1,7 @@
 import { expect, it, vi } from "vitest";
 import { createAiBridge } from "./native-bridge";
 const operationId="871a063d-3a67-4ef6-9b7b-f809809366c0", requestId="1d85a06c-16e8-4f24-a5b4-d164abf66fb5";
-const native=()=>({createSession:vi.fn(async()=>({operationId})),discardSession:vi.fn(async()=>undefined),organize:vi.fn(async()=>({rawJson:"{}"})),cancel:vi.fn(async()=>undefined),preflight:vi.fn(async()=>({available:true,model:"qwen3.8-flash",region:"beijing"}))});
+const native=()=>({createSession:vi.fn(async()=>({operationId})),discardSession:vi.fn(async()=>undefined),organize:vi.fn(async()=>({rawJson:"{}"})),cancel:vi.fn(async()=>undefined),preflight:vi.fn(async()=>({available:true,model:"qwen3.8-flash",region:"beijing"})),pickImage:vi.fn(async()=>({cancelled:true})),removeImage:vi.fn(async()=>undefined),cleanupExpired:vi.fn(async()=>({pendingCleanup:false}))});
 it("passes only owned UUIDs/source/handles and receives bounded raw JSON",async()=>{
   const api=native(), bridge=createAiBridge(api);expect(await bridge.createSession()).toEqual({operationId});
   await bridge.organize({operationId,requestId,text:"鸭🍚",imageIds:[]});expect(api.organize.mock.calls).toEqual([[{operationId,requestId,text:"鸭🍚",imageIds:[]}]]);

@@ -4,17 +4,18 @@ import type { AiReviewDraft } from "./contract";
 import { AI_LIMITS } from "./contract";
 import { parseAiDraft } from "./normalize";
 import { z } from "zod";
-import { AiIntakeError, safeAiError, type AiBridge, type AiKeyPort } from "./native-bridge";
+import { AiIntakeError, safeAiError, type AiBridge, type AiKeyPort, type AiTemporaryImage } from "./native-bridge";
 export type AiInput={text:string;imageIds:string[]};
-export type AiIntakeState={phase:"input"|"requesting"|"preview"|"error"|"saving"|"saved"|"uncertain";input:AiInput;operationId:string|null;requestId:string|null;draft:AiReviewDraft|null;confirmed:boolean;error:AiIntakeError|null};
+export type AiIntakeState={phase:"input"|"requesting"|"preview"|"error"|"saving"|"saved"|"uncertain";input:AiInput;operationId:string|null;requestId:string|null;draft:AiReviewDraft|null;confirmed:boolean;error:AiIntakeError|null;images:AiTemporaryImage[];imageBusy:boolean;pendingCleanup:boolean};
 export class AiIntakeService {
-  private state:AiIntakeState={phase:"input",input:{text:"",imageIds:[]},operationId:null,requestId:null,draft:null,confirmed:false,error:null};
+  private state:AiIntakeState={phase:"input",input:{text:"",imageIds:[]},operationId:null,requestId:null,draft:null,confirmed:false,error:null,images:[],imageBusy:false,pendingCleanup:false};
   private listeners=new Set<()=>void>();
   private generation=0;
   private opening:Promise<string>|null=null;
   private flight:{generation:number;operationId:string;requestId:string;sent:boolean}|null=null;
   private cancelling=false;
   private restoreBlocked=false;
+  private cleanupStarted=false;
   constructor(readonly keys:AiKeyPort,readonly bridge:AiBridge,readonly dependencies:{store:RecipeLibrary;backup?:BackupController}){
     const observe=()=>{const phase=dependencies.backup?.getState().phase;const blocked=phase==="restoring"||phase==="uncertain";if(blocked&&!this.restoreBlocked){this.restoreBlocked=true;void this.discard().catch(()=>{});}this.restoreBlocked=blocked;};
     dependencies.backup?.subscribe(observe);observe();
@@ -24,6 +25,7 @@ export class AiIntakeService {
   private set(state:AiIntakeState){this.state=state;this.listeners.forEach(listener=>listener());}
   async startSession():Promise<string>{
     if(this.restoreBlocked)throw new AiIntakeError("busy");
+    if(!this.cleanupStarted){this.cleanupStarted=true;void this.bridge.cleanupExpired().then(reply=>this.set({...this.state,pendingCleanup:reply.pendingCleanup})).catch(error=>{if(safeAiError(error).code!=="native_unavailable")this.set({...this.state,pendingCleanup:true});});}
     if(this.state.operationId)return this.state.operationId;
     if(this.opening)return this.opening;
     const generation=++this.generation;
@@ -34,14 +36,28 @@ export class AiIntakeService {
     this.opening=opening;return opening;
   }
   updateInput(input:AiInput):void{
-    if(this.flight||this.cancelling||["saving","saved","uncertain"].includes(this.state.phase))throw new AiIntakeError("busy");
+    if(this.flight||this.cancelling||this.state.imageBusy||["saving","saved","uncertain"].includes(this.state.phase))throw new AiIntakeError("busy");
     this.set({...this.state,input:{text:input.text,imageIds:[...input.imageIds]},phase:"input",draft:null,confirmed:false,error:null});
   }
   async refreshKey():Promise<boolean>{return (await this.keys.hasAiKey()).configured;}
+  private assertInputEditable(){if(this.flight||this.cancelling||this.state.imageBusy||this.restoreBlocked||["saving","saved","uncertain"].includes(this.state.phase))throw new AiIntakeError("busy");if(!this.state.operationId)throw new AiIntakeError("stale_session");}
+  async pickImage():Promise<void>{
+    this.assertInputEditable();if(this.state.images.length>=AI_LIMITS.imageCount)throw new AiIntakeError("image_too_large");
+    const operationId=this.state.operationId!,generation=this.generation;this.set({...this.state,imageBusy:true,error:null});
+    try{const reply=await this.bridge.pickImage({operationId});if(generation!==this.generation||operationId!==this.state.operationId)throw new AiIntakeError("stale_session");if(!reply.cancelled&&reply.image){const images=[...this.state.images,reply.image];this.set({...this.state,images,input:{...this.state.input,imageIds:images.map(image=>image.id)},phase:"input",draft:null,confirmed:false});}}
+    catch(error){const safe=safeAiError(error);if(generation===this.generation)this.set({...this.state,error:safe});throw safe;}
+    finally{if(generation===this.generation&&operationId===this.state.operationId)this.set({...this.state,imageBusy:false});}
+  }
+  async removeImage(id:string):Promise<void>{
+    this.assertInputEditable();if(!this.state.images.some(image=>image.id===id))throw new AiIntakeError("image_invalid");const operationId=this.state.operationId!,generation=this.generation;this.set({...this.state,imageBusy:true,error:null});
+    try{await this.bridge.removeImage({operationId,imageId:id});if(generation!==this.generation)throw new AiIntakeError("stale_session");const images=this.state.images.filter(image=>image.id!==id);this.set({...this.state,images,input:{...this.state.input,imageIds:images.map(image=>image.id)},phase:"input",draft:null,confirmed:false});}catch(error){const safe=safeAiError(error);if(generation===this.generation)this.set({...this.state,error:safe});throw safe;}finally{if(generation===this.generation)this.set({...this.state,imageBusy:false});}
+  }
+  moveImage(id:string,direction:-1|1):void{this.assertInputEditable();const images=[...this.state.images],index=images.findIndex(image=>image.id===id),next=index+direction;if(index<0)throw new AiIntakeError("image_invalid");if(next<0||next>=images.length)return;[images[index],images[next]]=[images[next],images[index]];this.set({...this.state,images,input:{...this.state.input,imageIds:images.map(image=>image.id)},phase:"input",draft:null,confirmed:false,error:null});}
   async organize(input:AiInput):Promise<AiReviewDraft>{
-    if(this.flight||this.cancelling||this.restoreBlocked||["saving","saved","uncertain"].includes(this.state.phase))throw new AiIntakeError("busy");
+    if(this.flight||this.cancelling||this.state.imageBusy||this.restoreBlocked||["saving","saved","uncertain"].includes(this.state.phase))throw new AiIntakeError("busy");
     const parsed=z.strictObject({text:z.string(),imageIds:z.array(z.uuid()).max(AI_LIMITS.imageCount)}).safeParse(input);
     if(!parsed.success||Array.from(input.text.trim()).length>AI_LIMITS.textCodePoints||!input.text.trim()&&!input.imageIds.length||new Set(input.imageIds).size!==input.imageIds.length)throw new AiIntakeError("input_invalid");
+    if(input.imageIds.some(id=>!this.state.images.some(image=>image.id===id)))throw new AiIntakeError("image_invalid");
     const operationId=this.state.operationId;if(!operationId)throw new AiIntakeError("stale_session");
     const flight={generation:++this.generation,operationId,requestId:crypto.randomUUID(),sent:false};this.flight=flight;
     const source={text:input.text,imageIds:[...input.imageIds]};
@@ -63,8 +79,8 @@ export class AiIntakeService {
   }
   async discard():Promise<void>{
     const operationId=this.state.operationId;++this.generation;this.opening=null;this.flight=null;
-    this.set({phase:"input",input:{text:"",imageIds:[]},operationId:null,requestId:null,draft:null,confirmed:false,error:null});
-    if(operationId)await this.bridge.discardSession({operationId});
+    this.set({phase:"input",input:{text:"",imageIds:[]},operationId:null,requestId:null,draft:null,confirmed:false,error:null,images:[],imageBusy:false,pendingCleanup:false});
+    if(operationId)try{await this.bridge.discardSession({operationId});}catch{this.set({...this.state,pendingCleanup:true});}
   }
   keyChanged():void{void this.cancelRequest().catch(()=>{});this.set({...this.state,confirmed:false});}
 }

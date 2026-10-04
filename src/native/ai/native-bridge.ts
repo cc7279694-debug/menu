@@ -32,12 +32,16 @@ export function createAiKeyPort(api?: NativeAiKeyApi): AiKeyPort {
   };
 }
 export type AiOrganizeRequest = {operationId: string; requestId: string; text: string; imageIds: string[]};
+export type AiTemporaryImage={id:string;mimeType:"image/jpeg";byteSize:number;width:number;height:number;previewUri:string};
 export interface NativeAiApi {
   createSession(): Promise<unknown>;
   discardSession(options:{operationId:string}): Promise<unknown>;
   organize(options:AiOrganizeRequest): Promise<unknown>;
   cancel(options:{operationId:string;requestId:string}): Promise<unknown>;
   preflight(): Promise<unknown>;
+  pickImage(options:{operationId:string}):Promise<unknown>;
+  removeImage(options:{operationId:string;imageId:string}):Promise<unknown>;
+  cleanupExpired():Promise<unknown>;
 }
 export type AiPreflightResult = {available:true;model:"qwen3.8-flash";region:"beijing"};
 export interface AiBridge {
@@ -46,12 +50,20 @@ export interface AiBridge {
   organize(options:AiOrganizeRequest):Promise<{rawJson:string}>;
   cancel(options:{operationId:string;requestId:string}):Promise<void>;
   preflight():Promise<AiPreflightResult>;
+  pickImage(options:{operationId:string}):Promise<{cancelled:boolean;image?:AiTemporaryImage}>;
+  removeImage(options:{operationId:string;imageId:string}):Promise<void>;
+  cleanupExpired():Promise<{pendingCleanup:boolean}>;
 }
 const operationSchema=z.strictObject({operationId:z.uuid()}), requestSchema=operationSchema.extend({requestId:z.uuid()});
 const organizeSchema=requestSchema.extend({text:z.string(),imageIds:z.array(z.uuid()).max(AI_LIMITS.imageCount)}).superRefine((input,context)=>{
   if(Array.from(input.text.trim()).length>AI_LIMITS.textCodePoints||(!input.text.trim()&&!input.imageIds.length)||new Set(input.imageIds).size!==input.imageIds.length)context.addIssue({code:"custom",message:"Invalid source"});
 });
 const voidSchema=z.union([z.undefined(),z.strictObject({})]);
+const imageSchema=z.strictObject({id:z.uuid(),mimeType:z.literal("image/jpeg"),byteSize:z.number().int().min(1).max(AI_LIMITS.imageBytes),width:z.number().int().min(11).max(AI_LIMITS.imageEdge),height:z.number().int().min(11).max(AI_LIMITS.imageEdge),previewUri:z.string().max(512)});
+function ownedImage(image:AiTemporaryImage,operationId:string):boolean{
+  return new RegExp(`^file:///data/(?:user/\\d+|data)/app\\.recipio\\.local/cache/ai-import/${operationId}/${image.id}\\.jpg$`).test(image.previewUri)&&Math.max(image.width,image.height)<=Math.min(image.width,image.height)*200;
+}
+export function aiImagePreviewUri(image:AiTemporaryImage):string{return Capacitor.convertFileSrc(image.previewUri);}
 export function createAiBridge(api?:NativeAiApi):AiBridge {
   let native=api;const getNative=()=>native??(native=registerPlugin<NativeAiApi>("LocalAiIntake"));
   async function run<T>(work:()=>Promise<unknown>,schema:z.ZodType<T>):Promise<T>{
@@ -65,5 +77,8 @@ export function createAiBridge(api?:NativeAiApi):AiBridge {
     cancel:async input=>{const checked=options(requestSchema,input);await run(()=>getNative().cancel(checked),voidSchema);},
     organize:async input=>{const checked=options(organizeSchema,input);const reply=await run(()=>getNative().organize(checked),z.strictObject({rawJson:z.string()}));if(new TextEncoder().encode(reply.rawJson).length>AI_LIMITS.responseBytes)throw new AiIntakeError("response_too_large");return reply;},
     preflight:()=>run(()=>getNative().preflight(),z.strictObject({available:z.literal(true),model:z.literal("qwen3.8-flash"),region:z.literal("beijing")})),
+    pickImage:async input=>{const checked=options(operationSchema,input);const reply=await run(()=>getNative().pickImage(checked),z.union([z.strictObject({cancelled:z.literal(true)}),z.strictObject({cancelled:z.literal(false),image:imageSchema})]));if(!reply.cancelled&&!ownedImage(reply.image,checked.operationId))throw new AiIntakeError("invalid_output");return reply;},
+    removeImage:async input=>{const checked=options(operationSchema.extend({imageId:z.uuid()}),input);await run(()=>getNative().removeImage(checked),voidSchema);},
+    cleanupExpired:()=>run(()=>getNative().cleanupExpired(),z.strictObject({pendingCleanup:z.boolean()})),
   };
 }
