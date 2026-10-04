@@ -9,12 +9,15 @@ import type { RecipeLibrary } from "./recipe-model";
 import { LibraryApp } from "./library-app";
 import { openBackupService } from "./backup/runtime";
 import type { BackupService } from "./backup/service";
+import { openAiIntakeRuntime } from "./ai/runtime";
+import type { AiIntakeService } from "./ai/service";
 
 export function NativeApp() {
   const [store, setStore] = useState<RecipeLibrary | null>(null);
   const [error, setError] = useState("");
   const [attempt, setAttempt] = useState(0);
   const [backup, setBackup] = useState<BackupService>();
+  const [ai,setAi]=useState<AiIntakeService>();
   useEffect(() => {
     let alive = true;
     (Capacitor.getPlatform() === "android"
@@ -31,6 +34,7 @@ export function NativeApp() {
             : undefined;
         if (alive) {
           setBackup(service);
+          setAi(openAiIntakeRuntime(db,service));
           setStore(db);
         }
       })
@@ -41,7 +45,7 @@ export function NativeApp() {
       alive = false;
     };
   }, [attempt]);
-  if (store) return <LibraryApp store={store} backup={backup} />;
+  if (store) return <LibraryApp store={store} backup={backup} ai={ai} />;
   return (
     <main className="mx-auto max-w-2xl px-5 pb-12 pt-6">
       <header className="mb-8 flex items-center gap-3">

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import { BookOpen, House, Plus, Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -25,6 +25,10 @@ import type { CookingRecord, CookingRecordExtras } from "./cooking-model";
 import { CookingHistory, CookingOverview } from "./cooking-history";
 import { AiSettings } from "./ai/ai-settings";
 import type { AiKeyPort } from "./ai/native-bridge";
+import type { AiIntakeService } from "./ai/service";
+import { openAiIntakeRuntime } from "./ai/runtime";
+import { AiIntakeScreen } from "./ai/intake-screen";
+import { Dialog,DialogContent,DialogDescription,DialogTitle } from "@/components/ui/dialog";
 
 type View =
   | "home"
@@ -36,18 +40,24 @@ type View =
   | "changes"
   | "completion"
   | "history";
+type AiView="ai-input"|"ai-preview";
 export function LibraryApp({
   store,
   backup,
   aiKeys,
+  ai,
 }: {
   store: RecipeLibrary;
   backup?: BackupController;
   aiKeys?: AiKeyPort;
+  ai?: AiIntakeService;
 }) {
+  const intake=useMemo(()=>ai??openAiIntakeRuntime(store,backup),[ai,store,backup]);
+  const intakeState=useSyncExternalStore(intake.subscribe,intake.snapshot,intake.snapshot);
+  const [addOpen,setAddOpen]=useState(false),[fromAiSettings,setFromAiSettings]=useState(false);
   const backupState = useBackupState(backup);
   const restored = useRef<unknown>(null);
-  const [view, setView] = useState<View>("home");
+  const [view, setView] = useState<View|AiView>("home");
   const [returnView, setReturnView] = useState<"home" | "library">("home");
   const [records, setRecords] = useState<RecipeListItem[]>([]);
   const [selected, setSelected] = useState<RecipeDetails | null>(null);
@@ -256,9 +266,12 @@ export function LibraryApp({
     setError("");
     window.scrollTo(0, 0);
   }
-  useEffect(() => {
+  useLayoutEffect(() => {
     const back = (event: Event) => {
       if (event.defaultPrevented) return;
+      if(view==="ai-input")return;
+      if(view==="ai-preview"){event.preventDefault();setView("ai-input");return;}
+      if(view==="settings"&&fromAiSettings){event.preventDefault();setFromAiSettings(false);setView("ai-input");return;}
       if (backupBusy(backupState) || backupState.phase === "uncertain") {
         event.preventDefault();
         return;
@@ -291,7 +304,7 @@ export function LibraryApp({
     };
     window.addEventListener("recipio:back", back);
     return () => window.removeEventListener("recipio:back", back);
-  }, [view, returnView, backupState, viewer]);
+  }, [view, returnView, backupState, viewer,fromAiSettings]);
   return (
     <div className="mx-auto min-h-dvh max-w-3xl px-4 pb-28 pt-5 sm:px-8">
       <header className="mb-7 flex items-center justify-between gap-4">
@@ -309,16 +322,18 @@ export function LibraryApp({
             size="icon"
             className="h-11 w-11"
             aria-label="新增菜谱"
+            disabled={busy||backupBusy(backupState)||backupState.phase==="uncertain"}
             onClick={() => {
               setSelected(null);
               setReturnView(view);
-              setView("new");
+              setAddOpen(true);
             }}
           >
             <Plus size={22} />
           </Button>
         )}
       </header>
+      <Dialog open={addOpen} onOpenChange={setAddOpen}><DialogContent><DialogTitle>添加菜谱</DialogTitle><DialogDescription>手动记录始终可离线使用；AI 整理是可选联网能力。</DialogDescription><div className="grid gap-3"><Button className="min-h-11" onClick={()=>{setAddOpen(false);setView("new");}}>手动录入</Button><Button className="min-h-11" variant="outline" onClick={()=>{setAddOpen(false);setView("ai-input");}}>AI 整理</Button></div></DialogContent></Dialog>
       {error && (
         <div role="alert" className="mb-5 rounded-xl border p-4">
           <p>{error}</p>
@@ -332,7 +347,7 @@ export function LibraryApp({
           </Button>
         </div>
       )}
-      {view === "new" || view === "edit" ? (
+      {view==="ai-input"?<AiIntakeScreen service={intake} onPreview={()=>setView("ai-preview")} onCancel={()=>setView(returnView)} onManual={()=>{setSelected(null);setView("new");}} onConfigureKey={()=>{setFromAiSettings(true);setView("settings");}}/>:view==="ai-preview"?<section className="space-y-4"><h2 className="text-2xl font-semibold">检查 AI 整理结果</h2><p>{intakeState.draft?.recipe.title??"本轮结果已失效，请重新整理。"}</p><Button className="min-h-11" variant="outline" onClick={()=>setView("ai-input")}>返回本轮输入</Button></section>:view === "new" || view === "edit" ? (
         <RecipeEditor
           key={selected?.id ?? "new"}
           initial={view === "edit" && selected ? selected : undefined}
@@ -400,6 +415,7 @@ export function LibraryApp({
       ) : view === "settings" ? (
         <section className="space-y-6">
           <h2 className="text-2xl font-semibold">设置</h2>
+          {fromAiSettings&&<Button className="min-h-11" variant="outline" onClick={()=>{setFromAiSettings(false);setView("ai-input");}}>返回本轮 AI 整理</Button>}
           <div className="rounded-2xl border p-5 space-y-3">
             <h3 className="font-medium">本机数据</h3>
             <p className="text-sm text-muted-foreground">
@@ -415,7 +431,7 @@ export function LibraryApp({
             </p>
           </div>
           <BackupControls service={backup} />
-          <AiSettings keys={aiKeys} onChanged={() => {}} />
+          <AiSettings keys={aiKeys??intake.keys} onChanged={() => intake.keyChanged()} />
         </section>
       ) : (
         <>
@@ -574,7 +590,7 @@ export function LibraryApp({
           ))}
         </aside>
       )}
-      {view !== "new" && view !== "edit" && view !== "completion" && (
+      {view !== "new" && view !== "edit" && view !== "completion" && view!=="ai-input" && view!=="ai-preview" && !fromAiSettings && (
         <nav
           aria-label="主要导航"
           className="fixed inset-x-0 bottom-0 z-10 border-t bg-background/95 pb-[env(safe-area-inset-bottom)]"

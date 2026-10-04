@@ -5,8 +5,21 @@ import { __resetLocalDatabaseForTests } from "@/features/offline/local-db";
 import { PreviewRecipeLibrary } from "./preview-store";
 import { LibraryApp } from "./library-app";
 import { emptyDetails } from "./recipe-model";
+import { AiIntakeService } from "./ai/service";
+import { fakeAi } from "./ai/service.test-support";
 afterEach(__resetLocalDatabaseForTests);
 beforeEach(() => vi.spyOn(window, "scrollTo").mockImplementation(() => {}));
+it("add menu preserves manual entry and provides explicit AI path without sending on entry",async()=>{
+  const store=new PreviewRecipeLibrary(),fake=fakeAi(),ai=new AiIntakeService(fake.keys,fake.bridge,{store});render(<LibraryApp store={store} ai={ai}/>);
+  fireEvent.click(screen.getByRole("button",{name:"新增菜谱"}));expect(await screen.findByRole("button",{name:"手动录入"})).toBeInTheDocument();expect(screen.getByRole("button",{name:"AI 整理"})).toBeInTheDocument();expect(fake.bridge.organize).not.toHaveBeenCalled();
+  fireEvent.click(screen.getByRole("button",{name:"AI 整理"}));await screen.findByLabelText("菜谱文字");expect(fake.bridge.organize).not.toHaveBeenCalled();
+});
+it("AI settings detour and Preview renderer keep the same session without auto requests",async()=>{
+  const store=new PreviewRecipeLibrary(),fake=fakeAi();fake.keys.hasAiKey.mockResolvedValue({configured:false});const ai=new AiIntakeService(fake.keys,fake.bridge,{store});render(<LibraryApp store={store} ai={ai}/>);
+  fireEvent.click(screen.getByRole("button",{name:"新增菜谱"}));fireEvent.click(await screen.findByRole("button",{name:"AI 整理"}));await screen.findByLabelText("菜谱文字");fireEvent.change(screen.getByLabelText("菜谱文字"),{target:{value:"啤酒鸭"}});
+  fireEvent.click(await screen.findByRole("button",{name:"前往设置 AI 密钥"}));await screen.findByText("未配置");fake.keys.hasAiKey.mockResolvedValue({configured:true});fireEvent.click(screen.getByRole("button",{name:"返回本轮 AI 整理"}));expect(await screen.findByLabelText("菜谱文字")).toHaveValue("啤酒鸭");expect(fake.bridge.organize).not.toHaveBeenCalled();
+  fireEvent.click(await screen.findByRole("button",{name:"开始 AI 整理"}));await screen.findByRole("heading",{name:"检查 AI 整理结果"});expect(ai.snapshot().draft?.recipe.title).toBe("啤酒鸭");expect(fake.bridge.discardSession).not.toHaveBeenCalled();
+});
 it("a delayed completion cannot navigate over an editor or history while its record is saving", async () => {
   const store = new PreviewRecipeLibrary(),
     r = await store.create("慢保存鸭"),
@@ -151,6 +164,7 @@ it("can save a name without scrolling through optional fields", async () => {
   const store = new PreviewRecipeLibrary();
   render(<LibraryApp store={store} />);
   fireEvent.click(screen.getByRole("button", { name: "新增菜谱" }));
+  fireEvent.click(await screen.findByRole("button",{name:"手动录入"}));
   fireEvent.change(screen.getByLabelText("菜名"), {
     target: { value: "绿豆汤" },
   });
@@ -162,6 +176,7 @@ it("creates a name-only recipe then edits ingredients, steps and notes and sees 
   const store = new PreviewRecipeLibrary();
   render(<LibraryApp store={store} />);
   fireEvent.click(screen.getByRole("button", { name: "新增菜谱" }));
+  fireEvent.click(await screen.findByRole("button",{name:"手动录入"}));
   fireEvent.change(screen.getByLabelText("菜名"), {
     target: { value: "啤酒鸭" },
   });
