@@ -23,6 +23,8 @@ import { RecipeChangeHistory } from "./recipe-change-history";
 import { CookingCompletion } from "./cooking-completion";
 import type { CookingRecord, CookingRecordExtras } from "./cooking-model";
 import { CookingHistory, CookingOverview } from "./cooking-history";
+import { AiSettings } from "./ai/ai-settings";
+import type { AiKeyPort } from "./ai/native-bridge";
 
 type View =
   | "home"
@@ -37,9 +39,11 @@ type View =
 export function LibraryApp({
   store,
   backup,
+  aiKeys,
 }: {
   store: RecipeLibrary;
   backup?: BackupController;
+  aiKeys?: AiKeyPort;
 }) {
   const backupState = useBackupState(backup);
   const restored = useRef<unknown>(null);
@@ -411,6 +415,7 @@ export function LibraryApp({
             </p>
           </div>
           <BackupControls service={backup} />
+          <AiSettings keys={aiKeys} onChanged={() => {}} />
         </section>
       ) : (
         <>

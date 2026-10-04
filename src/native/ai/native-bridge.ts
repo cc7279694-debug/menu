@@ -14,16 +14,16 @@ export function safeAiError(error: unknown): AiIntakeError {
 }
 export interface NativeAiKeyApi {saveAiKey(): Promise<unknown>; hasAiKey(): Promise<unknown>; deleteAiKey(): Promise<unknown>}
 export interface AiKeyPort { saveAiKey(): Promise<{configured: boolean; cancelled: boolean}>; hasAiKey(): Promise<{configured: boolean}>; deleteAiKey(): Promise<void> }
-const keyApi = registerPlugin<NativeAiKeyApi>("LocalAiSecret");
 export function createAiKeyPort(api?: NativeAiKeyApi): AiKeyPort {
+  let native = api;
+  const getNative = () => native ?? (native = registerPlugin<NativeAiKeyApi>("LocalAiSecret"));
   async function run<T>(work: () => Promise<unknown>, schema: z.ZodType<T>): Promise<T> {
     if (!api && !Capacitor.isNativePlatform()) throw new AiIntakeError("native_unavailable");
     try { const parsed = schema.safeParse(await work()); if (!parsed.success) throw new AiIntakeError("invalid_output"); return parsed.data; } catch (error) { throw safeAiError(error); }
   }
-  const native = api ?? keyApi;
   return {
-    saveAiKey: () => run(() => native.saveAiKey(), z.strictObject({configured: z.boolean(), cancelled: z.boolean()})),
-    hasAiKey: () => run(() => native.hasAiKey(), z.strictObject({configured: z.boolean()})),
-    deleteAiKey: async () => { await run(() => native.deleteAiKey(), z.union([z.undefined(), z.strictObject({})])); },
+    saveAiKey: () => run(() => getNative().saveAiKey(), z.strictObject({configured: z.boolean(), cancelled: z.boolean()})),
+    hasAiKey: () => run(() => getNative().hasAiKey(), z.strictObject({configured: z.boolean()})),
+    deleteAiKey: async () => { await run(() => getNative().deleteAiKey(), z.union([z.undefined(), z.strictObject({})])); },
   };
 }
