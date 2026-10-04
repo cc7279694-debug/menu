@@ -74,9 +74,10 @@ describe("Recipio local database foundation", () => {
 
     const database = await getLocalDatabase();
 
-    expect(database.verno).toBe(5);
+    expect(database.verno).toBe(6);
     expect(database.tables.map((table) => table.name)).toContain("media");
     expect(database.tables.map((table) => table.name)).toContain("localRecipes");
+    expect(database.tables.map((table) => table.name)).toContain("nativeBackupState");
   });
 
   it("clears cached media with the rest of the offline data", async () => {

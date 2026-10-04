@@ -47,6 +47,7 @@ final class LocalBackupArchive {
     static String hash(File file)throws IOException {try(InputStream in=new FileInputStream(file)){return transfer(in,null,MAX_BYTES).hash;} }
     static File mediaFile(File root,String path)throws IOException {
         if(path==null||!path.matches(SOURCE_PATH))throw invalid("图片路径");
+        root=root.getCanonicalFile();
         File file=new File(root,path);File canonical=file.getCanonicalFile();
         if(!canonical.equals(file.getAbsoluteFile())||!canonical.getPath().startsWith(root.getCanonicalPath()+File.separator)||!file.isFile())throw invalid("图片不存在或不是私有常规文件");
         return file;
@@ -149,12 +150,14 @@ final class LocalBackupArchive {
     }
     static Map<String,String> stage(Validated validated,File root,String generation)throws IOException {
         if(!generation.matches("[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}"))throw invalid("generation");
-        File images=new File(root,"images");if(!images.exists()&&!images.mkdir())throw invalid("图片目录不可写");File dir=new File(images,"generation-"+generation);if(!dir.mkdir())throw invalid("禁止覆盖已有图片目录");
+        File images=new File(root.getCanonicalFile(),"images");if(!images.getCanonicalFile().equals(images.getAbsoluteFile()))throw invalid("图片目录不能是符号链接");if(!images.exists()&&!images.mkdir())throw invalid("图片目录不可写");File dir=new File(images,"generation-"+generation);if(!dir.mkdir())throw invalid("禁止覆盖已有图片目录");
         Map<String,String> paths=new LinkedHashMap<>();
         try(ZipFile zip=new ZipFile(validated.file)){long total=0;for(Asset asset:validated.assets){if(asset.size>Math.max(0,root.getUsableSpace()-33554432L))throw invalid("设备空间不足");String name=asset.path.substring("media/".length());File target=new File(dir,name);copyInput(zip.getInputStream(zip.getEntry(asset.path)),target,MAX_BYTES-total);total+=target.length();if(target.length()!=asset.size||!hash(target).equals(asset.assetId))throw invalid("图片暂存回读失败");paths.put(asset.assetId,"images/generation-"+generation+"/"+name);}return paths;}
         catch(IOException|RuntimeException e){deleteOwnedTree(dir);throw e;}
     }
     static void deleteOwnedTree(File dir)throws IOException {
+        // Normalize only the trusted parent alias; never follow a link at the deletion target.
+        dir=new File(dir.getParentFile().getCanonicalFile(),dir.getName());if(!dir.getCanonicalFile().equals(dir.getAbsoluteFile()))throw invalid("不清理符号链接");
         File[] children=dir.listFiles();if(children!=null)for(File f:children){if(!f.getCanonicalFile().equals(f.getAbsoluteFile()))throw invalid("不清理符号链接");if(f.isDirectory())deleteOwnedTree(f);else if(!f.delete())throw new IOException("暂存文件清理失败");}if(dir.exists()&&!dir.delete())throw new IOException("暂存目录清理失败");
     }
 }

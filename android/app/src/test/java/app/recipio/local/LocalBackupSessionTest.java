@@ -10,6 +10,11 @@ import org.junit.rules.TemporaryFolder;
 
 public class LocalBackupSessionTest {
     @Rule public TemporaryFolder folder=new TemporaryFolder();
+    @Test public void trustedSystemRootAliasIsResolvedBeforeChildPathChecks()throws Exception {
+        File actual=folder.newFolder();File alias=new File(folder.getRoot(),"system-root-alias"){@Override public File getCanonicalFile()throws IOException{return actual.getCanonicalFile();}@Override public String getCanonicalPath()throws IOException{return actual.getCanonicalPath();}};
+        LocalBackupSession s=LocalBackupSession.create(actual,"export");assertEquals(s.token,LocalBackupSession.reopen(alias,s.token).token);
+        assertTrue(new File(actual,"images").mkdir());File image=new File(actual,"images/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa.png");Files.write(image.toPath(),new byte[]{1});assertEquals(image.getCanonicalFile(),LocalBackupArchive.mediaFile(alias,"images/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa.png"));
+    }
     @Test public void committedGenerationAndHistoricalReferencesSurviveCleanup()throws Exception {
         File root=folder.newFolder(); assertTrue(new File(root,"images").mkdir());
         for(boolean committed:new boolean[]{true,false}){

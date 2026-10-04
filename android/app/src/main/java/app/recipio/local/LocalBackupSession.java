@@ -12,14 +12,16 @@ final class LocalBackupSession {
     private LocalBackupSession(File root,File directory,String token,String mode){this.root=root;this.directory=directory;this.token=token;this.mode=mode;}
     static boolean uuid(String value){return value!=null&&value.matches("[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}");}
     static LocalBackupSession create(File root,String mode)throws IOException {
+        root=root.getCanonicalFile();
         if(!mode.equals("export")&&!mode.equals("restore"))throw new IOException("操作类型无效");
-        File base=new File(root,"backup-work");if(!base.exists()&&!base.mkdir())throw new IOException("无法创建备份工作目录");
+        File base=workDirectory(root);if(!base.exists()&&!base.mkdir())throw new IOException("无法创建备份工作目录");
         String token=UUID.randomUUID().toString();File dir=new File(base,token);if(!dir.mkdir())throw new IOException("无法创建备份操作");
         LocalBackupSession session=new LocalBackupSession(root,dir,token,mode);
         try{writeNew(new File(dir,"operation.json"),new JSONObject().put("token",token).put("mode",mode));return session;}catch(JSONException|IOException e){LocalBackupArchive.deleteOwnedTree(dir);throw new IOException("操作记录创建失败",e);}
     }
     static LocalBackupSession reopen(File root,String token)throws IOException {
-        if(!uuid(token))throw new IOException("操作标识无效");File dir=new File(new File(root,"backup-work"),token);
+        root=root.getCanonicalFile();
+        if(!uuid(token))throw new IOException("操作标识无效");File dir=new File(workDirectory(root),token);
         if(!dir.getCanonicalFile().equals(dir.getAbsoluteFile()))throw new IOException("操作目录无效");
         File published=new File(dir,"operation.json");
         if(!published.exists()){
@@ -56,8 +58,9 @@ final class LocalBackupSession {
         LocalBackupArchive.deleteOwnedTree(directory);
     }
     static List<LocalBackupSession> pending(File root)throws IOException {
-        File base=new File(root,"backup-work");File[] dirs=base.listFiles();List<LocalBackupSession> result=new ArrayList<>();if(dirs!=null)for(File dir:dirs){if(!uuid(dir.getName())||!dir.isDirectory())throw new IOException("备份工作目录需要人工核查");result.add(reopen(root,dir.getName()));}return result;
+        File base=workDirectory(root.getCanonicalFile());File[] dirs=base.listFiles();List<LocalBackupSession> result=new ArrayList<>();if(dirs!=null)for(File dir:dirs){if(!uuid(dir.getName())||!dir.isDirectory())throw new IOException("备份工作目录需要人工核查");result.add(reopen(root,dir.getName()));}return result;
     }
+    private static File workDirectory(File root)throws IOException {File base=new File(root,"backup-work");if(!base.getCanonicalFile().equals(base.getAbsoluteFile()))throw new IOException("备份工作目录不能是符号链接");return base;}
     static JSONObject read(File file)throws IOException {if(!file.isFile()||file.length()>1048576)throw new IOException("操作记录缺失或过大");ByteArrayOutputStream out=new ByteArrayOutputStream();try(InputStream in=new FileInputStream(file)){LocalBackupArchive.transfer(in,out,1048576);}return LocalBackupArchive.parseJson(out.toByteArray());}
     private static void writeNew(File target,JSONObject data)throws IOException {
         File part=new File(target.getParentFile(),target.getName()+".part");boolean created=false;

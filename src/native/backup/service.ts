@@ -22,7 +22,7 @@ export class BackupService {
   private async discard() { if (this.token) await this.archive.discard(this.token); this.token = null; this.prepared = null; }
   private async fail(error: unknown) {
     let warning: string | undefined;
-    try { await this.discard(); } catch { warning = "暂存清理尚未完成；原数据与安全文件保留，请重新打开应用核查。"; }
+    try { await this.discard(); } catch (cleanup) { warning = `清理提示：${message(cleanup)} 原数据与安全文件保留，请重新打开应用核查。`; }
     this.set({ phase: "error", message: message(error), warning });
   }
   async export() {
