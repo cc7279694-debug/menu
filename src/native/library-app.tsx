@@ -2,25 +2,50 @@ import { useEffect, useRef, useState } from "react";
 import { BookOpen, House, Plus, Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import type { RecipeName } from "./recipe-store";
 import {
   type RecipeDetails,
   type RecipeDetailsInput,
   type RecipeLibrary,
   type DurationFilter,
+  type RecipeListItem,
 } from "./recipe-model";
 import { RecipeEditor } from "./recipe-editor";
 import { RecipeDetail } from "./recipe-detail";
 import { LocalImage } from "./local-image";
-import { BackupControls, backupBusy, useBackupState, type BackupController } from "./backup/backup-controls";
+import {
+  BackupControls,
+  backupBusy,
+  useBackupState,
+  type BackupController,
+} from "./backup/backup-controls";
+import { StepViewer } from "./step-viewer";
+import { RecipeChangeHistory } from "./recipe-change-history";
+import { CookingCompletion } from "./cooking-completion";
+import type { CookingRecord, CookingRecordExtras } from "./cooking-model";
+import { CookingHistory, CookingOverview } from "./cooking-history";
 
-type View = "home" | "library" | "settings" | "new" | "detail" | "edit";
-export function LibraryApp({ store, backup }: { store: RecipeLibrary; backup?: BackupController }) {
-  const backupState=useBackupState(backup);
-  const restored=useRef<unknown>(null);
+type View =
+  | "home"
+  | "library"
+  | "settings"
+  | "new"
+  | "detail"
+  | "edit"
+  | "changes"
+  | "completion"
+  | "history";
+export function LibraryApp({
+  store,
+  backup,
+}: {
+  store: RecipeLibrary;
+  backup?: BackupController;
+}) {
+  const backupState = useBackupState(backup);
+  const restored = useRef<unknown>(null);
   const [view, setView] = useState<View>("home");
   const [returnView, setReturnView] = useState<"home" | "library">("home");
-  const [records, setRecords] = useState<RecipeName[]>([]);
+  const [records, setRecords] = useState<RecipeListItem[]>([]);
   const [selected, setSelected] = useState<RecipeDetails | null>(null);
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState<DurationFilter>("all");
@@ -30,15 +55,43 @@ export function LibraryApp({ store, backup }: { store: RecipeLibrary; backup?: B
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
   const lock = useRef(false);
+  const [viewer, setViewer] = useState<{
+    mode: "focus" | "guided";
+    index: number;
+  } | null>(null);
+  const detailReturn = useRef<{ scroll: number; trigger: HTMLElement | null }>({
+    scroll: 0,
+    trigger: null,
+  });
+  const [cookingRecord, setCookingRecord] = useState<CookingRecord | null>(
+    null,
+  );
+  const completionAttempt = useRef<{ recipeId: string; id: string } | null>(
+    null,
+  );
   const [pending, setPending] = useState<
     Array<{ id: string; title: string; expires: number }>
   >([]);
-  useEffect(()=>{
-    if(backupState.phase==="success"&&backupState.mode==="restore"&&restored.current!==backupState){
-      restored.current=backupState;setSelected(null);setPending([]);setSearch("");setPage(0);setFilter("all");setRevision(n=>n+1);
-    }
-  },[backupState]);
   useEffect(() => {
+    if (
+      backupState.phase === "success" &&
+      backupState.mode === "restore" &&
+      restored.current !== backupState
+    ) {
+      restored.current = backupState;
+      setSelected(null);
+      setViewer(null);
+      setCookingRecord(null);
+      completionAttempt.current = null;
+      setPending([]);
+      setSearch("");
+      setPage(0);
+      setFilter("all");
+      setRevision((n) => n + 1);
+    }
+  }, [backupState]);
+  useEffect(() => {
+    if (view !== "home" && view !== "library") return;
     let alive = true;
     setLoading(true);
     store
@@ -62,9 +115,10 @@ export function LibraryApp({ store, backup }: { store: RecipeLibrary; backup?: B
       () => {
         void store
           .purgeExpired()
-          .then(() =>
-            setPending((p) => p.filter((r) => r.expires > Date.now())),
-          )
+          .then((result) => {
+            if (result.cleanupWarning) setError(result.cleanupWarning);
+            setPending((p) => p.filter((r) => r.expires > Date.now()));
+          })
           .catch(() => {
             setError("删除清理尚未完成，重试时会继续处理。");
             setPending([]);
@@ -74,7 +128,7 @@ export function LibraryApp({ store, backup }: { store: RecipeLibrary; backup?: B
     );
     return () => clearTimeout(timer);
   }, [store, pending]);
-  async function work(action: () => Promise<void>) {
+  async function work(action: () => Promise<unknown>) {
     if (lock.current) return;
     lock.current = true;
     setBusy(true);
@@ -90,14 +144,75 @@ export function LibraryApp({ store, backup }: { store: RecipeLibrary; backup?: B
     }
   }
   async function open(id: string) {
+    let recipe: RecipeDetails | null = null;
+    const origin = view === "library" ? "library" : "home";
     await work(async () => {
       const r = await store.getDetails(id);
       if (!r) throw new Error("菜谱已删除或不存在");
-      setSelected(r);
-      setReturnView(view === "library" ? "library" : "home");
+      recipe = r;
+    });
+    // Never render the destination while its transient read lock still blocks Back.
+    if (recipe) {
+      setSelected(recipe);
+      setReturnView(origin);
       setView("detail");
       window.scrollTo(0, 0);
+    }
+  }
+  function showViewer(
+    mode: "focus" | "guided",
+    index: number,
+    trigger: HTMLElement,
+  ) {
+    if (!selected?.steps.length || lock.current) return;
+    detailReturn.current = { scroll: window.scrollY, trigger };
+    setViewer({ mode, index });
+  }
+  function closeViewer() {
+    setViewer(null);
+    const { scroll, trigger } = detailReturn.current;
+    requestAnimationFrame(() => {
+      window.scrollTo(0, scroll);
+      trigger?.focus({ preventScroll: true });
     });
+  }
+  async function complete() {
+    if (!selected || lock.current) return;
+    const recipeId = selected.id;
+    if (completionAttempt.current?.recipeId !== recipeId)
+      completionAttempt.current = { recipeId, id: crypto.randomUUID() };
+    const attempt = completionAttempt.current;
+    let record: CookingRecord | null = null;
+    await work(async () => {
+      record = await store.recordCooking(recipeId, attempt.id);
+    });
+    if (record) {
+      setCookingRecord(record);
+      setViewer(null);
+      setView("completion");
+      window.scrollTo(0, 0);
+    }
+  }
+  function finishCompletion(next: "detail" | "edit" = "detail") {
+    setCookingRecord(null);
+    completionAttempt.current = null;
+    setView(next);
+    setRevision((n) => n + 1);
+    window.scrollTo(0, 0);
+  }
+  async function updateCompletion(extras: CookingRecordExtras) {
+    if (!cookingRecord) throw new Error("做菜记录已关闭，请重新打开");
+    const saved = await store.updateCookingRecord(cookingRecord.id, extras);
+    setCookingRecord(saved);
+    setRevision((n) => n + 1);
+    return saved;
+  }
+  async function setCompletionCover() {
+    if (!cookingRecord) throw new Error("做菜记录已关闭，请重新打开");
+    const saved = await store.setCookingPhotoAsCover(cookingRecord.id);
+    setSelected(saved);
+    setRevision((n) => n + 1);
+    return saved;
   }
   async function remove() {
     if (!selected) return;
@@ -124,8 +239,8 @@ export function LibraryApp({ store, backup }: { store: RecipeLibrary; backup?: B
     window.scrollTo(0, 0);
   }
   async function navigate(next: "home" | "library" | "settings") {
-    if(backupBusy(backupState)||backupState.phase==="uncertain")return;
-    if(backupState.phase==="preview")await backup?.cancel();
+    if (backupBusy(backupState) || backupState.phase === "uncertain") return;
+    if (backupState.phase === "preview") await backup?.cancel();
     setView(next);
     setPage(0);
     setSearch("");
@@ -134,13 +249,29 @@ export function LibraryApp({ store, backup }: { store: RecipeLibrary; backup?: B
   }
   useEffect(() => {
     const back = (event: Event) => {
-      if(event.defaultPrevented)return;
-      if(backupBusy(backupState)||backupState.phase==="uncertain"){event.preventDefault();return;}
+      if (event.defaultPrevented) return;
+      if (backupBusy(backupState) || backupState.phase === "uncertain") {
+        event.preventDefault();
+        return;
+      }
+      if (viewer) {
+        event.preventDefault();
+        if (!lock.current) closeViewer();
+        return;
+      }
       // The editor owns its dirty/busy guard. Root pages may go to background.
-      if (view === "new" || view === "edit" || view === "home") return;
+      if (
+        view === "new" ||
+        view === "edit" ||
+        view === "home" ||
+        view === "completion" ||
+        view === "history"
+      )
+        return;
       event.preventDefault();
       if (lock.current) return;
       if (view === "detail") setView(returnView);
+      else if (view === "changes") setView("detail");
       else {
         setView("home");
         setPage(0);
@@ -151,7 +282,7 @@ export function LibraryApp({ store, backup }: { store: RecipeLibrary; backup?: B
     };
     window.addEventListener("recipio:back", back);
     return () => window.removeEventListener("recipio:back", back);
-  }, [view, returnView, backupState]);
+  }, [view, returnView, backupState, viewer]);
   return (
     <div className="mx-auto min-h-dvh max-w-3xl px-4 pb-28 pt-5 sm:px-8">
       <header className="mb-7 flex items-center justify-between gap-4">
@@ -199,13 +330,54 @@ export function LibraryApp({ store, backup }: { store: RecipeLibrary; backup?: B
           onSave={save}
           onCancel={() => setView(selected ? "detail" : returnView)}
         />
-      ) : view === "detail" && selected ? (
-        <RecipeDetail
-          recipe={selected}
-          onEdit={() => setView("edit")}
-          onBack={() => setView(returnView)}
-          onDelete={() => void remove()}
+      ) : view === "history" && selected ? (
+        <CookingHistory
+          recipeId={selected.id}
+          store={store}
+          onBack={() => setView("detail")}
+          onChanged={() => setRevision((n) => n + 1)}
         />
+      ) : view === "completion" && cookingRecord ? (
+        <CookingCompletion
+          key={cookingRecord.id}
+          record={cookingRecord}
+          onUpdate={updateCompletion}
+          onSetCover={setCompletionCover}
+          onDone={() => finishCompletion()}
+          onAdjust={() => finishCompletion("edit")}
+        />
+      ) : view === "changes" && selected ? (
+        <RecipeChangeHistory
+          recipeId={selected.id}
+          store={store}
+          onBack={() => setView("detail")}
+        />
+      ) : view === "detail" && selected ? (
+        <div hidden={!!viewer}>
+          <RecipeDetail
+            recipe={selected}
+            onEdit={() => setView("edit")}
+            onBack={() => setView(returnView)}
+            onDelete={() => void remove()}
+            onFocus={(index, trigger) => showViewer("focus", index, trigger)}
+            onGuided={(trigger) => showViewer("guided", 0, trigger)}
+            onComplete={() => void complete()}
+            completing={busy}
+          />
+          <CookingOverview
+            recipeId={selected.id}
+            store={store}
+            revision={revision}
+            onHistory={() => setView("history")}
+          />
+          <Button
+            variant="outline"
+            className="mt-5 min-h-11"
+            onClick={() => setView("changes")}
+          >
+            查看修改记录
+          </Button>
+        </div>
       ) : view === "settings" ? (
         <section className="space-y-6">
           <h2 className="text-2xl font-semibold">设置</h2>
@@ -223,7 +395,7 @@ export function LibraryApp({ store, backup }: { store: RecipeLibrary; backup?: B
               图片读取失败不影响文字菜谱；暂时保留移除图片的本地文件，以保护历史引用。
             </p>
           </div>
-          <BackupControls service={backup}/>
+          <BackupControls service={backup} />
         </section>
       ) : (
         <>
@@ -321,6 +493,11 @@ export function LibraryApp({ store, backup }: { store: RecipeLibrary; backup?: B
                           提前准备：{r.preparationHint}
                         </p>
                       )}
+                      {view === "home" && r.lastCookedAt && (
+                        <p className="mt-3 text-xs text-muted-foreground">
+                          上次做过：{new Date(r.lastCookedAt).toLocaleString()}
+                        </p>
+                      )}
                     </div>
                   </button>
                 </li>
@@ -340,6 +517,17 @@ export function LibraryApp({ store, backup }: { store: RecipeLibrary; backup?: B
             )}
           </div>
         </>
+      )}
+      {viewer && selected && (
+        <StepViewer
+          recipe={selected}
+          mode={viewer.mode}
+          initialIndex={viewer.index}
+          onClose={closeViewer}
+          onComplete={() => void complete()}
+          busy={busy}
+          error={error}
+        />
       )}
       {pending.length > 0 && (
         <aside
@@ -366,7 +554,7 @@ export function LibraryApp({ store, backup }: { store: RecipeLibrary; backup?: B
           ))}
         </aside>
       )}
-      {view !== "new" && view !== "edit" && (
+      {view !== "new" && view !== "edit" && view !== "completion" && (
         <nav
           aria-label="主要导航"
           className="fixed inset-x-0 bottom-0 z-10 border-t bg-background/95 pb-[env(safe-area-inset-bottom)]"
@@ -381,7 +569,9 @@ export function LibraryApp({ store, backup }: { store: RecipeLibrary; backup?: B
             ).map((item) => (
               <button
                 key={item.key}
-                disabled={backupBusy(backupState)||backupState.phase==="uncertain"}
+                disabled={
+                  backupBusy(backupState) || backupState.phase === "uncertain"
+                }
                 onClick={() => void navigate(item.key)}
                 aria-current={view === item.key ? "page" : undefined}
                 className={`flex min-h-16 flex-col items-center justify-center gap-1 text-xs ${view === item.key ? "bg-muted font-semibold" : "text-muted-foreground"}`}

@@ -1,16 +1,25 @@
 import { Button } from "@/components/ui/button";
 import type { RecipeDetails } from "./recipe-model";
 import { LocalImage } from "./local-image";
+import { RecipeStepContent } from "./recipe-step-content";
 export function RecipeDetail({
   recipe,
   onEdit,
   onBack,
   onDelete,
+  onFocus,
+  onGuided,
+  onComplete,
+  completing = false,
 }: {
   recipe: RecipeDetails;
   onEdit: () => void;
   onBack: () => void;
   onDelete: () => void;
+  onFocus?: (index: number, trigger: HTMLElement) => void;
+  onGuided?: (trigger: HTMLElement) => void;
+  onComplete?: () => void;
+  completing?: boolean;
 }) {
   return (
     <article className="space-y-6">
@@ -32,10 +41,9 @@ export function RecipeDetail({
       <header>
         <h2 className="text-3xl font-semibold break-words">{recipe.title}</h2>
         <p className="mt-3 text-sm text-muted-foreground">
-          {recipe.totalMinutes === null
-            ? "耗时未记录"
-            : `${recipe.totalMinutes} 分钟`}
-          {recipe.servings !== null ? ` · 约 ${recipe.servings} 人份` : ""}
+          {recipe.servings !== null
+            ? `约 ${recipe.servings} 人份`
+            : "份数未记录"}
         </p>
         {recipe.caloriesPerServing !== null && (
           <p className="mt-2 text-sm text-muted-foreground">
@@ -62,6 +70,14 @@ export function RecipeDetail({
         ) : (
           <p className="text-muted-foreground">还没有食材，可以随时补充。</p>
         )}
+      </section>
+      <section>
+        <h3 className="mb-2 text-lg font-semibold">总耗时</h3>
+        <p>
+          {recipe.totalMinutes === null
+            ? "耗时未记录"
+            : `${recipe.totalMinutes} 分钟`}
+        </p>
       </section>
       {!!recipe.preparations.length && (
         <section className="rounded-xl bg-muted p-4">
@@ -97,28 +113,32 @@ export function RecipeDetail({
       )}
       <section>
         <h3 className="mb-3 text-lg font-semibold">完整步骤</h3>
+        <Button
+          variant="outline"
+          className="mb-4 min-h-11"
+          disabled={!recipe.steps.length || !onGuided}
+          onClick={(e) => onGuided?.(e.currentTarget)}
+        >
+          开始引导烹饪
+        </Button>
         {recipe.steps.length ? (
           <ol className="space-y-4">
-            {recipe.steps.map((r, i) => (
+            {recipe.steps.map((_, i) => (
               <li key={i} className="rounded-xl border p-4">
-                <h4 className="mb-2 font-semibold">{i + 1}.</h4>
-                <p className="whitespace-pre-wrap break-words leading-relaxed">
-                  {r.instruction}
-                </p>
-                {r.imagePath && (
-                  <LocalImage
-                    path={r.imagePath}
-                    alt={`步骤 ${i + 1} 参考图`}
-                    className="mt-3 max-h-64 w-full rounded-xl object-cover"
-                  />
-                )}
-                {recipe.keyTips
-                  .filter((t) => t.stepNumber === i + 1)
-                  .map((t, j) => (
-                    <p key={j} className="mt-3 rounded-lg bg-muted p-3 text-sm">
-                      注意：{t.instruction}
-                    </p>
-                  ))}
+                <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
+                  <h4 className="font-semibold">{i + 1}.</h4>
+                  {onFocus && (
+                    <Button
+                      variant="ghost"
+                      className="min-h-11"
+                      aria-label={`放大步骤 ${i + 1}`}
+                      onClick={(e) => onFocus(i, e.currentTarget)}
+                    >
+                      放大查看
+                    </Button>
+                  )}
+                </div>
+                <RecipeStepContent recipe={recipe} stepIndex={i} />
               </li>
             ))}
           </ol>
@@ -134,7 +154,18 @@ export function RecipeDetail({
           <p className="whitespace-pre-wrap break-words">{recipe.notes}</p>
         </section>
       )}
-      <Button variant="ghost" className="text-destructive" onClick={onDelete}>
+      <Button
+        className="min-h-11"
+        disabled={!onComplete || completing}
+        onClick={onComplete}
+      >
+        完成这道菜
+      </Button>
+      <Button
+        variant="ghost"
+        className="min-h-11 text-destructive"
+        onClick={onDelete}
+      >
         删除这道菜
       </Button>
     </article>
