@@ -52,11 +52,13 @@ export function CookingOverview({
   store,
   revision,
   onHistory,
+  disabled = false,
 }: {
   recipeId: string;
   store: RecipeLibrary;
   revision: number;
   onHistory: () => void;
+  disabled?: boolean;
 }) {
   const [result, setResult] = useState<{
     summary: CookingSummary;
@@ -116,7 +118,12 @@ export function CookingOverview({
       ) : (
         <p role="status">读取本地做菜记录…</p>
       )}
-      <Button variant="outline" className="min-h-11" onClick={onHistory}>
+      <Button
+        variant="outline"
+        className="min-h-11"
+        disabled={disabled}
+        onClick={onHistory}
+      >
         查看做菜记录
       </Button>
     </section>

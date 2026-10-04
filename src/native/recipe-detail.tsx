@@ -24,10 +24,10 @@ export function RecipeDetail({
   return (
     <article className="space-y-6">
       <div className="flex justify-between gap-2">
-        <Button variant="ghost" onClick={onBack}>
+        <Button variant="ghost" disabled={completing} onClick={onBack}>
           返回菜谱库
         </Button>
-        <Button variant="outline" onClick={onEdit}>
+        <Button variant="outline" disabled={completing} onClick={onEdit}>
           编辑菜谱
         </Button>
       </div>
@@ -116,7 +116,7 @@ export function RecipeDetail({
         <Button
           variant="outline"
           className="mb-4 min-h-11"
-          disabled={!recipe.steps.length || !onGuided}
+          disabled={completing || !recipe.steps.length || !onGuided}
           onClick={(e) => onGuided?.(e.currentTarget)}
         >
           开始引导烹饪
@@ -132,6 +132,7 @@ export function RecipeDetail({
                       variant="ghost"
                       className="min-h-11"
                       aria-label={`放大步骤 ${i + 1}`}
+                      disabled={completing}
                       onClick={(e) => onFocus(i, e.currentTarget)}
                     >
                       放大查看
@@ -164,6 +165,7 @@ export function RecipeDetail({
       <Button
         variant="ghost"
         className="min-h-11 text-destructive"
+        disabled={completing}
         onClick={onDelete}
       >
         删除这道菜

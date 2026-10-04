@@ -239,7 +239,12 @@ export function LibraryApp({
     window.scrollTo(0, 0);
   }
   async function navigate(next: "home" | "library" | "settings") {
-    if (backupBusy(backupState) || backupState.phase === "uncertain") return;
+    if (
+      lock.current ||
+      backupBusy(backupState) ||
+      backupState.phase === "uncertain"
+    )
+      return;
     if (backupState.phase === "preview") await backup?.cancel();
     setView(next);
     setPage(0);
@@ -356,8 +361,12 @@ export function LibraryApp({
         <div hidden={!!viewer}>
           <RecipeDetail
             recipe={selected}
-            onEdit={() => setView("edit")}
-            onBack={() => setView(returnView)}
+            onEdit={() => {
+              if (!lock.current) setView("edit");
+            }}
+            onBack={() => {
+              if (!lock.current) setView(returnView);
+            }}
             onDelete={() => void remove()}
             onFocus={(index, trigger) => showViewer("focus", index, trigger)}
             onGuided={(trigger) => showViewer("guided", 0, trigger)}
@@ -368,12 +377,18 @@ export function LibraryApp({
             recipeId={selected.id}
             store={store}
             revision={revision}
-            onHistory={() => setView("history")}
+            disabled={busy}
+            onHistory={() => {
+              if (!lock.current) setView("history");
+            }}
           />
           <Button
             variant="outline"
             className="mt-5 min-h-11"
-            onClick={() => setView("changes")}
+            disabled={busy}
+            onClick={() => {
+              if (!lock.current) setView("changes");
+            }}
           >
             查看修改记录
           </Button>
@@ -570,7 +585,9 @@ export function LibraryApp({
               <button
                 key={item.key}
                 disabled={
-                  backupBusy(backupState) || backupState.phase === "uncertain"
+                  busy ||
+                  backupBusy(backupState) ||
+                  backupState.phase === "uncertain"
                 }
                 onClick={() => void navigate(item.key)}
                 aria-current={view === item.key ? "page" : undefined}
