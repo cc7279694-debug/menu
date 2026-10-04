@@ -1,0 +1,6 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <application>
+        <!-- Test APK only. Generated files, real provider descriptors and injected IO failures. -->
+        <provider android:name="app.recipio.local.LocalBackupPluginTest$FileProvider" android:authorities="app.recipio.local.test.backup-test" android:exported="true" />
+    </application>
+</manifest>
