@@ -17,6 +17,23 @@ describe("deterministic conservative AI review", () => {
     expect(draft.recipe.preparations[0].timingText).toBe("一会儿");
     expect(draft.review.fieldChecks.find(c => c.path === "preparations[0].minutes")?.status).toBe("missing");
   });
+  it.each([
+    ["菜：腌制15分钟，12份", 5, 2],
+    ["菜：腌制15.5分钟，12.5份", 5, 2.5],
+    ["菜：腌制5分钟，2x5份", 5, 2.5],
+  ])("does not treat a numeric suffix or wildcard decimal as explicit: %s", (text, minutes, servings) => {
+    const recipe={...emptyDetails("菜"),totalMinutes:minutes,servings,preparations:[{instruction:"腌制",minutes,timingText:null}]};
+    const fieldChecks=["totalMinutes","servings","preparations[0].minutes"].map(path=>({path,status:"explicit",label:"数字",message:null}));
+    const draft=parseAiDraft(JSON.stringify({recipe,fieldChecks,warnings:[]}),{text,hasImages:false});
+    if(text.includes("15")){expect(draft.recipe.totalMinutes).toBeNull();expect(draft.recipe.preparations[0].minutes).toBeNull();}
+    expect(draft.review.fieldChecks.find(c=>c.path==="servings")?.status).toBe("inferred");
+  });
+  it("preserves complete source numeric tokens including decimal servings",()=>{
+    const recipe={...emptyDetails("菜"),totalMinutes:15,servings:2.5,preparations:[{instruction:"腌制",minutes:15,timingText:null}]};
+    const fieldChecks=["totalMinutes","servings","preparations[0].minutes"].map(path=>({path,status:"explicit",label:"数字",message:null}));
+    const draft=parseAiDraft(JSON.stringify({recipe,fieldChecks,warnings:[]}),{text:"菜：腌制15分钟，2.5份",hasImages:false});
+    expect(draft.recipe.totalMinutes).toBe(15);expect(draft.recipe.preparations[0].minutes).toBe(15);expect(draft.review.fieldChecks.find(c=>c.path==="servings")?.status).toBe("explicit");
+  });
   it("does not allow salt unspecified in the source to become exact grams", () => {
     const value = intakeFixture(); value.recipe.ingredients[1].amount = "3克";
     const draft = parseAiDraft(JSON.stringify(value), sourceFixture);

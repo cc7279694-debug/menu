@@ -65,6 +65,14 @@ public class AiIntakeBoundaryInstrumentedTest {
         char[] secret=runtime.secrets.readForRequest();Reply request=organize(session());request.await();assertNotNull(request.error);assertFalse(request.error.contains(new String(secret)));assertNull(request.value);
         byte[] envelope=AiTemporaryImages.read(new File(context.getNoBackupFilesDir(),"ai-secret/key-v1.json").getCanonicalFile(),8192);assertFalse(new String(envelope,StandardCharsets.UTF_8).contains(new String(secret)));Arrays.fill(secret,'\0');assertEquals(1,posts.get());
     }
+    @Test public void cleanupRetryReclaimsFailedDiscardCapacityWithoutRememberedJsOwner()throws Exception {
+        List<File> failures=new ArrayList<>();
+        for(int i=0;i<8;i++){String operation=session();File unexpected=new File(context.getCacheDir(),"ai-import/"+operation+"/unexpected.txt");assertTrue(unexpected.createNewFile());failures.add(unexpected);Reply discard=new Reply("discardSession",new JSObject().put("operationId",operation));plugin.discardSession(discard);discard.await();assertEquals("storage_error",discard.error);}
+        Reply blocked=new Reply("createSession",new JSObject());plugin.createSession(blocked);blocked.await();assertEquals("busy",blocked.error);
+        for(File file:failures)assertTrue(file.delete());
+        Reply cleanup=new Reply("cleanupExpired",new JSObject());plugin.cleanupExpired(cleanup);cleanup.await();assertNull(cleanup.error);assertFalse(cleanup.value.getBoolean("pendingCleanup"));
+        assertNotNull(session());assertEquals(0,posts.get());
+    }
     @Test public void verifiedBackupStagingCannotRestoreOrEraseADeviceCredential()throws Exception {
         char[] secret=runtime.secrets.readForRequest();
         JSONObject data=new JSONObject("{\"recipes\":[],\"ingredients\":[],\"steps\":[],\"preparations\":[],\"keyTips\":[],\"changes\":[],\"cookingRecords\":[],\"settings\":{}}");

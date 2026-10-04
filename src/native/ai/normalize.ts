@@ -5,6 +5,10 @@ const rank = { explicit: 0, inferred: 1, missing: 2 };
 const vagueTime = /一会[儿兒]?|片刻|提前一晚|过夜|隔夜|若干|适当时间|overnight|a while/i;
 const injection = /忽略.{0,16}(指令|规则)|(?:输出|泄露|显示).{0,8}(?:API\s*Key|密钥|system\s*prompt)|<script\b|```(?:js|sql|python)|(?:DELETE|DROP)\s+(?:TABLE|FROM)/i;
 const compact = (value: string) => value.replace(/\s+/g, "");
+function hasSourceNumber(text:string,value:number,units:string):boolean {
+  const token=String(value).replace(/[.*+?^${}()|[\]\\]/g,"\\$&");
+  return new RegExp(`(?:^|[^\\d.])${token}\\s*(?:${units})`,"i").test(text);
+}
 function fields(recipe: RecipeDetailsInput): Array<{ path: string; label: string; value: unknown }> {
   const result: Array<{ path: string; label: string; value: unknown }> = [
     { path: "title", label: "菜名", value: recipe.title }, { path: "totalMinutes", label: "总耗时", value: recipe.totalMinutes },
@@ -50,10 +54,10 @@ export function normalizeAiDraft(checked: AiModelOutput, source: AiSourceContext
   });
   recipe.preparations.forEach((prep, index) => {
     const path = `preparations[${index}].minutes`;
-    if (declared.get(path)?.status !== "explicit" || vagueTime.test(`${prep.instruction} ${prep.timingText ?? ""}`) || (!source.hasImages && prep.minutes !== null && !source.text.match(new RegExp(`${prep.minutes}\\s*(?:分钟|分|min)`, "i")))) prep.minutes = null;
+    if (declared.get(path)?.status !== "explicit" || vagueTime.test(`${prep.instruction} ${prep.timingText ?? ""}`) || (!source.hasImages && prep.minutes !== null && !hasSourceNumber(source.text,prep.minutes,"分钟|分|min"))) prep.minutes = null;
   });
-  if (declared.get("totalMinutes")?.status !== "explicit" || (!source.hasImages && recipe.totalMinutes !== null && !source.text.match(new RegExp(`${recipe.totalMinutes}\\s*(?:分钟|分|min)`, "i")))) recipe.totalMinutes = null;
-  if (recipe.servings !== null && (!source.hasImages && !source.text.match(new RegExp(`${recipe.servings}\\s*(?:份|人)`, "i")))) override.set("servings", "inferred");
+  if (declared.get("totalMinutes")?.status !== "explicit" || (!source.hasImages && recipe.totalMinutes !== null && !hasSourceNumber(source.text,recipe.totalMinutes,"分钟|分|min"))) recipe.totalMinutes = null;
+  if (recipe.servings !== null && (!source.hasImages && !hasSourceNumber(source.text,recipe.servings,"份|人"))) override.set("servings", "inferred");
   if (recipe.caloriesPerServing !== null) {
     if (recipe.servings === null || recipe.ingredients.length === 0 || recipe.ingredients.some(item => !item.amount)) recipe.caloriesPerServing = null;
     else override.set("caloriesPerServing", "inferred");

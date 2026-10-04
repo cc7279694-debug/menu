@@ -35,7 +35,7 @@ public class LocalAiIntakePlugin extends Plugin {
             AiRequestLifecycle.Token token=activeToken;if(token!=null&&id.equals(activeOperation))runtime.lifecycle.cancel(token.id);
             // Queue after decode/request work, so its image pin is released before cleanup is acknowledged.
             submit(call,()->{runtime.images(getContext()).discard(UUID.fromString(id));
-                synchronized(this){pendingDiscards.remove(id);completedDiscards.add(id);if(completedDiscards.size()>32)completedDiscards.remove(completedDiscards.iterator().next());}
+                finishDiscard(id);
                 call.resolve();});
         }catch(Exception e){reject(call,e);}
     }
@@ -46,7 +46,13 @@ public class LocalAiIntakePlugin extends Plugin {
         }catch(Exception e){reject(call,e);}
     }
     @PluginMethod public void preflight(PluginCall call){try{keys(call);run(call,null,UUID.randomUUID().toString(),"",Collections.emptyList(),true);}catch(Exception e){reject(call,e);}}
-    @PluginMethod public void cleanupExpired(PluginCall call){try{keys(call);submit(call,()->call.resolve(new JSObject().put("pendingCleanup",runtime.images(getContext()).cleanupAbandoned())));}catch(Exception e){reject(call,e);}}
+    private synchronized void finishDiscard(String id){pendingDiscards.remove(id);completedDiscards.add(id);if(completedDiscards.size()>32)completedDiscards.remove(completedDiscards.iterator().next());}
+    @PluginMethod public void cleanupExpired(PluginCall call){try{keys(call);submit(call,()->{
+        List<String> abandoned;synchronized(this){abandoned=new ArrayList<>(pendingDiscards);}
+        for(String id:abandoned)try{runtime.images(getContext()).discard(UUID.fromString(id));finishDiscard(id);}catch(Exception ignored){/* Retain ownership and an actionable warning until the private filesystem recovers. */}
+        boolean pending=runtime.images(getContext()).cleanupAbandoned();synchronized(this){pending|=!pendingDiscards.isEmpty();}
+        call.resolve(new JSObject().put("pendingCleanup",pending));
+    });}catch(Exception e){reject(call,e);}}
     @PluginMethod public void removeImage(PluginCall call){try{keys(call,"operationId","imageId");String id=operation(call),image=call.getString("imageId");if(!AiRequestLifecycle.uuid(image))throw new AiFailure("image_invalid");submit(call,()->{operation(call);runtime.images(getContext()).remove(UUID.fromString(id),UUID.fromString(image));call.resolve();});}catch(Exception e){reject(call,e);}}
     @PluginMethod public synchronized void pickImage(PluginCall call){try{keys(call,"operationId");operation(call);if(picking||activeToken!=null)throw new AiFailure("busy");picking=true;Intent intent=new Intent(Intent.ACTION_OPEN_DOCUMENT);intent.addCategory(Intent.CATEGORY_OPENABLE);intent.setType("image/*");intent.putExtra(Intent.EXTRA_MIME_TYPES,new String[]{"image/jpeg","image/png","image/webp"});intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);try{startActivityForResult(call,intent,"imageSelected");}catch(RuntimeException ignored){picking=false;throw new AiFailure("image_invalid");}}catch(Exception e){reject(call,e);}}
     @ActivityCallback private void imageSelected(PluginCall call,ActivityResult result){
