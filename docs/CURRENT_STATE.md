@@ -2,7 +2,9 @@
 
 ## Current Stage
 
-2026-10-04：已按用户批准的 `fa6aa4b` / `superpowers/plans/2026-10-04-apk-3-cooking-experience.md` 完成 APK-3 实现、最终版本完整回归及专用 Android 36 模拟器验收。技术状态 `APK_3_COMPLETE`，等待用户验收；不进入 APK-4。固定 SOL 实施，已有一个只读复核席位；保留 APK-2 基线和全部既有未提交工作，没有部署或修改云数据。
+2026-10-04：用户已提供 APK-4 冻结请求，授权正式进入 AI Intake。已核对 APK-3 交付基线 `78f1877664db0b0015c132e970a4cfffe7ff03fc` 与干净工作区，创建 `feat/recipio-ai-intake`，完成 `ai-intake-contract.md` 和 `superpowers/plans/2026-10-04-apk-4-ai-intake.md`。当前是 **APK-4 实施计划待开工前审核**，不是实现完成；按请求只暂停这一次，批准后固定 SOL 连续实施 Task1–10。
+
+本轮仅文档和分支：未修改业务代码、依赖、权限、数据库或备份，未构建新 APK，未执行 APK-4 自动化/Android 测试，真实 Provider 调用 0 次。官方模型/接入文档已核对；账户权限、密钥、真实识别质量未验证。现有 APK-3 技术状态仍为 `APK_3_COMPLETE`，模拟器证据不是物理手机验收；原计划 `fa6aa4b`、旧产物和证据全部保留。
 
 当前真实实现：Android SQLite v4、Preview Dexie v7、Backup Format v2（读严格原 v1/v2，写 v2）、versionCode11 / `0.4.0-cooking-experience`。接受的 APK-2 基线 `b541d8a` 及原 APK/Golden 保留；旧数字只作历史，不证明 APK-3。最终交付与证据见 `checkpoints/2026-10-04-cooking-experience.md`、`verification/cooking-experience-android.md`。
 
@@ -40,7 +42,8 @@ APK-1 Android Native Acceptance Gate 技术验收通过，状态 DAILY_LIBRARY_A
 
 - 用户已反馈下载和初步体验正常；物理手机/OEM 全流程独立验证未执行，既有原生技术证据来自模拟器，不冒充真机。
 - 真实系统选择器/视觉解码验收使用 PNG；其他 MIME 的复制映射在 JVM 验证，不等于四种格式在所有 Android 版本上都已实测。
-- APK-2 用户验收已通过；APK-3 模拟器技术验收完成，待用户验收。真机/OEM、极限规模、硬件掉电、所有 MIME 在所有系统的选择器显示未实测；没有未解决的 APK-3 迁移/恢复/图片引用架构阻塞。可选 AI 与链接/视频继续后置，未获进入授权。
+- APK-2 用户验收已通过；APK-3 模拟器技术验收完成，物理手机/OEM、极限规模、硬件掉电、所有 MIME 在所有系统的选择器显示未实测；没有未解决的 APK-3 迁移/恢复/图片引用架构阻塞。APK-4 文字/截图 AI 的实施计划待批准；链接/视频仍属未授权实施的 APK-5。
+- APK-4 后续必须证明原生安全密钥、显式原生 Qwen、临时截图及人工审核门禁；计划和旧测试不能作为新鲜证据。当前无用户秘密、无真实 AI 请求、无 APK-4 安装或费用。
 - 本预览没有 Service Worker，不承诺断网冷启动/刷新；已加载页面可以本地操作。
 
 ## Current Risks
@@ -54,10 +57,10 @@ APK-1 Android Native Acceptance Gate 技术验收通过，状态 DAILY_LIBRARY_A
 
 ## Current Branch / Module
 
-`feat/recipio-cooking-experience` / APK-3 已完成技术验收、等待用户验收；从已验收 `b541d8a` 创建，计划基线 `fa6aa4b`。聚焦提交及普通推送本功能分支，不合并 main、不部署；APK-2 检查点/备份/产物全部保留。最终 SHA 由冻结 review-packet 的 manifest 和 Git HEAD 提供，避免在提交自身的文档中伪造自引用 SHA。
+`feat/recipio-ai-intake` / APK-4 计划待批准；由 APK-3 交付 `78f1877664db0b0015c132e970a4cfffe7ff03fc` 创建。当前只有聚焦计划文档提交，普通 push 留到 APK-4 最终交付；不合并 main、不部署。APK-2/3 检查点、备份、旧功能分支和产物全部保留；SQLite4 / Preview7 / Backup2 当前实际实现不变。提交自身的 SHA 以 Git HEAD 为准，不写伪自引用。
 
 ## Next Recommended Task
 
-停止等待用户验收 APK-3；如有实际体验问题，先修复本模块。通过后再由用户单独授权 APK-4（文字/图片 AI 录入），不自动启动、不提前规划或引入在线依赖。
+等待用户/独立开工前审阅确认 `superpowers/plans/2026-10-04-apk-4-ai-intake.md` 与 `ai-intake-contract.md`。批准后从 Task1 的 strict draft/review/normalization RED 测试开始，按 Task1–10 连续完成实现、同版本验证和交付；普通细节不再逐项询问。仅当前模块，不进入 APK-5。
 
 见 PRODUCT_SPEC.md、IMPLEMENTATION_PLAN.md、checkpoints/2026-10-03-daily-library-android.md 和 verification/daily-library-android.md。旧浏览器检查点保留为历史。

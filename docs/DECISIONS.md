@@ -1,5 +1,27 @@
 # Decisions
 
+## 2026-10-04 — APK-4 冻结范围与待审技术约定
+
+### Decision
+
+用户授权进入文字/截图 AI Intake，复用当前本地Recipe与编辑/审核思想，不搬入旧Web的云导入架构。实施计划为 `superpowers/plans/2026-10-04-apk-4-ai-intake.md`，完整技术约定为 `ai-intake-contract.md`；当前只完成文档，等待一次开工前确认，技术默认值尚未成为已实现能力。
+
+### Context
+
+运行基线是 APK-3 `78f1877664db0b0015c132e970a4cfffe7ff03fc`、SQLite4 / Preview7 / Backup2。已有手动编辑、本地图片、明确烹饪记录及安全备份。旧Web的AI提示词和严格审核有可借鉴规则，但server-only、Supabase job、Storage、来源/分类/标签不能复活。
+
+### Alternatives
+
+不引入共享key、自建AI服务器、WebView明文key、额外服务商/模型选择、长期ImportJob或复制永久图片。原生secret输入、Keystore加密私有文件和固定原生HTTPS可以保持窄信任边界；纯浏览器结果不能证明这些边界。
+
+### Reason
+
+2026-10-04官方公开文档确认Qwen3.8 Flash支持本轮文字/图片和结构化输出；图片的JSON Schema不能假称严格生效，因此本地strict校验仍必需。候选固定北京兼容endpoint、非思考模式；账户权限和真实质量未调用验证。Android平台Keystore/AES-GCM/AtomicFile避免新依赖；原生password dialog不传明文给JS，并显式关闭Capacitor参数/结果日志，避免Debug隐性泄露。
+
+### Consequences
+
+计划将密钥、临时cache截图、内存草稿与正式库分开；只有经人工编辑和必要确认的内容保存为普通Recipe。SQLite及备份版本不变，普通创建保留默认行为，只评估可选UUID/内存precondition防双提交和恢复后的迟到写入。Provider请求与key变更共用原生互斥，不持本地业务锁。自动化fake、真实smoke最多3次，不索取聊天/命令行密钥；最终按实际Android/Provider证据区分完成、待验收、阻塞。当前分支 `feat/recipio-ai-intake`，不部署、不改变真实云数据、不进入APK-5。
+
 ## 2026-10-04 — APK-3 local cooking data and strict backup successor
 
 ### Decision
