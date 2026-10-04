@@ -39,10 +39,26 @@ public class LocalBackupPlugin extends Plugin {
     private synchronized LocalBackupSession require(PluginCall call)throws IOException {
         String token=call.getString("token");if(active==null||!active.token.equals(token))throw new IOException("无效或过期的备份操作");return active;
     }
+    // Publish only after releasing the completed operation. A JS reply can start
+    // the next bridge call immediately; no post-reply finally may reset its lock.
+    private synchronized void releaseWork() {
+        busy=false;
+        phase=active==null?"idle":"ready";
+    }
     private void run(PluginCall call,String next,Work action) {
         final LocalBackupSession session;
         synchronized(this){try{session=require(call);}catch(IOException e){call.reject(e.getMessage());return;}if(busy){call.reject("备份操作正在进行，请勿重复操作");return;}busy=true;phase=next;}
-        worker.execute(()->{try{JSObject result=action.run(session);call.resolve(result);}catch(Exception e){call.reject(e.getMessage()==null?"备份操作失败，请检查设备空间与文件":e.getMessage());}finally{synchronized(this){busy=false;phase=active==null?"idle":"ready";}}});
+        worker.execute(()->{
+            final JSObject result;
+            try { result=action.run(session); }
+            catch(Exception e) {
+                releaseWork();
+                call.reject(e.getMessage()==null?"备份操作失败，请检查设备空间与文件":e.getMessage());
+                return;
+            }
+            releaseWork();
+            call.resolve(result);
+        });
     }
     @PluginMethod public void chooseExport(PluginCall call) {
         if(!reserve(call))return;String name=call.getString("suggestedName");if(name==null||name.length()>150||!name.endsWith(".recipio")||name.contains("/")||name.contains("\\")){synchronized(this){choosing=false;phase="idle";}call.reject("备份文件名无效");return;}
@@ -66,9 +82,23 @@ public class LocalBackupPlugin extends Plugin {
         Uri uri=result.getData()==null?null:result.getData().getData();
         try{checkUri(uri);synchronized(this){active=LocalBackupSession.create(root(),"restore");busy=true;phase="validating";}}catch(IOException e){phase="idle";call.reject(e.getMessage());return;}
         final LocalBackupSession session=active;
-        worker.execute(()->{try{File input=new File(session.directory,"input.recipio");LocalBackupArchive.copyInput(getContext().getContentResolver().openInputStream(uri),input,Math.min(LocalBackupArchive.MAX_BYTES,Math.max(0,root().getUsableSpace()-33554432L)));restore=LocalBackupArchive.validate(input);call.resolve(new JSObject().put("token",session.token).put("manifest",restore.manifest).put("data",restore.data));}
-            catch(Exception e){try{session.cleanup(Collections.emptySet(),null,false);synchronized(this){active=null;}}catch(IOException cleanup){e.addSuppressed(cleanup);}call.reject(e.getMessage()==null?"无法读取备份":e.getMessage());}
-            finally{synchronized(this){busy=false;phase=active==null?"idle":"ready";}}});
+        worker.execute(()->{
+            final JSObject resultData;
+            try {
+                File input=new File(session.directory,"input.recipio");
+                LocalBackupArchive.copyInput(getContext().getContentResolver().openInputStream(uri),input,Math.min(LocalBackupArchive.MAX_BYTES,Math.max(0,root().getUsableSpace()-33554432L)));
+                restore=LocalBackupArchive.validate(input);
+                resultData=new JSObject().put("token",session.token).put("manifest",restore.manifest).put("data",restore.data);
+            } catch(Exception e) {
+                try { session.cleanup(Collections.emptySet(),null,false); synchronized(this){active=null;} }
+                catch(IOException cleanup) { e.addSuppressed(cleanup); }
+                releaseWork();
+                call.reject(e.getMessage()==null?"无法读取备份":e.getMessage());
+                return;
+            }
+            releaseWork();
+            call.resolve(resultData);
+        });
     }
     private void checkUri(Uri uri)throws IOException {if(uri==null||!"content".equals(uri.getScheme())||(getContext().getPackageName()+".fileprovider").equals(uri.getAuthority()))throw new IOException("请选择设备中的有效文件");}
     private List<String> paths(PluginCall call)throws JSONException,IOException {JSArray array=call.getArray("paths");if(array==null)throw new IOException("图片引用缺失");List<String> result=new ArrayList<>();for(int i=0;i<array.length();i++){Object value=array.get(i);if(!(value instanceof String))throw new IOException("图片路径无效");result.add((String)value);}return result;}
@@ -97,7 +127,22 @@ public class LocalBackupPlugin extends Plugin {
     @PluginMethod public void discard(PluginCall call) {finish(call,false);}
     @PluginMethod public void finishOperation(PluginCall call) {finish(call,Boolean.TRUE.equals(call.getBoolean("committed",false)));}
     private void finish(PluginCall call,boolean committed) {run(call,"cleanup",s->{IOException incomplete=null;if(s.mode.equals("export")&&exportUri!=null&&exportState!=null)try{exportState.discard(()->DocumentsContract.deleteDocument(getContext().getContentResolver(),exportUri));}catch(IOException e){incomplete=e;}DatabaseFacts f=facts();if(committed&&(!s.token.equals(f.operation)||!Objects.equals(s.generation,f.generation)||!Objects.equals(s.dataHash,f.hash)))throw new IOException("尚不能确认恢复提交，保留全部文件");s.cleanup(f.references,f.generation,s.mode.equals("export")&&!committed);synchronized(this){active=null;restore=null;sourceAssets=null;exportUri=null;exportState=null;}if(incomplete!=null)throw incomplete;return new JSObject();});}
-    @PluginMethod public void cleanupOrphans(PluginCall call) {synchronized(this){if(busy||choosing){call.reject("操作正在进行");return;}busy=true;phase="reconciling";}worker.execute(()->{try{DatabaseFacts f=facts();for(LocalBackupSession s:LocalBackupSession.pending(root()))s.cleanup(f.references,f.generation,s.mode.equals("export"));synchronized(this){active=null;}call.resolve();}catch(Exception e){call.reject(e.getMessage());}finally{synchronized(this){busy=false;phase="idle";}}});}
+    @PluginMethod public void cleanupOrphans(PluginCall call) {
+        synchronized(this){if(busy||choosing){call.reject("操作正在进行");return;}busy=true;phase="reconciling";}
+        worker.execute(()->{
+            try {
+                DatabaseFacts f=facts();
+                for(LocalBackupSession s:LocalBackupSession.pending(root()))s.cleanup(f.references,f.generation,s.mode.equals("export"));
+                synchronized(this){active=null;}
+            } catch(Exception e) {
+                releaseWork();
+                call.reject(e.getMessage());
+                return;
+            }
+            releaseWork();
+            call.resolve();
+        });
+    }
     @PluginMethod public void status(PluginCall call) {synchronized(this){JSObject out=new JSObject().put("phase",phase);if(active!=null)out.put("token",active.token);call.resolve(out);}}
     @Override protected void handleOnDestroy(){worker.shutdown();}
 }
