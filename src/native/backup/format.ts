@@ -68,11 +68,9 @@ export function portableImageReferences(data: BackupData): string[] {
   for (const change of data.changes) for (const d of [change.before, change.after]) refs.push(d.coverAssetId, ...d.steps.map(s => s.imageAssetId));
   return [...new Set(refs.filter((v): v is string => v !== null))].sort();
 }
-export function validateBackupData(input: unknown, manifestInput: unknown): { data: BackupData; manifest: BackupManifest } {
+export function validateDataRelations(input: unknown): BackupData {
   const data = backupDataSchema.parse(input);
-  const manifest = backupManifestSchema.parse(manifestInput);
   unique(data.recipes.map(r => r.id), "菜谱ID"); unique(data.changes.map(r => r.id), "修改记录ID");
-  unique(manifest.media.map(m => m.assetId), "媒体ID");
   const recipes = new Map(data.recipes.map(r => [r.id, r]));
   for (const r of data.recipes) if (r.updatedAt < r.createdAt) throw new Error("更新时间早于创建时间");
   for (const [name, max] of [["ingredients", 300], ["steps", 300], ["preparations", 100], ["keyTips", 100]] as const) {
@@ -91,6 +89,12 @@ export function validateBackupData(input: unknown, manifestInput: unknown): { da
     if (!r || c.before.id !== c.recipeId || c.before.updatedAt < c.before.createdAt || c.changedAt < c.before.updatedAt || c.changedAt > r.updatedAt) throw new Error("修改快照所属菜谱或时间无效");
     checkDetails(c.before); checkDetails(c.after);
   }
+  return data;
+}
+export function validateBackupData(input: unknown, manifestInput: unknown): { data: BackupData; manifest: BackupManifest } {
+  const data = validateDataRelations(input);
+  const manifest = backupManifestSchema.parse(manifestInput);
+  unique(manifest.media.map(m => m.assetId), "媒体ID");
   for (const key of Object.keys(manifest.counts) as Array<keyof BackupManifest["counts"]>) {
     const count = key === "media" ? manifest.media.length : data[key].length;
     if (manifest.counts[key] !== count) throw new Error("备份数量不一致");

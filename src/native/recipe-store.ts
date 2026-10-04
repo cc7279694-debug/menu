@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { DataOperationCoordinator, libraryDataCoordinator } from "./backup/coordinator";
 import {
   emptyDetails,
   recipeDetailsSchema,
@@ -7,7 +8,7 @@ import {
   type DurationFilter,
 } from "./recipe-model";
 
-export const schemaVersion = 2;
+export const schemaVersion = 3;
 export const undoMilliseconds = 5000;
 const versionOneStatements = [
   `CREATE TABLE IF NOT EXISTS recipes (
@@ -33,9 +34,11 @@ const versionTwoStatements = [
   "CREATE TABLE recipe_changes(id TEXT PRIMARY KEY NOT NULL, recipe_id TEXT NOT NULL REFERENCES recipes(id) ON DELETE CASCADE, changed_at TEXT NOT NULL, before_json TEXT NOT NULL, after_json TEXT NOT NULL);",
   "CREATE INDEX recipe_changes_recipe ON recipe_changes(recipe_id,changed_at);",
 ];
+const versionThreeStatements = ["CREATE TABLE backup_restore_state(id INTEGER PRIMARY KEY CHECK(id=1), operation_id TEXT NOT NULL, generation_id TEXT NOT NULL, data_sha256 TEXT NOT NULL, committed_at TEXT NOT NULL);"];
 export const migrationStatements = [
   { toVersion: 1, statements: versionOneStatements },
   { toVersion: 2, statements: versionTwoStatements },
+  { toVersion: 3, statements: versionThreeStatements },
 ];
 // Complete fresh schema used by non-plugin tests. Existing databases use versioned upgrades above.
 export const schemaStatements = [
@@ -51,6 +54,7 @@ export const schemaStatements = [
         .replace("CREATE TABLE ", "CREATE TABLE IF NOT EXISTS ")
         .replace("CREATE INDEX ", "CREATE INDEX IF NOT EXISTS "),
     ),
+  ...versionThreeStatements.map(sql => sql.replace("CREATE TABLE ", "CREATE TABLE IF NOT EXISTS ")),
 ];
 
 const titleSchema = z
@@ -76,7 +80,8 @@ export type RecipeName = {
 };
 export interface SqlDriver {
   query(sql: string, values?: (string | number)[]): Promise<unknown[]>;
-  run(sql: string, values?: (string | number)[]): Promise<number>;
+  run(sql: string, values?: (string | number | null)[]): Promise<number>;
+  transaction?<T>(work: (tx: SqlDriver) => Promise<T>): Promise<T>;
   batch?(
     statements: Array<{
       statement: string;
@@ -107,9 +112,21 @@ export class RecipeNameStore {
   constructor(
     private readonly driver: SqlDriver,
     private readonly clock = () => new Date(),
+    private readonly coordinator: DataOperationCoordinator = libraryDataCoordinator,
   ) {}
 
-  async list(
+  list(search = "", limit = 100, offset = 0, filter: DurationFilter = "all") { return this.coordinator.withDataAccess(() => this.readList(search, limit, offset, filter)); }
+  getDetails(id: string) { return this.coordinator.withDataAccess(() => this.readDetails(id)); }
+  saveDetails(id: string, input: RecipeDetailsInput) { return this.coordinator.withDataAccess(() => this.saveUnlocked(id, input)); }
+  createDetails(input: RecipeDetailsInput) { return this.coordinator.withDataAccess(() => this.createDetailsUnlocked(input)); }
+  get(id: string) { return this.coordinator.withDataAccess(() => this.getUnlocked(id)); }
+  create(title: string) { return this.coordinator.withDataAccess(() => this.createUnlocked(title)); }
+  rename(id: string, title: string) { return this.coordinator.withDataAccess(() => this.renameUnlocked(id, title)); }
+  remove(id: string) { return this.coordinator.withDataAccess(() => this.removeUnlocked(id)); }
+  undo(id: string) { return this.coordinator.withDataAccess(() => this.undoUnlocked(id)); }
+  purgeExpired() { return this.coordinator.withDataAccess(() => this.purgeUnlocked()); }
+
+  private async readList(
     search = "",
     limit = 100,
     offset = 0,
@@ -127,7 +144,7 @@ export class RecipeNameStore {
     );
     return rows.map(fromRow);
   }
-  async getDetails(id: string): Promise<RecipeDetails | null> {
+  private async readDetails(id: string): Promise<RecipeDetails | null> {
     const rows = await this.driver.query(
       "SELECT * FROM recipes WHERE id=? AND deleted_at IS NULL",
       [id],
@@ -177,18 +194,18 @@ export class RecipeNameStore {
     });
     return { ...fromRow(row), ...input };
   }
-  async saveDetails(id: string, input: RecipeDetailsInput): Promise<void> {
+  private async saveUnlocked(id: string, input: RecipeDetailsInput): Promise<void> {
     const value = recipeDetailsSchema.parse(input);
-    const before = await this.getDetails(id);
+    const before = await this.readDetails(id);
     if (!before) throw new Error("菜谱已删除或不存在，请返回列表");
     if (!this.driver.batch) throw new Error("数据层不支持原子保存");
     await this.writeDetails(id, value, before);
   }
-  async createDetails(input: RecipeDetailsInput): Promise<RecipeDetails> {
+  private async createDetailsUnlocked(input: RecipeDetailsInput): Promise<RecipeDetails> {
     const value = recipeDetailsSchema.parse(input);
     const id = crypto.randomUUID();
     await this.writeDetails(id, value, null);
-    const saved = await this.getDetails(id);
+    const saved = await this.readDetails(id);
     if (!saved) throw new Error("保存后无法读取菜谱");
     return saved;
   }
@@ -281,14 +298,14 @@ export class RecipeNameStore {
       });
     await this.driver.batch(statements);
   }
-  async get(id: string): Promise<RecipeName | null> {
+  private async getUnlocked(id: string): Promise<RecipeName | null> {
     const rows = await this.driver.query(
       "SELECT id,title,created_at,updated_at FROM recipes WHERE id=? AND deleted_at IS NULL",
       [id],
     );
     return rows.length ? fromRow(rows[0]) : null;
   }
-  async create(title: string): Promise<RecipeName> {
+  private async createUnlocked(title: string): Promise<RecipeName> {
     const value = titleSchema.parse(title);
     const id = crypto.randomUUID();
     const now = this.clock().toISOString();
@@ -298,7 +315,7 @@ export class RecipeNameStore {
     );
     return { id, title: value, createdAt: now, updatedAt: now };
   }
-  async rename(id: string, title: string): Promise<void> {
+  private async renameUnlocked(id: string, title: string): Promise<void> {
     const value = titleSchema.parse(title);
     const count = await this.driver.run(
       "UPDATE recipes SET title=?,updated_at=? WHERE id=? AND deleted_at IS NULL",
@@ -306,7 +323,7 @@ export class RecipeNameStore {
     );
     if (count !== 1) throw new Error("菜谱已删除或不存在，请返回列表");
   }
-  async remove(id: string): Promise<number> {
+  private async removeUnlocked(id: string): Promise<number> {
     const now = this.clock().toISOString();
     const count = await this.driver.run(
       "UPDATE recipes SET deleted_at=?,updated_at=? WHERE id=? AND deleted_at IS NULL",
@@ -315,7 +332,7 @@ export class RecipeNameStore {
     if (count !== 1) throw new Error("菜谱已删除或不存在");
     return Date.parse(now) + undoMilliseconds;
   }
-  async undo(id: string): Promise<boolean> {
+  private async undoUnlocked(id: string): Promise<boolean> {
     const cutoff = new Date(
       this.clock().getTime() - undoMilliseconds,
     ).toISOString();
@@ -326,7 +343,7 @@ export class RecipeNameStore {
       )) === 1
     );
   }
-  async purgeExpired(): Promise<void> {
+  private async purgeUnlocked(): Promise<void> {
     const cutoff = new Date(
       this.clock().getTime() - undoMilliseconds,
     ).toISOString();

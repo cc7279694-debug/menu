@@ -10,8 +10,9 @@ import {
   type DurationFilter,
 } from "./recipe-model";
 import { undoMilliseconds } from "./recipe-store";
+import { DataOperationCoordinator, libraryDataCoordinator } from "./backup/coordinator";
 
-function fromLegacy(r: LocalRecipeRecord): RecipeDetails {
+export function fromLegacy(r: LocalRecipeRecord): RecipeDetails {
   return {
     ...emptyDetails(r.title),
     id: r.id,
@@ -42,7 +43,7 @@ function fromLegacy(r: LocalRecipeRecord): RecipeDetails {
     keyTips: r.keyTips ?? [],
   };
 }
-function toLegacy(
+export function toLegacy(
   input: RecipeDetailsInput,
   id: string,
   now: string,
@@ -104,8 +105,16 @@ function toLegacy(
 }
 /** Development preview only; reuses the existing browser tables, not Android's source of truth. */
 export class PreviewRecipeLibrary implements RecipeLibrary {
-  constructor(private readonly clock = () => new Date()) {}
-  async list(
+  constructor(private readonly clock = () => new Date(), private readonly coordinator: DataOperationCoordinator = libraryDataCoordinator) {}
+  list(search = "", limit = 100, offset = 0, filter: DurationFilter = "all") { return this.coordinator.withDataAccess(() => this.readList(search, limit, offset, filter)); }
+  create(title: string) { return this.coordinator.withDataAccess(() => this.createUnlocked(title)); }
+  createDetails(input: RecipeDetailsInput) { return this.coordinator.withDataAccess(() => this.createDetailsUnlocked(input)); }
+  getDetails(id: string) { return this.coordinator.withDataAccess(() => this.getUnlocked(id)); }
+  saveDetails(id: string, input: RecipeDetailsInput) { return this.coordinator.withDataAccess(() => this.saveUnlocked(id, input)); }
+  remove(id: string) { return this.coordinator.withDataAccess(() => this.removeUnlocked(id)); }
+  undo(id: string) { return this.coordinator.withDataAccess(() => this.undoUnlocked(id)); }
+  purgeExpired() { return this.coordinator.withDataAccess(() => this.purgeUnlocked()); }
+  private async readList(
     search = "",
     limit = 100,
     offset = 0,
@@ -134,7 +143,7 @@ export class PreviewRecipeLibrary implements RecipeLibrary {
         preparationHint: r.preparations[0]?.instruction ?? null,
       }));
   }
-  async create(title: string) {
+  private async createUnlocked(title: string) {
     const value = recipeDetailsSchema.parse(emptyDetails(title));
     const id = crypto.randomUUID();
     const now = this.clock().toISOString();
@@ -142,7 +151,7 @@ export class PreviewRecipeLibrary implements RecipeLibrary {
     await (await getLocalDatabase()).localRecipes.add(record);
     return fromLegacy(record);
   }
-  async createDetails(input: RecipeDetailsInput) {
+  private async createDetailsUnlocked(input: RecipeDetailsInput) {
     const value = recipeDetailsSchema.parse(input);
     const id = crypto.randomUUID();
     const now = this.clock().toISOString();
@@ -150,11 +159,11 @@ export class PreviewRecipeLibrary implements RecipeLibrary {
     await (await getLocalDatabase()).localRecipes.add(record);
     return fromLegacy(record);
   }
-  async getDetails(id: string): Promise<RecipeDetails | null> {
+  private async getUnlocked(id: string): Promise<RecipeDetails | null> {
     const r = await (await getLocalDatabase()).localRecipes.get(id);
     return r && r.deletedAt === null ? fromLegacy(r) : null;
   }
-  async saveDetails(id: string, input: RecipeDetailsInput) {
+  private async saveUnlocked(id: string, input: RecipeDetailsInput) {
     const value = recipeDetailsSchema.parse(input);
     const db = await getLocalDatabase();
     const now = this.clock().toISOString();
@@ -172,7 +181,7 @@ export class PreviewRecipeLibrary implements RecipeLibrary {
       });
     });
   }
-  async remove(id: string) {
+  private async removeUnlocked(id: string) {
     const db = await getLocalDatabase();
     const now = this.clock();
     await db.transaction("rw", db.localRecipes, async () => {
@@ -185,7 +194,7 @@ export class PreviewRecipeLibrary implements RecipeLibrary {
     });
     return now.getTime() + undoMilliseconds;
   }
-  async undo(id: string) {
+  private async undoUnlocked(id: string) {
     const db = await getLocalDatabase();
     return db.transaction("rw", db.localRecipes, async () => {
       const r = await db.localRecipes.get(id);
@@ -201,7 +210,7 @@ export class PreviewRecipeLibrary implements RecipeLibrary {
       return true;
     });
   }
-  async purgeExpired() {
+  private async purgeUnlocked() {
     const db = await getLocalDatabase();
     const cutoff = this.clock().getTime() - undoMilliseconds;
     await db.transaction("rw", db.localRecipes, db.recipeChanges, async () => {

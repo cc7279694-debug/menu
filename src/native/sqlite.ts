@@ -4,10 +4,14 @@ import {
   RecipeNameStore,
   migrationStatements,
   schemaVersion,
+  type SqlDriver,
 } from "./recipe-store";
+import { SQLiteBackupRepository } from "./backup/repository";
 
 const connection = new SQLiteConnection(CapacitorSQLite);
 let opening: Promise<RecipeNameStore> | null = null;
+let backupRepository: SQLiteBackupRepository | null = null;
+export async function openBackupRepository() { await openRecipeStore(); if (!backupRepository) throw new Error("备份数据层未就绪"); return backupRepository; }
 
 export function openRecipeStore(): Promise<RecipeNameStore> {
   if (!opening)
@@ -39,14 +43,28 @@ async function open(): Promise<RecipeNameStore> {
         );
   if (!(await db.isDBOpen()).result) await db.open();
   await db.execute("PRAGMA foreign_keys=ON", false);
-  const store = new RecipeNameStore({
+  const inside: SqlDriver = {
     query: async (sql, values) => (await db.query(sql, values)).values ?? [],
     run: async (sql, values) =>
-      (await db.run(sql, values)).changes?.changes ?? 0,
+      (await db.run(sql, values, false)).changes?.changes ?? 0,
     batch: async (statements) => {
-      await db.executeSet(statements, true);
+      await db.executeSet(statements, false);
     },
-  });
+  };
+  const driver: SqlDriver = { ...inside,
+    run: async (sql, values) => (await db.run(sql, values, true)).changes?.changes ?? 0,
+    batch: async statements => { await db.executeSet(statements, true); },
+    transaction: async work => {
+      await db.beginTransaction();
+      try { const value = await work(inside); await db.commitTransaction(); return value; }
+      catch (error) {
+        if ((await db.isTransactionActive()).result) await db.rollbackTransaction();
+        throw error;
+      }
+    },
+  };
+  const store = new RecipeNameStore(driver);
+  backupRepository = new SQLiteBackupRepository(driver);
   await store.purgeExpired();
   return store;
 }
