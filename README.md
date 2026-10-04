@@ -6,7 +6,7 @@
 
 本地预览：`npm run dev:local`。Android 构建：`npm run build:apk`，默认生成 `artifacts/recipio-daily-library-v5-debug.apk`，不会覆盖旧 APK-0。也可通过 `scripts/build-apk.ps1` 明确传入 ArtifactName、VersionCode、VersionName。
 
-当前原生验收证据见 [Android 验收记录](docs/verification/daily-library-android.md)，当前状态见 [CURRENT_STATE](docs/CURRENT_STATE.md)。浏览器验证不得冒充原生验证。备份、AI 和烹饪记录仍是后续模块，未实现；备份完成前不要把唯一重要数据存入此版本。
+日常库证据见 [APK-1 Android 验收记录](docs/verification/daily-library-android.md)，当前完整备份与安全恢复见 [APK-2 验收记录](docs/verification/backup-restore-android.md) 和 [Backup Format v1](docs/backup-format-v1.md)，进度见 [CURRENT_STATE](docs/CURRENT_STATE.md)。设置页可导出包含当前/历史图片的完整 `.recipio`，经校验、预览和明确确认后替换恢复。备份未加密，应保存到应用外部的设备本地位置；私有安全副本不能防卸载或清数据。浏览器不伪装原生备份/SQLite 验收。AI 和烹饪记录仍是未进入的后续模块。
 
 ## 保留的旧 Web / PWA 版本
 

@@ -1,5 +1,31 @@
 # Architecture
 
+## APK-2 完整备份与 Replace（2026-10-04）
+
+```text
+Settings / BackupControls
+  → 单例 BackupService（预览、二次确认、进度、错误和不确定状态）
+  → BackupRepository + DataOperationCoordinator
+      → Android SQLite v3 / Web Preview Dexie v6
+  → LocalBackup 原生插件（独立单线程 executor）
+      → SAF 新文档 / 用户选中的本地文件
+      → 私有 backup-work/<operation UUID> / 标准 ZIP + SHA-256
+      → 不可变 images/generation-<UUID>/<asset SHA>.<ext>
+      → 私有 backups/safety-<operation UUID>.recipio
+```
+
+Backup Format v1 是逻辑 ZIP，不是复制正在打开的数据库。六张业务表及当前、before/after 历史图片构成完整引用闭包；设备路径只在明确媒体字段映射为内容 SHA，不重写 ID、时间、排序或文字。设置暂为空对象，提交记录不进入备份。
+
+SQLite v2→v3 仅增加固定单行 `backup_restore_state`；Dexie v5→v6 仅增加 `nativeBackupState`。共享协调器隔离 CRUD、撤销、清理、一致快照和恢复；显式数据库事务在校验数量、外键与完整读回后提交六表和恢复事实。
+
+恢复先完成容器、数据、关系、媒体哈希校验并暂存新媒体，再显示确认。确认时重新核对当前数量、创建并回读安全副本，然后单事务替换。图片不先删除；旧媒体及安全副本保守保留。SQL 提交响应丢失时复读真实提交记录；不能确定结果则保留文件、阻止重复恢复。启动核查以实际 SQL 提交记录和当前/历史引用为准，不以 journal phase 推断提交，不重放 Replace。
+
+原生私有根目录先规范化 Android 系统路径别名，之后仍拒绝工作目录、媒体和删除目标中的符号链接。只清理由插件登记且未被引用的暂存 generation；未发布操作记录可清理，损坏已发布记录失败关闭。
+
+导出创建新系统文档，不覆盖原文件；先完成私有包，再复制、关闭并回读完整包和 SHA。失败清理新建外部文档；provider 拒绝删除时明确警告。外部 provider 不提供统一原子事务，完整私有包保留供核查。`EXTRA_LOCAL_ONLY` 不保证第三方 provider 永不上传，UI 要求选择设备本地位置。
+
+Android 继续无登录、无 INTERNET 运行依赖，系统云备份/设备转移规则保持排除。浏览器展示原生能力边界，使用同一 DTO 和真实 IndexedDB 事务测试，不伪装 SAF/SQLite 验收。当前验证结果单列在 APK-2 checkpoint 与 `verification/backup-restore-android.md`。
+
 ## 当前日常菜谱库（2026-10-04）
 
 ```text
@@ -17,9 +43,9 @@ native/index.html → native/main.ts → src/native/main.tsx
 
 Vite 本地预览可独立运行，无登录、Supabase 请求或远程资源。生产静态入口 CSP 仅允许自身脚本与本地图片；开发 CSP 单独允许本机热更新。浏览器预览没有 Service Worker，离线验证只覆盖已加载页面操作。
 
-SQLite schemaVersion=2；v1 名称数据保留，增量添加耗时/份数/热量/封面路径/备注，以及按位置规范化的食材、步骤、准备、关键事项表，删除级联。修改快照以 before/after JSON 存在 recipe_changes，无历史界面。完整新建与保存通过 executeSet 事务执行，开启外键；5 秒撤销期保存关联数据，过期后清理。
+APK-1 基线 SQLite schemaVersion=2（APK-2 当前为 v3）；v1 名称数据保留，增量添加耗时/份数/热量/封面路径/备注，以及按位置规范化的食材、步骤、准备、关键事项表，删除级联。修改快照以 before/after JSON 存在 recipe_changes，无历史界面。完整新建与保存通过 executeSet 事务执行，开启外键；5 秒撤销期保存关联数据，过期后清理。
 
-Dexie schemaVersion=5，沿用 v4 stores，仅新增 recipeChanges。设备媒体 owner 固定为 recipio-library-preview；旧云缓存清除不得删除此 owner 的文件。图片保守保留，孤立回收后置。不存在云同步、新账户或远程业务主库。
+APK-1 基线 Dexie schemaVersion=5（APK-2 当前为 v6），沿用 v4 stores，仅新增 recipeChanges。设备媒体 owner 固定为 recipio-library-preview；旧云缓存清除不得删除此 owner 的文件。图片保守保留，孤立回收后置。不存在云同步、新账户或远程业务主库。
 
 SQLite 使用 Node 原生数据库验证迁移与事务；Android 安装、文件与持久化另在模拟器验证，证据边界以 CURRENT_STATE 和最新原生检查点为准。下列 APK-0 与旧 Web 内容为历史/保留实现，不代表新版范围。
 
