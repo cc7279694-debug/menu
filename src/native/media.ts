@@ -77,3 +77,18 @@ export async function resolveLocalImage(path: string): Promise<string> {
   if (!record?.blob) throw new Error("本地图片不存在");
   return URL.createObjectURL(record.blob);
 }
+/** Candidate-only unlink. No directory scan and no recursive removal. */
+export async function deleteLocalImages(
+  paths: readonly string[],
+): Promise<void> {
+  const valid = [...new Set(paths.map((p) => localImagePath.parse(p)))];
+  if (Capacitor.getPlatform() === "android") {
+    for (const path of valid)
+      await Filesystem.deleteFile({ directory: Directory.Data, path });
+  } else {
+    const db = await getLocalDatabase();
+    await db.transaction("rw", db.media, () =>
+      db.media.bulkDelete(valid.map((path) => [scope, "library", path])),
+    );
+  }
+}

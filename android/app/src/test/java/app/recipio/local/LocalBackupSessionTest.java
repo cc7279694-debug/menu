@@ -42,8 +42,8 @@ public class LocalBackupSessionTest {
     }
     @Test public void validPrivateExportIsRetainedAndCorruptPublishedJournalFailsClosed()throws Exception {
         File root=folder.newFolder();LocalBackupSession s=LocalBackupSession.create(root,"export");
-        JSONObject empty=new JSONObject("{\"recipes\":[],\"ingredients\":[],\"steps\":[],\"preparations\":[],\"keyTips\":[],\"changes\":[],\"settings\":{}}");
-        LocalBackupArchive.write(new File(s.directory,"output.recipio"),empty,Collections.emptyList(),"test",7,3);s.cleanup(Collections.emptySet(),null,true);
+        JSONObject empty=new JSONObject("{\"recipes\":[],\"ingredients\":[],\"steps\":[],\"preparations\":[],\"keyTips\":[],\"changes\":[],\"cookingRecords\":[],\"settings\":{}}");
+        LocalBackupArchive.write(new File(s.directory,"output.recipio"),empty,Collections.emptyList(),"test",11,4);s.cleanup(Collections.emptySet(),null,true);
         assertNotNull(LocalBackupArchive.validate(new File(root,"backups/pending-export-"+s.token+".recipio")));
         LocalBackupSession r=LocalBackupSession.create(root,"restore");Files.write(new File(r.directory,"operation.json").toPath(),"bad".getBytes());
         assertThrows(IOException.class,()->LocalBackupSession.pending(root));assertTrue(r.directory.exists());

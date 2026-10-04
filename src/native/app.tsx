@@ -14,7 +14,7 @@ export function NativeApp() {
   const [store, setStore] = useState<RecipeLibrary | null>(null);
   const [error, setError] = useState("");
   const [attempt, setAttempt] = useState(0);
-  const [backup,setBackup] = useState<BackupService>();
+  const [backup, setBackup] = useState<BackupService>();
   useEffect(() => {
     let alive = true;
     (Capacitor.getPlatform() === "android"
@@ -25,8 +25,14 @@ export function NativeApp() {
         })
     )
       .then(async (db) => {
-        const service = Capacitor.getPlatform()==="android" ? await openBackupService() : undefined;
-        if (alive) { setBackup(service); setStore(db); }
+        const service =
+          Capacitor.getPlatform() === "android"
+            ? await openBackupService()
+            : undefined;
+        if (alive) {
+          setBackup(service);
+          setStore(db);
+        }
       })
       .catch(() => {
         if (alive) setError("本地数据库无法打开。请重试；不要清除应用数据。");
@@ -122,7 +128,7 @@ export function RecipeNames({ store }: { store: RecipeNameStore }) {
     return () => window.clearTimeout(timer);
   }, [pending, store]);
 
-  async function action(work: () => Promise<void>) {
+  async function action(work: () => Promise<unknown>) {
     if (busy) return;
     setBusy(true);
     setError("");

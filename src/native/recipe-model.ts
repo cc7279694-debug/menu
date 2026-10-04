@@ -1,9 +1,22 @@
 import { z } from "zod";
 import type { RecipeName } from "./recipe-store";
+import type {
+  CookingRecord,
+  CookingRecordExtras,
+  CookingCursor,
+  ChangeCursor,
+  CookingSummary,
+  RecipeChange,
+  LibraryCleanupResult,
+} from "./cooking-model";
+export type RecipeListItem = RecipeName & { lastCookedAt: string | null };
 
 export const localImagePath = z
   .string()
-  .regex(/^images\/(?:[a-f0-9-]+|generation-[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}\/[a-f0-9]{64})\.(png|jpg|webp|avif)$/i, "图片路径无效");
+  .regex(
+    /^images\/(?:[a-f0-9-]+|generation-[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}\/[a-f0-9]{64})\.(png|jpg|webp|avif)$/i,
+    "图片路径无效",
+  );
 const text = z.string().trim().min(1).max(10000);
 const minutes = z.number().int().min(1).max(525600).nullable();
 export const recipeDetailsSchema = z
@@ -85,12 +98,30 @@ export interface RecipeLibrary {
     limit?: number,
     offset?: number,
     filter?: DurationFilter,
-  ): Promise<RecipeName[]>;
+  ): Promise<RecipeListItem[]>;
   create(title: string): Promise<RecipeName>;
   createDetails(input: RecipeDetailsInput): Promise<RecipeDetails>;
   getDetails(id: string): Promise<RecipeDetails | null>;
   saveDetails(id: string, input: RecipeDetailsInput): Promise<void>;
   remove(id: string): Promise<number>;
   undo(id: string): Promise<boolean>;
-  purgeExpired(): Promise<void>;
+  purgeExpired(): Promise<LibraryCleanupResult>;
+  recordCooking(recipeId: string, recordId: string): Promise<CookingRecord>;
+  updateCookingRecord(
+    id: string,
+    extras: CookingRecordExtras,
+  ): Promise<CookingRecord>;
+  deleteCookingRecord(id: string): Promise<LibraryCleanupResult>;
+  listCookingRecords(
+    recipeId: string,
+    limit?: number,
+    cursor?: CookingCursor,
+  ): Promise<CookingRecord[]>;
+  getCookingSummary(recipeId: string): Promise<CookingSummary>;
+  listRecipeChanges(
+    recipeId: string,
+    limit?: number,
+    cursor?: ChangeCursor,
+  ): Promise<RecipeChange[]>;
+  setCookingPhotoAsCover(recordId: string): Promise<RecipeDetails>;
 }

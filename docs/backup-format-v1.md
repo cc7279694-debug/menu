@@ -170,3 +170,6 @@ v1 的初次生产写出对应 SQLite v3。该模块没有任何旧 `.recipio` �
 - SQLite 显式事务依据本仓库实际安装插件 definitions.d.ts / Android Database.java 核对，不猜 API。
 
 浏览器、真实 Node SQLite、JVM 容器测试、Android provider instrumentation、模拟器系统选择器与物理手机是不同证据边界。当前实现仅支持已知 v1/schema3，未执行的设备/厂商场景必须在验收记录中单列，不能由本格式文档推定通过。
+# Successor note — APK-3
+
+This v1 definition remains frozen. APK-3 writes v2/schema4 with cooking records, while importing valid strict v1 through unchanged validation. See `backup-format-v2.md`; no missing original v1 field is defaulted or redefined.

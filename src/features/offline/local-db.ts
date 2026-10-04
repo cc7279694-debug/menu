@@ -9,9 +9,10 @@ import type {
 } from "./types";
 import type { RecipeSummary } from "@/features/recipes/types";
 import type { LocalRecipeRecord } from "@/features/local-data/types";
+import type { CookingRecord } from "@/native/cooking-model";
 
 export const RECIPIO_LOCAL_DB_NAME = "recipio-local-v2";
-export const RECIPIO_LOCAL_DB_VERSION = 6;
+export const RECIPIO_LOCAL_DB_VERSION = 7;
 export const LEGACY_OFFLINE_DB_NAME = "ordine-offline";
 export const LEGACY_MIGRATION_META_ID = "legacy-idb-migration-v1";
 /** Device-owned media is not a disposable authenticated-cloud cache. */
@@ -99,6 +100,7 @@ export class RecipioLocalDatabase extends Dexie {
   localRecipes!: Table<LocalRecipeRecord, string>;
   recipeChanges!: Table<LocalRecipeChange, string>;
   nativeBackupState!: Table<NativeBackupState, string>;
+  nativeCookingRecords!: Table<CookingRecord, string>;
 
   constructor() {
     super(RECIPIO_LOCAL_DB_NAME);
@@ -133,7 +135,8 @@ export class RecipioLocalDatabase extends Dexie {
       ...stores,
       recipeChanges: "id,recipeId,changedAt",
     });
-    this.version(RECIPIO_LOCAL_DB_VERSION).stores({ nativeBackupState: "id" });
+    this.version(6).stores({ nativeBackupState: "id" });
+    this.version(RECIPIO_LOCAL_DB_VERSION).stores({ nativeCookingRecords: "id,recipeId,[recipeId+cookedAt+id]", recipeChanges: "id,recipeId,changedAt,[recipeId+changedAt+id]" });
   }
 }
 

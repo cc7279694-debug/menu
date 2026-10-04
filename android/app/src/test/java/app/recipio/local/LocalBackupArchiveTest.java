@@ -10,14 +10,27 @@ import org.junit.*;
 import org.junit.rules.TemporaryFolder;
 
 public class LocalBackupArchiveTest {
+    @Test public void writesStrictV2WithCookingCountAndKeepsActualV1Import() throws Exception {
+        JSONObject data=empty().put("cookingRecords",new JSONArray());
+        File output=new File(folder.newFolder(),"v2.recipio");
+        LocalBackupArchive.write(output,data,Collections.emptyList(),"cooking",11,4);
+        LocalBackupArchive.Validated checked=LocalBackupArchive.validate(output);
+        assertEquals(2,checked.manifest.getInt("formatVersion"));
+        assertEquals(0,checked.manifest.getJSONObject("counts").getInt("cookingRecords"));
+        File golden=new File(folder.newFolder(),"v1.recipio");
+        try(InputStream in=getClass().getResourceAsStream("/golden-v1.recipio")){assertNotNull(in);Files.copy(in,golden.toPath());}
+        assertEquals("6553458a80d0bb38dce32ca791a64f30ea27f569df3ffc034ae7789874e3d313",LocalBackupArchive.hash(golden));
+        LocalBackupArchive.Validated old=LocalBackupArchive.validate(golden);
+        assertEquals(1,old.manifest.getInt("formatVersion"));assertEquals(2,old.data.getJSONArray("changes").length());
+    }
     @Rule public TemporaryFolder folder = new TemporaryFolder();
     private static final byte[] PNG = new byte[] {(byte)137,80,78,71,13,10,26,10,1,2,3};
     private JSONObject empty() throws Exception {
-        return new JSONObject("{\"recipes\":[],\"ingredients\":[],\"steps\":[],\"preparations\":[],\"keyTips\":[],\"changes\":[],\"settings\":{}}");
+        return new JSONObject("{\"recipes\":[],\"ingredients\":[],\"steps\":[],\"preparations\":[],\"keyTips\":[],\"changes\":[],\"cookingRecords\":[],\"settings\":{}}");
     }
     private File write(JSONObject data, List<LocalBackupArchive.Asset> assets) throws Exception {
         File output = new File(folder.newFolder(), "test.recipio");
-        LocalBackupArchive.write(output, data, assets, "test-version", 7, 3);
+        LocalBackupArchive.write(output, data, assets, "test-version", 11, 4);
         return output;
     }
     private Map<String,byte[]> entries(File file) throws Exception {
@@ -40,7 +53,7 @@ public class LocalBackupArchiveTest {
         LocalBackupArchive.Validated v = LocalBackupArchive.validate(file);
         assertEquals(0, v.manifest.getJSONObject("counts").getInt("recipes"));
         assertEquals("test-version", v.manifest.getString("appVersionName"));
-        assertEquals(3, v.manifest.getInt("databaseSchemaVersion"));
+        assertEquals(4, v.manifest.getInt("databaseSchemaVersion"));
         assertEquals(file.length(), v.size); assertEquals(LocalBackupArchive.hash(file), v.sha256);
     }
     @Test public void hashesActualMediaAndStagesNewGenerationWithoutChangingOldFile() throws Exception {
@@ -78,7 +91,7 @@ public class LocalBackupArchiveTest {
             if(defect.equals("hash"))manifest.getJSONObject("dataFile").put("sha256","f".repeat(64));
             if(defect.equals("size"))manifest.getJSONObject("dataFile").put("size",1);
             if(defect.equals("counts"))manifest.getJSONObject("counts").put("recipes",1);
-            if(defect.equals("version"))manifest.put("formatVersion",2);
+            if(defect.equals("version"))manifest.put("formatVersion",3);
             Map<String,byte[]> map=new LinkedHashMap<>(original); map.put("manifest.json",manifest.toString().getBytes("UTF-8")); File file=repack(map);
             assertThrows(IOException.class, () -> LocalBackupArchive.validate(file));
         }
@@ -108,7 +121,7 @@ public class LocalBackupArchiveTest {
     }
     @Test public void neverDeletesOrOverwritesAnExistingBackup() throws Exception {
         File existing=folder.newFile();byte[] old=new byte[]{9,8,7};Files.write(existing.toPath(),old);
-        assertThrows(IOException.class, () -> LocalBackupArchive.write(existing,empty(),Collections.emptyList(),"test",7,3));
+        assertThrows(IOException.class, () -> LocalBackupArchive.write(existing,empty(),Collections.emptyList(),"test",11,4));
         assertArrayEquals(old,Files.readAllBytes(existing.toPath()));
     }
     @Test public void rejectsDuplicateCentralNamesWrongCrcAndFalseLength()throws Exception {

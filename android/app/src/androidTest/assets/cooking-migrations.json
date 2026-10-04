@@ -1,0 +1,5 @@
+[
+  "CREATE TABLE cooking_records(id TEXT PRIMARY KEY NOT NULL, recipe_id TEXT NOT NULL REFERENCES recipes(id) ON DELETE CASCADE, cooked_at TEXT NOT NULL, finished_photo_path TEXT, evaluation TEXT CHECK(evaluation IS NULL OR evaluation IN ('tasty','okay','adjust_next_time')), note TEXT CHECK(note IS NULL OR length(note)<=2000));",
+  "CREATE INDEX cooking_records_recipe ON cooking_records(recipe_id,cooked_at DESC,id DESC);",
+  "CREATE INDEX recipe_changes_order ON recipe_changes(recipe_id,changed_at DESC,id DESC);"
+]

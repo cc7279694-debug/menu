@@ -38,8 +38,8 @@ public class LocalBackupPluginTest {
     }
     @After public void cleanup()throws Exception {resolver.delete(uri,null,null);LocalBackupArchive.deleteOwnedTree(root);}
     File source()throws Exception {
-        JSONObject empty=new JSONObject("{\"recipes\":[],\"ingredients\":[],\"steps\":[],\"preparations\":[],\"keyTips\":[],\"changes\":[],\"settings\":{}}");
-        File file=new File(root,"complete.recipio");LocalBackupArchive.write(file,empty,Collections.emptyList(),"test",7,3);return file;
+        JSONObject empty=new JSONObject("{\"recipes\":[],\"ingredients\":[],\"steps\":[],\"preparations\":[],\"keyTips\":[],\"changes\":[],\"cookingRecords\":[],\"settings\":{}}");
+        File file=new File(root,"complete.recipio");LocalBackupArchive.write(file,empty,Collections.emptyList(),"test",11,4);return file;
     }
     @Test public void realAndroidPrivateDirectoryCanReopenItsOwnOperation()throws Exception {
         LocalBackupSession s=LocalBackupSession.create(root,"export");assertEquals("root="+root+" canonical="+root.getCanonicalPath(),s.token,LocalBackupSession.reopen(root,s.token).token);s.cleanup(Collections.emptySet(),null,false);
@@ -64,7 +64,7 @@ public class LocalBackupPluginTest {
     @Test public void actualStagingSpaceFailureKeepsOldMedia()throws Exception {
         assertTrue(new File(root,"images").mkdir());String path="images/"+UUID.randomUUID()+".png";File old=new File(root,path);
         android.graphics.Bitmap bitmap=android.graphics.Bitmap.createBitmap(2,2,android.graphics.Bitmap.Config.ARGB_8888);try(FileOutputStream out=new FileOutputStream(old)){assertTrue(bitmap.compress(android.graphics.Bitmap.CompressFormat.PNG,100,out));}finally{bitmap.recycle();}
-        String oldHash=LocalBackupArchive.hash(old);JSONObject data=new JSONObject("{\"recipes\":[],\"ingredients\":[],\"steps\":[],\"preparations\":[],\"keyTips\":[],\"changes\":[],\"settings\":{}}");File archive=new File(root,"stage.recipio");LocalBackupArchive.write(archive,data,LocalBackupArchive.inspect(root,Collections.singletonList(path)),"test",7,3);
+        String oldHash=LocalBackupArchive.hash(old);JSONObject data=new JSONObject("{\"recipes\":[],\"ingredients\":[],\"steps\":[],\"preparations\":[],\"keyTips\":[],\"changes\":[],\"cookingRecords\":[],\"settings\":{}}");File archive=new File(root,"stage.recipio");LocalBackupArchive.write(archive,data,LocalBackupArchive.inspect(root,Collections.singletonList(path)),"test",11,4);
         File limited=new File(root.getPath()){@Override public long getUsableSpace(){return 0;}};String g=UUID.randomUUID().toString();
         assertThrows(IOException.class,()->LocalBackupArchive.stage(LocalBackupArchive.validate(archive),limited,g));assertEquals(oldHash,LocalBackupArchive.hash(old));assertFalse(new File(root,"images/generation-"+g).exists());
     }

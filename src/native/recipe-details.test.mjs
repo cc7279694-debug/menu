@@ -170,3 +170,39 @@ it("creates a complete recipe atomically without leaving a name-only row on fail
   const r = await store.createDetails(details);
   expect((await store.getDetails(r.id)).ingredients).toHaveLength(2);
 });
+it("normalized no-op and cooking activity create no noisy recipe history or timestamp change", async () => {
+  const { db, driver } = setup();
+  let now = Date.parse("2026-10-04T01:00:00.000Z");
+  const store = new RecipeNameStore(driver, () => new Date(now++));
+  const r = await store.createDetails(details),
+    before = await store.getDetails(r.id);
+  await store.saveDetails(r.id, {
+    ...details,
+    title: "  啤酒鸭  ",
+    notes: "  下次少放盐  ",
+  });
+  expect((await store.getDetails(r.id)).updatedAt).toBe(before.updatedAt);
+  expect(db.prepare("SELECT count(*) n FROM recipe_changes").get().n).toBe(0);
+  await store.recordCooking(r.id, "cooked");
+  expect(db.prepare("SELECT count(*) n FROM recipe_changes").get().n).toBe(0);
+});
+it("shared cooking cover records one formal change and repeating it is a no-op", async () => {
+  const { db, store } = setup(),
+    r = await store.createDetails(details);
+  await store.recordCooking(r.id, "cover-photo");
+  await store.updateCookingRecord("cover-photo", {
+    finishedPhotoPath: "images/aaaa.png",
+    evaluation: null,
+    note: null,
+  });
+  await store.setCookingPhotoAsCover("cover-photo");
+  await store.setCookingPhotoAsCover("cover-photo");
+  const changes = await store.listRecipeChanges(r.id);
+  expect(changes).toHaveLength(1);
+  expect(changes[0].after.coverPath).toBe("images/aaaa.png");
+  expect(changes[0].before).not.toHaveProperty("preparationHint");
+  expect(changes[0].before).not.toHaveProperty("lastCookedAt");
+  expect(
+    db.prepare("SELECT finished_photo_path p FROM cooking_records").get().p,
+  ).toBe("images/aaaa.png");
+});

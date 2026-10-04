@@ -17,7 +17,9 @@ final class LocalBackupArchive {
     static final long MAX_BYTES = 4294967296L;
     static final int BUFFER = 65536, MAX_DATA = 16777216, MAX_MANIFEST = 1048576;
     static final String SOURCE_PATH = "images/(?:[a-fA-F0-9-]+|generation-[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}/[a-fA-F0-9]{64})\\.(jpg|png|webp|avif)";
-    static final String[] DATA_KEYS = {"recipes","ingredients","steps","preparations","keyTips","changes"};
+    static final String[] V1_DATA_KEYS = {"recipes","ingredients","steps","preparations","keyTips","changes"};
+    static final String[] DATA_KEYS = {"recipes","ingredients","steps","preparations","keyTips","changes","cookingRecords"};
+    private static String[] plus(String[] names,String last){String[] result=Arrays.copyOf(names,names.length+1);result[names.length]=last;return result;}
     static class Asset {
         final String assetId, path, mimeType, sha256, sourcePath;
         final long size; final File source;
@@ -103,13 +105,15 @@ final class LocalBackupArchive {
             while(all.hasMoreElements()){ZipEntry entry=all.nextElement();String name=entry.getName();if(entries.size()>=10002||name.length()>128||entry.isDirectory()||!(name.equals("manifest.json")||name.equals("data.json")||name.matches("media/[a-f0-9]{64}\\.(jpg|png|webp|avif)"))||entries.put(name,entry)!=null)throw invalid("非法或重复ZIP路径");}
             byte[] manifestBytes=read(zip,entries.get("manifest.json"),MAX_MANIFEST);JSONObject manifest=parseJson(manifestBytes);
             keys(manifest,"format","formatVersion","createdAt","appVersionName","appVersionCode","databaseSchemaVersion","dataFile","media","counts");
-            if(!manifest.getString("format").equals("recipio-backup")||integer(manifest,"formatVersion",2147483647)!=1||integer(manifest,"databaseSchemaVersion",2147483647)!=3)throw invalid("不支持的备份版本，请使用匹配版本的谱序");
+            long format=integer(manifest,"formatVersion",2147483647),schema=integer(manifest,"databaseSchemaVersion",2147483647);
+            if(!manifest.getString("format").equals("recipio-backup")||!((format==1&&schema==3)||(format==2&&schema==4)))throw invalid("不支持的备份版本，请使用匹配版本的谱序");
+            String[] dataKeys=format==1?V1_DATA_KEYS:DATA_KEYS;
             time(manifest,"createdAt");if(manifest.getString("appVersionName").isEmpty()||manifest.getString("appVersionName").length()>100||integer(manifest,"appVersionCode",2147483647)<1)throw invalid("应用版本");
             JSONObject dataFile=manifest.getJSONObject("dataFile");keys(dataFile,"path","size","sha256");if(!dataFile.getString("path").equals("data.json"))throw invalid("数据路径");
             byte[] dataBytes=read(zip,entries.get("data.json"),MAX_DATA);if(integer(dataFile,"size",MAX_DATA)!=dataBytes.length||!hex(sha().digest(dataBytes)).equals(dataFile.getString("sha256")))throw invalid("数据哈希或长度");
-            JSONObject data=parseJson(dataBytes);keys(data,"recipes","ingredients","steps","preparations","keyTips","changes","settings");keys(data.getJSONObject("settings"));
-            JSONObject counts=manifest.getJSONObject("counts");keys(counts,"recipes","ingredients","steps","preparations","keyTips","changes","media");
-            for(String name:DATA_KEYS){int max=name.equals("recipes")?10000:name.equals("changes")?20000:100000;if(integer(counts,name,max)!=data.getJSONArray(name).length())throw invalid("数据数量");}
+            JSONObject data=parseJson(dataBytes);keys(data,plus(dataKeys,"settings"));keys(data.getJSONObject("settings"));
+            JSONObject counts=manifest.getJSONObject("counts");keys(counts,plus(dataKeys,"media"));
+            for(String name:dataKeys){int max=name.equals("recipes")?10000:name.equals("changes")?20000:100000;if(integer(counts,name,max)!=data.getJSONArray(name).length())throw invalid("数据数量");}
             JSONArray media=manifest.getJSONArray("media");if(media.length()>10000||integer(counts,"media",10000)!=media.length()||entries.size()!=media.length()+2)throw invalid("媒体数量或额外文件");
             List<Asset> assets=new ArrayList<>();Set<String> ids=new HashSet<>();long total=dataBytes.length+manifestBytes.length;
             for(int i=0;i<media.length();i++){JSONObject m=media.getJSONObject(i);keys(m,"assetId","path","mimeType","size","sha256");String id=m.getString("assetId"),path=m.getString("path");if(!id.matches("[a-f0-9]{64}")||!ids.add(id)||!id.equals(m.getString("sha256")))throw invalid("重复或无效媒体ID");String ext=path.substring(path.lastIndexOf('.')+1);String mime=ext.equals("jpg")?"image/jpeg":"image/"+ext;if(!path.equals("media/"+id+"."+ext)||!mime.equals(m.getString("mimeType")))throw invalid("媒体路径或类型");ZipEntry entry=entries.get(path);if(entry==null)throw invalid("缺少媒体");
@@ -121,12 +125,12 @@ final class LocalBackupArchive {
         }catch(JSONException|IllegalArgumentException e){throw invalid("容器结构或必需字段");}
     }
     static void write(File target,JSONObject data,List<Asset> input,String version,int code,int schema)throws IOException {
-        if(schema!=3||code<1)throw invalid("导出版本");boolean created=false;
+        if(schema!=4||code<1)throw invalid("导出版本");boolean created=false;
         try {
             byte[] bytes=data.toString().getBytes(StandardCharsets.UTF_8);if(bytes.length>MAX_DATA)throw invalid("数据超过上限");parseJson(bytes);
             Map<String,Asset> unique=new LinkedHashMap<>();for(Asset asset:input){Asset old=unique.put(asset.assetId,asset);if(old!=null&&!old.mimeType.equals(asset.mimeType))throw invalid("媒体类型冲突");}
             if(unique.size()>10000)throw invalid("图片数量");
-            JSONObject manifest=new JSONObject().put("format","recipio-backup").put("formatVersion",1).put("createdAt",now()).put("appVersionName",version).put("appVersionCode",code).put("databaseSchemaVersion",schema).put("dataFile",new JSONObject().put("path","data.json").put("size",bytes.length).put("sha256",hex(sha().digest(bytes))));
+            JSONObject manifest=new JSONObject().put("format","recipio-backup").put("formatVersion",2).put("createdAt",now()).put("appVersionName",version).put("appVersionCode",code).put("databaseSchemaVersion",schema).put("dataFile",new JSONObject().put("path","data.json").put("size",bytes.length).put("sha256",hex(sha().digest(bytes))));
             JSONArray media=new JSONArray();for(Asset asset:unique.values())media.put(asset.json());manifest.put("media",media);JSONObject counts=new JSONObject();for(String name:DATA_KEYS)counts.put(name,data.getJSONArray(name).length());counts.put("media",media.length());manifest.put("counts",counts);
             byte[] manifestBytes=manifest.toString().getBytes(StandardCharsets.UTF_8);if(manifestBytes.length>MAX_MANIFEST)throw invalid("清单超过上限");
             if(!target.createNewFile())throw invalid("禁止覆盖已有备份");

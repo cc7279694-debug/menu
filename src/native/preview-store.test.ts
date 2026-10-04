@@ -49,3 +49,11 @@ it("does not create a partial recipe when validation fails", async () => {
   const r = await store.createDetails({ ...emptyDetails("鸭"), notes: "少盐" });
   expect((await store.getDetails(r.id))?.notes).toBe("少盐");
 });
+it("normalizes identical edits without writing history or changing update time", async () => {
+  let now = Date.parse("2026-10-04T01:00:00.000Z");
+  const store = new PreviewRecipeLibrary(() => new Date(now++)),
+    r = await store.createDetails(emptyDetails("鸭"));
+  await store.saveDetails(r.id, emptyDetails("  鸭  "));
+  expect((await store.getDetails(r.id))?.updatedAt).toBe(r.updatedAt);
+  expect(await store.listRecipeChanges(r.id)).toEqual([]);
+});

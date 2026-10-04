@@ -1,14 +1,43 @@
 import { z } from "zod";
-import { DataOperationCoordinator, libraryDataCoordinator } from "./backup/coordinator";
+import {
+  insertCooking,
+  updateCooking,
+  readCooking,
+  activeRecipe,
+  listCooking,
+  cookingSummary,
+  listChanges,
+} from "./cooking-store";
+import type {
+  CookingRecordExtras,
+  CookingCursor,
+  ChangeCursor,
+  LibraryCleanupResult,
+} from "./cooking-model";
+import {
+  LocalMediaLifecycle,
+  localMediaLifecycle,
+  readSqlImagePaths,
+} from "./media-lifecycle";
+import {
+  sameEditableDetails,
+  storedDetailsSchema,
+  toHistorySnapshot,
+} from "./recipe-history";
+import {
+  DataOperationCoordinator,
+  libraryDataCoordinator,
+} from "./backup/coordinator";
 import {
   emptyDetails,
   recipeDetailsSchema,
   type RecipeDetails,
   type RecipeDetailsInput,
   type DurationFilter,
+  type RecipeListItem,
 } from "./recipe-model";
 
-export const schemaVersion = 3;
+export const schemaVersion = 4;
 export const undoMilliseconds = 5000;
 const versionOneStatements = [
   `CREATE TABLE IF NOT EXISTS recipes (
@@ -34,11 +63,19 @@ const versionTwoStatements = [
   "CREATE TABLE recipe_changes(id TEXT PRIMARY KEY NOT NULL, recipe_id TEXT NOT NULL REFERENCES recipes(id) ON DELETE CASCADE, changed_at TEXT NOT NULL, before_json TEXT NOT NULL, after_json TEXT NOT NULL);",
   "CREATE INDEX recipe_changes_recipe ON recipe_changes(recipe_id,changed_at);",
 ];
-const versionThreeStatements = ["CREATE TABLE backup_restore_state(id INTEGER PRIMARY KEY CHECK(id=1), operation_id TEXT NOT NULL, generation_id TEXT NOT NULL, data_sha256 TEXT NOT NULL, committed_at TEXT NOT NULL);"];
+const versionThreeStatements = [
+  "CREATE TABLE backup_restore_state(id INTEGER PRIMARY KEY CHECK(id=1), operation_id TEXT NOT NULL, generation_id TEXT NOT NULL, data_sha256 TEXT NOT NULL, committed_at TEXT NOT NULL);",
+];
+const versionFourStatements = [
+  "CREATE TABLE cooking_records(id TEXT PRIMARY KEY NOT NULL, recipe_id TEXT NOT NULL REFERENCES recipes(id) ON DELETE CASCADE, cooked_at TEXT NOT NULL, finished_photo_path TEXT, evaluation TEXT CHECK(evaluation IS NULL OR evaluation IN ('tasty','okay','adjust_next_time')), note TEXT CHECK(note IS NULL OR length(note)<=2000));",
+  "CREATE INDEX cooking_records_recipe ON cooking_records(recipe_id,cooked_at DESC,id DESC);",
+  "CREATE INDEX recipe_changes_order ON recipe_changes(recipe_id,changed_at DESC,id DESC);",
+];
 export const migrationStatements = [
   { toVersion: 1, statements: versionOneStatements },
   { toVersion: 2, statements: versionTwoStatements },
   { toVersion: 3, statements: versionThreeStatements },
+  { toVersion: 4, statements: versionFourStatements },
 ];
 // Complete fresh schema used by non-plugin tests. Existing databases use versioned upgrades above.
 export const schemaStatements = [
@@ -54,7 +91,14 @@ export const schemaStatements = [
         .replace("CREATE TABLE ", "CREATE TABLE IF NOT EXISTS ")
         .replace("CREATE INDEX ", "CREATE INDEX IF NOT EXISTS "),
     ),
-  ...versionThreeStatements.map(sql => sql.replace("CREATE TABLE ", "CREATE TABLE IF NOT EXISTS ")),
+  ...versionThreeStatements.map((sql) =>
+    sql.replace("CREATE TABLE ", "CREATE TABLE IF NOT EXISTS "),
+  ),
+  ...versionFourStatements.map((sql) =>
+    sql
+      .replace("CREATE TABLE ", "CREATE TABLE IF NOT EXISTS ")
+      .replace("CREATE INDEX ", "CREATE INDEX IF NOT EXISTS "),
+  ),
 ];
 
 const titleSchema = z
@@ -113,28 +157,116 @@ export class RecipeNameStore {
     private readonly driver: SqlDriver,
     private readonly clock = () => new Date(),
     private readonly coordinator: DataOperationCoordinator = libraryDataCoordinator,
+    private readonly media: LocalMediaLifecycle = localMediaLifecycle,
   ) {}
 
-  list(search = "", limit = 100, offset = 0, filter: DurationFilter = "all") { return this.coordinator.withDataAccess(() => this.readList(search, limit, offset, filter)); }
-  getDetails(id: string) { return this.coordinator.withDataAccess(() => this.readDetails(id)); }
-  saveDetails(id: string, input: RecipeDetailsInput) { return this.coordinator.withDataAccess(() => this.saveUnlocked(id, input)); }
-  createDetails(input: RecipeDetailsInput) { return this.coordinator.withDataAccess(() => this.createDetailsUnlocked(input)); }
-  get(id: string) { return this.coordinator.withDataAccess(() => this.getUnlocked(id)); }
-  create(title: string) { return this.coordinator.withDataAccess(() => this.createUnlocked(title)); }
-  rename(id: string, title: string) { return this.coordinator.withDataAccess(() => this.renameUnlocked(id, title)); }
-  remove(id: string) { return this.coordinator.withDataAccess(() => this.removeUnlocked(id)); }
-  undo(id: string) { return this.coordinator.withDataAccess(() => this.undoUnlocked(id)); }
-  purgeExpired() { return this.coordinator.withDataAccess(() => this.purgeUnlocked()); }
+  list(search = "", limit = 100, offset = 0, filter: DurationFilter = "all") {
+    return this.coordinator.withDataAccess(() =>
+      this.readList(search, limit, offset, filter),
+    );
+  }
+  getDetails(id: string) {
+    return this.coordinator.withDataAccess(() => this.readDetails(id));
+  }
+  saveDetails(id: string, input: RecipeDetailsInput) {
+    return this.coordinator.withDataAccess(() => this.saveUnlocked(id, input));
+  }
+  createDetails(input: RecipeDetailsInput) {
+    return this.coordinator.withDataAccess(() =>
+      this.createDetailsUnlocked(input),
+    );
+  }
+  get(id: string) {
+    return this.coordinator.withDataAccess(() => this.getUnlocked(id));
+  }
+  create(title: string) {
+    return this.coordinator.withDataAccess(() => this.createUnlocked(title));
+  }
+  rename(id: string, title: string) {
+    return this.coordinator.withDataAccess(() =>
+      this.renameUnlocked(id, title),
+    );
+  }
+  remove(id: string) {
+    return this.coordinator.withDataAccess(() => this.removeUnlocked(id));
+  }
+  undo(id: string) {
+    return this.coordinator.withDataAccess(() => this.undoUnlocked(id));
+  }
+  purgeExpired() {
+    return this.coordinator.withDataAccess(() => this.purgeUnlocked());
+  }
+  recordCooking(recipeId: string, recordId: string) {
+    return this.coordinator.withDataAccess(() =>
+      insertCooking(
+        this.driver,
+        recipeId,
+        recordId,
+        this.clock().toISOString(),
+      ),
+    );
+  }
+  updateCookingRecord(id: string, extras: CookingRecordExtras) {
+    return this.coordinator.withDataAccess(() =>
+      updateCooking(this.driver, id, extras),
+    );
+  }
+  deleteCookingRecord(id: string) {
+    return this.coordinator.withDataAccess(async () => {
+      const r = await readCooking(this.driver, id);
+      if (!r) throw new Error("做菜记录不存在");
+      await activeRecipe(this.driver, r.recipeId);
+      await this.driver.run("DELETE FROM cooking_records WHERE id=?", [id]);
+      return this.media.pruneCandidates(
+        r.finishedPhotoPath ? [r.finishedPhotoPath] : [],
+        () => readSqlImagePaths(this.driver),
+      );
+    });
+  }
+  listCookingRecords(recipeId: string, limit?: number, cursor?: CookingCursor) {
+    return this.coordinator.withDataAccess(() =>
+      listCooking(this.driver, recipeId, limit, cursor),
+    );
+  }
+  getCookingSummary(recipeId: string) {
+    return this.coordinator.withDataAccess(() =>
+      cookingSummary(this.driver, recipeId),
+    );
+  }
+  listRecipeChanges(recipeId: string, limit?: number, cursor?: ChangeCursor) {
+    return this.coordinator.withDataAccess(() =>
+      listChanges(this.driver, recipeId, limit, cursor),
+    );
+  }
+  setCookingPhotoAsCover(recordId: string) {
+    return this.coordinator.withDataAccess(async () => {
+      const record = await readCooking(this.driver, recordId);
+      if (!record?.finishedPhotoPath) throw new Error("请先添加成品照片");
+      const before = await this.readDetails(record.recipeId);
+      if (!before) throw new Error("菜谱已删除或不存在");
+      await this.writeDetails(
+        record.recipeId,
+        recipeDetailsSchema.parse({
+          ...before,
+          coverPath: record.finishedPhotoPath,
+        }),
+        before,
+      );
+      const saved = await this.readDetails(record.recipeId);
+      if (!saved) throw new Error("保存后无法读取菜谱");
+      return saved;
+    });
+  }
 
   private async readList(
     search = "",
     limit = 100,
     offset = 0,
     filter: DurationFilter = "all",
-  ): Promise<RecipeName[]> {
+  ): Promise<RecipeListItem[]> {
     const literal = search.trim().replace(/[\\%_]/g, "\\$&");
     const rows = await this.driver.query(
-      `SELECT recipes.*, (SELECT instruction FROM recipe_preparations WHERE recipe_id=recipes.id ORDER BY position LIMIT 1) preparation_hint FROM recipes WHERE deleted_at IS NULL AND (title LIKE ? ESCAPE '\\' OR EXISTS(SELECT 1 FROM recipe_ingredients WHERE recipe_id=recipes.id AND name LIKE ? ESCAPE '\\')) ${filter === "short" ? "AND total_minutes<=30" : filter === "medium" ? "AND total_minutes>30 AND total_minutes<=60" : filter === "long" ? "AND total_minutes>60" : ""} ORDER BY created_at DESC,id DESC LIMIT ? OFFSET ?`,
+      `SELECT recipes.*, (SELECT max(cooked_at) FROM cooking_records WHERE recipe_id=recipes.id) last_cooked_at, (SELECT instruction FROM recipe_preparations WHERE recipe_id=recipes.id ORDER BY position LIMIT 1) preparation_hint FROM recipes WHERE deleted_at IS NULL AND (title LIKE ? ESCAPE '\\' OR EXISTS(SELECT 1 FROM recipe_ingredients WHERE recipe_id=recipes.id AND name LIKE ? ESCAPE '\\')) ${filter === "short" ? "AND total_minutes<=30" : filter === "medium" ? "AND total_minutes>30 AND total_minutes<=60" : filter === "long" ? "AND total_minutes>60" : ""} ORDER BY created_at DESC,id DESC LIMIT ? OFFSET ?`,
       [
         `%${literal}%`,
         `%${literal}%`,
@@ -142,7 +274,13 @@ export class RecipeNameStore {
         Math.max(0, Math.floor(offset)),
       ],
     );
-    return rows.map(fromRow);
+    return rows.map((r) => ({
+      ...fromRow(r),
+      lastCookedAt: z
+        .string()
+        .nullable()
+        .parse((r as Record<string, unknown>).last_cooked_at),
+    }));
   }
   private async readDetails(id: string): Promise<RecipeDetails | null> {
     const rows = await this.driver.query(
@@ -164,7 +302,7 @@ export class RecipeNameStore {
         ),
       ),
     );
-    const input = recipeDetailsSchema.parse({
+    const input = storedDetailsSchema.parse({
       ...emptyDetails(String(row.title)),
       totalMinutes: row.total_minutes,
       servings: row.servings,
@@ -192,16 +330,21 @@ export class RecipeNameStore {
         return { instruction: r.instruction, stepNumber: r.step_number };
       }),
     });
-    return { ...fromRow(row), ...input };
+    return toHistorySnapshot({ ...fromRow(row), ...input });
   }
-  private async saveUnlocked(id: string, input: RecipeDetailsInput): Promise<void> {
+  private async saveUnlocked(
+    id: string,
+    input: RecipeDetailsInput,
+  ): Promise<void> {
     const value = recipeDetailsSchema.parse(input);
     const before = await this.readDetails(id);
     if (!before) throw new Error("菜谱已删除或不存在，请返回列表");
     if (!this.driver.batch) throw new Error("数据层不支持原子保存");
     await this.writeDetails(id, value, before);
   }
-  private async createDetailsUnlocked(input: RecipeDetailsInput): Promise<RecipeDetails> {
+  private async createDetailsUnlocked(
+    input: RecipeDetailsInput,
+  ): Promise<RecipeDetails> {
     const value = recipeDetailsSchema.parse(input);
     const id = crypto.randomUUID();
     await this.writeDetails(id, value, null);
@@ -214,6 +357,7 @@ export class RecipeNameStore {
     value: RecipeDetailsInput,
     before: RecipeDetails | null,
   ) {
+    if (before && sameEditableDetails(before, value)) return;
     if (!this.driver.batch) throw new Error("数据层不支持原子保存");
     const now = this.clock().toISOString();
     const statements: Array<{
@@ -292,7 +436,7 @@ export class RecipeNameStore {
           crypto.randomUUID(),
           id,
           now,
-          JSON.stringify(before),
+          JSON.stringify(toHistorySnapshot(before)),
           JSON.stringify(value),
         ],
       });
@@ -343,13 +487,17 @@ export class RecipeNameStore {
       )) === 1
     );
   }
-  private async purgeUnlocked(): Promise<void> {
+  private async purgeUnlocked(): Promise<LibraryCleanupResult> {
     const cutoff = new Date(
       this.clock().getTime() - undoMilliseconds,
     ).toISOString();
+    const candidates = await readSqlImagePaths(this.driver, cutoff);
     await this.driver.run(
       "DELETE FROM recipes WHERE deleted_at IS NOT NULL AND deleted_at<=?",
       [cutoff],
+    );
+    return this.media.pruneCandidates(candidates, () =>
+      readSqlImagePaths(this.driver),
     );
   }
 }

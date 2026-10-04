@@ -1,5 +1,27 @@
 # Decisions
 
+## 2026-10-04 — APK-3 local cooking data and strict backup successor
+
+### Decision
+
+Keep full steps as the default. Focus/Guided are optional views, not sessions; only explicit completion creates an idempotent, minimal local record. Reuse current change snapshots as read-only history. Add incremental SQLite v4 / Preview v7 record storage and keyset indexes, without changing old rows.
+
+### Context
+
+APK-2 Backup Format v1 is a frozen strict schema: its source is SQLite3 and it already requires modification history. New records cannot be silently added to or omitted from that definition.
+
+### Alternatives
+
+Redefining v1 or making all new records optional would weaken the accepted integrity contract. A separate version tree or cooking state machine would exceed the approved product scope.
+
+### Reason
+
+New exports use strict Format v2/schema4 with required cooking records/counts. Unchanged v1 validation runs first; internal normalization adds only an empty cooking-record collection. The original input manifest/hash remains the restore commit identity. Full reference closure includes current images, old snapshots, soft-deleted Undo recipes and cooking photos; immutable paths can be shared with covers. Export pins protect snapshot files after releasing the short data lock.
+
+### Consequences
+
+Seven business tables participate in the same atomic restore and safety backup. Draft/replaced image files are conservatively retained; only explicit deletion candidates with no live/history/record/export reference are removed. No login, network, timer or later AI module is introduced. Final verification is still in progress and is recorded separately from this design decision.
+
 ## 2026-10-04 — Backup Format v1 与提交事实驱动的安全 Replace
 
 ### Decision
