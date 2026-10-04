@@ -28,4 +28,12 @@ public class AiTemporaryImagesTest {
     @Test public void rejectingSeventhImageMustNotDecrementAnUnacquiredPin()throws Exception {for(int i=0;i<6;i++)add(a);assertThrows(AiFailure.class,()->add(a));images.discard(a);assertFalse(folder(a).exists());}
     @Test public void fullOriginalLimitIsAllowedAndOutputFailureDoesNotRetainOriginal()throws Exception {byte[] bytes=new byte[15*1024*1024];AiTemporaryImages.Image accepted=images.importStream(a,new ByteArrayInputStream(bytes),"image/jpeg");assertEquals(4,accepted.byteSize);AiTemporaryImages failing=new AiTemporaryImages(cache,()->now[0],(f,m)->{throw new IOException();});UUID id=UUID.randomUUID();failing.create(id);assertThrows(AiFailure.class,()->failing.importStream(id,new ByteArrayInputStream(jpeg),"image/jpeg"));assertEquals(1,Objects.requireNonNull(folder(id).list()).length);}
     @Test public void boundsAt16MPAndOversizedWideInputs()throws Exception {AiImageCodec.dimensions(4000,4000);AiImageCodec.dimensions(8000,4000);assertThrows(AiFailure.class,()->AiImageCodec.dimensions(Integer.MAX_VALUE,Integer.MAX_VALUE));}
+    @Test public void activeUnpinnedSessionCleansOrphanOriginalsButPreservesSelectedImages()throws Exception {
+        AiTemporaryImages.Image selected=add(a);File orphan=new File(folder(a),UUID.randomUUID()+".source.part"),unused=new File(folder(a),UUID.randomUUID()+".jpg");
+        try(FileOutputStream out=new FileOutputStream(orphan)){out.write(new byte[]{1,2,3});}try(FileOutputStream out=new FileOutputStream(unused)){out.write(jpeg);}
+        assertFalse(images.cleanupAbandoned());assertFalse(orphan.exists());assertFalse(unused.exists());assertTrue(new File(folder(a),selected.id+".jpg").exists());
+    }
+    @Test public void cleanupNeverDeletesOriginalDuringPinnedDecode()throws Exception {
+        UUID id=UUID.randomUUID();AiTemporaryImages[] target=new AiTemporaryImages[1];target[0]=new AiTemporaryImages(cache,()->now[0],(file,mime)->{assertFalse(target[0].cleanupAbandoned());assertTrue(file.exists());return new AiTemporaryImages.Processed(jpeg,200,100);});target[0].create(id);target[0].importStream(id,new ByteArrayInputStream(jpeg),"image/jpeg");
+    }
 }

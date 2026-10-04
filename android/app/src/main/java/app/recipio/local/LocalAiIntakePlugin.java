@@ -18,6 +18,8 @@ import org.json.*;
 public class LocalAiIntakePlugin extends Plugin {
     private final ExecutorService worker=Executors.newSingleThreadExecutor();
     private final Set<String> sessions=new HashSet<>();
+    private final Set<String> pendingDiscards=new HashSet<>();
+    private final LinkedHashSet<String> completedDiscards=new LinkedHashSet<>();
     private AiNativeRuntime runtime;private QwenClient client;
     private boolean picking;
     private volatile String activeOperation,activeRequest;private volatile AiRequestLifecycle.Token activeToken;
@@ -25,8 +27,18 @@ public class LocalAiIntakePlugin extends Plugin {
     private static void keys(PluginCall call,String... names)throws AiFailure {Set<String> allowed=new HashSet<>(Arrays.asList(names));if(call.getData().length()!=allowed.size())throw new AiFailure("input_invalid");Iterator<String> actual=call.getData().keys();while(actual.hasNext())if(!allowed.contains(actual.next()))throw new AiFailure("input_invalid");}
     private synchronized String operation(PluginCall call)throws AiFailure {String id=call.getString("operationId");if(!AiRequestLifecycle.uuid(id)||!sessions.contains(id))throw new AiFailure("stale_session");return id;}
     private void reject(PluginCall call,Exception error){AiFailure safe=error instanceof AiFailure?(AiFailure)error:new AiFailure("invalid_output");JSObject data=new JSObject();if(safe.httpStatus!=0)data.put("httpStatus",safe.httpStatus);if(safe.providerCode!=null)data.put("providerCode",safe.providerCode);call.reject(safe.code,safe.code,data);}
-    @PluginMethod public void createSession(PluginCall call){try{keys(call);submit(call,()->{synchronized(this){if(sessions.size()>=8)throw new AiFailure("busy");UUID id=UUID.randomUUID();runtime.images(getContext()).create(id);sessions.add(id.toString());call.resolve(new JSObject().put("operationId",id.toString()));}});}catch(Exception e){reject(call,e);}}
-    @PluginMethod public void discardSession(PluginCall call){try{keys(call,"operationId");String id=operation(call);synchronized(this){sessions.remove(id);}AiRequestLifecycle.Token token=activeToken;if(token!=null&&id.equals(activeOperation))runtime.lifecycle.cancel(token.id);runtime.images(getContext()).discard(UUID.fromString(id));if(token!=null&&id.equals(activeOperation))token.whenFinished(call::resolve);else call.resolve();}catch(Exception e){reject(call,e);}}
+    @PluginMethod public void createSession(PluginCall call){try{keys(call);submit(call,()->{synchronized(this){if(sessions.size()+pendingDiscards.size()>=8)throw new AiFailure("busy");UUID id=UUID.randomUUID();runtime.images(getContext()).create(id);sessions.add(id.toString());call.resolve(new JSObject().put("operationId",id.toString()));}});}catch(Exception e){reject(call,e);}}
+    @PluginMethod public void discardSession(PluginCall call){
+        try{keys(call,"operationId");String id=call.getString("operationId");
+            synchronized(this){if(!AiRequestLifecycle.uuid(id)||!sessions.contains(id)&&!pendingDiscards.contains(id)&&!completedDiscards.contains(id))throw new AiFailure("stale_session");
+                if(completedDiscards.contains(id)){call.resolve();return;}sessions.remove(id);pendingDiscards.add(id);}
+            AiRequestLifecycle.Token token=activeToken;if(token!=null&&id.equals(activeOperation))runtime.lifecycle.cancel(token.id);
+            // Queue after decode/request work, so its image pin is released before cleanup is acknowledged.
+            submit(call,()->{runtime.images(getContext()).discard(UUID.fromString(id));
+                synchronized(this){pendingDiscards.remove(id);completedDiscards.add(id);if(completedDiscards.size()>32)completedDiscards.remove(completedDiscards.iterator().next());}
+                call.resolve();});
+        }catch(Exception e){reject(call,e);}
+    }
     @PluginMethod public void cancel(PluginCall call){try{keys(call,"operationId","requestId");String id=operation(call),request=call.getString("requestId");if(!AiRequestLifecycle.uuid(request))throw new AiFailure("input_invalid");AiRequestLifecycle.Token token=activeToken;if(token!=null&&request.equals(token.id)&&id.equals(activeOperation)){runtime.lifecycle.cancel(request);token.whenFinished(call::resolve);}else call.resolve();}catch(Exception e){reject(call,e);}}
     @PluginMethod public void organize(PluginCall call){
         try{keys(call,"operationId","requestId","text","imageIds");String id=operation(call),request=call.getString("requestId");Object value=call.getData().get("text");if(!(value instanceof String))throw new AiFailure("input_invalid");JSArray handles=call.getArray("imageIds");if(handles==null)throw new AiFailure("input_invalid");
@@ -65,5 +77,5 @@ public class LocalAiIntakePlugin extends Plugin {
             if(failure!=null)reject(call,failure);else if(preflight)call.resolve(new JSObject().put("available",true).put("model",AiIntakeContract.MODEL).put("region","beijing"));else call.resolve(new JSObject().put("rawJson",output));
         });}catch(RejectedExecutionException ignored){runtime.lifecycle.cancel(request);runtime.lifecycle.finishRequest(request);if(request.equals(activeRequest)){activeRequest=null;activeOperation=null;activeToken=null;}throw new AiFailure("stale_session");}
     }
-    @Override protected void handleOnDestroy(){String request=activeRequest;if(request!=null)runtime.lifecycle.cancel(request);synchronized(this){for(String id:sessions)try{runtime.images(getContext()).discard(UUID.fromString(id));}catch(Exception ignored){/* Registered cache retried at next startup. */}sessions.clear();}worker.shutdown();}
+    @Override protected void handleOnDestroy(){String request=activeRequest;if(request!=null)runtime.lifecycle.cancel(request);synchronized(this){Set<String> owned=new HashSet<>(sessions);owned.addAll(pendingDiscards);for(String id:owned)try{runtime.images(getContext()).discard(UUID.fromString(id));}catch(Exception ignored){/* Registered cache retried at next startup. */}sessions.clear();pendingDiscards.clear();completedDiscards.clear();}worker.shutdown();}
 }

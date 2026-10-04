@@ -54,10 +54,17 @@ final class AiTemporaryImages {
     synchronized boolean cleanupAbandoned(){
         pendingCleanup=false;
         try{safe(root);File[] directories=root.listFiles();if(directories==null)throw new IOException();for(File directory:directories){if(!AiRequestLifecycle.uuid(directory.getName()))continue;safe(directory);File marker=safe(new File(directory,".session"));if(!marker.isFile())continue;long created;try(DataInputStream input=new DataInputStream(new FileInputStream(marker))){if(marker.length()!=12||input.readInt()!=1)continue;created=input.readLong();}
-                UUID id=UUID.fromString(directory.getName());Session session=sessions.get(id);if(session!=null){if(session.pins==0&&(session.ended||clock.now()>=session.created&&clock.now()-session.created>=86400000L)){session.ended=true;cleanup(session);}else if(!knownChildren(directory))pendingCleanup=true;}
+                UUID id=UUID.fromString(directory.getName());Session session=sessions.get(id);if(session!=null){if(session.pins==0&&(session.ended||clock.now()>=session.created&&clock.now()-session.created>=86400000L)){session.ended=true;cleanup(session);}else if(!knownChildren(directory))pendingCleanup=true;else if(session.pins==0)cleanupOrphans(session);}
                 else cleanup(new Session(directory,created));
             }
         }catch(Exception ignored){pendingCleanup=true;}return pendingCleanup;
+    }
+    private void cleanupOrphans(Session session)throws Exception {
+        File[] children=session.dir.listFiles();if(children==null)throw new IOException();
+        for(File child:children){String name=child.getName();if(name.equals(".session"))continue;
+            boolean selected=name.endsWith(".jpg")&&session.images.containsKey(UUID.fromString(name.substring(0,name.length()-4)));
+            if(!selected&&!unlink(child))pendingCleanup=true;
+        }
     }
     private Session owned(UUID id)throws Exception {Session session=sessions.get(id);if(session==null||session.ended)throw new AiFailure("stale_session");safe(root);safe(session.dir);return session;}
     private boolean cleanup(Session session){try{if(session.pins!=0)return true;safe(root);safe(session.dir);if(!knownChildren(session.dir))throw new IOException();File[] children=session.dir.listFiles();if(children==null)throw new IOException();for(File child:children){if(child.getName().equals(".session"))continue;if(!unlink(child))throw new IOException();}if(!unlink(new File(session.dir,".session"))||!session.dir.delete())throw new IOException();sessions.remove(UUID.fromString(session.dir.getName()));return true;}catch(Exception ignored){pendingCleanup=true;return false;}}
