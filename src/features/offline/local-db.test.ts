@@ -21,20 +21,22 @@ describe("Recipio local database foundation", () => {
     const database = await getLocalDatabase();
 
     expect(database.name).toBe(RECIPIO_LOCAL_DB_NAME);
-    expect(database.tables.map((table) => table.name)).toEqual(expect.arrayContaining([
-      "profiles",
-      "recipes",
-      "shoppingSnapshots",
-      "shoppingToggleQueue",
-      "meta",
-      "recipeDrafts",
-      "cookingSessions",
-      "mutationQueue",
-      "syncMeta",
-      "media",
-      "recipeSummaries",
-      "localRecipes",
-    ]));
+    expect(database.tables.map((table) => table.name)).toEqual(
+      expect.arrayContaining([
+        "profiles",
+        "recipes",
+        "shoppingSnapshots",
+        "shoppingToggleQueue",
+        "meta",
+        "recipeDrafts",
+        "cookingSessions",
+        "mutationQueue",
+        "syncMeta",
+        "media",
+        "recipeSummaries",
+        "localRecipes",
+      ]),
+    );
   });
 
   it("keeps cached media scoped to its recipe and user", async () => {
@@ -52,32 +54,54 @@ describe("Recipio local database foundation", () => {
 
     await database.media.put(media);
 
-    expect(await database.media.get(["user-a", "recipe-a", "cover"])).toMatchObject({ sourceKey: media.sourceKey });
-    expect(await database.media.get(["user-b", "recipe-a", "cover"])).toBeUndefined();
+    expect(
+      await database.media.get(["user-a", "recipe-a", "cover"]),
+    ).toMatchObject({ sourceKey: media.sourceKey });
+    expect(
+      await database.media.get(["user-b", "recipe-a", "cover"]),
+    ).toBeUndefined();
   });
 
   it("upgrades a previously opened local database before using media", async () => {
     const legacyLocal = await openDB(RECIPIO_LOCAL_DB_NAME, 1, {
       upgrade(database) {
         database.createObjectStore("profiles", { keyPath: "userId" });
-        database.createObjectStore("recipes", { keyPath: ["userId", "recipeId"] });
+        database.createObjectStore("recipes", {
+          keyPath: ["userId", "recipeId"],
+        });
         database.createObjectStore("shoppingSnapshots", { keyPath: "userId" });
-        database.createObjectStore("shoppingToggleQueue", { keyPath: ["userId", "listId", "itemId"] });
+        database.createObjectStore("shoppingToggleQueue", {
+          keyPath: ["userId", "listId", "itemId"],
+        });
         database.createObjectStore("meta", { keyPath: "id" });
-        database.createObjectStore("recipeDrafts", { keyPath: ["userId", "draftId"] });
-        database.createObjectStore("cookingSessions", { keyPath: ["userId", "recipeId"] });
+        database.createObjectStore("recipeDrafts", {
+          keyPath: ["userId", "draftId"],
+        });
+        database.createObjectStore("cookingSessions", {
+          keyPath: ["userId", "recipeId"],
+        });
         database.createObjectStore("mutationQueue", { keyPath: "id" });
-        database.createObjectStore("syncMeta", { keyPath: ["userId", "scope"] });
+        database.createObjectStore("syncMeta", {
+          keyPath: ["userId", "scope"],
+        });
       },
     });
     legacyLocal.close();
 
     const database = await getLocalDatabase();
 
-    expect(database.verno).toBe(6);
+    expect(database.verno).toBe(7);
     expect(database.tables.map((table) => table.name)).toContain("media");
-    expect(database.tables.map((table) => table.name)).toContain("localRecipes");
-    expect(database.tables.map((table) => table.name)).toContain("nativeBackupState");
+    expect(database.tables.map((table) => table.name)).toContain(
+      "localRecipes",
+    );
+    expect(database.tables.map((table) => table.name)).toContain(
+      "nativeBackupState",
+    );
+    expect(database.tables.map((table) => table.name)).toContain(
+      "nativeCookingRecords",
+    );
+    expect(await database.nativeCookingRecords.count()).toBe(0);
   });
 
   it("clears cached media with the rest of the offline data", async () => {
@@ -101,11 +125,21 @@ describe("Recipio local database foundation", () => {
   it("keeps user-owned stores isolated by user id", async () => {
     const database = await getLocalDatabase();
 
-    await database.profiles.put({ userId: "user-a", lastAuthenticatedAt: "2026-09-04T00:00:00.000Z" });
-    await database.profiles.put({ userId: "user-b", lastAuthenticatedAt: "2026-09-04T00:00:00.000Z" });
+    await database.profiles.put({
+      userId: "user-a",
+      lastAuthenticatedAt: "2026-09-04T00:00:00.000Z",
+    });
+    await database.profiles.put({
+      userId: "user-b",
+      lastAuthenticatedAt: "2026-09-04T00:00:00.000Z",
+    });
 
-    expect(await database.profiles.get("user-a")).toMatchObject({ userId: "user-a" });
-    expect(await database.profiles.get("user-b")).toMatchObject({ userId: "user-b" });
+    expect(await database.profiles.get("user-a")).toMatchObject({
+      userId: "user-a",
+    });
+    expect(await database.profiles.get("user-b")).toMatchObject({
+      userId: "user-b",
+    });
   });
 
   it("migrates the existing idb cache without deleting the legacy database", async () => {
@@ -117,7 +151,14 @@ describe("Recipio local database foundation", () => {
         database.createObjectStore("shoppingToggleQueue");
       },
     });
-    await legacy.put("profiles", { userId: "legacy-user", lastAuthenticatedAt: "2026-09-04T00:00:00.000Z" }, "legacy-user");
+    await legacy.put(
+      "profiles",
+      {
+        userId: "legacy-user",
+        lastAuthenticatedAt: "2026-09-04T00:00:00.000Z",
+      },
+      "legacy-user",
+    );
     const legacyRecipe = {
       userId: "legacy-user",
       recipeId: "legacy-recipe",
@@ -138,10 +179,18 @@ describe("Recipio local database foundation", () => {
 
     const database = await getLocalDatabase();
 
-    expect(await database.profiles.get("legacy-user")).toMatchObject({ userId: "legacy-user" });
-    expect(await database.recipes.get(["legacy-user", "legacy-recipe"])).toMatchObject({ recipeId: "legacy-recipe" });
-    expect(await database.shoppingSnapshots.get("legacy-user")).toMatchObject({ listId: "legacy-list" });
-    expect(await database.meta.get("legacy-idb-migration-v1")).toMatchObject({ status: "complete" });
+    expect(await database.profiles.get("legacy-user")).toMatchObject({
+      userId: "legacy-user",
+    });
+    expect(
+      await database.recipes.get(["legacy-user", "legacy-recipe"]),
+    ).toMatchObject({ recipeId: "legacy-recipe" });
+    expect(await database.shoppingSnapshots.get("legacy-user")).toMatchObject({
+      listId: "legacy-list",
+    });
+    expect(await database.meta.get("legacy-idb-migration-v1")).toMatchObject({
+      status: "complete",
+    });
 
     const legacyAgain = await openDB("ordine-offline");
     expect(Array.from(legacyAgain.objectStoreNames)).toContain("profiles");
