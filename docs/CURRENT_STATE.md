@@ -2,7 +2,9 @@
 
 ## Current Stage
 
-2026-10-04：APK-2 完整备份与安全恢复已实现并通过适用技术验收，状态 BACKUP_RESTORE_COMPLETE；固定 SOL，等待用户验收，不进入 APK-3。分支 `feat/recipio-backup-restore`，基线 `2973893`，最终代码修补提交 `03ed5d3`；文档/审查包最终提交以 Git HEAD 和 packet manifest 为准，只普通推送本功能分支。当前 SQLite v3、Dexie v6。最终 v10 APK SHA 与重新 sync/assemble 的输出一致；不沿用 APK-1 绿灯。
+2026-10-04：用户已验收 APK-2 并批准 APK-3 冻结产品范围。已核对干净的 `feat/recipio-backup-restore` / `b541d8acfb2aec75dd139705030f3e647fc5a24a` 与远端一致，从其建立 `feat/recipio-cooking-experience`。固定 SOL；现完成最小审计及一次实施计划，按 writing-plans 门禁等待计划确认，未开始 APK-3 业务代码、迁移、测试或设备操作。计划：`superpowers/plans/2026-10-04-apk-3-cooking-experience.md`。
+
+当前实现仍是 APK-2：SQLite v3、Dexie v6、Backup Format v1、versionCode10；APK-3 的 v4/v7/v2/versionCode11 都是计划值，不能当作已实现。APK-2 最终代码修补至 `03ed5d3`、交付文档提交 `b541d8a`，原验证结果和证据继续保留，不用来证明 APK-3 已通过。
 
 APK-1 Android Native Acceptance Gate 技术验收通过，状态 DAILY_LIBRARY_ANDROID_VERIFIED。原生选图修复与证据继承 `checkpoints/2026-10-04-daily-library-acceptance.md`；用户初步体验反馈不等同本代理已完成物理手机全流程测试。
 
@@ -30,7 +32,7 @@ APK-1 Android Native Acceptance Gate 技术验收通过，状态 DAILY_LIBRARY_A
 
 - 用户已反馈下载和初步体验正常；物理手机/OEM 全流程独立验证未执行，既有原生技术证据来自模拟器，不冒充真机。
 - 真实系统选择器/视觉解码验收使用 PNG；其他 MIME 的复制映射在 JVM 验证，不等于四种格式在所有 Android 版本上都已实测。
-- APK-2 等待用户体验验收；真机/OEM 与极限规模/硬件掉电未实测。没有未解决的本模块测试或架构阻塞。烹饪记录、可选 AI 与链接/视频尚未进入。
+- APK-2 用户验收已通过；真机/OEM 与极限规模/硬件掉电未实测。APK-3 实施计划待确认，暂无发现必须改变冻结语义/恢复原子性的架构阻塞。原生烹饪记录尚未实现；可选 AI 与链接/视频继续后置。
 - 本预览没有 Service Worker，不承诺断网冷启动/刷新；已加载页面可以本地操作。
 
 ## Current Risks
@@ -44,10 +46,10 @@ APK-1 Android Native Acceptance Gate 技术验收通过，状态 DAILY_LIBRARY_A
 
 ## Current Branch / Module
 
-`feat/recipio-backup-restore` / APK-2 技术验收完成；从 `2973893` 创建，六次代码实现/修补提交至 `03ed5d3`，原批准规划改动已保留并同步为事实。交付只聚焦提交/普通推送本分支，不合并 main、不部署；最终冻结提交由 packet manifest 记录。
+`feat/recipio-cooking-experience` / APK-3 计划审核阶段；从已验收 `b541d8a` 创建。只准备产品已批准增量和一次实施计划，不重新访谈或换路线。普通提交/最终推送本功能分支，不合并 main、不部署；APK-2 检查点/备份/产物全部保留。
 
 ## Next Recommended Task
 
-停止等待用户 APK-2 验收；不进入 APK-3，不重新规划或切换模型。后续按本模块 checkpoint 继承格式、事务与媒体安全决定。
+等待用户确认 `2026-10-04-apk-3-cooking-experience.md` 后，SOL 按同一计划测试先行完整实施；内部任务不再逐项询问。先原生做菜记录迁移/图片引用，再补齐 v2 + 严格 v1 导入，随后接查看/完成/历史 UI，最后重新全量及实际 Android 验证。未确认前不编码；完成 APK-3 后停止，不进入 AI。
 
 见 PRODUCT_SPEC.md、IMPLEMENTATION_PLAN.md、checkpoints/2026-10-03-daily-library-android.md 和 verification/daily-library-android.md。旧浏览器检查点保留为历史。
