@@ -14,7 +14,10 @@ final class AiSecretStore {
     private final EnvelopeFile file;private final KeyAccess keys;
     AiSecretStore(EnvelopeFile file,KeyAccess keys){this.file=file;this.keys=keys;}
     synchronized void save(char[] value)throws Exception{AiSecretEnvelope.validate(value);file.replace(AiSecretEnvelope.encrypt(value,keys.get(true)));}
-    synchronized char[] readForRequest()throws Exception{byte[] bytes=file.read();return bytes==null ? null : AiSecretEnvelope.decrypt(bytes,keys.get(false));}
+    synchronized char[] readForRequest()throws AiFailure {
+        try{byte[] bytes=file.read();return bytes==null ? null : AiSecretEnvelope.decrypt(bytes,keys.get(false));}
+        catch(Exception ignored){throw new AiFailure("key_unavailable");}
+    }
     synchronized boolean hasKey()throws Exception{char[] value=readForRequest();if(value==null)return false;Arrays.fill(value,'\0');return true;}
     synchronized void delete()throws Exception{file.delete();}
     static AiSecretStore open(Context context){return open(context.getNoBackupFilesDir(),"app.recipio.local.ai-key.v1");}

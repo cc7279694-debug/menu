@@ -58,6 +58,6 @@ public class AiSecretEnvelopeTest {
             public void replace(byte[] ignored){changed[0]=true;}
             public void delete(){changed[0]=true;}
         },create->{assertFalse(create);return key;});
-        assertThrows(Exception.class,store::hasKey);assertFalse(changed[0]);
+        assertEquals("key_unavailable",assertThrows(AiFailure.class,store::hasKey).code);assertFalse(changed[0]);
     }
 }

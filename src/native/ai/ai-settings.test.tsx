@@ -57,3 +57,17 @@ it("settings remains navigable to backup and home after key failure", async () =
   fireEvent.click(screen.getByRole("button",{name:"设置"}));await screen.findByText("请在设置中重新配置本机 AI 密钥。");
   expect(screen.getByRole("heading",{name:"数据与备份"})).toBeInTheDocument();fireEvent.click(screen.getByRole("button",{name:"首页"}));await screen.findByRole("heading",{name:"今天想做什么？"});
 });
+it("model preflight requires an explicit cost confirmation and never starts on mount",async()=>{
+  const verify=vi.fn(async()=>({available:true as const,model:"qwen3.8-flash" as const,region:"beijing" as const}));
+  render(<AiSettings keys={keys(true)} onChanged={()=>{}} verifyAccess={verify}/>);await screen.findByText("已配置");expect(verify).not.toHaveBeenCalled();
+  fireEvent.click(screen.getByRole("button",{name:"验证模型访问"}));expect(verify).not.toHaveBeenCalled();
+  fireEvent.click(await screen.findByRole("button",{name:"暂不验证"}));expect(verify).not.toHaveBeenCalled();
+  fireEvent.click(screen.getByRole("button",{name:"验证模型访问"}));fireEvent.click(await screen.findByRole("button",{name:"确认验证"}));
+  await screen.findByText("模型访问已验证：qwen3.8-flash（北京）");expect(verify.mock.calls).toEqual([[]]);
+});
+it("failed preflight displays only allowed HTTP/provider diagnostics without auto retry",async()=>{
+  const verify=vi.fn(async()=>{throw {code:"forbidden",message:"private response",data:{httpStatus:403,providerCode:"ModelNotFound"}};});
+  render(<AiSettings keys={keys(true)} onChanged={()=>{}} verifyAccess={verify}/>);await screen.findByText("已配置");
+  fireEvent.click(screen.getByRole("button",{name:"验证模型访问"}));fireEvent.click(await screen.findByRole("button",{name:"确认验证"}));
+  await screen.findByText(/HTTP 403 · ModelNotFound/);expect(screen.queryByText(/private response/)).not.toBeInTheDocument();expect(verify).toHaveBeenCalledTimes(1);
+});

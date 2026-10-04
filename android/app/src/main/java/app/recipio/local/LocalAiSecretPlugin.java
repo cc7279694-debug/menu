@@ -14,13 +14,14 @@ import java.util.concurrent.atomic.AtomicBoolean;
 @CapacitorPlugin(name="LocalAiSecret")
 public class LocalAiSecretPlugin extends Plugin {
     private AiSecretStore store;
+    private AiRequestLifecycle lifecycle;
     private final AtomicBoolean dialogBusy=new AtomicBoolean();
     private AlertDialog dialog;
     private EditText input;
     private PluginCall pending;
-    @Override public void load(){store=AiSecretStore.open(getContext());}
+    @Override public void load(){AiNativeRuntime runtime=AiNativeRuntime.get(getContext());store=runtime.secrets;lifecycle=runtime.lifecycle;}
     @PluginMethod public void hasAiKey(PluginCall call){getBridge().execute(()->{try{call.resolve(new JSObject().put("configured",store.hasKey()));}catch(Exception ignored){call.reject("key_unavailable","key_unavailable");}});}
-    @PluginMethod public void deleteAiKey(PluginCall call){getBridge().execute(()->{try{store.delete();call.resolve();}catch(Exception ignored){call.reject("key_unavailable","key_unavailable");}});}
+    @PluginMethod public void deleteAiKey(PluginCall call){getBridge().execute(()->{try{lifecycle.withSecretMutation(()->{store.delete();return null;});call.resolve();}catch(Exception error){String code=error instanceof AiFailure?((AiFailure)error).code:"key_unavailable";call.reject(code,code);}});}
     @PluginMethod public void saveAiKey(PluginCall call){
         if(!dialogBusy.compareAndSet(false,true)){call.reject("busy","busy");return;}
         pending=call;getActivity().runOnUiThread(()->{
@@ -31,8 +32,8 @@ public class LocalAiSecretPlugin extends Plugin {
                 char[] value=input.getText().toString().trim().toCharArray();input.getText().clear();
                 try{AiSecretEnvelope.validate(value);}catch(Exception ignored){Arrays.fill(value,'\0');input.setError("请输入有效的 sk- 开头 API Key");return;}
                 dialog.getButton(AlertDialog.BUTTON_POSITIVE).setEnabled(false);dialog.getButton(AlertDialog.BUTTON_NEGATIVE).setEnabled(false);dialog.setCancelable(false);
-                getBridge().execute(()->{boolean success=false;try{store.save(value);success=true;}catch(Exception ignored){}finally{Arrays.fill(value,'\0');}
-                    final boolean saved=success;getActivity().runOnUiThread(()->{PluginCall target=pending;clear();if(target!=null){if(saved)target.resolve(new JSObject().put("configured",true).put("cancelled",false));else target.reject("key_unavailable","key_unavailable");}});
+                getBridge().execute(()->{String errorCode=null;try{lifecycle.withSecretMutation(()->{store.save(value);return null;});}catch(Exception error){errorCode=error instanceof AiFailure?((AiFailure)error).code:"key_unavailable";}finally{Arrays.fill(value,'\0');}
+                    final String failure=errorCode;getActivity().runOnUiThread(()->{PluginCall target=pending;clear();if(target!=null){if(failure==null)target.resolve(new JSObject().put("configured",true).put("cancelled",false));else target.reject(failure,failure);}});
                 });
             }));
             dialog.getWindow().addFlags(WindowManager.LayoutParams.FLAG_SECURE);dialog.show();

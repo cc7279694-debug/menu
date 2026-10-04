@@ -10,6 +10,7 @@ public class MainActivity extends BridgeActivity {
         registerPlugin(LocalImagePickerPlugin.class);
         registerPlugin(LocalBackupPlugin.class);
         registerPlugin(LocalAiSecretPlugin.class);
+        registerPlugin(LocalAiIntakePlugin.class);
         super.onCreate(savedInstanceState);
         getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
             @Override
