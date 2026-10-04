@@ -42,7 +42,7 @@ export interface ArchivePort {
   cleanupOrphans(): Promise<void>;
 }
 const chosenSchema = z.union([z.strictObject({ cancelled: z.literal(true) }), z.strictObject({ token: tokenSchema })]);
-function boundedJson(value: unknown) { if (new TextEncoder().encode(JSON.stringify(value)).length>limits.dataBytes) throw new Error("备份数据超过本版本处理上限"); }
+function boundedJson(value: unknown, maximum: number = limits.dataBytes) { if (new TextEncoder().encode(JSON.stringify(value)).length>maximum) throw new Error("备份数据超过本版本处理上限"); }
 export class NativeArchive implements ArchivePort {
   constructor(private readonly plugin: NativeBackupPlugin) {}
   async chooseExport(suggestedName: string) { return chosenSchema.parse(await this.plugin.chooseExport({ suggestedName: z.string().min(1).max(150).regex(/^[^/\\\u0000-\u001f]+\.recipio$/).parse(suggestedName) })); }
@@ -57,7 +57,7 @@ export class NativeArchive implements ArchivePort {
     return z.strictObject({ ...resultSchema.shape, fileName: z.string().min(1).max(200), manifest: backupManifestSchema }).parse(await this.plugin.writeExport({ token: tokenSchema.parse(token), data: backupDataSchema.parse(data), sourceSchemaVersion: z.literal(3).parse(sourceSchemaVersion) }));
   }
   async chooseRestore(): Promise<ChosenRestore> {
-    const raw = await this.plugin.chooseRestore(); boundedJson(raw);
+    const raw = await this.plugin.chooseRestore(); boundedJson(raw, limits.dataBytes + limits.manifestBytes + 1024);
     if (z.strictObject({ cancelled: z.literal(true) }).safeParse(raw).success) return { cancelled: true };
     const response = z.strictObject({ token: tokenSchema, manifest: z.unknown(), data: z.unknown() }).parse(raw);
     try { return { token: response.token, ...validateBackupData(response.data, response.manifest) }; }

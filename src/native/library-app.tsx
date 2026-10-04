@@ -12,9 +12,12 @@ import {
 import { RecipeEditor } from "./recipe-editor";
 import { RecipeDetail } from "./recipe-detail";
 import { LocalImage } from "./local-image";
+import { BackupControls, backupBusy, useBackupState, type BackupController } from "./backup/backup-controls";
 
 type View = "home" | "library" | "settings" | "new" | "detail" | "edit";
-export function LibraryApp({ store }: { store: RecipeLibrary }) {
+export function LibraryApp({ store, backup }: { store: RecipeLibrary; backup?: BackupController }) {
+  const backupState=useBackupState(backup);
+  const restored=useRef<unknown>(null);
   const [view, setView] = useState<View>("home");
   const [returnView, setReturnView] = useState<"home" | "library">("home");
   const [records, setRecords] = useState<RecipeName[]>([]);
@@ -30,6 +33,11 @@ export function LibraryApp({ store }: { store: RecipeLibrary }) {
   const [pending, setPending] = useState<
     Array<{ id: string; title: string; expires: number }>
   >([]);
+  useEffect(()=>{
+    if(backupState.phase==="success"&&backupState.mode==="restore"&&restored.current!==backupState){
+      restored.current=backupState;setSelected(null);setPending([]);setSearch("");setPage(0);setFilter("all");setRevision(n=>n+1);
+    }
+  },[backupState]);
   useEffect(() => {
     let alive = true;
     setLoading(true);
@@ -115,7 +123,9 @@ export function LibraryApp({ store }: { store: RecipeLibrary }) {
     setView("detail");
     window.scrollTo(0, 0);
   }
-  function navigate(next: "home" | "library" | "settings") {
+  async function navigate(next: "home" | "library" | "settings") {
+    if(backupBusy(backupState)||backupState.phase==="uncertain")return;
+    if(backupState.phase==="preview")await backup?.cancel();
     setView(next);
     setPage(0);
     setSearch("");
@@ -124,6 +134,8 @@ export function LibraryApp({ store }: { store: RecipeLibrary }) {
   }
   useEffect(() => {
     const back = (event: Event) => {
+      if(event.defaultPrevented)return;
+      if(backupBusy(backupState)||backupState.phase==="uncertain"){event.preventDefault();return;}
       // The editor owns its dirty/busy guard. Root pages may go to background.
       if (view === "new" || view === "edit" || view === "home") return;
       event.preventDefault();
@@ -139,7 +151,7 @@ export function LibraryApp({ store }: { store: RecipeLibrary }) {
     };
     window.addEventListener("recipio:back", back);
     return () => window.removeEventListener("recipio:back", back);
-  }, [view, returnView]);
+  }, [view, returnView, backupState]);
   return (
     <div className="mx-auto min-h-dvh max-w-3xl px-4 pb-28 pt-5 sm:px-8">
       <header className="mb-7 flex items-center justify-between gap-4">
@@ -205,12 +217,13 @@ export function LibraryApp({ store }: { store: RecipeLibrary }) {
               和私有文件目录，两者数据不会自动同步。
             </p>
             <p className="text-sm text-muted-foreground">
-              完整备份恢复尚未实现。请勿清除浏览器数据或卸载应用来排查问题。
+              请定期导出完整备份。请勿清除浏览器数据或卸载应用来排查问题。
             </p>
             <p className="text-xs text-muted-foreground">
               图片读取失败不影响文字菜谱；暂时保留移除图片的本地文件，以保护历史引用。
             </p>
           </div>
+          <BackupControls service={backup}/>
         </section>
       ) : (
         <>
@@ -368,7 +381,8 @@ export function LibraryApp({ store }: { store: RecipeLibrary }) {
             ).map((item) => (
               <button
                 key={item.key}
-                onClick={() => navigate(item.key)}
+                disabled={backupBusy(backupState)||backupState.phase==="uncertain"}
+                onClick={() => void navigate(item.key)}
                 aria-current={view === item.key ? "page" : undefined}
                 className={`flex min-h-16 flex-col items-center justify-center gap-1 text-xs ${view === item.key ? "bg-muted font-semibold" : "text-muted-foreground"}`}
               >

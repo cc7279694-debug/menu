@@ -7,11 +7,14 @@ import { Capacitor } from "@capacitor/core";
 import { PreviewRecipeLibrary } from "./preview-store";
 import type { RecipeLibrary } from "./recipe-model";
 import { LibraryApp } from "./library-app";
+import { openBackupService } from "./backup/runtime";
+import type { BackupService } from "./backup/service";
 
 export function NativeApp() {
   const [store, setStore] = useState<RecipeLibrary | null>(null);
   const [error, setError] = useState("");
   const [attempt, setAttempt] = useState(0);
+  const [backup,setBackup] = useState<BackupService>();
   useEffect(() => {
     let alive = true;
     (Capacitor.getPlatform() === "android"
@@ -21,8 +24,9 @@ export function NativeApp() {
           return db;
         })
     )
-      .then((db) => {
-        if (alive) setStore(db);
+      .then(async (db) => {
+        const service = Capacitor.getPlatform()==="android" ? await openBackupService() : undefined;
+        if (alive) { setBackup(service); setStore(db); }
       })
       .catch(() => {
         if (alive) setError("本地数据库无法打开。请重试；不要清除应用数据。");
@@ -31,7 +35,7 @@ export function NativeApp() {
       alive = false;
     };
   }, [attempt]);
-  if (store) return <LibraryApp store={store} />;
+  if (store) return <LibraryApp store={store} backup={backup} />;
   return (
     <main className="mx-auto max-w-2xl px-5 pb-12 pt-6">
       <header className="mb-8 flex items-center gap-3">
