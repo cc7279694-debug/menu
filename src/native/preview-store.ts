@@ -1,4 +1,5 @@
 import { getLocalDatabase } from "@/features/offline/local-db";
+import { z } from "zod";
 import type { LocalRecipeRecord } from "@/features/local-data/types";
 import {
   emptyDetails,
@@ -152,10 +153,17 @@ export class PreviewRecipeLibrary implements RecipeLibrary {
   create(title: string) {
     return this.coordinator.withDataAccess(() => this.createUnlocked(title));
   }
-  createDetails(input: RecipeDetailsInput) {
-    return this.coordinator.withDataAccess(() =>
-      this.createDetailsUnlocked(input),
-    );
+  createDetails(input: RecipeDetailsInput, creationId?: string, assertCurrent?: () => void) {
+    return this.coordinator.withDataAccess(() => {
+      assertCurrent?.();
+      return this.createDetailsUnlocked(input, creationId);
+    });
+  }
+  hasExactTitle(title: string) {
+    return this.coordinator.withDataAccess(async () => {
+      const value = recipeDetailsSchema.shape.title.parse(title);
+      return (await (await getLocalDatabase()).localRecipes.filter(record => record.deletedAt === null && record.title === value).limit(1).toArray()).length > 0;
+    });
   }
   getDetails(id: string) {
     return this.coordinator.withDataAccess(() => this.getUnlocked(id));
@@ -374,13 +382,22 @@ export class PreviewRecipeLibrary implements RecipeLibrary {
     await (await getLocalDatabase()).localRecipes.add(record);
     return fromLegacy(record);
   }
-  private async createDetailsUnlocked(input: RecipeDetailsInput) {
+  private async createDetailsUnlocked(input: RecipeDetailsInput, creationId?: string) {
     const value = recipeDetailsSchema.parse(input);
-    const id = crypto.randomUUID();
-    const now = this.clock().toISOString();
-    const record = toLegacy(value, id, now);
-    await (await getLocalDatabase()).localRecipes.add(record);
-    return fromLegacy(record);
+    const id = creationId === undefined ? crypto.randomUUID() : z.uuid().parse(creationId);
+    const db = await getLocalDatabase();
+    return db.transaction("rw", db.localRecipes, async () => {
+      if (creationId !== undefined) {
+        const existing = await db.localRecipes.get(id);
+        if (existing) {
+          if (existing.deletedAt !== null || !sameEditableDetails(fromLegacy(existing), value)) throw new Error("创建编号已存在，不能覆盖或恢复已删除菜谱");
+          return fromLegacy(existing);
+        }
+      }
+      const record = toLegacy(value, id, this.clock().toISOString());
+      await db.localRecipes.add(record);
+      return fromLegacy(record);
+    });
   }
   private async getUnlocked(id: string): Promise<RecipeDetails | null> {
     const r = await (await getLocalDatabase()).localRecipes.get(id);

@@ -6,6 +6,7 @@ import {
   schemaStatements,
   migrationStatements,
 } from "./recipe-store";
+import { DataOperationCoordinator } from "./backup/coordinator";
 
 const databases = [];
 function setup() {
@@ -205,4 +206,41 @@ it("shared cooking cover records one formal change and repeating it is a no-op",
   expect(
     db.prepare("SELECT finished_photo_path p FROM cooking_records").get().p,
   ).toBe("images/aaaa.png");
+});
+
+it("creation UUID retries preserve original rows and times; conflicts and deleted IDs never overwrite", async () => {
+  const {db,store}=setup(),id=crypto.randomUUID();
+  const first=await store.createDetails(details,id);
+  expect(first.id).toBe(id);
+  const snapshot=db.prepare("SELECT * FROM recipes").all();
+  expect(await store.createDetails({...details,title:"  啤酒鸭  "},id)).toEqual(first);
+  expect(db.prepare("SELECT * FROM recipes").all()).toEqual(snapshot);
+  expect(db.prepare("SELECT count(*) n FROM recipe_changes").get().n).toBe(0);
+  await expect(store.createDetails({...details,notes:"不同"},id)).rejects.toThrow();
+  await store.remove(id);
+  await expect(store.createDetails(details,id)).rejects.toThrow();
+  expect(await store.getDetails(id)).toBeNull();
+  await expect(store.createDetails(details,"not-uuid")).rejects.toThrow();
+});
+it("exact title search covers beyond page 100, excludes trash and never interprets SQL",async()=>{
+  const {store}=setup();await store.create("啤酒鸭");for(let i=0;i<101;i++)await store.create(`新菜${i}`);
+  expect(await store.hasExactTitle("  啤酒鸭  ")).toBe(true);
+  expect(await store.hasExactTitle("% OR 1=1")).toBe(false);
+  const row=await store.create("已删除");await store.remove(row.id);expect(await store.hasExactTitle("已删除")).toBe(false);
+});
+it("failed optional-UUID insert rolls back every row, then retries the same ID after fixing input",async()=>{
+  const {db,store}=setup(),id=crypto.randomUUID();db.exec("CREATE TRIGGER reject_creation BEFORE INSERT ON recipe_steps WHEN NEW.instruction='坏步骤' BEGIN SELECT RAISE(ABORT,'fixture failure'); END;");
+  await expect(store.createDetails({...details,steps:[{instruction:"坏步骤",imagePath:null}]},id)).rejects.toThrow();
+  for(const table of ["recipes","recipe_ingredients","recipe_steps","recipe_preparations","recipe_key_tips","recipe_changes"])expect(db.prepare(`SELECT count(*) n FROM ${table}`).get().n).toBe(0);
+  expect((await store.createDetails(details,id)).id).toBe(id);
+});
+it("queued invalid AI precondition runs under FIFO before any SQL, while save-first commits once",async()=>{
+  const {db,driver}=setup(),gate=new DataOperationCoordinator(),store=new RecipeNameStore(driver,undefined,gate);
+  let release,entered;const started=new Promise(r=>{entered=r;});const block=new Promise(r=>{release=r;});
+  const replace=gate.withExclusive(async()=>{entered();await block;});await started;
+  let valid=true,queries=0,writes=0;const query=driver.query,batch=driver.batch;
+  driver.query=(...args)=>{queries++;return query(...args);};driver.batch=(...args)=>{writes++;return batch(...args);};
+  const pending=store.createDetails(details,crypto.randomUUID(),()=>{if(!valid)throw new Error("stale");});const rejected=expect(pending).rejects.toThrow("stale");valid=false;release();await replace;await rejected;
+  expect(queries).toBe(0);expect(writes).toBe(0);expect(db.prepare("SELECT count(*) n FROM recipes").get().n).toBe(0);
+  const id=crypto.randomUUID();const saved=store.createDetails(details,id,()=>{});const following=gate.withExclusive(async()=>expect(db.prepare("SELECT count(*) n FROM recipes").get().n).toBe(1));await saved;await following;
 });

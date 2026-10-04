@@ -21,6 +21,10 @@ import { collectImageReferences, toPortableData } from "./references";
 import { validateBackupData } from "./compatibility";
 import { testDatabase } from "./sqlite-test-driver.mjs";
 import { goldenSource, manifestFor, time } from "./test-fixtures";
+import {RecipeNameStore} from "../recipe-store";
+import {AiIntakeService} from "../ai/service";
+import {emptyDetails} from "../recipe-model";
+import {fakeAi} from "../ai/service.test-support";
 const resources = [];
 const hash = (b) => createHash("sha256").update(b).digest("hex");
 const empty = () => ({
@@ -172,9 +176,10 @@ async function setup() {
   mkdirSync(join(root, "images"));
   const { db, driver } = testDatabase();
   resources.push({ root, db });
+  const coordinator=new DataOperationCoordinator();
   const repo = new SQLiteBackupRepository(
     driver,
-    new DataOperationCoordinator(),
+    coordinator,
     () => new Date(time),
   );
   const source = goldenSource();
@@ -195,7 +200,7 @@ async function setup() {
   );
   const service = new BackupService(repo, port, () => new Date(time));
   await service.export();
-  return { root, db, repo, source, port, service };
+  return { root, db, repo, source, port, service,driver,coordinator };
 }
 afterEach(() =>
   resources.splice(0).forEach(({ db, root }) => {
@@ -288,6 +293,25 @@ it("current-count change requires an updated preview and another confirmation", 
   expect((await repo.snapshot()).recipes).toHaveLength(2);
   await service.confirmReplace();
   expect(service.getState().phase).toBe("success");
+});
+it("AI save-first uses the same FIFO, requires Replace re-confirmation and enters verified safety copy",async()=>{
+  const {driver,coordinator,service,repo,port}=await setup(),fake=fakeAi(),store=new RecipeNameStore(driver,()=>new Date(time),coordinator),ai=new AiIntakeService(fake.keys,fake.bridge,{store,backup:service});
+  await service.inspectRestore();await ai.startSession();await ai.organize({text:"菜谱",imageIds:[]});ai.setConfirmed(true);
+  const save=ai.save(emptyDetails("新做法")),replace=service.confirmReplace();const recipe=await save;await replace;
+  expect(service.getState()).toMatchObject({phase:"preview",currentCount:2});expect((await repo.snapshot()).recipes.filter(r=>r.id===recipe.id)).toHaveLength(1);
+  await service.confirmReplace();expect(service.getState().phase).toBe("success");expect(port.safety.data.recipes.find(r=>r.id===recipe.id)?.title).toBe("新做法");expect((await repo.snapshot()).recipes).toHaveLength(1);expect(ai.snapshot().draft).toBeNull();
+});
+it("actual SQL Replace-first invalidates queued AI before its first query or insert",async()=>{
+  const {driver,coordinator,repo,port}=await setup();
+  let release,entered;const started=new Promise(resolve=>{entered=resolve;});const held=new Promise(resolve=>{release=resolve;});
+  const wrapper={snapshot:()=>repo.snapshot(),withPinnedSnapshot:work=>repo.withPinnedSnapshot(work),replace:(...args)=>repo.replace(...args),readRestoreCommit:()=>repo.readRestoreCommit(),exclusive:work=>repo.exclusive(async locked=>{entered();await held;return work(locked);})};
+  const service=new BackupService(wrapper,port,()=>new Date(time)),fake=fakeAi(),store=new RecipeNameStore(driver,()=>new Date(time),coordinator),ai=new AiIntakeService(fake.keys,fake.bridge,{store,backup:service});
+  await ai.startSession();await ai.organize({text:"旧菜谱",imageIds:[]});ai.setConfirmed(true);await service.inspectRestore();
+  const restore=service.confirmReplace();await started;
+  let creationId,aiQueries=0;const create=store.createDetails.bind(store),query=driver.query;
+  store.createDetails=(...args)=>{creationId=args[1];return create(...args);};driver.query=(sql,values=[])=>{if(creationId&&values.includes(creationId))aiQueries++;return query(sql,values);};
+  const pending=ai.save(emptyDetails("迟到草稿")),rejected=expect(pending).rejects.toMatchObject({code:"stale_session"});
+  release();await restore;await rejected;expect(service.getState().phase).toBe("success");expect(aiQueries).toBe(0);expect(await store.hasExactTitle("迟到草稿")).toBe(false);
 });
 it("lost commit acknowledgement is resolved from actual transaction metadata", async () => {
   const { repo, port } = await setup();

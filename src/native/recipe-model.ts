@@ -100,7 +100,8 @@ export interface RecipeLibrary {
     filter?: DurationFilter,
   ): Promise<RecipeListItem[]>;
   create(title: string): Promise<RecipeName>;
-  createDetails(input: RecipeDetailsInput): Promise<RecipeDetails>;
+  createDetails(input: RecipeDetailsInput, creationId?: string, assertCurrent?: () => void): Promise<RecipeDetails>;
+  hasExactTitle(title: string): Promise<boolean>;
   getDetails(id: string): Promise<RecipeDetails | null>;
   saveDetails(id: string, input: RecipeDetailsInput): Promise<void>;
   remove(id: string): Promise<number>;

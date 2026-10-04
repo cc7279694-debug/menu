@@ -171,10 +171,17 @@ export class RecipeNameStore {
   saveDetails(id: string, input: RecipeDetailsInput) {
     return this.coordinator.withDataAccess(() => this.saveUnlocked(id, input));
   }
-  createDetails(input: RecipeDetailsInput) {
-    return this.coordinator.withDataAccess(() =>
-      this.createDetailsUnlocked(input),
-    );
+  createDetails(input: RecipeDetailsInput, creationId?: string, assertCurrent?: () => void) {
+    return this.coordinator.withDataAccess(() => {
+      assertCurrent?.();
+      return this.createDetailsUnlocked(input, creationId);
+    });
+  }
+  hasExactTitle(title: string) {
+    return this.coordinator.withDataAccess(async () => {
+      const value = recipeDetailsSchema.shape.title.parse(title);
+      return (await this.driver.query("SELECT 1 FROM recipes WHERE title=? AND deleted_at IS NULL LIMIT 1", [value])).length > 0;
+    });
   }
   get(id: string) {
     return this.coordinator.withDataAccess(() => this.getUnlocked(id));
@@ -344,9 +351,19 @@ export class RecipeNameStore {
   }
   private async createDetailsUnlocked(
     input: RecipeDetailsInput,
+    creationId?: string,
   ): Promise<RecipeDetails> {
     const value = recipeDetailsSchema.parse(input);
-    const id = crypto.randomUUID();
+    const id = creationId === undefined ? crypto.randomUUID() : z.uuid().parse(creationId);
+    if (creationId !== undefined) {
+      const existing = await this.driver.query("SELECT id,deleted_at FROM recipes WHERE id=? LIMIT 1", [id]);
+      if (existing.length) {
+        const row = existing[0] as Record<string, unknown>;
+        const saved = row.deleted_at === null ? await this.readDetails(id) : null;
+        if (!saved || !sameEditableDetails(saved, value)) throw new Error("创建编号已存在，不能覆盖或恢复已删除菜谱");
+        return saved;
+      }
+    }
     await this.writeDetails(id, value, null);
     const saved = await this.readDetails(id);
     if (!saved) throw new Error("保存后无法读取菜谱");
