@@ -1,5 +1,34 @@
 # Architecture
 
+## APK-3 本地烹饪与个人演进（2026-10-04）
+
+```text
+RecipeDetail（默认完整步骤）
+  → 可选 StepViewer（Focus / Guided，仅当前查看索引）
+  → 用户明确完成 → RecipeLibrary.recordCooking（操作 UUID 重试幂等）
+  → CookingCompletion（可选照片 / 评价 / 备注 / 调整当前做法）
+  → CookingHistory / RecipeChangeHistory（时间 + ID 游标分页）
+RecipeLibrary + DataOperationCoordinator
+  → Android SQLite v4 / Web Preview Dexie v7
+  → 不可变私有图片路径 + LocalMediaLifecycle 引用闭包 / 导出 pin
+BackupService / LocalBackup
+  → 严格 v2（schema4、七张业务表）导出及安全副本
+  → 严格原 v1（schema3）校验后只补空 cookingRecords
+  → 已有 staging → 二次确认 → 安全副本 → 单事务 Replace / 提交事实核查
+```
+
+SQLite v3→v4 增量增加 `cooking_records`、记录/修改历史的分页索引；不修改旧表行、不重建数据库。Dexie 的 v6 声明保持原样，v7 增加设备专属 `nativeCookingRecords` 和修改历史索引。所有业务数据经 Repository，UI 不直接执行 SQL。
+
+做过记录只由用户明确操作创建，最小记录先持久化，随后才可补照片/评价/备注。同一次失败重试保留 UUID 与首次成功时间；打开详情、Focus、Guided 或停留都没有自动完成语义。保存最小记录期间统一保护返回/编辑/历史/主导航，避免异步结果覆盖未保存编辑。Focus/Guided 不建立第二套状态机，也没有 Timer。
+
+当前 Recipe 是认可的最新做法。规范化比较无变化则不写时间/修改记录；正式 before/after 投影不含卡片派生字段。历史只读、不提供回滚或版本切换。首页最后做过时间来自真实记录，不改变原加入时间排序。
+
+成品照片作为封面时共享一个相对路径而非复制。闭包覆盖封面、步骤、修改记录 before/after、烹饪照片和仍可撤销的软删除菜谱；导出在释放短快照锁前 pin 全部媒体，回读结束后释放。只对删除记录/到期菜谱产生的候选文件执行引用复查；还有引用、pin 或查询失败都保留。图片清理失败是已成功数据写入后的警告，不假装事务回滚；编辑草稿、替换留下的旧图和未知孤立文件不做目录扫除。
+
+v1 校验器及 required changes 语义不变；规范化仅补 `cookingRecords: []`，journal 和 SQL 提交仍使用输入包原始 manifest/hash。v2 新增 required cookingRecords/counts、记录照片资产引用；七实体和恢复事实在同一数据库事务回读校验后提交。原生启动引用审计也检查 cooking-only 图片。原生worker先释放已结束操作的busy/phase再回复，禁止在回复后的finally改写下一操作的锁。旧 APK-2 不能读 v2，新 APK-3 可读 v1/v2。详细格式与兼容性见 `backup-format-v2.md`。
+
+实际验证结果单列于 APK-3 checkpoint / verification。以下 APK-2 章节保留为已验收历史架构，不代表当前数据库仍为 v3。
+
 ## APK-2 完整备份与 Replace（2026-10-04）
 
 ```text
@@ -91,10 +120,10 @@ React UI
 
 New UI code must depend on Repository interfaces rather than importing Supabase clients directly. The legacy adapter remains available until the local vertical slice is accepted.
 
-## Implemented browser slice
+## Retained legacy browser slice (historical, not the native entry)
 
 - `/offline/app` is the current feature boundary for device-local recipe list, detail, create and edit flows.
 - The local recipe service maps shared editor input to the Dexie repository and adapts records to the existing offline UI.
 - Authenticated `/recipes` pages still use the legacy Supabase path during the transition.
 - If the local repository is empty or unavailable, compatible legacy snapshots remain readable; promoting a legacy recipe preserves favorite and source metadata.
-- Local media is intentionally deferred to the next module, so unavailable images degrade to placeholders without blocking recipe text.
+- Media was deferred in that historical slice. Current native/Preview media and cooking behavior are described in the APK-3 section above; this legacy boundary is not the current implementation claim.

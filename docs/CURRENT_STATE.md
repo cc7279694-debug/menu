@@ -2,15 +2,23 @@
 
 ## Current Stage
 
-2026-10-04：用户已验收 APK-2 并批准 APK-3 冻结产品范围。已核对干净的 `feat/recipio-backup-restore` / `b541d8acfb2aec75dd139705030f3e647fc5a24a` 与远端一致，从其建立 `feat/recipio-cooking-experience`。固定 SOL；现完成最小审计及一次实施计划，按 writing-plans 门禁等待计划确认，未开始 APK-3 业务代码、迁移、测试或设备操作。计划：`superpowers/plans/2026-10-04-apk-3-cooking-experience.md`。
+2026-10-04：已按用户批准的 `fa6aa4b` / `superpowers/plans/2026-10-04-apk-3-cooking-experience.md` 完成 APK-3 实现、最终版本完整回归及专用 Android 36 模拟器验收。技术状态 `APK_3_COMPLETE`，等待用户验收；不进入 APK-4。固定 SOL 实施，已有一个只读复核席位；保留 APK-2 基线和全部既有未提交工作，没有部署或修改云数据。
 
-当前实现仍是 APK-2：SQLite v3、Dexie v6、Backup Format v1、versionCode10；APK-3 的 v4/v7/v2/versionCode11 都是计划值，不能当作已实现。APK-2 最终代码修补至 `03ed5d3`、交付文档提交 `b541d8a`，原验证结果和证据继续保留，不用来证明 APK-3 已通过。
+当前真实实现：Android SQLite v4、Preview Dexie v7、Backup Format v2（读严格原 v1/v2，写 v2）、versionCode11 / `0.4.0-cooking-experience`。接受的 APK-2 基线 `b541d8a` 及原 APK/Golden 保留；旧数字只作历史，不证明 APK-3。最终交付与证据见 `checkpoints/2026-10-04-cooking-experience.md`、`verification/cooking-experience-android.md`。
 
 APK-1 Android Native Acceptance Gate 技术验收通过，状态 DAILY_LIBRARY_ANDROID_VERIFIED。原生选图修复与证据继承 `checkpoints/2026-10-04-daily-library-acceptance.md`；用户初步体验反馈不等同本代理已完成物理手机全流程测试。
 
 稳定 Android 36 复现了系统授权 URI 原生可读、WebView FileReader 不可读。Android 选图现改为系统选择器 → 原生流式复制 → 私有 images 路径；封面与步骤图共用，不新增网络/相册权限或数据库迁移。最终 v6 已完成稳定环境全新安装、图片、离线 CRUD/重启、返回键，以及保留旧数据的 v5→v6 覆盖升级。测试环境已正常关闭，所有模拟器与旧数据保留。
 
 ## Completed
+
+- APK-3：完整步骤仍为默认主路径；Focus/Guided 可选、仅查看索引；用户明确完成才生成最小做过记录，照片/评价/备注可选。修改历史只读，当前菜谱是认可的最新做法，无版本切换/回滚。
+- SQLite3→4 / Dexie6→7 增量迁移；记录/修改历史游标分页；成品照片和封面共享真实引用，撤销/历史/导出 pin 均保护文件。严格 v1 校验语义不变，仅内部补空 cookingRecords；v2 包含全部七实体和当前/旧/成品图片，仍使用安全副本和单事务 Replace。
+- 最终实现重新执行全仓154文件/739项；原生相关30文件/151项为其子集；JVM30、完整 connected14项均通过。类型检查、ESLint（0错误/5旧警告）、Vite build、Capacitor sync、Gradle Debug/测试APK通过；Android lint 0错误/34警告。真实导出/取消/坏包拒绝/插入故障回滚/v1兼容/v2清除生成数据后恢复/图片SHA/离线冷启动/返回/大字体/两次覆盖安装通过。
+- 最终 `artifacts/recipio-cooking-experience-v11-debug.apk`：16,523,535字节，SHA-256 `2dc868bb72b537798e17471e1a2621bc46cf4b9f2c15b9045f6590a3e02fb82d`。测试v2备份：3,154字节，SHA-256 `efe5d4d014ac81031c985213dff3e778926e10e2817f96d54bde15f763013ded`；绝对路径见验收报告。恢复及升级未使用真实个人数据。
+- 本轮修复了延迟完成后的导航竞态及原生备份先回复后释放锁的竞态；均有 RED→GREEN 证据，最终设备和完整回归基于修复后的同一 APK。资源压力/SystemUI ANR单独记录为环境事件，没有改应用返回键或放宽验证掩盖。
+
+以下 APK-0/1/2 结果是已接受的历史基线：
 
 - APK-2：严格 Backup Format v1、六表和完整当前/历史图片；校验/staging 后确认 Replace、安全副本、单事务提交事实、启动核查及设置入口；根路径与导出提前失败清理修补先 RED→GREEN。
 - 本轮最终全仓 141 文件/673 项、JVM 29 项、完整 connected 7 项通过；类型/ESLint（0 错误/5 条旧警告）/Web build/Capacitor sync/assembleDebug 通过，Android lint 0 错误/34 警告。模拟器真实导出、清除生成数据恢复、取消、6 类坏包拒绝、SQL 回滚、staging 故障、进程中断、飞行模式冷启动及覆盖升级通过。
@@ -32,24 +40,24 @@ APK-1 Android Native Acceptance Gate 技术验收通过，状态 DAILY_LIBRARY_A
 
 - 用户已反馈下载和初步体验正常；物理手机/OEM 全流程独立验证未执行，既有原生技术证据来自模拟器，不冒充真机。
 - 真实系统选择器/视觉解码验收使用 PNG；其他 MIME 的复制映射在 JVM 验证，不等于四种格式在所有 Android 版本上都已实测。
-- APK-2 用户验收已通过；真机/OEM 与极限规模/硬件掉电未实测。APK-3 实施计划待确认，暂无发现必须改变冻结语义/恢复原子性的架构阻塞。原生烹饪记录尚未实现；可选 AI 与链接/视频继续后置。
+- APK-2 用户验收已通过；APK-3 模拟器技术验收完成，待用户验收。真机/OEM、极限规模、硬件掉电、所有 MIME 在所有系统的选择器显示未实测；没有未解决的 APK-3 迁移/恢复/图片引用架构阻塞。可选 AI 与链接/视频继续后置，未获进入授权。
 - 本预览没有 Service Worker，不承诺断网冷启动/刷新；已加载页面可以本地操作。
 
 ## Current Risks
 
 - 完整备份已验证；清站点数据或卸载仍会丢失本地数据及私有安全副本。应先导出应用外已验证备份，当前不加密。
-- 图片保守保留，未回收孤立文件；无人为大小上限，但受配额、内存和解码能力限制。
+- 图片仅对明确删除候选执行全引用复查，草稿/替换旧图/未知孤立文件保守保留；无人为大小上限，但受配额、内存和解码能力限制。
 - 复制预算留 32MiB 数据库余量是尽力保护；APK-2 有操作级 staging 启动核查/清理，既有选图模块的独立 .part 不在此全库 GC 范围。没有为修复清空用户数据库或删除原图。
 - API37 测试系统曾有系统服务 ANR/渲染资源警告；后续优先 Android 36 稳定环境，逐个运行模拟器，避免与其他项目争用资源。
 - 此前依赖审计记录 21 项（6 moderate / 14 high / 1 critical）；本轮未重新审计或顺便升级依赖。
-- 旧 Next.js/Supabase 页面保留且仍需联网，并非新版入口。无推送、部署、云数据修改。
+- 旧 Next.js/Supabase 页面保留且仍需联网，并非新版入口。仅普通推送当前功能分支；无 main 合并、部署、云数据修改。原生 APK 无 INTERNET 权限。
 
 ## Current Branch / Module
 
-`feat/recipio-cooking-experience` / APK-3 计划审核阶段；从已验收 `b541d8a` 创建。只准备产品已批准增量和一次实施计划，不重新访谈或换路线。普通提交/最终推送本功能分支，不合并 main、不部署；APK-2 检查点/备份/产物全部保留。
+`feat/recipio-cooking-experience` / APK-3 已完成技术验收、等待用户验收；从已验收 `b541d8a` 创建，计划基线 `fa6aa4b`。聚焦提交及普通推送本功能分支，不合并 main、不部署；APK-2 检查点/备份/产物全部保留。最终 SHA 由冻结 review-packet 的 manifest 和 Git HEAD 提供，避免在提交自身的文档中伪造自引用 SHA。
 
 ## Next Recommended Task
 
-等待用户确认 `2026-10-04-apk-3-cooking-experience.md` 后，SOL 按同一计划测试先行完整实施；内部任务不再逐项询问。先原生做菜记录迁移/图片引用，再补齐 v2 + 严格 v1 导入，随后接查看/完成/历史 UI，最后重新全量及实际 Android 验证。未确认前不编码；完成 APK-3 后停止，不进入 AI。
+停止等待用户验收 APK-3；如有实际体验问题，先修复本模块。通过后再由用户单独授权 APK-4（文字/图片 AI 录入），不自动启动、不提前规划或引入在线依赖。
 
 见 PRODUCT_SPEC.md、IMPLEMENTATION_PLAN.md、checkpoints/2026-10-03-daily-library-android.md 和 verification/daily-library-android.md。旧浏览器检查点保留为历史。

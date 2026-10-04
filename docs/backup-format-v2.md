@@ -22,4 +22,4 @@ Restore preserves immutable old media while staging new media. All seven tables 
 
 ## Verification status
 
-Implementation and focused tests are in progress. Final full-suite and Android acceptance evidence belongs in the APK-3 checkpoint; this specification is not a completion claim.
+Implemented and verified on the final APK-3 version. Full-suite, native SQLite migration/reference tests, original unchanged v1 restore, v2 export/readback → clear generated data → Replace restore, cancellation, corrupt-input rejection, cooking-row insertion rollback and offline persistence passed. Exact commands, counts, file hashes and device boundaries belong in `verification/cooking-experience-android.md` and `checkpoints/2026-10-04-cooking-experience.md`; physical-phone/OEM testing remains Not Run. A native reply-order race found during acceptance was repaired without weakening the restore protocol.

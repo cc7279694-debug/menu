@@ -20,7 +20,9 @@ New exports use strict Format v2/schema4 with required cooking records/counts. U
 
 ### Consequences
 
-Seven business tables participate in the same atomic restore and safety backup. Draft/replaced image files are conservatively retained; only explicit deletion candidates with no live/history/record/export reference are removed. No login, network, timer or later AI module is introduced. Final verification is still in progress and is recorded separately from this design decision.
+Seven business tables participate in the same atomic restore and safety backup. Draft/replaced image files are conservatively retained; only explicit deletion candidates with no live/history/record/export reference are removed. No login, network, timer or later AI module is introduced. Final same-version verification passed; actual evidence is recorded separately in the APK-3 checkpoint and Android verification document.
+
+The native backup bridge releases the finished operation's busy/phase state before publishing success or failure. It must never release in a post-reply finally: JavaScript can immediately start the next bridge call. A real export/discard/restore race and two RED→GREEN native tests justified this narrow correction; staging, safety backups, committed facts and transaction boundaries are unchanged.
 
 ## 2026-10-04 — Backup Format v1 与提交事实驱动的安全 Replace
 

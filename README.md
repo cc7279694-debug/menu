@@ -4,9 +4,9 @@
 
 新产品入口使用 Vite + React，共享界面通过 Repository 分别访问 Android SQLite/私有文件与浏览器 IndexedDB。核心无账户、无 Supabase/Vercel 运行依赖；旧 Web 代码保留作回退，不代表新产品范围。
 
-本地预览：`npm run dev:local`。Android 构建：`npm run build:apk`，默认生成 `artifacts/recipio-daily-library-v5-debug.apk`，不会覆盖旧 APK-0。也可通过 `scripts/build-apk.ps1` 明确传入 ArtifactName、VersionCode、VersionName。
+本地预览：`npm run dev:local`。当前 APK-3 安装包为 `artifacts/recipio-cooking-experience-v11-debug.apk`，versionCode11 / `0.4.0-cooking-experience`。重建时使用 `scripts/build-apk.ps1` 明确传入 ArtifactName、VersionCode、VersionName；旧 `npm run build:apk` 默认任务仍是 APK-1 的 v5 命名，不代表最新交付，也不得覆盖旧产物。
 
-日常库证据见 [APK-1 Android 验收记录](docs/verification/daily-library-android.md)，当前完整备份与安全恢复见 [APK-2 验收记录](docs/verification/backup-restore-android.md) 和 [Backup Format v1](docs/backup-format-v1.md)，进度见 [CURRENT_STATE](docs/CURRENT_STATE.md)。设置页可导出包含当前/历史图片的完整 `.recipio`，经校验、预览和明确确认后替换恢复。备份未加密，应保存到应用外部的设备本地位置；私有安全副本不能防卸载或清数据。浏览器不伪装原生备份/SQLite 验收。AI 和烹饪记录仍是未进入的后续模块。
+当前证据见 [APK-3 Android 验收记录](docs/verification/cooking-experience-android.md)、[模块交付报告](docs/checkpoints/2026-10-04-cooking-experience.md)、[Backup Format v2](docs/backup-format-v2.md) 和 [CURRENT_STATE](docs/CURRENT_STATE.md)。完整步骤是默认主路径，Focus/Guided 可选，只有用户明确完成才生成轻量做过记录；照片/评价/备注可选，修改历史只读。设置页导出包含当前/历史/成品图片的完整 `.recipio`，严格兼容旧 v1 输入，经校验、预览和明确确认后安全替换恢复。备份未加密，应保存到应用外部本地位置；私有安全副本不能防卸载或清数据。浏览器不伪装原生 SQLite/文件选择器验收。APK-1/2 证据保留为历史，AI 未进入。
 
 ## 保留的旧 Web / PWA 版本
 

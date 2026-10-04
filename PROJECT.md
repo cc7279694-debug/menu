@@ -40,4 +40,4 @@ React UI 通过业务服务调用 Repository 接口。浏览器使用 IndexedDB�
 
 ## Product Direction
 
-No Account + Local-only。基线见 docs/PRODUCT_SPEC.md；日常库实现后先验证 Android 权威存储，再单独确认备份恢复。每个模块独立验收，不重复规划；当前原生验收来自用户新要求，而非自动恢复旧 APK-0 提示。
+No Account + Local-only。基线见 docs/PRODUCT_SPEC.md；日常库、完整备份和 APK-3 烹饪增强已有独立技术证据，当前状态见 docs/CURRENT_STATE.md。每个模块单独授权与验收，不重复规划；AI 仍是尚未进入的可选后续能力。
