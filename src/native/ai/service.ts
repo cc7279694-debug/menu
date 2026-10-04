@@ -1,7 +1,7 @@
 import type { RecipeLibrary } from "../recipe-model";
 import type { BackupController } from "../backup/backup-controls";
 import type { AiReviewDraft } from "./contract";
-import { AI_LIMITS } from "./contract";
+import { AI_LIMITS,requiresAiReview } from "./contract";
 import { parseAiDraft } from "./normalize";
 import { z } from "zod";
 import { AiIntakeError, safeAiError, type AiBridge, type AiKeyPort, type AiTemporaryImage } from "./native-bridge";
@@ -40,6 +40,8 @@ export class AiIntakeService {
     this.set({...this.state,input:{text:input.text,imageIds:[...input.imageIds]},phase:"input",draft:null,confirmed:false,error:null});
   }
   async refreshKey():Promise<boolean>{return (await this.keys.hasAiKey()).configured;}
+  setConfirmed(value:boolean):void{if(this.state.phase!=="preview"||!this.state.draft||!this.state.operationId||this.restoreBlocked)throw new AiIntakeError("stale_session");this.set({...this.state,confirmed:value});}
+  assertCanSave():void{if(!this.state.draft||!this.state.operationId||this.restoreBlocked||this.flight||this.cancelling||this.state.imageBusy||this.state.phase!=="preview")throw new AiIntakeError("stale_session");if(requiresAiReview(this.state.draft)&&!this.state.confirmed)throw new AiIntakeError("review_required");}
   private assertInputEditable(){if(this.flight||this.cancelling||this.state.imageBusy||this.restoreBlocked||["saving","saved","uncertain"].includes(this.state.phase))throw new AiIntakeError("busy");if(!this.state.operationId)throw new AiIntakeError("stale_session");}
   async pickImage():Promise<void>{
     this.assertInputEditable();if(this.state.images.length>=AI_LIMITS.imageCount)throw new AiIntakeError("image_too_large");

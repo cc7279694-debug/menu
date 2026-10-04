@@ -28,3 +28,4 @@ export type AiFieldCheck = z.infer<typeof aiFieldCheckSchema>;
 export type AiModelOutput = z.infer<typeof aiModelOutputSchema>;
 export type AiSourceContext = { text: string; hasImages: boolean };
 export type AiReviewDraft = { recipe: RecipeDetailsInput; review: { fieldChecks: AiFieldCheck[]; requiresConfirmation: boolean }; warnings: string[] };
+export function requiresAiReview(draft:AiReviewDraft):boolean{return draft.review.fieldChecks.some(check=>check.status!=="explicit");}

@@ -2,6 +2,8 @@ import { vi } from "vitest";
 import type { AiBridge,AiTemporaryImage } from "./native-bridge";
 export function image(operationId:string,id=crypto.randomUUID()){return {id,mimeType:"image/jpeg" as const,byteSize:100,width:200,height:100,previewUri:`file:///data/user/0/app.recipio.local/cache/ai-import/${operationId}/${id}.jpg`};}
 import { emptyDetails } from "../recipe-model";
+import type {AiReviewDraft} from "./contract";
+export const reviewDraft=():AiReviewDraft=>({recipe:emptyDetails("啤酒鸭"),review:{fieldChecks:[{path:"title",label:"菜名",status:"explicit",message:null},{path:"servings",label:"份数",status:"inferred",message:"需要确认"},{path:"steps",label:"步骤",status:"missing",message:"原来源没写"}],requiresConfirmation:true},warnings:["只填菜名也可以保存，但请先检查缺失内容"]});
 export const output=(title="啤酒鸭")=>JSON.stringify({recipe:emptyDetails(title),fieldChecks:[],warnings:[]});
 export function fakeAi(){return {
   keys:{hasAiKey:vi.fn(async()=>({configured:true})),saveAiKey:vi.fn(async()=>({configured:true,cancelled:false})),deleteAiKey:vi.fn(async()=>{})},

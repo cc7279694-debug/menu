@@ -1,0 +1,10 @@
+import "fake-indexeddb/auto";
+import {afterEach,expect,it,vi} from "vitest";
+import {fireEvent,render,screen,waitFor} from "@testing-library/react";
+import {LibraryApp} from "../library-app";
+import {PreviewRecipeLibrary} from "../preview-store";
+import {AiIntakeService} from "./service";
+import {fakeAi} from "./service.test-support";
+import {__resetLocalDatabaseForTests} from "@/features/offline/local-db";
+afterEach(__resetLocalDatabaseForTests);
+it("actual App preview shares acknowledgement and hardware Back preserves dirty edits when declined",async()=>{const fake=fakeAi(),store=new PreviewRecipeLibrary(),service=new AiIntakeService(fake.keys,fake.bridge,{store}),create=vi.spyOn(store,"createDetails");render(<LibraryApp store={store} ai={service}/>);fireEvent.click(await screen.findByRole("button",{name:"新增菜谱"}));fireEvent.click(await screen.findByRole("button",{name:"AI 整理"}));fireEvent.change(await screen.findByLabelText("菜谱文字"),{target:{value:"啤酒鸭"}});await waitFor(()=>expect(screen.getByRole("button",{name:"开始 AI 整理"})).toBeEnabled());fireEvent.click(screen.getByRole("button",{name:"开始 AI 整理"}));await screen.findByRole("heading",{name:"检查 AI 整理结果"});fireEvent.click(screen.getByRole("button",{name:"快速保存菜谱"}));expect(create).not.toHaveBeenCalled();expect(screen.getByRole("region",{name:"AI 整理审核"})).toHaveFocus();fireEvent.click(screen.getByRole("checkbox",{name:"我已检查推断或缺失内容"}));expect(service.snapshot().confirmed).toBe(true);fireEvent.change(screen.getByLabelText("菜名"),{target:{value:"自己的鸭"}});const confirm=vi.spyOn(window,"confirm").mockReturnValue(false);fireEvent(window,new Event("recipio:back",{cancelable:true}));expect(screen.getByLabelText("菜名")).toHaveValue("自己的鸭");expect(confirm).toHaveBeenCalled();confirm.mockRestore();});

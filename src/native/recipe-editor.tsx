@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState,type ReactNode } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -17,10 +17,20 @@ export function RecipeEditor({
   initial,
   onSave,
   onCancel,
+  heading,
+  submitLabel,
+  beforeFields,
+  mediaEnabled=true,
+  beforeSubmit,
 }: {
   initial?: RecipeDetailsInput;
   onSave: (input: RecipeDetailsInput) => Promise<void>;
   onCancel: () => void;
+  heading?:string;
+  submitLabel?:string;
+  beforeFields?:ReactNode;
+  mediaEnabled?:boolean;
+  beforeSubmit?:(input:RecipeDetailsInput)=>boolean;
 }) {
   const [value, setValue] = useState(() => initial ?? emptyDetails());
   const [busy, setBusy] = useState(false);
@@ -55,7 +65,7 @@ export function RecipeEditor({
     setValue((v) => ({ ...v, ...change }));
   }
   async function image(file: File | undefined, step?: number) {
-    if ((!file && !usesNativeImagePicker()) || lock.current) return;
+    if (!mediaEnabled||(!file && !usesNativeImagePicker()) || lock.current) return;
     lock.current = true;
     setBusy(true);
     setError("");
@@ -174,6 +184,7 @@ export function RecipeEditor({
           setError(result.error.issues.map((i) => i.message).join("；"));
           return;
         }
+        if(beforeSubmit&&!beforeSubmit(result.data)){setError("请先完成审核后保存。");return;}
         lock.current = true;
         setBusy(true);
         setError("");
@@ -187,9 +198,9 @@ export function RecipeEditor({
           });
       }}
     >
-      <header className="flex items-center justify-between">
+      <header className="flex flex-wrap items-center justify-between gap-3">
         <h2 className="text-2xl font-semibold">
-          {initial ? "编辑菜谱" : "记下这道菜"}
+          {heading??(initial ? "编辑菜谱" : "记下这道菜")}
         </h2>
         <div className="flex items-center gap-1">
           <Button
@@ -197,7 +208,7 @@ export function RecipeEditor({
             disabled={busy || !value.title.trim()}
             aria-label="快速保存菜谱"
           >
-            保存
+            {submitLabel??"保存"}
           </Button>
           <Button
             type="button"
@@ -213,6 +224,7 @@ export function RecipeEditor({
         只填菜名也能保存，其他内容可以以后慢慢补充。
       </p>
       <fieldset disabled={busy} className="space-y-6">
+        {beforeFields}
         <label className="block space-y-2">
           <span>菜名</span>
           <Input
@@ -222,7 +234,7 @@ export function RecipeEditor({
             onChange={(e) => patch({ title: e.target.value })}
           />
         </label>
-        <section className="rounded-2xl border bg-card p-4 space-y-3">
+        {mediaEnabled&&<section className="rounded-2xl border bg-card p-4 space-y-3">
           <h3 className="font-medium">封面照片</h3>
           <LocalImage
             path={value.coverPath}
@@ -256,7 +268,7 @@ export function RecipeEditor({
           <p className="text-xs text-muted-foreground">
             图片保存在本机，不上传。大图片会占用更多设备空间。
           </p>
-        </section>
+        </section>}
         <div className="grid gap-4 sm:grid-cols-3">
           <label className="space-y-2">
             <span>做菜耗时（分钟）</span>
@@ -363,6 +375,7 @@ export function RecipeEditor({
                   }
                 />
               </label>
+              {mediaEnabled&&<>
               {r.imagePath && (
                 <LocalImage
                   path={r.imagePath}
@@ -399,6 +412,7 @@ export function RecipeEditor({
                   移除步骤图片
                 </Button>
               )}
+              </>}
               {controls("steps", i, `步骤 ${i + 1}`)}
             </div>
           ))}
@@ -559,7 +573,7 @@ export function RecipeEditor({
           disabled={busy || !value.title.trim()}
           className="min-h-12 w-full"
         >
-          {busy ? "正在保存…" : "保存菜谱"}
+          {busy ? "正在保存…" : submitLabel??"保存菜谱"}
         </Button>
       </div>
     </form>

@@ -28,6 +28,7 @@ import type { AiKeyPort } from "./ai/native-bridge";
 import type { AiIntakeService } from "./ai/service";
 import { openAiIntakeRuntime } from "./ai/runtime";
 import { AiIntakeScreen } from "./ai/intake-screen";
+import { AiPreview } from "./ai/preview";
 import { Dialog,DialogContent,DialogDescription,DialogTitle } from "@/components/ui/dialog";
 
 type View =
@@ -270,7 +271,7 @@ export function LibraryApp({
     const back = (event: Event) => {
       if (event.defaultPrevented) return;
       if(view==="ai-input")return;
-      if(view==="ai-preview"){event.preventDefault();setView("ai-input");return;}
+      if(view==="ai-preview"){if(!intakeState.draft){event.preventDefault();setView("ai-input");}return;}
       if(view==="settings"&&fromAiSettings){event.preventDefault();setFromAiSettings(false);setView("ai-input");return;}
       if (backupBusy(backupState) || backupState.phase === "uncertain") {
         event.preventDefault();
@@ -304,7 +305,7 @@ export function LibraryApp({
     };
     window.addEventListener("recipio:back", back);
     return () => window.removeEventListener("recipio:back", back);
-  }, [view, returnView, backupState, viewer,fromAiSettings]);
+  }, [view, returnView, backupState, viewer,fromAiSettings,intakeState.draft]);
   return (
     <div className="mx-auto min-h-dvh max-w-3xl px-4 pb-28 pt-5 sm:px-8">
       <header className="mb-7 flex items-center justify-between gap-4">
@@ -347,7 +348,7 @@ export function LibraryApp({
           </Button>
         </div>
       )}
-      {view==="ai-input"?<AiIntakeScreen service={intake} onPreview={()=>setView("ai-preview")} onCancel={()=>setView(returnView)} onManual={()=>{setSelected(null);setView("new");}} onConfigureKey={()=>{setFromAiSettings(true);setView("settings");}}/>:view==="ai-preview"?<section className="space-y-4"><h2 className="text-2xl font-semibold">检查 AI 整理结果</h2><p>{intakeState.draft?.recipe.title??"本轮结果已失效，请重新整理。"}</p><Button className="min-h-11" variant="outline" onClick={()=>setView("ai-input")}>返回本轮输入</Button></section>:view === "new" || view === "edit" ? (
+      {view==="ai-input"?<AiIntakeScreen service={intake} onPreview={()=>setView("ai-preview")} onCancel={()=>setView(returnView)} onManual={()=>{setSelected(null);setView("new");}} onConfigureKey={()=>{setFromAiSettings(true);setView("settings");}}/>:view==="ai-preview"?intakeState.draft?<AiPreview draft={intakeState.draft} confirmed={intakeState.confirmed} onConfirmedChange={value=>intake.setConfirmed(value)} onSave={async input=>{intake.assertCanSave();await save(input);}} onCancel={()=>setView("ai-input")}/>:<section className="space-y-4"><p>本轮结果已失效，请重新整理。</p><Button className="min-h-11" variant="outline" onClick={()=>setView("ai-input")}>返回本轮输入</Button></section>:view === "new" || view === "edit" ? (
         <RecipeEditor
           key={selected?.id ?? "new"}
           initial={view === "edit" && selected ? selected : undefined}
