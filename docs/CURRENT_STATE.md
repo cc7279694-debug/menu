@@ -2,7 +2,7 @@
 
 ## Current Stage
 
-2026-10-04：用户已提供 APK-4 冻结请求，授权正式进入 AI Intake。已核对 APK-3 交付基线 `78f1877664db0b0015c132e970a4cfffe7ff03fc` 与干净工作区，创建 `feat/recipio-ai-intake`，完成 `ai-intake-contract.md` 和 `superpowers/plans/2026-10-04-apk-4-ai-intake.md`。当前是 **APK-4 实施计划待开工前审核**，不是实现完成；按请求只暂停这一次，批准后固定 SOL 连续实施 Task1–10。
+2026-10-04：用户已批准 APK-4 计划提交 `c8606e3` 与 `ai-intake-contract.md`，当前在 `feat/recipio-ai-intake` **连续实施 Task1–10**。继承 APK-3 `78f1877664db0b0015c132e970a4cfffe7ff03fc`；SQLite4/Preview7/Backup2冻结。用户新要求首次真实集成先1次最小图片/JSON preflight，随后最多3次人工smoke，多图仅前两项成功后进行；没有模型/账号权限则明确停止，不换模型。
 
 本轮仅文档和分支：未修改业务代码、依赖、权限、数据库或备份，未构建新 APK，未执行 APK-4 自动化/Android 测试，真实 Provider 调用 0 次。官方模型/接入文档已核对；账户权限、密钥、真实识别质量未验证。现有 APK-3 技术状态仍为 `APK_3_COMPLETE`，模拟器证据不是物理手机验收；原计划 `fa6aa4b`、旧产物和证据全部保留。
 

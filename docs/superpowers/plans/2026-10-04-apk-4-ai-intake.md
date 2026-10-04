@@ -10,10 +10,12 @@
 
 **Spec:** `docs/ai-intake-contract.md`；`docs/PRODUCT_SPEC.md` APK-4 delta；用户完整请求 `E:\CODEX\.codex\attachments\97267355-ba22-4a92-92e9-23eb1d9c4718\已粘贴的文本.txt`。继承 `docs/backup-format-v2.md`、APK-3 checkpoint/verification；规范发生冲突以本次用户冻结要求优先。
 
+**Approval delta (2026-10-04):** 用户已批准c8606e3并要求首次真实集成先1次极小原生图片/JSON preflight，使用相同北京endpoint及真实原生配置key。仅成功后正式冻结账号可用的qwen3.8-flash；不存在/无权限/地域不支持时输出AI_PROVIDER_ACCESS_BLOCKED，不换模型。此后最多文字1次、单图1次，二者成功才多图1次；总计≤4次真实POST，自动测试全Fake。Task3增加显式“验证模型访问”，Task4提供固定原生preflight，Task10先preflight再smoke；下方原三次smoke指preflight之外的三次。SQLite4/Backup2必须升级则立即APK_4_ARCHITECTURE_BLOCKED。
+
 ## Global Constraints
 
 - 起点已实时核对：`78f1877664db0b0015c132e970a4cfffe7ff03fc`；干净工作区；新分支 `feat/recipio-ai-intake`。APK-3 v11产物与旧Golden不覆盖。
-- 本轮文档计划；尚未实现。批准后连续完成Task1–10，普通问题采用最小稳妥方案，不重新访谈、研究竞品或比较架构。
+- 计划已批准，正在连续完成Task1–10，普通问题采用最小稳妥方案，不重新访谈、研究竞品或比较架构。最终状态以新鲜验证证据为准。
 - SQLite v4、Dexie v7、严格 Backup v2（兼容原v1）全部不变；无新增迁移/业务表。原手动CRUD、图片、Full Steps/Focus/Guided、明确记录、历史和安全Replace不退化。
 - 仅文字/截图/组合。无网页/URL/视频/音频/搜索/Share Target/来源历史/ImportJob/标签分类/营养中心/多服务商/云同步/账号；不自动改旧菜谱，不恢复购物/收藏/菜单/Timer。
 - 北京 Qwen3.8 Flash 非思考、固定兼容HTTPS、用户BYOK；秘密在原生Keystore保护的密文中，JS不能获取持久化完整key。仅增加INTERNET，保留禁用系统备份/设备转移规则。
