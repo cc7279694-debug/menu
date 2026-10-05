@@ -6,6 +6,8 @@ import android.content.Context;
 import android.content.ContextWrapper;
 import android.content.ContentValues;
 import android.graphics.Bitmap;
+import android.graphics.Rect;
+import android.database.Cursor;
 import android.net.Uri;
 import android.provider.MediaStore;
 import android.provider.Settings;
@@ -111,6 +113,7 @@ public class AiImeBackInstrumentedTest {
         MotionEvent down=MotionEvent.obtain(now,now,MotionEvent.ACTION_DOWN,x,y,0),up=MotionEvent.obtain(now,now+1,MotionEvent.ACTION_UP,x,y,0);
         try{instrumentation.sendPointerSync(down);instrumentation.sendPointerSync(up);}finally{down.recycle();up.recycle();}
         awaitIme(true);
+        until("document.activeElement===("+selector+")");
     }
     private void back(){instrumentation.sendKeyDownUpSync(KeyEvent.KEYCODE_BACK);}
     @Before public void setup()throws Exception {
@@ -150,20 +153,64 @@ public class AiImeBackInstrumentedTest {
     }
     private boolean nativeClick(AccessibilityNodeInfo node,String label){
         if(node==null)return false;
-        if(label.contentEquals(node.getText()==null?"":node.getText())||label.contentEquals(node.getContentDescription()==null?"":node.getContentDescription())){
+        String description=node.getContentDescription()==null?"":node.getContentDescription().toString();
+        // DocumentsUI's grid exposes "exact filename, size, date" as its accessible label.
+        // Match the complete UUID filename and delimiter, never an arbitrary substring.
+        if(description.startsWith(label+",")){
+            // File tiles need a real tap; their accessibility label includes formatted
+            // metadata and is not necessarily an ACTION_CLICK-capable text node.
+            if(!node.refresh()||!node.isVisibleToUser())return false;
+            Rect bounds=new Rect();node.getBoundsInScreen(bounds);if(bounds.isEmpty())return false;
+            // Let the platform input command produce current-timestamp DOWN/UP events
+            // for this external window, rather than preconstructing an already-stale UP.
+            try(InputStream command=new android.os.ParcelFileDescriptor.AutoCloseInputStream(
+                instrumentation.getUiAutomation().executeShellCommand("input tap "+bounds.centerX()+" "+bounds.centerY()))){
+                byte[] buffer=new byte[256];while(command.read(buffer)!=-1){}return true;
+            } catch(IOException error){throw new AssertionError("Generated SAF native tap failed",error);}
+        }
+        if(label.contentEquals(node.getText()==null?"":node.getText())||label.equals(description)){
             AccessibilityNodeInfo target=node;while(target!=null&&!target.isClickable())target=target.getParent();return target!=null&&target.performAction(AccessibilityNodeInfo.ACTION_CLICK);
         }
         for(int i=0;i<node.getChildCount();i++)if(nativeClick(node.getChild(i),label))return true;return false;
     }
+    private void awaitNativeClick(String label)throws Exception {
+        long deadline=android.os.SystemClock.elapsedRealtime()+15000;
+        do {
+            if(nativeClick(instrumentation.getUiAutomation().getRootInActiveWindow(),label))return;
+            Thread.sleep(100);
+        } while(android.os.SystemClock.elapsedRealtime()<deadline);
+        fail("Real SAF control missing: "+label);
+    }
     private void pickGeneratedImage()throws Exception {
         Context context=instrumentation.getTargetContext();String name="recipio-ime-"+UUID.randomUUID()+".png";
-        ContentValues values=new ContentValues();values.put(MediaStore.Downloads.DISPLAY_NAME,name);values.put(MediaStore.Downloads.MIME_TYPE,"image/png");values.put(MediaStore.Downloads.RELATIVE_PATH,"Download/");
+        ContentValues values=new ContentValues();values.put(MediaStore.Downloads.DISPLAY_NAME,name);values.put(MediaStore.Downloads.MIME_TYPE,"image/png");values.put(MediaStore.Downloads.RELATIVE_PATH,"Download/");values.put(MediaStore.Downloads.IS_PENDING,1);
         generatedImage=context.getContentResolver().insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI,values);assertNotNull(generatedImage);
         Bitmap bitmap=Bitmap.createBitmap(64,64,Bitmap.Config.ARGB_8888);bitmap.eraseColor(android.graphics.Color.WHITE);
         try(OutputStream output=context.getContentResolver().openOutputStream(generatedImage)){assertTrue(bitmap.compress(Bitmap.CompressFormat.PNG,100,output));}finally{bitmap.recycle();}
-        click("添加截图");long deadline=android.os.SystemClock.elapsedRealtime()+15000;boolean picked=false;
-        do{if(nativeClick(instrumentation.getUiAutomation().getRootInActiveWindow(),name)){picked=true;break;}Thread.sleep(100);}while(android.os.SystemClock.elapsedRealtime()<deadline);
-        assertTrue("Real SAF must select the generated fixture",picked);until("!!document.querySelector('img[alt=\"截图 1\"]')");
+        ContentValues published=new ContentValues();published.put(MediaStore.Downloads.IS_PENDING,0);
+        assertEquals(1,context.getContentResolver().update(generatedImage,published,null,null));
+        // MediaStore indexes the closed descriptor asynchronously. Only select a fully
+        // published, nonempty fixture, never an empty placeholder in DocumentsUI.
+        long indexedDeadline=android.os.SystemClock.elapsedRealtime()+15000;boolean indexed=false;
+        do {
+            try(Cursor row=context.getContentResolver().query(generatedImage,new String[]{MediaStore.Downloads.IS_PENDING,MediaStore.Downloads.SIZE},null,null,null)){
+                assertNotNull(row);assertTrue(row.moveToFirst());indexed=row.getInt(0)==0&&row.getLong(1)>0;
+            }
+            if(indexed)break;Thread.sleep(100);
+        } while(android.os.SystemClock.elapsedRealtime()<indexedDeadline);
+        assertTrue("Generated fixture must be published and indexed before opening SAF",indexed);
+        click("添加截图");
+        // OPEN_DOCUMENT starts at Recents or the previously visited directory. A Downloads
+        // fixture is not necessarily listed there; navigate the real picker before selecting it.
+        // The picker may already be at Downloads. Do not reopen its animated drawer
+        // over a fixture that is already visible and tappable.
+        long pickerDeadline=android.os.SystemClock.elapsedRealtime()+15000;boolean selected=false;
+        do {
+            if(nativeClick(instrumentation.getUiAutomation().getRootInActiveWindow(),name)){selected=true;break;}
+            Thread.sleep(100);
+        } while(android.os.SystemClock.elapsedRealtime()<pickerDeadline);
+        if(!selected){awaitNativeClick("Show roots");awaitNativeClick("Downloads");awaitNativeClick(name);}
+        until("!!document.querySelector('img[alt=\"截图 1\"]')");
     }
     @Test public void selectedTempImages_surviveImeBack()throws Exception {
         pickGeneratedImage();String before=js("document.querySelector('img[alt=\"截图 1\"]').src");openIme();back();awaitIme(false);
@@ -180,7 +227,7 @@ public class AiImeBackInstrumentedTest {
         preview();until("!!document.querySelector('input[type=checkbox]')");assertEquals("false",js("document.querySelector('input[type=checkbox]').checked"));
         openIme(titleInput());back();awaitIme(false);click("快速保存菜谱");until("document.activeElement?.getAttribute('aria-label')==='AI 整理审核'");
         assertEquals("false",js("document.querySelector('input[type=checkbox]').checked"));assertEquals("true",js("document.body.innerText.includes('检查 AI 整理结果')"));
-        js("document.querySelector('input[type=checkbox]').click()");openIme(titleInput());back();awaitIme(false);assertEquals("true",js("document.querySelector('input[type=checkbox]').checked"));assertEquals("0",js("window.__imeTestBackCount"));
+        js("document.querySelector('input[type=checkbox]').click()");until("document.querySelector('input[type=checkbox]').checked===true");openIme(titleInput());back();awaitIme(false);assertEquals("true",js("document.querySelector('input[type=checkbox]').checked"));assertEquals("0",js("window.__imeTestBackCount"));
     }
     @Test public void repeatedBack_doesNotDoubleNavigate()throws Exception {
         openIme();back();awaitIme(false);back();back();until("document.querySelectorAll('[role=dialog]').length===1");

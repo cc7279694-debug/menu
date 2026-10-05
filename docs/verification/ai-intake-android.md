@@ -1,5 +1,20 @@
 # APK-4 AI Intake verification
 
+## 2026-10-05 final Android Back / IME closeout — current result
+
+**APK_4_COMPLETE** under the latest approved Android-only closeout. Starting human-evidence HEAD dd02fbc; production ad54de3 unchanged. Only test harness/evidence edited; no new real AI request, private data, Back production patch, schema/Backup/config change or APK-5. This section supersedes earlier pending summaries below without rewriting their historical outcomes.
+
+- Actual API36 WebView/IME/KEYCODE_BACK **8/8 PASS**, included in final connected **45/45**,0failure/error/skip,2m14s. Native SAF/temporary screenshot, Preview edit/gate, repeated Back and in-flight Fake HTTP request count all executed. Final XML timestamp2026-10-05T09:05:15UTC. New native workspace dialog/HTTP tests now run.
+- Fresh APK application **50files/290 PASS**,162.80s; actual Java XML **11suites/95 PASS**,49s; typecheck PASS; Lint0errors/5oldwarnings; build12.45s/sync(freshbuild1.18s, sync0.954s) PASS. These counts are not added to previous whole174/878. Full whole suite/Android lint239-rerun remain historical, not rerun this nonproduction closeout.
+- Generated-only owned AVD5580: airplane-mode local CRUD/search/Cooking/history/restart persistence and same-v12 install-r entity/media-hash retention PASS. Mirra5554 untouched. No physical phone run in this round; unconfigured Key state at reinstall, not real Key retention proof.
+- User daily AI chain **six PASS, user-reported** remains from immutable dd02fbc checkpoint: Key input/account/text/screenshot/Preview/save. No repetition or invented Provider/phone metadata. Current automated and total extra real Provider calls0.
+- Existing final v12 APK16573907bytes/SHA2563a185094ca316c446d0f2c4c1d6328d07142330bca0d028442e6b4b756eb4214 is byte-identical to installed/debug output; six fresh Web assets match. Same package/version/debug certificate. Source/diff/APK12text/10DEX/generatedBackup/static-manifest security PASS; SQLite4/Backup2/no-JS-getter/temp-media exclusions frozen.
+- Only test fixture prerequisites changed (MediaStore publish/index, DocumentsUI exact label + real tile tap, actual focus/checkbox conditions). Earlier startup ANR and final-first45/44pass/1SAF fixture failure preserved; no skipped assertion or production timing workaround. Final connected left target installed; prior default runner cleanup affected generated AVD data only.
+
+Full matrix/commands/log paths/source fingerprint/Not Run limits: [final focused evidence](ai-intake-back-ime-final.md). No new OEM eight-case, cross-version v11 upgrade, real multi-image quality or Key rotation proof. Final packet pins clean delivery HEAD and includes human evidence separately; no main merge/deploy. Stop at APK-4 delivery.
+
+## Historical evidence below — previously pending, superseded by final section
+
 Approved plan `c8606e3`; inherited APK-3 `78f1877664db0b0015c132e970a4cfffe7ff03fc`. Work ran 2026-10-04–05 Asia/Shanghai on `feat/recipio-ai-intake`. Historical production repair: `1382974`; this closeout adds the fixed-text preflight and eight-case native harness from `1c3da828`. Packet manifest pins the final committed implementation.
 
 Status: **APK_4_PENDING_DEVICE_TEST** for the complete native gates; daily AI functions are now **Accepted (user-reported)** below. Agent-driven real POSTs: **1** (earlier user-authorized transient desktop diagnostic); automated real POSTs: **0**. Compatibility implementation and this docs-only round added **0 calls**; user-manual count unknown. No key persisted in source/JS/database/logs/backup/packet. The already-disclosed chat key must be revoked, not reused; rotation is not independently confirmed.

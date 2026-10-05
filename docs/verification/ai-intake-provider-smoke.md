@@ -1,5 +1,13 @@
 # APK-4 Provider smoke
 
+## 2026-10-05 final Android-only closeout — attribution and zero new calls
+
+User truth retained from `../checkpoints/2026-10-05-ai-intake-user-acceptance.md` / dd02fbc: **PASS (user-reported)** for protected API Key input, qwen3.8-flash account access, Text Intake, Screenshot Intake, Preview edits and ordinary Recipe save. These are real-phone human reports, not Codex connected tests. Request count/HTTP/elapsed/OEM/package fingerprint were not collected and are not invented.
+
+This final round made **0 real Provider calls**. No disclosed Key reused; no repeated text/screenshot/multimodal Smoke. Agent historical authorized desktop fixed-text diagnostic remains1; automated actual calls0; user manual count unknown. Native generated KeyStore/Fake HTTP tests now pass in the fresh45-case connected run, including eight real IME cases, but prove boundary/routing/gate behavior rather than real Qwen semantic quality.
+
+Latest Android-only scope is complete; earlier pending statements below belong to their dated handoffs. No new 2–3-image paid order/deduplication Smoke or Key revocation confirmation. Static/fake evidence does not imply private-phone runtime auditing. See `ai-intake-back-ime-final.md` for exact actual tests; stop without APK-5 or another paid request.
+
 ## 2026-10-05 user functional acceptance — current evidence
 
 Evidence source is the human user's feedback, not a new agent-run Provider test. User first said “现在没问题了，API可正常填入”; after the requested model-access/text/screenshot/Preview-edit/save chain, replied “都没问题，验证通过”. Those daily functions are **Accepted (user-reported)**. No credential, private source, raw response, HTTP status, elapsed, request count or installed APK fingerprint was collected; do not invent them.
