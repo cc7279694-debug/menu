@@ -2,9 +2,15 @@
 
 Approved plan `c8606e3`; inherited APK-3 `78f1877664db0b0015c132e970a4cfffe7ff03fc`. Work ran 2026-10-04–05 Asia/Shanghai on `feat/recipio-ai-intake`. Historical production repair: `1382974`; this closeout adds the fixed-text preflight and eight-case native harness from `1c3da828`. Packet manifest pins the final committed implementation.
 
-Status: **APK_4_PENDING_DEVICE_TEST**. Implementation is not equivalent to native Provider or physical-phone acceptance. Acceptance continuation real POSTs: **1** (earlier user-authorized transient desktop diagnostic); automated real POSTs: **0**. Compatibility implementation added **0 calls**. No key persisted in source/JS/database/logs/backup/packet. The already-disclosed chat key must be revoked, not reused.
+Status: **APK_4_PENDING_DEVICE_TEST** for the complete native gates; daily AI functions are now **Accepted (user-reported)** below. Agent-driven real POSTs: **1** (earlier user-authorized transient desktop diagnostic); automated real POSTs: **0**. Compatibility implementation and this docs-only round added **0 calls**; user-manual count unknown. No key persisted in source/JS/database/logs/backup/packet. The already-disclosed chat key must be revoked, not reused; rotation is not independently confirmed.
 
-## Latest workspace credential compatibility — 2026-10-05
+## User daily-flow acceptance — 2026-10-05
+
+User reported protected key input working and then “都没问题，验证通过” for the model-access/text/screenshot/Preview-edit/save chain. Record **Accepted (user-reported)**, not an agent-executed native or connected test. Agent added0calls/code/tests in this documentation round; user-manual request count/HTTP/elapsed and installed fingerprint unknown. The repair artifact/code remainsad54de3; existing Packet remains pinned there, not rebuilt for this record.
+
+Full connected/eightIME/overwrite-upgrade/data-retention/multi-image/gate-refusal/temp-exclusion/runtime-secret/flight-mode/Backup-specific checks still have no new evidence. Do not label all phone AI functions Not Run after this feedback, but do not promote module to APK_4_COMPLETE. See [user checkpoint](../checkpoints/2026-10-05-ai-intake-user-acceptance.md). Statements below describe their earlier dated runs.
+
+## Workspace compatibility delivery verification — 2026-10-05 (before user acceptance)
 
 Started clean10f3362a; narrow credential validation/official routing/profile wording. Fresh whole174files/878passed(961.36s), JVM11suites/95passed(0failure/error/skip), typecheck/lint0errors5oldwarnings/localbuild/sync PASS. Gradle239 rerun tasks/5m4s; Android lint0errors35warnings; Debug/AndroidTest compile PASS. New workspace dialog/Fake HTTP boundary cases compiled **Not Run**. Old8IMEfailures remain historical open gates, not current execution numbers.
 

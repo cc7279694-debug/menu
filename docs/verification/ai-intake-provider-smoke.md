@@ -1,8 +1,16 @@
 # APK-4 Provider smoke
 
-## 2026-10-05 approved workspace-key diagnostic — current evidence
+## 2026-10-05 user functional acceptance — current evidence
 
-Real Provider POST count for the acceptance continuation: **1**. Automated real requests: **0**. This compatibility implementation made **0 additional real calls**; no retry, recipe, screenshot or multiple-image request was made with the disclosed credential.
+Evidence source is the human user's feedback, not a new agent-run Provider test. User first said “现在没问题了，API可正常填入”; after the requested model-access/text/screenshot/Preview-edit/save chain, replied “都没问题，验证通过”. Those daily functions are **Accepted (user-reported)**. No credential, private source, raw response, HTTP status, elapsed, request count or installed APK fingerprint was collected; do not invent them.
+
+Agent-driven real POSTs remain **1**, automated real POSTs **0**, this documentation round **0**. Additional user-manual calls occurred as reported but their count is unknown. Existing agent four-call budget still has at most three remaining; no automatic reset/retest.
+
+Specific confirmation-gate refusal, multi-image order/deduplication, source temp removal/backup exclusion and final IME/Back/connected/OEM/offline acceptance remain unverified by this feedback. It does not close the entire APK-4 module. Key revocation/replacement was advised but not independently confirmed; never reuse the disclosed key. See `../checkpoints/2026-10-05-ai-intake-user-acceptance.md`.
+
+## Earlier approved workspace-key diagnostic — historical agent evidence
+
+Agent-driven real POST count for the acceptance continuation: **1**. Automated real requests: **0**. Compatibility implementation made **0 additional real calls**; no retry, recipe, screenshot or multiple-image agent request was made with the disclosed credential. User-manual calls are separately reported above, not guessed.
 
 | Safe metadata | Observed result |
 | --- | --- |
@@ -19,7 +27,7 @@ Official source: https://platform.qianwenai.com/docs/developer-guides/getting-st
 
 The subsequent explicit approval permits credential-matched native fixed endpoints, not changing model, arbitrary hosts or credential fallback. qwen3.8-flash remains fixed. Legacy Beijing account access was not tested. HTTP200 proves this account's text/JSON availability at the time of the diagnostic, not final APK/OEM networking, image recognition, intake schema quality or reviewed ordinary-Recipe save.
 
-### Remaining real-device evidence — Not Run
+### Device evidence gaps at that earlier diagnostic — historical
 
 - Newly generated key set only in the protected Android dialog and final APK native preflight.
 - Generated text recipe; native SAF single screenshot; image/schema/normalization/Preview quality and temp cleanup.
