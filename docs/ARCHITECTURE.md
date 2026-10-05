@@ -1,5 +1,30 @@
 # Architecture
 
+## APK-5A 普通网页导入（2026-10-05）
+
+```text
+新增 → 独立网页链接入口
+LinkImportService（仅内存 URL / HTML / parser draft / generation）
+  → lazy LocalWebImport.read / cancel
+      → Native SafeWebFetcher → OkHttp 4.12.0
+      → 每跳全部 DNS 地址校验 → 固定已验证 DNS → 独立连接池 / 系统 TLS
+  → 惰性加载 Cheerio slim，解析不可执行 HTML 字符串 → Schema.org Recipe / HowToSection
+      → 完整：直接可编辑 Parser Preview（不调用 AI）
+      → 部分：直接完善，或用户显式 AI
+      → 无结构且正文可读：用户显式 AI
+  → 原 AiIntakeService / Native secure key / 校验和人工审核（仅清洗文字，无网页图片）
+  → RecipeLibrary.createDetails（操作 UUID / FIFO precondition / 不确定写入查证）
+  → 普通 SQLite4 / Preview7 Recipe → 既有 Backup2
+```
+
+Parser 与 UI 延迟加载，首页不预先下载 parser chunk。来源无持久缓存、ImportJob、RecipeSource 或新表。封面、步骤图片为 null，notes 不自动存来源。取消、保存和恢复代次隔离迟到结果；未确定写入结果只能查原 UUID，保留用户修改，不重复创建。同名提示仅新建，不覆盖旧菜谱。
+
+原生限定公网 HTTP80 / HTTPS443、GET、固定 UA、无 Cookie/Authorization/Referer/proxy；每跳重新验证全部 DNS、固定真实连接地址、独立连接池、关闭自动重试/跳转。最多3次跳转、禁止 HTTPS 降级；connect8s/read12s/全链20s（含 DNS）；解压及转 UTF-8 后 HTML/XHTML ≤2MiB。Android cleartext policy 允许批准的普通 HTTP 输入；系统 TLS、Qwen 固定 HTTPS、WebView CSP 不放宽，无新权限。第三方 HTML 永不加载到 WebView 或执行脚本。
+
+可见正文按完整段落和菜谱相关段落优先保留，28,000 Unicode code points；超限明确提示，不静默切片。AI 只收到 ≤30,000 的清洗文字，不收到 URL、headers、HTML、图片或本地库。可见恶意文字仍是不可信输入，不宣称过滤器能消灭所有 Prompt Injection；复用严格 Native/JS schema、fieldChecks、人工门禁和普通事务保存限制其权限。
+
+实现及证据见 link-import-contract.md、link-import-dependencies.md 与 verification/link-import.md。原生网络连接安全由 JVM 真实 OkHttp/socket 的生成测试证明；Android Fake HTTP 用于 WebView/IME/SQLite 集成，不冒充真实外网/TLS。APK-4 已获用户验收的 Provider 能力保留，无再次付费验证。下面 APK-4 的 pending 描述是历史实现时点，当前状态以 CURRENT_STATE 为准。
+
 ## APK-4 可选原生 AI Intake（2026-10-04）
 
 ```text

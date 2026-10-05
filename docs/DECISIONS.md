@@ -1,5 +1,21 @@
 # Decisions
 
+## 2026-10-05 — APK-5A Parser First with pinned native public-page reads
+
+### Decision
+
+按用户已批准的10任务实施独立网页入口：Native OkHttp4.12.0 安全读取 → 惰性 Cheerio slim Schema.org Parser → 人工预览 → 原 RecipeLibrary.createDetails。只有显式选择才复用 APK-4 AI。SQLite4 / Preview7 / Backup2 不变，来源仅内存、网页图片不下载。
+
+### Context / Alternatives / Reason
+
+APK-4 `d01589e` 已验收并提升稳定 main；旧 Web fetch 的 DNS 检查后二次解析、平台特例和自动 AI 不符合新边界。不搬旧服务端代码、不改栈、不新增 recipe-scrapers、服务器、来源表或重复 Provider。全部 DNS 地址校验后固定到每跳 OkHttp Dns，独立池禁复用/跨主机 coalescing，系统 TLS；无代理、认证、Cookie、Referer、自动跳转/重试。MIME/字节/时间预算和取消由 Native 负责，UI 不控制方法、headers 或IP。
+
+### Consequences
+
+允许批准的 HTTP80，Android `usesCleartextTraffic=true` 是明确平台配置取舍；系统 TLS、Qwen 固定 HTTPS及WebView CSP不放宽，无新权限。代理/VPN Fake DNS 的保留地址会被拒绝，不为平台放行。自动化仅生成源与 Fake Provider；真实网页失败可回退，不降低 SSRF 安全。未知写入结果查同UUID、恢复代次使迟到来源/保存失效，保留编辑草稿。暴露文字作为不可信输入，严格解析与人工门禁控制保存，不声称清洗消除了所有 Prompt Injection。模块交付后停止，不授权 APK-5B/C。
+
+本轮修补保持三处来源生命周期：未知 Parser save 的原编辑输入、Native cancel 失败时的 AI cleanup、restore 后迟到 AI save 的 generation。均有 RED→GREEN；Android 测试窗口先验证真实焦点与即时布局，生产 Back 路由没有增加延时或第二键盘状态机。执行证据见 verification/link-import.md 与 checkpoints/2026-10-05-link-import.md。
+
 ## 2026-10-05 — APK-4 approved Qianwen workspace-key compatibility
 
 ### Decision

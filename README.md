@@ -4,11 +4,13 @@
 
 新产品入口使用 Vite + React，共享界面通过 Repository 分别访问 Android SQLite/私有文件与浏览器 IndexedDB。核心无账户、无 Supabase/Vercel 运行依赖；旧 Web 代码保留作回退，不代表新产品范围。
 
-本地预览：`npm run dev:local`。APK-4 重新构建的**待验收包**为 `artifacts/recipio-ai-intake-v12-final-debug.apk`，versionCode12 / `0.5.0-ai-intake`；原待验收 v12 与 APK-3 v11 保留，不覆盖。2026-10-05 用户暂缓 Android 验收，键盘返回键、真实账号模型及真机证明未完成，不能把安装包已生成当模块完成。重建时使用 `scripts/build-apk.ps1` 明确传入 ArtifactName、VersionCode、VersionName；旧 `npm run build:apk` 默认任务仍是 APK-1 的 v5 命名，不代表最新交付，也不得覆盖旧产物。
+本地预览：`npm run dev:local`。稳定 main 为已验收 APK-4 `d01589e` / `v0.5.0-ai-intake`。本轮 `feat/recipio-link-import` 新增 **APK-5A 普通网页导入**，目标 `artifacts/recipio-link-import-v13-debug.apk` / versionCode13 / `0.6.0-link-import`；v12/v11 保留不覆盖。交付状态、哈希和未验证项以 [CURRENT_STATE](docs/CURRENT_STATE.md) 与 [网页导入验证](docs/verification/link-import.md) 为准。重建时使用 `scripts/build-apk.ps1` 明确传入 ArtifactName、VersionCode、VersionName；旧 `npm run build:apk` 默认仍是旧 v5 命名，不代表最新交付。
 
 当前证据见 [APK-4 Android 验证](docs/verification/ai-intake-android.md)、[模块交付报告](docs/checkpoints/2026-10-04-ai-intake.md)、[AI 合约](docs/ai-intake-contract.md)、[Backup Format v2](docs/backup-format-v2.md) 和 [CURRENT_STATE](docs/CURRENT_STATE.md)。完整步骤是默认主路径，Focus/Guided 可选，只有用户明确完成才生成轻量做过记录；照片/评价/备注可选，修改历史只读。设置页导出包含当前/历史/成品图片的完整 `.recipio`，严格兼容旧 v1 输入，经校验、预览和明确确认后安全替换恢复。备份未加密，应保存到应用外部本地位置；私有安全副本不能防卸载或清数据。浏览器不伪装原生 SQLite/文件选择器验收。APK-1/2/3 证据保留为历史。
 
-APK-4 是可选在线增强：自由文字、1–6 张截图或组合，经原生 Qwen 请求、本地严格校验与保守审核、人工编辑确认，保存为普通菜谱。Android 设置页的原生安全输入框保存用户自己的北京百炼 API Key，密钥不进入 JS、数据库、备份或日志；截图仅为私有临时缓存。浏览器不提供真实密钥输入或真实 Provider 调用。`qwen3.8-flash` 仍需实际用户账号 preflight，当前不是已通过真实 AI 验收的声明；配置前不调用付费接口。AI 失败不影响本地核心功能。不支持 URL、视频、云同步或 APK-5。
+APK-4 是已验收的可选在线增强：自由文字、1–6 张截图或组合，经原生 Qwen 请求、本地严格校验与保守审核、人工编辑确认，保存为普通菜谱。用户 Key/账号/文字/截图/编辑/保存六项真机验收记录保留；不是 Codex 再执行的真实 AI 测试。原生安全输入匹配已批准的北京百炼或千问 workspace 凭据端点，密钥不进入 JS、数据库、备份或日志；截图仅为私有临时缓存。浏览器不提供真实密钥或 Provider。AI 失败不影响本地核心。
+
+APK-5A：“新增” → “从网页链接导入” → 公网安全读取 → 优先 Schema.org Parser → 可编辑 Preview → 保存普通本地菜谱。读取不会自动调用 AI；缺结构时仅用户点击“使用 AI 继续整理”才联网使用现有 Qwen。网页来源与图片不长期保存，旧 SQLite4/Backup2 不变。私网、认证 URL、非默认端口和不安全跳转拒绝；无社交/视频专项、Share Target、网页搜索、云同步或 APK-5B/C。详见 [合约](docs/link-import-contract.md)、[依赖与许可](docs/link-import-dependencies.md)、[Android 专项](docs/verification/link-import-android.md)。
 
 ## 保留的旧 Web / PWA 版本
 
