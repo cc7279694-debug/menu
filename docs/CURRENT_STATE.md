@@ -2,9 +2,9 @@
 
 ## Current Stage
 
-2026-10-05：APK-4 AI Intake 主体 Task1–9 已实现，Task10 验收仍未完成。用户本轮明确选择“暂时不要做 Android 验收”；不再启动专用模拟器或执行 connected/真机/真实 Provider 调用。继续桌面验证、构建与待验收交付。分支 feat/recipio-ai-intake；生产修补基线 1382974，保留交付文档/工具修改。SQLite4 / Preview7 / Backup2 不变。
+2026-10-05 最终收尾：用户已恢复 Android 验收授权；从干净 HEAD 1c3da828 / feat/recipio-ai-intake 继续四项门禁，未重做 Task1–9。固定文字 preflight 已完成测试先行修补；八个原生 IME/Back 场景已实现并编译，但模拟器系统无响应使验证未通过。状态仍为 APK_4_PENDING_DEVICE_TEST，不是 APK_4_COMPLETE。SQLite4 / Preview7 / Backup2 不变。
 
-最终审查的两个 Important（数字后缀/小数误标 explicit、清理失败恢复后仍占会话名额）均已真实 RED→GREEN 最小修补。最终必须用修补后的同一版本重跑全部门禁。当前不是 APK_4_COMPLETE。
+继承的两个 Important（数字后缀/小数误标 explicit、清理失败恢复后仍占会话名额）已在前轮真实 RED→GREEN 修补。本轮已用最终实现重新运行下列全量门禁；Android 八场景未通过，当前不是 APK_4_COMPLETE。
 
 ## Implemented / Inherited
 
@@ -16,19 +16,19 @@
 
 ## Verification
 
-本轮桌面验证：全仓174文件/875、本地版50文件/287（子集）、实际JUnit XML77（0失败/错误/跳过），typecheck、Lint0错误/5旧警告、build:local、sync、Gradle全应用目标239执行/2m38s（Android lint0错误/35警告）均通过。旧报告JVM87已按本轮XML更正。新十项审查包测试实际RED2→GREEN2，包含在875中。APK静态8资源/权限/系统备份排除审计通过。历史connected31不代表新增键盘测试已通过；详细命令与失败尝试见 verification/ai-intake-android.md。
+本轮重新验证：全仓174文件/875通过（810.85s；其中本地版50文件/287，不重复加总）；Java实际XML81通过/0失败错误跳过；typecheck、Lint0错误/5旧警告、build:local、sync、Gradle全应用目标239重新执行/3m58s（Android lint0错误/35警告）均通过。文字 preflight 的 Qwen Mock17项先 RED3→GREEN17；原生桥 Mock验证包含在本轮 connected 中。新数字来自本轮输出，不继承875/77旧绿灯。
 
-新增 AiImeBackInstrumentedTest 的实际 WindowInsets IME/系统 Back 诊断用例已编译，但未执行，未取得 RED/GREEN。原生路由存在不检查 IME 的入口，但根因未确认，不修改生产 MainActivity，不加页面延时/猜测状态机。最新复现因约300MB可用内存/CDP超时中断，不是功能绿灯；仅关闭本任务5580，其他项目设备未动。
+最终 connected40项实际执行：32通过、8失败、0跳过。失败均为八个 IME 场景；两次实际设备截图显示 System UI 无响应，伴随 WebView回调超时/输入目标窗口不属于应用/无法达到UI条件。恢复AVD原配置2GB后仍失败。未确证应用路由根因，不修改 MainActivity、不加延时或第二套键盘状态机，不删除/跳过失败测试。仅操作本任务 Recipio_Backup_36 / 5580；Mirra设备未动。
 
-专用 Recipio_Backup_36 / emulator-5580 / API36 的实际 UI：原v11 Golden基线、v11→v12覆盖升级、原生生成测试密钥/更换取消/重启/早期覆盖安装、SAF JPEG/PNG/WebP/六图/坏文件、临时缓存重启清理、本地编辑/烹饪/历史、v1/v2安全恢复及回滚、飞行模式核心流程通过。窄屏测试仍失败：真实键盘可打开，但首次 Back 后可见状态未在有界等待内转为关闭；尚不能判定产品缺陷或测试/模拟器问题，不能记绿灯。最后全流程后的覆盖安装尚未执行。
+历史APK1382974的专用AVD UI：v11 Golden→v12覆盖升级、生成测试密钥/取消/重启、SAF/缓存、核心本地/备份/飞行模式通过；不是本轮最终APK的新证据。最后覆盖安装、稳定设备八场景、真实Provider与物理手机闭环仍待完成。
 
-本轮重新构建到新路径的待验收APK artifacts/recipio-ai-intake-v12-final-debug.apk，16573867 bytes，SHA256 bdf7212457e1582b03f2b78af821d3b3432998e2295580ed5892c3b3e9031784；与原待验收包字节一致，未安装，旧文件未覆盖。生成测试备份 artifacts/ai-intake/ai-intake-generated-1791131128968.recipio，3350 bytes，SHA256 7ff043ccf1c28ffb0e5575bce8b20d51d19a10bdc54f51511916ca0d354327a8；本轮重新核对文件大小/哈希，设备导出/恢复是历史证据。原v11/Golden保留。
+新待验收APK artifacts/recipio-ai-intake-v12-final-r2-debug.apk，16573867 bytes，SHA256 804de950006d5b2f61880b77a71eed36d8e4c00fcf3eab7c969e5e3c08389906。十项资源静态扫描未发现密钥/旧云运行地址；编译权限仅增加INTERNET，关闭系统备份及五域排除保持。旧APK、ZIP与Golden保留。生成备份仍为3350 bytes / 7ff043ccf1c28ffb0e5575bce8b20d51d19a10bdc54f51511916ca0d354327a8；本轮回读哈希，不冒充新的导出/恢复。
 
-实际付费 Provider POST=0。候选 qwen3.8-flash 的用户账号/地域权限未验证，不能标为账号已冻结或 AI_PROVIDER_ACCESS_BLOCKED。最新要求是一次微型非私人文字/JSON preflight；当前原生实现仍是旧微型图片 preflight，必须先通过键盘验收，再测试先行对齐这一小差异，之后才允许真实调用。预算合计最多4POST；无实际key，不从Chat/终端/env索取。
+实际付费 Provider POST=0。候选qwen3.8-flash的账号/地域权限未验证，不标记AI_PROVIDER_ACCESS_BLOCKED。原生preflight现为固定非私人文字、128 tokens、strict小Schema，仅接受单个status="ok"并拒绝重复键/额外字段/普通文本，无图片。真实Key仍需用户原生安全输入，预算最多4POST；文字/单图/条件多图及真实人工确认保存均Not Run。详见 verification/ai-intake-provider-smoke.md。
 
 ## Pending / Not Run
 
-- Android验收由用户明确暂缓。恢复允许后从键盘真实事件顺序开始，完成全部8场景、原生 RED→GREEN（若证实需修）、fresh connected、最后覆盖安装。未验证键盘修复，不通过 JS mock 声称成功。
+- 恢复健康专用Android环境（用户暂停其他项目模拟器或连接手机）；八场景仍须全部通过，再完成最终覆盖安装。测试发生系统故障不是应用修复绿灯。
 - 本轮十项白名单审查包（新加 provider-smoke.md）、最终APK/提交/push进度见 verification 与 packet manifest；不得把目标产物描述当实际交付。
 - 用户原生安全输入真实北京key、账号preflight、真实文字/图片质量与保存smoke未执行。不得在Chat/终端/env索取真实key。
 - 物理手机/OEM独立全流程未执行。模拟器不冒充真机；浏览器Preview无Service Worker，不承诺离线冷启动/刷新。
@@ -43,6 +43,6 @@
 
 ## Current Branch / Next Task
 
-feat/recipio-ai-intake / APK-4 Task10，状态 APK_4_PENDING_DEVICE_TEST。下一次用户允许设备验收后，先继续 IME/Back，之后 tiny-text preflight 对齐和真实账号 smoke；如生产修补，重跑同最终版本全套门禁。不重复 Task1–9，不进入APK5。
+feat/recipio-ai-intake / APK-4 Task10，状态 APK_4_PENDING_DEVICE_TEST。下一次从健康设备的八场景继续；文字preflight已对齐，不重复开发。之后安全配置真实Key，最多4次实际Smoke及非破坏性手机验证；代码/测试再修改则重跑最终门禁。不进入APK5。
 
 事实源：PROJECT / PRODUCT_SPEC / ai-intake-contract / approved plan；原APK1/2/3 checkpoint和verification保留为历史。

@@ -1,6 +1,5 @@
 package app.recipio.local;
 
-import android.graphics.*;
 import android.app.Activity;
 import android.content.Intent;
 import android.net.Uri;
@@ -9,7 +8,6 @@ import androidx.activity.result.ActivityResult;
 import com.getcapacitor.*;
 import com.getcapacitor.annotation.CapacitorPlugin;
 import com.getcapacitor.annotation.ActivityCallback;
-import java.io.ByteArrayOutputStream;
 import java.util.*;
 import java.util.concurrent.*;
 import org.json.*;
@@ -63,16 +61,11 @@ public class LocalAiIntakePlugin extends Plugin {
     }
     private interface LocalWork {void run()throws Exception;}
     private void submit(PluginCall call,LocalWork work){try{worker.execute(()->{try{work.run();}catch(Exception e){reject(call,e);}});}catch(RejectedExecutionException ignored){synchronized(this){picking=false;}reject(call,new AiFailure("stale_session"));}}
-    private static QwenClient.Image preflightImage()throws AiFailure {
-        Bitmap bitmap=Bitmap.createBitmap(32,32,Bitmap.Config.ARGB_8888);
-        try(ByteArrayOutputStream out=new ByteArrayOutputStream()){Canvas canvas=new Canvas(bitmap);canvas.drawColor(Color.WHITE);Paint paint=new Paint();paint.setColor(Color.RED);canvas.drawRect(8,8,24,24,paint);if(!bitmap.compress(Bitmap.CompressFormat.PNG,100,out))throw new AiFailure("image_invalid");byte[] bytes=out.toByteArray();return new QwenClient.Image("image/png",Base64.encodeToString(bytes,Base64.NO_WRAP),bytes.length);}
-        catch(Exception ignored){throw new AiFailure("image_invalid");}finally{bitmap.recycle();}
-    }
     private synchronized void run(PluginCall call,String operation,String request,String text,List<UUID> images,boolean preflight)throws Exception {
         if(client==null)throw new AiFailure("native_unavailable");AiRequestLifecycle.Token token=runtime.lifecycle.tryBeginRequest(request);activeOperation=operation;activeRequest=request;activeToken=token;
         try{worker.execute(()->{
             char[] key=null;String output=null;Exception failure=null;
-            try{token.check();key=runtime.secrets.readForRequest();final char[] secret=key;if(preflight)output=client.organize(new QwenClient.Request("",Collections.singletonList(preflightImage()),true),key,token);else output=runtime.images(getContext()).withPinnedImages(UUID.fromString(operation),images,selected->{token.check();List<QwenClient.Image> payload=new ArrayList<>();for(AiTemporaryImages.Processed image:selected)payload.add(new QwenClient.Image("image/jpeg",Base64.encodeToString(image.bytes,Base64.NO_WRAP),image.bytes.length));return client.organize(new QwenClient.Request(text,payload,false),secret,token);});token.check();synchronized(this){if(operation!=null&&!sessions.contains(operation))throw new AiFailure("stale_session");}}
+            try{token.check();key=runtime.secrets.readForRequest();final char[] secret=key;if(preflight)output=client.organize(new QwenClient.Request("",Collections.emptyList(),true),key,token);else output=runtime.images(getContext()).withPinnedImages(UUID.fromString(operation),images,selected->{token.check();List<QwenClient.Image> payload=new ArrayList<>();for(AiTemporaryImages.Processed image:selected)payload.add(new QwenClient.Image("image/jpeg",Base64.encodeToString(image.bytes,Base64.NO_WRAP),image.bytes.length));return client.organize(new QwenClient.Request(text,payload,false),secret,token);});token.check();synchronized(this){if(operation!=null&&!sessions.contains(operation))throw new AiFailure("stale_session");}}
             catch(Exception e){failure=e;}
             finally{
                 if(key!=null)Arrays.fill(key,'\0');

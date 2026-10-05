@@ -1,10 +1,34 @@
 # APK-4 AI Intake verification
 
-Approved plan `c8606e3`; inherited APK-3 `78f1877664db0b0015c132e970a4cfffe7ff03fc`. Work ran 2026-10-04–05 Asia/Shanghai on `feat/recipio-ai-intake`. Final production repair commit: `1382974` (delivery documents and test harness are committed separately; packet manifest pins final HEAD).
+Approved plan `c8606e3`; inherited APK-3 `78f1877664db0b0015c132e970a4cfffe7ff03fc`. Work ran 2026-10-04–05 Asia/Shanghai on `feat/recipio-ai-intake`. Historical production repair: `1382974`; this closeout adds the fixed-text preflight and eight-case native harness from `1c3da828`. Packet manifest pins the final committed implementation.
 
 Status: **APK_4_PENDING_DEVICE_TEST**. Implementation is not equivalent to real Provider or physical-phone acceptance. Real paid AI POSTs: **0**. No actual user key was read, stored in JS, or requested in chat.
 
-## 2026-10-05 desktop continuation / Android explicitly deferred
+## Latest final closeout — 2026-10-05 (supersedes the deferred handoff below)
+
+User resumed the four final gates from clean HEAD1c3da828. Only fixed text preflight and native acceptance tests changed; MainActivity, SQLite4, Preview7, Backup2, permissions and Tasks1–9 remain frozen.
+
+| Fresh command / closeout log | Actual outcome |
+| --- | --- |
+| Whole Vitest forks1; `test-results-closeout.json` / `closeout-whole.log` | 174 files / 875 passed, 0 failed/pending, 810.85s. Native50 files/287 included, not added. |
+| `npm run typecheck` / `closeout-typecheck.log` | PASS |
+| `npm run lint` / `closeout-lint.log` | PASS, 0 errors / 5 inherited warnings |
+| `npm run build:local` and `npm run sync:android` / closeout-build/sync logs | PASS, inherited chunk warning |
+| App Java tests + lint + assembleDebug + assembleDebugAndroidTest, `--rerun-tasks --max-workers=1`, quoted v12 properties / `closeout-gradle.log` | PASS, 239 executed / 3m58s; actual XML81 tests / 0 failed/error/skipped; lint0 errors/35 warnings |
+| `:app:connectedDebugAndroidTest`, ANDROID_SERIAL and injected serial both5580 / `closeout-connected.log` | **FAIL: actual XML40 tests / 8 failed / 0 errors/skipped; 32 passed**, 4m9s. Not a completion gate. |
+| Packaged resources / aapt compiled manifest versus originalv11 | 10 JS/HTML/JSON entries: no embedded credential patterns or old cloud runtime address. Only INTERNET added; allowBackup=false and both five-domain exclusions preserved. |
+
+Preflight regression first failed3 of17 Mock tests, then passed17/17. Native bridge fixed-text Mock test also passed in the final connected32; no real paid calls. It sends fixed text only, validates original JSON tokens including duplicate rejection and never generates a recipe.
+
+All eight `AiImeBackInstrumentedTest` cases remain non-green: firstBack, secondBack, draft, selected images, Preview edits, confirmation gate, repeatedBack, busy request. The harness uses real WebView/window insets, actual pointer/KEYCODE_BACK and actual SAF plus isolated generated KeyStore credentials/Fake HTTP (no JS fake Provider). Initial DOM-focus diagnosis failed before opening IME; real touch replaced it. One test-fixture cache namespace mismatch was corrected without relaxing the JS port.
+
+Both generated-only Android captures show **System UI isn't responding**; timeouts/wrong-target-window/UI-condition failures persist after restoring the AVD's configured2GB RAM. Capture paths and complete failure logs are retained locally, not packaged. These observations do not establish a production Back defect; no guessed timer/debounce/global Back suppression or page IME state machine was added. Dedicated AVD5580 was closed with data retained; Mirra5554 was never operated. The user was asked to pause the other emulator or connect a phone; no physical device/real Key became available.
+
+New final pending APK: `artifacts/recipio-ai-intake-v12-final-r2-debug.apk`, **16573867 bytes**, SHA256 **804de950006d5b2f61880b77a71eed36d8e4c00fcf3eab7c969e5e3c08389906**; package app.recipio.local / v12 / 0.5.0-ai-intake. Current connected target is this final build; its 8 failures are not hidden. Old APK/ZIP/Golden retained. Generated backup3350bytes / 7ff043ccf1c28ffb0e5575bce8b20d51d19a10bdc54f51511916ca0d354327a8 rehashed, not newly exported.
+
+True-account text/screenshot/multiple-image and real-response save gate, final upgrade/reinstall and physical-phone/offline/export smoke are **Not Run**. See [provider evidence](ai-intake-provider-smoke.md). Missing credentials/device is not AI_PROVIDER_ACCESS_BLOCKED. No production deployment/main merge/APK5. Final packet is an explicitly pending handoff; its manifest pins the committed HEAD and all ten entry hashes.
+
+## Historical 2026-10-05 desktop continuation / Android explicitly deferred
 
 User chose “暂时不要做 Android 验收”. No subsequent emulator/phone/connected run or paid Provider call is authorized in this continuation. The verified task-owned 5580 was closed with its data retained; Mirra_API_37 / emulator-5554 was left untouched. The first installed WebView diagnostic timed out while host free physical memory was about 300MB; it established neither root cause nor a passing keyboard case. Production MainActivity was not changed.
 

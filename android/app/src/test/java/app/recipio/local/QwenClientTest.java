@@ -28,11 +28,43 @@ public class QwenClientTest {
             return new QwenClient.HttpReply(200,new ByteArrayInputStream(envelope(draft(),"stop").getBytes(StandardCharsets.UTF_8)),()->{});
         });client.organize(request(),secret,token());
     }
-    @Test public void imageAndPreflightUseJsonObjectAndFixedTinyBudget()throws Exception {
-        for(boolean preflight:new boolean[]{false,true}){
-            QwenClient client=new QwenClient(contract(),(req,cancel)->{JSONObject body=new JSONObject(new String(req.body,StandardCharsets.UTF_8));assertEquals("json_object",body.getJSONObject("response_format").getString("type"));assertTrue(body.getJSONArray("messages").getJSONObject(1).get("content") instanceof JSONArray);if(preflight)assertEquals(128,body.getInt("max_tokens"));
-                return new QwenClient.HttpReply(200,new ByteArrayInputStream(envelope(preflight?"{\"color\":\"red\"}":draft(),"stop").getBytes(StandardCharsets.UTF_8)),()->{});});
-            client.organize(new QwenClient.Request("",List.of(new QwenClient.Image("image/png","AA==",1)),preflight),key(),token());
+    @Test public void imagesUseJsonObjectWithoutChangingRecipeBudget()throws Exception {
+        QwenClient client=new QwenClient(contract(),(req,cancel)->{JSONObject body=new JSONObject(new String(req.body,StandardCharsets.UTF_8));assertEquals("json_object",body.getJSONObject("response_format").getString("type"));assertTrue(body.getJSONArray("messages").getJSONObject(1).get("content") instanceof JSONArray);assertEquals(16384,body.getInt("max_tokens"));
+            return new QwenClient.HttpReply(200,new ByteArrayInputStream(envelope(draft(),"stop").getBytes(StandardCharsets.UTF_8)),()->{});});
+        client.organize(new QwenClient.Request("",List.of(new QwenClient.Image("image/png","AA==",1)),false),key(),token());
+    }
+    @Test public void textPreflightUsesOnlyFixedSmallJsonSchemaAndNoImage()throws Exception {
+        QwenClient client=new QwenClient(contract(),(req,cancel)->{
+            JSONObject body=new JSONObject(new String(req.body,StandardCharsets.UTF_8));
+            assertEquals("qwen3.8-flash",body.getString("model"));assertEquals(128,body.getInt("max_tokens"));
+            assertFalse(body.getBoolean("stream"));assertFalse(body.getBoolean("enable_thinking"));
+            JSONObject format=body.getJSONObject("response_format");assertEquals("json_schema",format.getString("type"));
+            JSONObject schema=format.getJSONObject("json_schema").getJSONObject("schema");
+            assertEquals("object",schema.getString("type"));assertFalse(schema.getBoolean("additionalProperties"));
+            assertEquals(1,schema.getJSONObject("properties").length());assertEquals("string",schema.getJSONObject("properties").getJSONObject("status").getString("type"));
+            assertEquals("ok",schema.getJSONObject("properties").getJSONObject("status").getJSONArray("enum").getString(0));
+            assertEquals("status",schema.getJSONArray("required").getString(0));assertTrue(format.getJSONObject("json_schema").getBoolean("strict"));
+            assertTrue(body.getJSONArray("messages").getJSONObject(1).get("content") instanceof String);
+            assertFalse(body.toString().contains("image_url"));assertFalse(body.toString().contains("UNUSED_PRIVATE_SOURCE"));
+            return new QwenClient.HttpReply(200,new ByteArrayInputStream(envelope("{\"status\":\"ok\"}","stop").getBytes(StandardCharsets.UTF_8)),()->{});
+        });
+        assertEquals("{\"status\":\"ok\"}",client.organize(new QwenClient.Request("UNUSED_PRIVATE_SOURCE",List.of(),true),key(),token()));
+    }
+    @Test public void preflightRejectsAnythingExceptExactStatusOkObject()throws Exception {
+        for(String content:List.of("ok","{\"color\":\"red\"}","{\"status\":\"OK\"}","{\"status\":true}","{\"status\":null}","{\"status\":1}","{\"status\":\"ok\",\"extra\":1}","[]","{}","{\"status\":\"bad\",\"status\":\"ok\"}")){
+            assertEquals("invalid_output",assertThrows(AiFailure.class,()->client(200,envelope(content,"stop")).organize(new QwenClient.Request("test",List.of(),true),key(),token())).code);
+        }
+    }
+    @Test public void preflightRejectsImageInputBeforeHttp()throws Exception {
+        AtomicInteger posts=new AtomicInteger();QwenClient client=new QwenClient(contract(),(req,cancel)->{posts.incrementAndGet();return new QwenClient.HttpReply(200,new ByteArrayInputStream(envelope("{\"status\":\"ok\"}","stop").getBytes(StandardCharsets.UTF_8)),()->{});});
+        assertEquals("input_invalid",assertThrows(AiFailure.class,()->client.organize(new QwenClient.Request("test",List.of(new QwenClient.Image("image/png","AA==",1)),true),key(),token())).code);
+        assertEquals(0,posts.get());
+    }
+    @Test public void accessFailureCodesArePreservedWithoutProviderMessages()throws Exception {
+        for(String code:List.of("ModelNotFound","NoPermission","AccessDenied","UnsupportedModel")){
+            String body=new JSONObject().put("error",new JSONObject().put("code",code).put("message","PRIVATE_PROVIDER_TEXT")).toString();
+            AiFailure error=assertThrows(AiFailure.class,()->client(400,body).organize(new QwenClient.Request("test",List.of(),true),key(),token()));
+            assertEquals(code,error.providerCode);assertEquals(400,error.httpStatus);assertFalse(error.toString().contains("PRIVATE_PROVIDER_TEXT"));
         }
     }
     @Test public void statusErrorsNeverEchoProviderMessageOrCredentials()throws Exception {

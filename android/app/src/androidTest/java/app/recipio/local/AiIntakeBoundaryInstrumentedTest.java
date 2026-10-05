@@ -54,6 +54,17 @@ public class AiIntakeBoundaryInstrumentedTest {
     @Test public void rejectedExecutorReleasesMutexWithoutReadingKeyOrSendingHttp()throws Exception {
         String operation=session();worker.shutdown();assertTrue(worker.awaitTermination(3,TimeUnit.SECONDS));Reply request=organize(operation);request.await();assertEquals("stale_session",request.error);assertEquals(0,posts.get());assertTrue(runtime.lifecycle.withSecretMutation(()->true));
     }
+    @Test public void nativePreflightSendsFixedTextAndAcceptsOnlyStatusOk()throws Exception {
+        try(InputStream asset=context.getAssets().open("recipio-ai-intake-contract.json")){field(plugin,"client",new QwenClient(new AiIntakeContract(asset),(request,cancel)->{
+            posts.incrementAndGet();JSONObject body=new JSONObject(new String(request.body,StandardCharsets.UTF_8));
+            assertEquals("qwen3.8-flash",body.getString("model"));assertEquals(128,body.getInt("max_tokens"));
+            assertEquals("返回 JSON：{\"status\":\"ok\"}",body.getJSONArray("messages").getJSONObject(1).getString("content"));
+            assertFalse(body.toString().contains("image_url"));assertEquals("json_schema",body.getJSONObject("response_format").getString("type"));
+            String response="{\"choices\":[{\"finish_reason\":\"stop\",\"message\":{\"content\":\"{\\\"status\\\":\\\"ok\\\"}\"}}]}";
+            return new QwenClient.HttpReply(200,new ByteArrayInputStream(response.getBytes(StandardCharsets.UTF_8)),()->{});
+        }));}
+        Reply call=new Reply("preflight",new JSObject());plugin.preflight(call);call.await();assertNull(call.error);assertTrue(call.value.getBoolean("available"));assertEquals("beijing",call.value.getString("region"));assertFalse(call.value.has("rawJson"));assertEquals(1,posts.get());
+    }
     @Test public void failedDiscardCanRetryOnlyItsOwnedSessionAfterFilesystemRecovers()throws Exception {
         String operation=session();File unexpected=new File(context.getCacheDir(),"ai-import/"+operation+"/unexpected.txt");assertTrue(unexpected.createNewFile());
         Reply first=new Reply("discardSession",new JSObject().put("operationId",operation));plugin.discardSession(first);first.await();assertEquals("storage_error",first.error);assertTrue(unexpected.delete());

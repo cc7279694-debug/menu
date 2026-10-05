@@ -11,6 +11,9 @@ import java.net.*;
 import javax.net.ssl.HttpsURLConnection;
 import org.json.*;
 import com.google.gson.*;
+import com.google.gson.stream.JsonReader;
+import com.google.gson.stream.JsonToken;
+import com.google.gson.Strictness;
 final class QwenClient {
     interface AiHttpTransport{HttpReply execute(PreparedRequest request,AiRequestLifecycle.Token cancellation)throws Exception;}
     static final class PreparedRequest{final String endpoint=AiIntakeContract.ENDPOINT;final byte[] body;final char[] key;PreparedRequest(byte[] body,char[] key){this.body=body;this.key=key;}}
@@ -38,7 +41,7 @@ final class QwenClient {
             else if(value instanceof JSONArray){StringBuilder text=new StringBuilder();JSONArray blocks=(JSONArray)value;for(int i=0;i<blocks.length();i++){JSONObject block=blocks.getJSONObject(i);if(!"text".equals(block.getString("type"))||!(block.get("text") instanceof String))throw new AiFailure("invalid_output");text.append(block.getString("text"));}content=text.toString();}
             else throw new AiFailure("invalid_output");
             JsonElement result=AiIntakeContract.parse(content);if(result.toString().contains(secret))throw new AiFailure("invalid_output");
-            if(request.preflight){if(!result.isJsonObject()||result.getAsJsonObject().size()!=1||!result.getAsJsonObject().has("color")||!result.getAsJsonObject().get("color").isJsonPrimitive()||!"red".equals(result.getAsJsonObject().get("color").getAsString()))throw new AiFailure("invalid_output");}
+            if(request.preflight)validatePreflight(content);
             else contract.validateDraft(content);
             cancellation.check();return content;
         } catch(AiFailure failure){throw failure;}
@@ -47,13 +50,23 @@ final class QwenClient {
         catch(Exception ignored){throw new AiFailure("invalid_output");}
         finally{if(watchdog!=null)watchdog.cancel(false);if(reply!=null){try{reply.body.close();}catch(IOException ignored){}reply.close.run();}}
     }
+    private static void validatePreflight(String content)throws Exception {
+        // Read the original JSON, not a map which could hide duplicate status keys.
+        try(JsonReader reader=new JsonReader(new StringReader(content))){
+            reader.setStrictness(Strictness.STRICT);reader.beginObject();
+            if(!reader.hasNext()||!"status".equals(reader.nextName())||reader.peek()!=JsonToken.STRING||!"ok".equals(reader.nextString())||reader.hasNext())throw new AiFailure("invalid_output");
+            reader.endObject();if(reader.peek()!=JsonToken.END_DOCUMENT)throw new AiFailure("invalid_output");
+        }
+    }
     private byte[] prepare(Request request)throws Exception {
-        String text=request.text.trim();if(text.codePointCount(0,text.length())>contract.limit("textCodePoints")||text.isEmpty()&&request.images.isEmpty()||request.images.size()>contract.limit("imageCount"))throw new AiFailure("input_invalid");
-        long total=0;JSONArray content=new JSONArray();content.put(new JSONObject().put("type","text").put("text",request.preflight?"Return JSON only: {\"color\":\"red\"} if the center square is red.":new JSONObject().put("untrustedSourceText",text).toString()));
+        if(request.preflight&&!request.images.isEmpty())throw new AiFailure("input_invalid");
+        String text=request.preflight?"返回 JSON：{\"status\":\"ok\"}":request.text.trim();if(text.codePointCount(0,text.length())>contract.limit("textCodePoints")||text.isEmpty()&&request.images.isEmpty()||request.images.size()>contract.limit("imageCount"))throw new AiFailure("input_invalid");
+        long total=0;JSONArray content=new JSONArray();content.put(new JSONObject().put("type","text").put("text",request.preflight?text:new JSONObject().put("untrustedSourceText",text).toString()));
         for(Image image:request.images){if(!Arrays.asList("image/jpeg","image/png","image/webp").contains(image.mimeType)||image.byteSize<=0||image.byteSize>contract.limit("imageBytes")||image.base64.length()>((image.byteSize+2)/3)*4)throw new AiFailure("image_too_large");total+=image.byteSize;content.put(new JSONObject().put("type","image_url").put("image_url",new JSONObject().put("url","data:"+image.mimeType+";base64,"+image.base64)));}
         if(total>contract.limit("totalImageBytes"))throw new AiFailure("image_too_large");
         JSONObject format=request.images.isEmpty()?new JSONObject().put("type","json_schema").put("json_schema",new JSONObject().put("name","recipio_recipe").put("strict",true).put("schema",contract.asset.getJSONObject("schema"))):new JSONObject().put("type","json_object");
-        JSONObject body=new JSONObject().put("model",AiIntakeContract.MODEL).put("enable_thinking",false).put("stream",false).put("temperature",0.1).put("max_tokens",request.preflight?128:16384).put("response_format",format).put("messages",new JSONArray().put(new JSONObject().put("role","system").put("content",request.preflight?"Inspect this generated image; output only the requested small JSON object.":contract.asset.getString("systemPrompt"))).put(new JSONObject().put("role","user").put("content",request.images.isEmpty()?content.getJSONObject(0).getString("text"):content)));
+        if(request.preflight)format=new JSONObject().put("type","json_schema").put("json_schema",new JSONObject().put("name","recipio_preflight").put("strict",true).put("schema",new JSONObject("{\"type\":\"object\",\"properties\":{\"status\":{\"type\":\"string\",\"enum\":[\"ok\"]}},\"required\":[\"status\"],\"additionalProperties\":false}")));
+        JSONObject body=new JSONObject().put("model",AiIntakeContract.MODEL).put("enable_thinking",false).put("stream",false).put("temperature",0.1).put("max_tokens",request.preflight?128:16384).put("response_format",format).put("messages",new JSONArray().put(new JSONObject().put("role","system").put("content",request.preflight?"Return only the fixed JSON object {\"status\":\"ok\"}, without explanation.":contract.asset.getString("systemPrompt"))).put(new JSONObject().put("role","user").put("content",request.images.isEmpty()?content.getJSONObject(0).getString("text"):content)));
         byte[] bytes=body.toString().getBytes(StandardCharsets.UTF_8);if(bytes.length>contract.limit("requestBytes"))throw new AiFailure("input_invalid");return bytes;
     }
     private static String read(InputStream input,int limit,AiRequestLifecycle.Token cancellation)throws IOException,AiFailure {
