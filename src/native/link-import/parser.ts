@@ -32,7 +32,7 @@ export function parseCalories(value: unknown): number | null {
 }
 export function parseIngredientLine(value: string): RecipeDetailsInput["ingredients"][number] {
   const line = plainText(value);
-  const quantity = "\\d+(?:\\.\\d+)?\\s*(?:千克|公斤|毫升|克|斤|两|升|罐|个|勺|茶匙|汤匙|kg|mg|ml|g|l|cups?|cans?|tbsp|tsp|oz|lbs?)";
+  const quantity = "\\d+(?:\\.\\d+)?\\s*(?:千克|公斤|毫升|克|斤|两|升|罐|个|勺|茶匙|汤匙|(?:kg|mg|ml|g|l|cups?|cans?|tbsp|tsp|oz|lbs?)(?![a-z]))";
   const prefix = new RegExp(`^(${quantity})\\s*(.+)$`, "iu").exec(line);
   const suffix = new RegExp(`^(.+?)\\s*(${quantity}|适量|少许)$`, "iu").exec(line);
   if (prefix?.[2].trim()) return { name: prefix[2].trim(), amount: prefix[1].trim() };

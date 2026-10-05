@@ -71,5 +71,6 @@ describe("explicit values only", () => {
     ["500克 鸡翅", "鸡翅", "500克"], ["鸡翅 500克", "鸡翅", "500克"], ["盐适量", "盐", "适量"], ["一小把葱", "一小把葱", ""],
     ["2 cans crushed tomatoes", "crushed tomatoes", "2 cans"], ["a generous handful of parsley", "a generous handful of parsley", ""],
     ["牛肉（熟）200克", "牛肉（熟）", "200克"], ["一罐可乐", "一罐可乐", ""],
+    ["2 green onions", "2 green onions", ""], ["1 lemon", "1 lemon", ""], ["100 grams rice", "100 grams rice", ""],
   ])("preserves ingredient %s", (line, name, amount) => expect(parseIngredientLine(line)).toEqual({ name, amount }));
 });
