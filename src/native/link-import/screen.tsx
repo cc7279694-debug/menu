@@ -25,7 +25,7 @@ function ParserPreview({ service, onSaved, onBack }: { service: LinkImportServic
   return <section className="space-y-4 [&_button]:min-h-11 [&_input]:min-h-11">
     <p className="text-sm text-muted-foreground">已读取网页自带菜谱结构，未调用 AI。请检查后保存；缺失信息保持空白。网页图片和来源不会保存。</p>
     {selected.warnings.map(warning => <p role="status" key={warning}>{warning}</p>)}
-    <RecipeEditor heading="检查网页菜谱" submitLabel="确认保存菜谱" initial={selected.recipe} mediaEnabled={false} onSave={save} onCancel={onBack} />
+    <RecipeEditor heading="检查网页菜谱" submitLabel="确认保存菜谱" initial={service.snapshot().parserDraft ?? selected.recipe} mediaEnabled={false} onSave={save} onCancel={onBack} />
     <Dialog open={duplicate} onOpenChange={open => { if (!open) decide(false); }}><DialogContent><DialogTitle>已存在同名菜谱</DialogTitle><DialogDescription>继续会新建另一条，不覆盖或合并原菜谱。</DialogDescription><DialogFooter><Button variant="outline" onClick={() => decide(false)}>返回检查</Button><Button onClick={() => decide(true)}>仍然新建菜谱</Button></DialogFooter></DialogContent></Dialog>
   </section>;
 }

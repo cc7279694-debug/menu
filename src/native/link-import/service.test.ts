@@ -83,7 +83,7 @@ it("source HTML, URL, script metadata and remote media do not enter backup or hi
   expect(JSON.stringify(portable)).not.toMatch(/https?:|script|recipes.example|images.example|candidate-|finalUrl|wasTruncated/iu);
   expect(source.changes).toHaveLength(1); expect(source.recipes).toHaveLength(1);
 });
-it("restoring backup invalidates late page/queued saves and stale previews", async () => {
+it("restoring backup invalidates late page results and prevents new reads", async () => {
   const store = new PreviewRecipeLibrary(), fake = fakeAi(); let state: BackupState = { phase: "idle" }; const listeners = new Set<() => void>();
   const backup = { getState: () => state, subscribe: (listener: () => void) => { listeners.add(listener); return () => { listeners.delete(listener); }; }, export: vi.fn(), inspectRestore: vi.fn(), confirmReplace: vi.fn(), cancel: vi.fn() } satisfies BackupController;
   const ai = new AiIntakeService(fake.keys, fake.bridge, { store, backup }), late = deferred<FetchedPage>();
@@ -92,7 +92,7 @@ it("restoring backup invalidates late page/queued saves and stale previews", asy
   late.resolve(fetched()); expect(await reading).toMatchObject({ code: "stale_session" }); expect(service.snapshot().parsed).toBeNull();
   await expect(service.read("https://recipes.example/dish")).rejects.toMatchObject({ code: "busy" }); expect(await store.list()).toEqual([]);
 });
-it("queued parser write is stopped by restore generation before database commit", async () => {
+it("an in-flight parser save cannot be discarded and duplicated", async () => {
   const { service, store } = setup(); await service.read("https://recipes.example/dish"); const input = service.selected()!.recipe;
   const original = store.createDetails.bind(store), gate = deferred<void>();
   vi.spyOn(store, "createDetails").mockImplementationOnce(async (...args) => { await gate.promise; return original(...args); });
@@ -104,4 +104,20 @@ it("manual completion after failed AI releases source held by the reused AI serv
   const { service, fake, ai } = setup(); await service.read("https://recipes.example/dish"); fake.bridge.organize.mockRejectedValueOnce({ code: "network_unavailable" });
   await expect(service.useAi()).rejects.toMatchObject({ code: "network_unavailable" }); expect(ai.snapshot().input.text).not.toBe("");
   await service.saveParser(service.selected()!.recipe); expect(ai.snapshot().input.text).toBe(""); expect(ai.snapshot().operationId).toBeNull();
+});
+it("failed native page cancellation still releases a previously owned AI source", async () => {
+  const { service, fake, ai, port } = setup(); await service.read("https://recipes.example/dish"); fake.bridge.organize.mockRejectedValueOnce({ code: "network_unavailable" });
+  await expect(service.useAi()).rejects.toMatchObject({ code: "network_unavailable" }); const late = deferred<FetchedPage>(); port.read.mockReturnValueOnce(late.promise); port.cancel.mockRejectedValueOnce(new Error("native cancel"));
+  const reading = service.read().catch(error => error); await service.discard().catch(() => {});
+  expect(ai.snapshot().input.text).toBe(""); expect(ai.snapshot().operationId).toBeNull(); late.resolve(fetched()); await reading;
+});
+it("AI save acknowledgement cannot resurrect a pre-restore recipe", async () => {
+  const store = new PreviewRecipeLibrary(), fake = fakeAi(); let state: BackupState = { phase: "idle" }; const listeners = new Set<() => void>();
+  const backup = { getState: () => state, subscribe: (fn: () => void) => { listeners.add(fn); return () => { listeners.delete(fn); }; }, export: vi.fn(), inspectRestore: vi.fn(), confirmReplace: vi.fn(), cancel: vi.fn() } satisfies BackupController;
+  const ai = new AiIntakeService(fake.keys, fake.bridge, { store, backup }), service = new LinkImportService({ store, ai, backup, port: { read: async () => fetched(), cancel: async () => {} } });
+  await service.read("https://recipes.example/dish"); await service.useAi(); const details = ai.snapshot().draft!.recipe, gate = deferred<Awaited<ReturnType<typeof ai.save>>>();
+  vi.spyOn(ai, "save").mockReturnValue(gate.promise); const saving = service.saveAi(details).catch(error => error);
+  gate.resolve({ ...details, id: crypto.randomUUID(), createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() });
+  state = { phase: "restoring" }; listeners.forEach(fn => fn());
+  expect(await saving).toMatchObject({ code: "stale_session" }); expect(service.snapshot().phase).toBe("input");
 });

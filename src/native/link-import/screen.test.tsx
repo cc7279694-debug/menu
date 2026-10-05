@@ -41,6 +41,13 @@ it("same-name save prompts rather than overwrites the original recipe", async ()
   fireEvent.click(screen.getByRole("button", { name: "确认保存菜谱" })); fireEvent.click(await screen.findByRole("button", { name: "仍然新建菜谱" }));
   await waitFor(() => expect(onSaved).toHaveBeenCalledOnce()); expect(await store.list()).toHaveLength(2);
 });
+it("absent UUID recovery preserves the user's attempted edits rather than original page values", async () => {
+  const { store } = setup(); await read(); await screen.findByRole("heading", { name: "检查网页菜谱" });
+  fireEvent.change(screen.getByLabelText("菜名"), { target: { value: "认真修改过的菜" } });
+  vi.spyOn(store, "createDetails").mockRejectedValueOnce(new Error("write")); vi.spyOn(store, "getDetails").mockRejectedValueOnce(new Error("read"));
+  fireEvent.click(screen.getByRole("button", { name: "确认保存菜谱" })); fireEvent.click(await screen.findByRole("button", { name: "核对保存结果" }));
+  expect(await screen.findByLabelText("菜名")).toHaveValue("认真修改过的菜");
+});
 it("Back during fetch asks once, does not duplicate requests, and abandon cancels native work", async () => {
   const { port, onCancel } = setup(), response = deferred<Awaited<ReturnType<typeof port.read>>>(); port.read.mockReturnValue(response.promise); await read();
   fireEvent(window, new Event("recipio:back", { cancelable: true })); fireEvent(window, new Event("recipio:back", { cancelable: true }));
