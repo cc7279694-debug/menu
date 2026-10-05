@@ -49,7 +49,11 @@ AI 输入页（文字 + 临时截图；内存状态）
 
 设置 → AI：仅未配置/已配置、设置/更换/删除及显式“验证模型访问”。2026-10-05 最终验收要求已测试先行落实：preflight 原生发送固定极小非私人文字 `返回 JSON：{"status":"ok"}`，max_tokens=128，strict JSON schema 仅允许一个 string status=ok。回读原始 JSON token，普通文本、错误值/类型、额外字段和重复键全部拒绝；不得附图片或调用方私有来源。仅回安全的状态/模型/地域及允许的 HTTP/Provider 错误码，不生成可保存Recipe。不能自动调用或伪装为免费；不提供任意模型/endpoint参数。17项 Qwen Mock 单元测试通过不等于实际账号可用；图片能力由单独截图 Smoke 验证。
 
-`saveAiKey()` 打开原生密码输入框，用户手动输入/粘贴并确认；JS 无 key 参数，不读取剪贴板、不回显旧值。取消保留旧 key；更换先成功加密并原子写入后替换。输入去首尾空白，标准 `sk-` key 长度 20–512、内部禁止空白/控制字符；非应用 API 凭据不能冒用。
+`saveAiKey()` 打开原生密码输入框，用户手动输入/粘贴并确认；JS 无 key 参数，不读取剪贴板、不回显旧值。取消保留旧 key；更换先成功加密并原子写入后替换。标准小写 `sk-` key 长度 20–512，仅允许 ASCII 字母、数字、连字符和下划线；非应用 API 凭据不能冒用。
+
+2026-10-05 密钥输入修补：原生输入边界统一由 `AiKeyInput` 处理，仅移除首尾 `Character.isWhitespace/isSpaceChar` 空白及复制常见 BOM U+FEFF / 零宽空格 U+200B。中间空白、控制/格式字符、星号/省略号打码值和其他非法字符仍拒绝；不自动拼接中间内容、不移除引号/Bearer、不转换大小写或全角字符。直接读取原生 Editable 到可清理 char[]，不额外生成完整密钥 String；最终仍通过原 `AiSecretEnvelope.validate`，加密/解密校验不变。
+
+错误只说明空输入、前缀、打码、过短/过长、中间不可见字符或其他非法字符，不包含输入内容。本机格式失败不代表 Provider 401/403；对话框明确“尚未连接百炼”。成功/失败均清空原生输入，失败允许重新粘贴、取消保留旧密文。格式保存成功不是账号有效性或模型访问成功，需用户单独发起“验证模型访问”。本修补不使用实际 Key、不调用真实 Provider、不改模型、地域、存储位置、权限、SQLite 或 Backup。
 
 AndroidKeyStore 不可导出 AES-256 key + 平台 `AES/GCM/NoPadding`，每次由 Cipher 生成新随机 IV；应用 ID / 合约版本为固定 AAD。版本化密文只存在 `noBackupFilesDir/ai-secret/key-v1.json`，采用 AtomicFile；不实现自制密码算法，不加第三方秘密存储依赖。包私有读取仅供 QwenClient，桥没有 plaintext getter。解密失败保留原密文并给“请重新配置”，不能清数据修复；删除必须在无请求时进行。
 

@@ -4,7 +4,15 @@ Approved plan `c8606e3`; inherited APK-3 `78f1877664db0b0015c132e970a4cfffe7ff03
 
 Status: **APK_4_PENDING_DEVICE_TEST**. Implementation is not equivalent to real Provider or physical-phone acceptance. Real paid AI POSTs: **0**. No actual user key was read, stored in JS, or requested in chat.
 
-## Latest final closeout — 2026-10-05 (supersedes the deferred handoff below)
+## Latest native key input repair — 2026-10-05
+
+Current delta is native paste normalization/error classification from clean2d0ab5b, not a Provider/IME repair. See [focused repair evidence](ai-key-input-repair.md) for exact commands, APK hash and native Not Run items. Current fresh whole174/875 (771.29s), JVM11 suites/91 (0 failures/errors/skips), typecheck/lint/localbuild/sync and appGradle239 rerun/3m8s pass. Android lint0errors35warnings; new3 dialog scenarios compile only.
+
+Pending v12 APK: artifacts/recipio-ai-intake-v12-key-input-debug.apk,16573867bytes,SHA256c64fc897949e68e566d5116cadb11d26e5a437b66b0854ccd2e2e17271275679. Same debug certificate as retained v12;10 resources scan and compiled backup exclusions verified. All prior artifacts retained.
+
+Connected, actual new dialog paste/save, final overwrite-install, physical phone and real Provider are **Not Run in this repair**. Only Mirra5554 is online, not selected or controlled; known unstable owned5580 not relaunched under constrained resources. Earlier connected40/8IME failures below remain historical open gates, not this APK's execution result. Real paid POST0, no account-access error. EntireAPK4 remains APK_4_PENDING_DEVICE_TEST.
+
+## Previous final closeout — 2026-10-05 (historical)
 
 User resumed the four final gates from clean HEAD1c3da828. Only fixed text preflight and native acceptance tests changed; MainActivity, SQLite4, Preview7, Backup2, permissions and Tasks1–9 remain frozen.
 

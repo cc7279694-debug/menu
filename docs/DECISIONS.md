@@ -1,5 +1,19 @@
 # Decisions
 
+## 2026-10-05 — APK-4 native key paste compatibility without weakening stored credentials
+
+### Decision
+
+在原生输入边界去除首尾 Unicode 空白及 U+FEFF/U+200B，给出不回显输入的明确格式原因。内部异常字符、打码显示值、非小写 sk- 前缀和20–512长度规则保持严格，最终继续调用未修改的 AiSecretEnvelope 校验；保留输入清空和 Keystore/AtomicFile/生命周期互斥。
+
+### Context / Alternatives / Reason
+
+用户手机显示本地格式错误，确认复制值是 sk- 开头；实际密钥未被读取。旧 trim() 对生成样本的 NBSP/BOM/零宽边界可重复拒绝，不能据此宣称用户账号无效或认定实际输入一定含隐藏字符。未选择删除所有空白、接受任意字符串、把 Key 交给 JS 或发真实请求诊断。
+
+### Consequences
+
+仅复制边界兼容，不是认证绕过；本地保存后仍需独立 Provider 验证。普通输入失败明确尚未联网、已清空可重贴，旧密文不变。无新依赖、权限、SQLite/Backup版本或模型变更；本轮真实付费调用0。桌面/构建证据和设备未运行项分开记录，未验证实际手机前仍为待验收APK，不提升整个APK-4状态。
+
 ## 2026-10-05 — APK-4 pending acceptance evidence must remain explicit
 
 ### Decision

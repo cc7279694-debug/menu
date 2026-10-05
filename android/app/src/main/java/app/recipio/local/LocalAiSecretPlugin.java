@@ -29,8 +29,10 @@ public class LocalAiSecretPlugin extends Plugin {
             if(Build.VERSION.SDK_INT>=26)input.setImportantForAutofill(View.IMPORTANT_FOR_AUTOFILL_NO_EXCLUDE_DESCENDANTS);
             dialog=new AlertDialog.Builder(getActivity()).setTitle("设置 AI 密钥").setMessage("密钥只保存在本机 Android 安全存储，不会交给网页或进入备份。").setView(input).setNegativeButton("取消",(d,w)->cancel()).setPositiveButton("保存",null).create();
             dialog.setOnCancelListener(d->cancel());dialog.setOnShowListener(d->dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(v->{
-                char[] value=input.getText().toString().trim().toCharArray();input.getText().clear();
-                try{AiSecretEnvelope.validate(value);}catch(Exception ignored){Arrays.fill(value,'\0');input.setError("请输入有效的 sk- 开头 API Key");return;}
+                final char[] value;
+                try{value=AiKeyInput.prepare(input.getText());}
+                catch(AiKeyInput.InvalidInput error){input.getText().clear();input.setError(error.getMessage()+"。尚未连接百炼；输入已清空，请重新粘贴。");return;}
+                input.getText().clear();
                 dialog.getButton(AlertDialog.BUTTON_POSITIVE).setEnabled(false);dialog.getButton(AlertDialog.BUTTON_NEGATIVE).setEnabled(false);dialog.setCancelable(false);
                 getBridge().execute(()->{String errorCode=null;try{lifecycle.withSecretMutation(()->{store.save(value);return null;});}catch(Exception error){errorCode=error instanceof AiFailure?((AiFailure)error).code:"key_unavailable";}finally{Arrays.fill(value,'\0');}
                     final String failure=errorCode;getActivity().runOnUiThread(()->{PluginCall target=pending;clear();if(target!=null){if(failure==null)target.resolve(new JSObject().put("configured",true).put("cancelled",false));else target.reject(failure,failure);}});
