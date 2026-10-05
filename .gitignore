@@ -22,6 +22,7 @@
 /dist-native/
 /artifacts/
 /android/.gradle/
+/android/.kotlin/
 /android/**/build/
 /android/local.properties
 /android/app/src/main/assets/public/

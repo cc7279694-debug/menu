@@ -36,6 +36,7 @@ const sources = {
   "android-verification.md":
     "artifacts/ai-intake/android-verification.md",
   "security-notes.md": "artifacts/ai-intake/security-notes.md",
+  "provider-smoke.md": "artifacts/ai-intake/provider-smoke.md",
   "ai-contract.md": "docs/ai-intake-contract.md",
   "test-results.txt": "artifacts/ai-intake/test-results.txt",
   "apk-metadata.txt": "artifacts/ai-intake/apk-metadata.txt",
@@ -146,5 +147,3 @@ console.log(
     2,
   ),
 );
-
-

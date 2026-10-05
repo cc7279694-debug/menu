@@ -1,22 +1,28 @@
 // Explicit generated-data AVD only. Never targets a phone, never invokes real Provider.
 import assert from "node:assert/strict";
 import {createHash,randomUUID} from "node:crypto";
+import {spawnSync} from "node:child_process";
 import {existsSync,mkdirSync,readFileSync,writeFileSync} from "node:fs";
 import {resolve,isAbsolute} from "node:path";
 import JSZip from "jszip";
 import {device,delay} from "./android-webview.mjs";
 const [adbPath,serial,mode,apk]=process.argv.slice(2);
 assert(isAbsolute(adbPath)&&existsSync(adbPath),"Absolute installed ADB required");
-assert(["baseline","upgrade","secrets","picker","flows","temp","backup","offline","reinstall"].includes(mode),"Explicit APK-4 mode required");
+assert(["baseline","upgrade","secrets","picker","flows","temp","backup","offline","narrow","reinstall"].includes(mode),"Explicit APK-4 mode required");
 assert(apk&&isAbsolute(apk)&&existsSync(apk),"Absolute APK required");
 const d=device(adbPath,serial),out=resolve("artifacts/ai-intake");
 mkdirSync(out,{recursive:true});
 assert.equal(d.adb("emu","avd","name").split(/\r?\n/)[0].trim(),"Recipio_Backup_36","Do not switch target");
 assert.equal(d.adb("shell","getprop","sys.boot_completed"),"1");
 const sha=b=>createHash("sha256").update(b).digest("hex"),checks=[];
+function boundedLogs(){
+ const pid=d.adb("shell","pidof","app.recipio.local").split(" ")[0];
+ return [[],["--pid="+pid]].map(filter=>{const result=spawnSync(adbPath,["-s",serial,"logcat","-d","-t","1000","-v","brief",...filter],{timeout:15000,maxBuffer:8*1024*1024,encoding:"utf8"});assert.equal(result.status,0,"Bounded log capture failed; never print device log contents");return result.stdout;}).join("\n");
+}
 const pass=t=>{checks.push(t);console.log("PASS: "+t);};
 const has=t=>"document.body.innerText.includes("+JSON.stringify(t)+")";
 const query=(sql,values=[])=>d.evaluate("window.Capacitor.Plugins.CapacitorSQLite.query({database:'recipio',statement:"+JSON.stringify(sql)+",values:"+JSON.stringify(values)+"}).then(r=>r.values)");
+const execute=sql=>d.evaluate("window.Capacitor.Plugins.CapacitorSQLite.execute({database:'recipio',statements:"+JSON.stringify(sql)+"})");
 const permissionList=()=>[...d.adb("shell","dumpsys","package","app.recipio.local").matchAll(/android\.permission\.[A-Z_]+/g)].map(m=>m[0]).filter((v,i,a)=>a.indexOf(v)===i).sort();
 const keyStatus=()=>d.evaluate("window.Capacitor.Plugins.LocalAiSecret.hasAiKey().then(r=>r.configured)");
 const cacheDirs=()=>d.adb("shell","run-as","app.recipio.local","ls","cache/ai-import").split(/\r?\n/).filter(n=>/^[a-f0-9-]{36}$/.test(n));
@@ -191,6 +197,10 @@ async function tap(predicate, label) {
   }
   throw new Error(`System control missing: ${label}\n${xml()}`);
 }
+async function waitIme(shown){
+ for(let i=0;i<20;i++){if(d.adb("shell","dumpsys","input_method").includes("mIsInputViewShown="+shown))return;await delay(200);}
+ throw new Error("Actual Android keyboard visibility did not settle to "+shown);
+}
 async function downloads() {
   let state = xml();
   const root = (n) =>
@@ -295,24 +305,27 @@ async function save() {
   await d.wait(has("编辑菜谱"));
 }
 
-async function generated(){const actual=await rows();assert(actual.recipes.every(r=>r.id==="recipe-fixed"||r.title.startsWith("APK3 ")||r.title.startsWith("APK4 ")),"Refuse unproven personal data");assert.deepEqual(await query("PRAGMA foreign_key_check"),[]);return actual;}
+async function approvedGolden(){const checked=await inspect(resolve("artifacts/cooking-experience/cooking-v2-1791107599943.recipio"));assert.equal(checked.sha256,"efe5d4d014ac81031c985213dff3e778926e10e2817f96d54bde15f763013ded");return checked;}
+async function generated(){const actual=await rows(),golden=await approvedGolden();const approved=new Map(golden.data.recipes.map(r=>[r.id,r.title]));assert(actual.recipes.every(r=>approved.get(r.id)===r.title||r.id==="recipe-fixed"||r.title.startsWith("APK3 ")||r.title.startsWith("APK4 ")),"Refuse unproven personal data");assert.deepEqual(await query("PRAGMA foreign_key_check"),[]);return actual;}
 async function aiInput(){await click("新增菜谱");await click("AI 整理");await d.wait(has("AI 整理菜谱"));}
 async function abandon(){await click("返回");await click("放弃本轮整理");await d.wait(has("今天想做什么"));}
 async function fixtureFiles(){
   const result=d.adb("shell","am","instrument","-w","-r","-e","class","app.recipio.local.AiSafFixturesInstrumentedTest","app.recipio.local.test/androidx.test.runner.AndroidJUnitRunner");
   assert(result.includes("OK (1 test)"),"Generated fixture instrumentation failed");
   const roots=d.adb("shell","run-as","app.recipio.local","ls","cache").split(/\r?\n/).filter(n=>/^recipio-ai-fixture-[a-f0-9-]{36}$/.test(n));assert(roots.length);
-  const root=roots.at(-1);for(const name of ["generated.jpg","generated.png","generated.webp","corrupt.png","oversize.png"]){const path=resolve(out,name);writeFileSync(path,d.raw("exec-out","run-as","app.recipio.local","cat","cache/"+root+"/"+name));d.adb("push",path,"/sdcard/Download/recipio-ai-"+name);}
+  const root=roots.at(-1);for(const name of ["generated.jpg","generated.png","generated.webp","corrupt.png","oversize.png"]){const path=resolve(out,name);const read=spawnSync(adbPath,["-s",serial,"exec-out","run-as","app.recipio.local","cat","cache/"+root+"/"+name],{timeout:30000,maxBuffer:20*1024*1024});assert.equal(read.status,0,"Generated fixture copy failed; never print binary bytes");writeFileSync(path,read.stdout);d.adb("push",path,"/sdcard/Download/recipio-ai-"+name);}
 }
 let failure;const beforeNetwork={airplane:d.adb("shell","settings","get","global","airplane_mode_on"),wifi:d.adb("shell","settings","get","global","wifi_on"),data:d.adb("shell","settings","get","global","mobile_data")};
 const font=d.adb("shell","settings","get","system","font_scale");
+const hardwareIme=d.adb("shell","settings","get","secure","show_ime_with_hard_keyboard");
 const baselineFile=resolve(out,"baseline-v11.json");
 try{
  await d.coldStart();await generated();
  if(mode==="baseline"){
   assert(!existsSync(baselineFile),"Frozen baseline cannot be overwritten");assert(d.adb("shell","dumpsys","package","app.recipio.local").includes("versionCode=11"));
   let current=await rows();
-  if(current.recipes.length===0){const checked=await inspect(resolve("artifacts/cooking-experience/cooking-v2-1791107599943.recipio"));assert.equal(checked.sha256,"efe5d4d014ac81031c985213dff3e778926e10e2817f96d54bde15f763013ded");d.adb("push",checked.path,"/sdcard/Download/recipio-ai-v11-golden.recipio");await settings();await restoreChoice("recipio-ai-v11-golden.recipio");await replace(0);current=await generated();}
+  const checked=await approvedGolden();if(current.recipes.length===0){d.adb("push",checked.path,"/sdcard/Download/recipio-ai-v11-golden.recipio");await settings();await restoreChoice("recipio-ai-v11-golden.recipio");await replace(0);current=await generated();}
+  assert.deepEqual(canonical(portable(current)),canonical(checked.data),"Original external Golden must match exactly before freezing v11");
   assert(current.cooking_records.length>0&&current.recipe_changes.length>0,"Nonempty seven-entity baseline required");assert.equal((await query("PRAGMA user_version"))[0].user_version,4);
   writeFileSync(baselineFile,JSON.stringify({rows:current,portable:portable(current),metadata:await query("SELECT * FROM backup_restore_state"),permissions:permissionList(),apkSha256:sha(readFileSync(apk))},null,2),{flag:"wx"});pass("v11 seven entities, fields/IDs/timestamps/order/media SHA and restore facts frozen from proven generated backup");
  }else if(mode==="upgrade"){
@@ -325,9 +338,11 @@ try{
   d.adb("shell","input","text",generatedKey);await tap(n=>n.includes('resource-id="android:id/button1"'),"native Save");
   await d.wait(has("已配置"));assert.equal(await keyStatus(),true);
   const cipher=d.raw("exec-out","run-as","app.recipio.local","cat","no_backup/ai-secret/key-v1.json");assert(!cipher.includes(Buffer.from(generatedKey)));
-  const cipherHash=sha(cipher);await click("更换 AI 密钥");await delay(400);await tap(n=>n.includes('resource-id="android:id/button2"'),"native Cancel");assert.equal(sha(d.raw("exec-out","run-as","app.recipio.local","cat","no_backup/ai-secret/key-v1.json")),cipherHash);
-  await d.coldStart();assert.equal(await keyStatus(),true);await settings();await click("删除 AI 密钥");await click("确认删除");await d.wait(has("未配置"));assert.equal(await keyStatus(),false);
-  pass("actual native secure dialog configures generated-only credential; ciphertext not plaintext; replace-cancel/restart/delete verified, zero Provider calls");
+  const cipherHash=sha(cipher);writeFileSync(resolve(out,"generated-credential.json"),JSON.stringify({cipherSha256:cipherHash,generatedOnly:true},null,2),{flag:"wx"});
+  const logs=boundedLogs();assert(!logs.includes(generatedKey),"Generated credential leaked to device logs");assert(!logs.includes("APK4 GENERATED INPUT"),"Generated intake source leaked to device logs");
+  await click("更换 AI 密钥");await delay(400);await tap(n=>n.includes('resource-id="android:id/button2"'),"native Cancel");assert.equal(sha(d.raw("exec-out","run-as","app.recipio.local","cat","no_backup/ai-secret/key-v1.json")),cipherHash);
+  await d.coldStart();assert.equal(await keyStatus(),true);
+  pass("actual native secure dialog configures generated-only credential; ciphertext not plaintext; replace-cancel/restart verified, retained solely for same-device restore test, zero Provider calls");
  }else if(mode==="picker"){
   await fixtureFiles();await d.coldStart();await aiInput();await d.fill("菜谱文字","APK4 GENERATED INPUT");
   for(const name of ["generated.jpg","generated.png","generated.webp"]){await click("添加截图");await delay(400);await selectFile("recipio-ai-"+name);await d.wait("document.querySelectorAll('img[alt^=\"截图 \"').length>="+(["generated.jpg","generated.png","generated.webp"].indexOf(name)+1));}
@@ -350,6 +365,32 @@ try{
   if(mode==="offline"){await d.coldStart();await aiInput();await d.fill("菜谱文字","APK4 offline source");await d.wait(has("前往设置 AI 密钥"));await abandon();pass("airplane-mode AI missing-key fallback leaves core available; real authenticated network smoke Not Run");assert.deepEqual(d.events.filter(e=>e.method==="Network.requestWillBeSent"&&!/^(https:\/\/localhost|data:|blob:)/.test(e.params.request.url)),[]);}
  }else if(mode==="backup"){
   const before=portable(await generated());await settings();const backup=await exportUI("ai-intake-generated");assert.equal(backup.manifest.formatVersion,2);assert.equal(backup.manifest.databaseSchemaVersion,4);assert.deepEqual(canonical(backup.data),canonical(before));assert(!JSON.stringify(backup.data).match(/rawJson|fieldChecks|ai-import|apiKey/));const keyBefore=await keyStatus();await restoreChoice(backup.name);await click("取消恢复");assert.deepEqual(portable(await rows()),before);await restoreChoice(backup.name);await replace((await rows()).recipes.length);assert.deepEqual(canonical(portable(await rows())),canonical(before));assert.equal(await keyStatus(),keyBefore);writeFileSync(resolve(out,"backup-metadata.json"),JSON.stringify({path:backup.path,bytes:backup.size,sha256:backup.sha256},null,2));pass("same-device replace/cancel and Backup2 readback preserve all seven tables/images; no key/intake/temp included");
+  const current=await rows(),zip=await JSZip.loadAsync(readFileSync(backup.path)),badManifest=JSON.parse(await zip.file("manifest.json").async("string"));badManifest.dataFile.sha256="f".repeat(64);zip.file("manifest.json",JSON.stringify(badManifest));const bad=resolve(out,"corrupt-"+Date.now()+".recipio");writeFileSync(bad,await zip.generateAsync({type:"nodebuffer"}),{flag:"wx"});d.adb("push",bad,"/sdcard/Download/recipio-ai-corrupt.recipio");await restoreChoice("recipio-ai-corrupt.recipio",false);assert.deepEqual(await rows(),current);pass("corrupt archive rejects before changing current seven tables or media");
+  await restoreChoice(backup.name);await execute("CREATE TRIGGER apk4_restore_failure BEFORE INSERT ON cooking_records BEGIN SELECT RAISE(ABORT,'generated restore fault'); END;");try{await click("恢复并替换当前数据");await click(`确认替换 ${current.recipes.length} 道菜谱`);await d.wait("!!document.querySelector('[role=alert]')");assert.deepEqual(await rows(),current);assert.deepEqual(canonical(portable(await rows())),canonical(before));}finally{await execute("DROP TRIGGER apk4_restore_failure;");}pass("real SQLite insert fault rolls back all seven tables and retains image bytes");
+  const old=await inspect(resolve("artifacts/backup-restore/golden.recipio"));assert.equal(old.sha256,"6553458a80d0bb38dce32ca791a64f30ea27f569df3ffc034ae7789874e3d313");d.adb("push",old.path,"/sdcard/Download/recipio-ai-v1-golden.recipio");await restoreChoice("recipio-ai-v1-golden.recipio");await replace((await rows()).recipes.length);const {cookingRecords,...legacy}=portable(await rows());assert.deepEqual(cookingRecords,[]);assert.deepEqual(canonical(legacy),canonical(old.data));assert.equal((await query("SELECT data_sha256 FROM backup_restore_state WHERE id=1"))[0].data_sha256,old.manifest.dataFile.sha256);assert.equal(await keyStatus(),keyBefore);pass("unchanged strict v1 restores old fields/history/images with empty cooking and original commit hash");
+  await restoreChoice(backup.name);await replace((await rows()).recipes.length);assert.deepEqual(canonical(portable(await generated())),canonical(before));await execute("DELETE FROM recipes;");assert(Object.values(await rows()).every(r=>r.length===0));await d.coldStart();await settings();await restoreChoice(backup.name);await replace(0);assert.deepEqual(canonical(portable(await rows())),canonical(before));assert.equal(await keyStatus(),keyBefore);pass("verified external v2 → clear proven generated rows → real Replace restores exact IDs/times/order/all image hashes");
+  assert.equal(keyBefore,true,"Generated credential must cover real same-device Replace");const credential=JSON.parse(readFileSync(resolve(out,"generated-credential.json"),"utf8"));assert.equal(credential.generatedOnly,true);assert.equal(sha(d.raw("exec-out","run-as","app.recipio.local","cat","no_backup/ai-secret/key-v1.json")),credential.cipherSha256,"Never delete a different credential");await click("删除 AI 密钥");await click("确认删除");await d.wait(has("未配置"));await restoreChoice(backup.name);await replace((await rows()).recipes.length);assert.equal(await keyStatus(),false);assert.deepEqual(canonical(portable(await rows())),canonical(before));pass("same-device Replace preserves exact generated credential ciphertext; explicitly deleting it then restoring cannot recreate key");
+ }else if(mode==="narrow"){
+  try{
+   d.adb("shell","settings","put","system","font_scale","1.5");d.adb("shell","settings","put","secure","show_ime_with_hard_keyboard","1");await d.coldStart();
+   await d.command("Emulation.setDeviceMetricsOverride",{width:320,height:740,deviceScaleFactor:1,mobile:true});
+   await aiInput();await d.fill("菜谱文字","APK4 大字体\n中文 🍚");
+   assert(await d.evaluate("document.documentElement.scrollWidth<=320"));
+   const controls=await d.evaluate("[...document.querySelectorAll('button')].filter(b=>b.getClientRects().length).map(b=>{const r=b.getBoundingClientRect();return {text:b.textContent,height:r.height,width:r.width};})");
+   assert(controls.every(r=>r.height>=44),JSON.stringify(controls));
+   const area=await d.evaluate("(()=>{const el=document.querySelector('textarea');el.scrollIntoView({block:'center'});const r=el.getBoundingClientRect();return {x:r.x+r.width/2,y:r.y+Math.min(30,r.height/2)};})()");
+   // The installed Android WebView receives a real renderer touch; IME visibility is still checked natively.
+   await d.command("Input.dispatchTouchEvent",{type:"touchStart",touchPoints:[area]});await d.command("Input.dispatchTouchEvent",{type:"touchEnd",touchPoints:[]});
+   await d.wait("document.activeElement?.tagName==='TEXTAREA'");
+   await waitIme(true);
+   assert(await d.evaluate("document.documentElement.scrollWidth<=320"));
+   d.adb("shell","input","keyevent","4");await waitIme(false);
+   assert(await d.evaluate("!document.querySelector('[role=dialog]')"),"First Back closes only keyboard, not intake");
+   writeFileSync(resolve(out,"narrow-input-generated.png"),d.raw("exec-out","screencap","-p"));
+   d.adb("shell","input","keyevent","4");await d.wait(has("放弃本轮整理"));await click("继续整理");
+   assert.equal(await d.evaluate("document.querySelector('textarea').value"),"APK4 大字体\n中文 🍚");await abandon();
+   pass("320px / systemfont1.5 input has no horizontal overflow, 44px controls; actual IME and Back preserve unsaved source");
+  }finally{await d.command("Emulation.clearDeviceMetricsOverride");}
  }else if(mode==="reinstall"){
   const before=portable(await generated()),facts=await query("SELECT * FROM backup_restore_state"),key=await keyStatus();d.close();d.adb("install","-r",resolve(apk));await d.coldStart();assert.deepEqual(portable(await rows()),before);assert.deepEqual(await query("SELECT * FROM backup_restore_state"),facts);assert.equal(await keyStatus(),key);pass("same-final-APK install-r retains all entities, image hashes, restore metadata and device credential state");
  }
@@ -357,7 +398,7 @@ try{
 finally{
  if(mode==="offline"){d.adb("shell","cmd","connectivity","airplane-mode",beforeNetwork.airplane==="1"?"enable":"disable");d.adb("shell","svc","wifi",beforeNetwork.wifi==="1"?"enable":"disable");d.adb("shell","svc","data",beforeNetwork.data==="1"?"enable":"disable");}
  d.adb("shell","settings","put","system","font_scale",font);
+ if(mode==="narrow"){if(hardwareIme==="null")d.adb("shell","settings","delete","secure","show_ime_with_hard_keyboard");else d.adb("shell","settings","put","secure","show_ime_with_hard_keyboard",hardwareIme);}
  writeFileSync(resolve(out,mode+"-result-"+Date.now()+".json"),JSON.stringify({mode,serial,avd:"Recipio_Backup_36",api:d.adb("shell","getprop","ro.build.version.sdk"),abi:d.adb("shell","getprop","ro.product.cpu.abi"),generatedOnly:true,apk:{path:resolve(apk),bytes:readFileSync(apk).length,sha256:sha(readFileSync(apk))},passed:checks,failure:failure?.message??null,realProviderPosts:0,notRun:["physical phone","user-account preflight","real AI text/single/multiple image smoke"]},null,2));d.close();
 }
 if(failure)process.exitCode=1;
-

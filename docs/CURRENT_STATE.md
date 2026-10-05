@@ -2,65 +2,47 @@
 
 ## Current Stage
 
-2026-10-04：用户已批准 APK-4 计划提交 `c8606e3` 与 `ai-intake-contract.md`，当前在 `feat/recipio-ai-intake` **连续实施 Task1–10**。继承 APK-3 `78f1877664db0b0015c132e970a4cfffe7ff03fc`；SQLite4/Preview7/Backup2冻结。用户新要求首次真实集成先1次最小图片/JSON preflight，随后最多3次人工smoke，多图仅前两项成功后进行；没有模型/账号权限则明确停止，不换模型。
+2026-10-05：APK-4 AI Intake 主体 Task1–9 已实现，Task10 验收仍未完成。用户本轮明确选择“暂时不要做 Android 验收”；不再启动专用模拟器或执行 connected/真机/真实 Provider 调用。继续桌面验证、构建与待验收交付。分支 feat/recipio-ai-intake；生产修补基线 1382974，保留交付文档/工具修改。SQLite4 / Preview7 / Backup2 不变。
 
-本轮仅文档和分支：未修改业务代码、依赖、权限、数据库或备份，未构建新 APK，未执行 APK-4 自动化/Android 测试，真实 Provider 调用 0 次。官方模型/接入文档已核对；账户权限、密钥、真实识别质量未验证。现有 APK-3 技术状态仍为 `APK_3_COMPLETE`，模拟器证据不是物理手机验收；原计划 `fa6aa4b`、旧产物和证据全部保留。
+最终审查的两个 Important（数字后缀/小数误标 explicit、清理失败恢复后仍占会话名额）均已真实 RED→GREEN 最小修补。最终必须用修补后的同一版本重跑全部门禁。当前不是 APK_4_COMPLETE。
 
-当前真实实现：Android SQLite v4、Preview Dexie v7、Backup Format v2（读严格原 v1/v2，写 v2）、versionCode11 / `0.4.0-cooking-experience`。接受的 APK-2 基线 `b541d8a` 及原 APK/Golden 保留；旧数字只作历史，不证明 APK-3。最终交付与证据见 `checkpoints/2026-10-04-cooking-experience.md`、`verification/cooking-experience-android.md`。
+## Implemented / Inherited
 
-APK-1 Android Native Acceptance Gate 技术验收通过，状态 DAILY_LIBRARY_ANDROID_VERIFIED。原生选图修复与证据继承 `checkpoints/2026-10-04-daily-library-acceptance.md`；用户初步体验反馈不等同本代理已完成物理手机全流程测试。
+- 可选文字/1–6截图/组合 → 原生 Qwen → strict JSON/Zod → 保守归一化 → explicit/inferred/missing → 共用可编辑 Preview → 明确确认 → 普通 Recipe。手动录入保留，AI不能直接写库。
+- 原生 password dialog/FLAG_SECURE/AndroidKeystore AES-GCM + AtomicFile/noBackup；JS无 plaintext getter/setter。桥日志关闭，固定北京 HTTPS、安全错误码、取消/代次/UUID防双写；网络不占业务数据锁。
+- 临时截图独立 SAF/cache、字节/像素限制、sampled decode/EXIF白底压缩、pin、丢弃/启动清理、失败重试回收owner；不进入永久资产/数据库/备份。
+- APK-3 完整步骤默认、可选 Focus/Guided、明确最小做过记录、可选成品照片/评价/备注、只读修改历史、真实图片引用保护不变。
+- APK-2 staging、安全副本、单事务 Replace、提交事实核查、严格原v1兼容和v2完整备份不变。旧APK/Golden/检查点/云回退保留。
 
-稳定 Android 36 复现了系统授权 URI 原生可读、WebView FileReader 不可读。Android 选图现改为系统选择器 → 原生流式复制 → 私有 images 路径；封面与步骤图共用，不新增网络/相册权限或数据库迁移。最终 v6 已完成稳定环境全新安装、图片、离线 CRUD/重启、返回键，以及保留旧数据的 v5→v6 覆盖升级。测试环境已正常关闭，所有模拟器与旧数据保留。
+## Verification
 
-## Completed
+本轮桌面验证：全仓174文件/875、本地版50文件/287（子集）、实际JUnit XML77（0失败/错误/跳过），typecheck、Lint0错误/5旧警告、build:local、sync、Gradle全应用目标239执行/2m38s（Android lint0错误/35警告）均通过。旧报告JVM87已按本轮XML更正。新十项审查包测试实际RED2→GREEN2，包含在875中。APK静态8资源/权限/系统备份排除审计通过。历史connected31不代表新增键盘测试已通过；详细命令与失败尝试见 verification/ai-intake-android.md。
 
-- APK-3：完整步骤仍为默认主路径；Focus/Guided 可选、仅查看索引；用户明确完成才生成最小做过记录，照片/评价/备注可选。修改历史只读，当前菜谱是认可的最新做法，无版本切换/回滚。
-- SQLite3→4 / Dexie6→7 增量迁移；记录/修改历史游标分页；成品照片和封面共享真实引用，撤销/历史/导出 pin 均保护文件。严格 v1 校验语义不变，仅内部补空 cookingRecords；v2 包含全部七实体和当前/旧/成品图片，仍使用安全副本和单事务 Replace。
-- 最终实现重新执行全仓154文件/739项；原生相关30文件/151项为其子集；JVM30、完整 connected14项均通过。类型检查、ESLint（0错误/5旧警告）、Vite build、Capacitor sync、Gradle Debug/测试APK通过；Android lint 0错误/34警告。真实导出/取消/坏包拒绝/插入故障回滚/v1兼容/v2清除生成数据后恢复/图片SHA/离线冷启动/返回/大字体/两次覆盖安装通过。
-- 最终 `artifacts/recipio-cooking-experience-v11-debug.apk`：16,523,535字节，SHA-256 `2dc868bb72b537798e17471e1a2621bc46cf4b9f2c15b9045f6590a3e02fb82d`。测试v2备份：3,154字节，SHA-256 `efe5d4d014ac81031c985213dff3e778926e10e2817f96d54bde15f763013ded`；绝对路径见验收报告。恢复及升级未使用真实个人数据。
-- 本轮修复了延迟完成后的导航竞态及原生备份先回复后释放锁的竞态；均有 RED→GREEN 证据，最终设备和完整回归基于修复后的同一 APK。资源压力/SystemUI ANR单独记录为环境事件，没有改应用返回键或放宽验证掩盖。
+新增 AiImeBackInstrumentedTest 的实际 WindowInsets IME/系统 Back 诊断用例已编译，但未执行，未取得 RED/GREEN。原生路由存在不检查 IME 的入口，但根因未确认，不修改生产 MainActivity，不加页面延时/猜测状态机。最新复现因约300MB可用内存/CDP超时中断，不是功能绿灯；仅关闭本任务5580，其他项目设备未动。
 
-以下 APK-0/1/2 结果是已接受的历史基线：
+专用 Recipio_Backup_36 / emulator-5580 / API36 的实际 UI：原v11 Golden基线、v11→v12覆盖升级、原生生成测试密钥/更换取消/重启/早期覆盖安装、SAF JPEG/PNG/WebP/六图/坏文件、临时缓存重启清理、本地编辑/烹饪/历史、v1/v2安全恢复及回滚、飞行模式核心流程通过。窄屏测试仍失败：真实键盘可打开，但首次 Back 后可见状态未在有界等待内转为关闭；尚不能判定产品缺陷或测试/模拟器问题，不能记绿灯。最后全流程后的覆盖安装尚未执行。
 
-- APK-2：严格 Backup Format v1、六表和完整当前/历史图片；校验/staging 后确认 Replace、安全副本、单事务提交事实、启动核查及设置入口；根路径与导出提前失败清理修补先 RED→GREEN。
-- 本轮最终全仓 141 文件/673 项、JVM 29 项、完整 connected 7 项通过；类型/ESLint（0 错误/5 条旧警告）/Web build/Capacitor sync/assembleDebug 通过，Android lint 0 错误/34 警告。模拟器真实导出、清除生成数据恢复、取消、6 类坏包拒绝、SQL 回滚、staging 故障、进程中断、飞行模式冷启动及覆盖升级通过。
-- APK-2 最终 `artifacts/recipio-backup-restore-v10-debug.apk`：16,513,423 字节，SHA-256 `37e51d2f2801a45d8f7a1060ec5cb850911ec02a49b66309b9c7b56102957703`。Golden 2 道菜/3 资产及空库外部备份已回读验证；路径/大小/SHA、失败及续验边界见 `verification/backup-restore-android.md`、`checkpoints/2026-10-04-backup-restore.md`。本任务 AVD 正常关闭、数据保留。
-- 保留 APK-0 底座及原 Android 模拟器验证证据，详见原 checkpoint；未覆盖旧 APK。
-- 首页、我的菜谱、设置；仅菜名可保存，完整手动编辑食材用量、步骤、提前准备、关键事项、备注、耗时、份数和参考热量。
-- 菜名/食材搜索、创建时间排序、100 条分页、不重叠耗时筛选、五秒删除撤销。
-- 本地封面与步骤图片适配；Android 使用原生系统选择器直接复制，取消保留原引用，失败保留文本。浏览器仍用 File/IndexedDB。
-- 共享 RecipeLibrary 契约；APK-1 基线 Android SQLite v2 增量迁移、关联表、原子保存及修改快照；浏览器复用 IndexedDB localRecipes/media，基线版本 5。APK-2 当前分别为 v3/v6，只增加恢复元数据。
-- 云缓存清除不会删除新版设备专属图片。
-- APK-1 历史修复后完整回归 133 文件/622 项、原生相关 9 文件/34 项通过；Java 复制边界 6 项通过。历史类型、ESLint、Vite/sync/Debug 及 lintDebug（0 错误/30 警告）见旧 checkpoint，不是本轮 APK-2 最终结果。
-- 实际旧 APK-0 SQLite v1→v2 保留原始数据的历史证据继承；本轮重跑独立失败迁移，旧行与 v1 保留。最终 v6 在新稳定模拟器完成全新安装与飞行模式强制停止/重开，SQLite v2 integrity=ok。
-- 原生封面新增/替换/移除/重启显示；步骤图片新增/重启显示/移除；真实选择器取消保留原封面、未保存文本及数据库原值；改名、创建时间排序、搜索、完整字段编辑、删除撤销/到期删除、原生返回键保护全部专项通过。
-- 实际 v5→v6 `install -r` 后六张表每个字段一致，封面 33,533 字节及 SHA-256 一致，SQLite integrity/foreign_key_check 正常。API37 首次复跑因 CDP 超时失败，一次有界复跑通过，不掩盖旧系统服务 ANR。
-- 最终 v6：`artifacts/recipio-daily-library-v6-debug.apk`，16,439,275 字节，SHA-256 `8087A68F79B404A25508D291691B3F9ABE9588B0FE8F84D591D51B3971B90F97`。旧 APK 均保留。
-- 浏览器手机/桌面检查，完整菜谱和图片刷新持久化；已加载应用断网新增、编辑、删除撤销通过。
+本轮重新构建到新路径的待验收APK artifacts/recipio-ai-intake-v12-final-debug.apk，16573867 bytes，SHA256 bdf7212457e1582b03f2b78af821d3b3432998e2295580ed5892c3b3e9031784；与原待验收包字节一致，未安装，旧文件未覆盖。生成测试备份 artifacts/ai-intake/ai-intake-generated-1791131128968.recipio，3350 bytes，SHA256 7ff043ccf1c28ffb0e5575bce8b20d51d19a10bdc54f51511916ca0d354327a8；本轮重新核对文件大小/哈希，设备导出/恢复是历史证据。原v11/Golden保留。
+
+实际付费 Provider POST=0。候选 qwen3.8-flash 的用户账号/地域权限未验证，不能标为账号已冻结或 AI_PROVIDER_ACCESS_BLOCKED。最新要求是一次微型非私人文字/JSON preflight；当前原生实现仍是旧微型图片 preflight，必须先通过键盘验收，再测试先行对齐这一小差异，之后才允许真实调用。预算合计最多4POST；无实际key，不从Chat/终端/env索取。
 
 ## Pending / Not Run
 
-- 用户已反馈下载和初步体验正常；物理手机/OEM 全流程独立验证未执行，既有原生技术证据来自模拟器，不冒充真机。
-- 真实系统选择器/视觉解码验收使用 PNG；其他 MIME 的复制映射在 JVM 验证，不等于四种格式在所有 Android 版本上都已实测。
-- APK-2 用户验收已通过；APK-3 模拟器技术验收完成，物理手机/OEM、极限规模、硬件掉电、所有 MIME 在所有系统的选择器显示未实测；没有未解决的 APK-3 迁移/恢复/图片引用架构阻塞。APK-4 文字/截图 AI 的实施计划待批准；链接/视频仍属未授权实施的 APK-5。
-- APK-4 后续必须证明原生安全密钥、显式原生 Qwen、临时截图及人工审核门禁；计划和旧测试不能作为新鲜证据。当前无用户秘密、无真实 AI 请求、无 APK-4 安装或费用。
-- 本预览没有 Service Worker，不承诺断网冷启动/刷新；已加载页面可以本地操作。
+- Android验收由用户明确暂缓。恢复允许后从键盘真实事件顺序开始，完成全部8场景、原生 RED→GREEN（若证实需修）、fresh connected、最后覆盖安装。未验证键盘修复，不通过 JS mock 声称成功。
+- 本轮十项白名单审查包（新加 provider-smoke.md）、最终APK/提交/push进度见 verification 与 packet manifest；不得把目标产物描述当实际交付。
+- 用户原生安全输入真实北京key、账号preflight、真实文字/图片质量与保存smoke未执行。不得在Chat/终端/env索取真实key。
+- 物理手机/OEM独立全流程未执行。模拟器不冒充真机；浏览器Preview无Service Worker，不承诺离线冷启动/刷新。
 
-## Current Risks
+## Current Risks / Boundaries
 
-- 完整备份已验证；清站点数据或卸载仍会丢失本地数据及私有安全副本。应先导出应用外已验证备份，当前不加密。
-- 图片仅对明确删除候选执行全引用复查，草稿/替换旧图/未知孤立文件保守保留；无人为大小上限，但受配额、内存和解码能力限制。
-- 复制预算留 32MiB 数据库余量是尽力保护；APK-2 有操作级 staging 启动核查/清理，既有选图模块的独立 .part 不在此全库 GC 范围。没有为修复清空用户数据库或删除原图。
-- API37 测试系统曾有系统服务 ANR/渲染资源警告；后续优先 Android 36 稳定环境，逐个运行模拟器，避免与其他项目争用资源。
-- 此前依赖审计记录 21 项（6 moderate / 14 high / 1 critical）；本轮未重新审计或顺便升级依赖。
-- 旧 Next.js/Supabase 页面保留且仍需联网，并非新版入口。仅普通推送当前功能分支；无 main 合并、部署、云数据修改。原生 APK 无 INTERNET 权限。
+- AI需要网络和用户百炼账号额度；本地搜索/查看/手动CRUD/图片/Cooking/历史/Backup无需网络。INTERNET是唯一新增敏感权限，系统云备份/设备转移排除不变。
+- 卸载/清数据会丢业务数据/私有安全副本；需先导出应用外校验备份。备份未加密、不含key；换设备需重设。Keystore不保证root/恶意系统/运行时注入不能取密。
+- 文件故障可能使临时清理失败；保留警告和owner重试，不宣称绝对删除。永久未知孤立图保守保留，无全库GC。
+- 旧Web五条img警告和Vite大chunk警告保留，未顺便升级依赖。其他项目模拟器不操作，内存不足时本任务分批验证并保留中断证据。
+- 不改真实云数据/资源、不部署、不merge main/PR、无reset/clean/forcepush、不进入APK5。
 
-## Current Branch / Module
+## Current Branch / Next Task
 
-`feat/recipio-ai-intake` / APK-4 计划待批准；由 APK-3 交付 `78f1877664db0b0015c132e970a4cfffe7ff03fc` 创建。当前只有聚焦计划文档提交，普通 push 留到 APK-4 最终交付；不合并 main、不部署。APK-2/3 检查点、备份、旧功能分支和产物全部保留；SQLite4 / Preview7 / Backup2 当前实际实现不变。提交自身的 SHA 以 Git HEAD 为准，不写伪自引用。
+feat/recipio-ai-intake / APK-4 Task10，状态 APK_4_PENDING_DEVICE_TEST。下一次用户允许设备验收后，先继续 IME/Back，之后 tiny-text preflight 对齐和真实账号 smoke；如生产修补，重跑同最终版本全套门禁。不重复 Task1–9，不进入APK5。
 
-## Next Recommended Task
-
-等待用户/独立开工前审阅确认 `superpowers/plans/2026-10-04-apk-4-ai-intake.md` 与 `ai-intake-contract.md`。批准后从 Task1 的 strict draft/review/normalization RED 测试开始，按 Task1–10 连续完成实现、同版本验证和交付；普通细节不再逐项询问。仅当前模块，不进入 APK-5。
-
-见 PRODUCT_SPEC.md、IMPLEMENTATION_PLAN.md、checkpoints/2026-10-03-daily-library-android.md 和 verification/daily-library-android.md。旧浏览器检查点保留为历史。
+事实源：PROJECT / PRODUCT_SPEC / ai-intake-contract / approved plan；原APK1/2/3 checkpoint和verification保留为历史。

@@ -40,4 +40,4 @@ React UI 通过业务服务调用 Repository 接口。浏览器使用 IndexedDB�
 
 ## Product Direction
 
-No Account + Local-only。基线见 docs/PRODUCT_SPEC.md；日常库、完整备份和 APK-3 烹饪增强已有独立技术证据，当前状态见 docs/CURRENT_STATE.md。每个模块单独授权与验收，不重复规划；AI 仍是尚未进入的可选后续能力。
+No Account + Local-only。基线见 docs/PRODUCT_SPEC.md；日常库、完整备份和 APK-3 烹饪增强已有独立技术证据，当前状态见 docs/CURRENT_STATE.md。每个模块单独授权与验收，不重复规划；APK-4 增加可选的原生文字/截图 AI 整理，联网能力不能替代本地核心。真实账号和模型权限必须独立验收。

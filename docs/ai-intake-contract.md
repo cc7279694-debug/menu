@@ -1,6 +1,6 @@
 # APK-4 AI Intake Contract
 
-2026-10-04。用户已批准 c8606e3 实施计划及本合约，并补充真实账号 preflight、权限/架构阻塞要求；**已批准实施，尚未完成或验收**。
+2026-10-04。用户已批准 c8606e3 实施计划及本合约，并补充真实账号 preflight、权限/架构阻塞要求；**实现已落地，最终本地验证与真实账号验收分别记录，不能把 Fake 或模拟器结果当真实 Provider 验收**。当前状态见 CURRENT_STATE、APK-4 checkpoint 与 verification。
 
 原请求：`E:\CODEX\.codex\attachments\97267355-ba22-4a92-92e9-23eb1d9c4718\已粘贴的文本.txt`。继承 APK-3 `78f1877664db0b0015c132e970a4cfffe7ff03fc`、SQLite4 / Preview7 / Backup2；执行计划为 `superpowers/plans/2026-10-04-apk-4-ai-intake.md`。
 
@@ -10,7 +10,7 @@
 
 不做 URL、网页、JSON-LD、网页抓取、视频/音频、独立 OCR 服务、搜索/推荐/比较、Share Target、AI 聊天、自动改已有菜谱、来源历史、ImportJob、分类/标签、蛋白质管理、营养中心、第二服务商、云后端、登录或云同步。不修改真实云数据、不部署、不合并 main。
 
-## 2. Planned data flow
+## 2. Implemented data flow
 
 ```text
 新增 → 只写菜名（原路径） / AI 整理菜谱
@@ -47,7 +47,7 @@ AI 输入页（文字 + 临时截图；内存状态）
 
 ## 4. BYOK / native secret boundary
 
-设置 → AI：仅未配置/已配置、设置/更换/删除及显式“验证模型访问”。后者为用户新增的首次真实集成 preflight：原生固定生成极小图片和最小 JSON 响应要求，max_tokens=128，只回安全的状态/模型/地域及允许的 HTTP/Provider 错误码，不生成可保存Recipe。不能自动调用或伪装为免费；不提供任意模型/endpoint参数。
+设置 → AI：仅未配置/已配置、设置/更换/删除及显式“验证模型访问”。目前已实现的 preflight 是原生固定生成极小图片和最小 JSON 响应要求，max_tokens=128；2026-10-05 最新批准要求改为极小非私人文字，**尚待键盘验收后测试先行对齐**，真实调用前不得用旧图片实现冒充新要求。仅回安全的状态/模型/地域及允许的 HTTP/Provider 错误码，不生成可保存Recipe。不能自动调用或伪装为免费；不提供任意模型/endpoint参数。
 
 `saveAiKey()` 打开原生密码输入框，用户手动输入/粘贴并确认；JS 无 key 参数，不读取剪贴板、不回显旧值。取消保留旧 key；更换先成功加密并原子写入后替换。输入去首尾空白，标准 `sk-` key 长度 20–512、内部禁止空白/控制字符；非应用 API 凭据不能冒用。
 
@@ -121,7 +121,9 @@ Service 直接同步订阅既有 BackupController 状态，不靠 React effect �
 
 ## 9. Verification / delivery gate
 
-自动化 100% fake transport/generated input，不存在测试key回退、connected测试真实Qwen、无上限重试。首次真实集成先以用户原生配置的北京百炼key、同一实际endpoint，进行1次极小生成图片/JSON preflight；成功才正式冻结 qwen3.8-flash 为账号实测可用模型。模型不存在/无权限/地域不支持则停止真实调用，报告 AI_PROVIDER_ACCESS_BLOCKED 和真实 HTTP/允许的 Provider code，不擅自换模型、不返回可能含秘密的原始message。
+2026-10-05 用户收尾要求补充：键盘真实验收先于任何付费调用；首次 preflight 改为极小非私人**文字**/JSON。现有原生 preflight 仍按下方已实现旧图片协议运行，文字协议尚未实现/验证，不得冒称两者相同或擅自调用旧协议完成新要求。用户随后明确暂缓 Android 验收，当前只交付待设备验证产物。审查包改为十项白名单，在原九项上加入 `provider-smoke.md`（无原文、raw response 或秘密）。其余冻结范围不变。
+
+自动化 100% fake transport/generated input，不存在测试key回退、connected测试真实Qwen、无上限重试。最新批准的首次真实集成先以用户原生配置的北京百炼key、同一实际endpoint，进行1次极小非私人文字/JSON preflight；当前旧图片实现须先对齐。成功才正式冻结 qwen3.8-flash 为账号实测可用模型。模型不存在/无权限/地域不支持则停止真实调用，报告 AI_PROVIDER_ACCESS_BLOCKED 和真实 HTTP/允许的 Provider code，不擅自换模型、不返回可能含秘密的原始message。
 
 preflight之外，真实provider smoke最多3次明确调用：文字、单PNG；前两项均成功才做2–3图合并。合计最多4次POST，记录计数/结果类别，不保存key、原文或full response。失败停止自动消费，修复后追加调用须明确新的有限预算。无真实key时继续所有Fake和本地验证，最终如实PENDING而非伪造成功。
 
@@ -129,6 +131,6 @@ preflight之外，真实provider smoke最多3次明确调用：文字、单PNG�
 
 只有真实已安装APK证明Keystore、原生选图、HTTP桥及SQLite；浏览器/fake不能代替。Key不在备份意味着换设备需重设；同设备Replace不得顺便删除现有key。通过新隔离secret上下文或明确删测试key后恢复证明“备份不会恢复key”。
 
-建议versionCode12/name0.5.0-ai-intake、package app.recipio.local；APK/测试包字节/hash与Git最终SHA报告。packet9项白名单：manifest.json、diff.patch、checkpoint.md、verification.md、android-verification.md、ai-contract.md、security-notes.md、test-results.txt、apk-metadata.txt；逐项回读校验，不放私人内容、key或provider完整响应。只push当前功能分支，不merge/main/deploy/store，不进入APK-5。
+建议versionCode12/name0.5.0-ai-intake、package app.recipio.local；APK/测试包字节/hash与Git最终SHA报告。最新packet10项白名单：manifest.json、diff.patch、checkpoint.md、verification.md、android-verification.md、ai-contract.md、security-notes.md、provider-smoke.md、test-results.txt、apk-metadata.txt；逐项回读校验，不放私人内容、key或provider完整响应。只push当前功能分支，不merge/main/deploy/store，不进入APK-5。
 
 完成状态只有按实际证据的 APK_4_COMPLETE / APK_4_PENDING_DEVICE_TEST / APK_4_BLOCKED。账号/模型权限失败额外 AI_PROVIDER_ACCESS_BLOCKED；必须修改SQLite4/Backup2立即 APK_4_ARCHITECTURE_BLOCKED，新增其他敏感权限或无法满足密钥/临时图边界均暂停。目前处于已批准实施阶段，不是完成状态。

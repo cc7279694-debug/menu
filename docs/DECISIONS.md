@@ -1,5 +1,43 @@
 # Decisions
 
+## 2026-10-05 — APK-4 pending acceptance evidence must remain explicit
+
+### Decision
+
+采用用户收尾请求中的 tiny-text preflight 与十项 packet 要求，替代旧预检输入类型/九项包约束；用户随后暂缓 Android 验收，允许完成桌面证据与待验收交付，但不声称键盘、真实模型、真机或整个APK-4完成。
+
+### Context / Alternatives / Reason
+
+新测试已编译但真实 IME 复现受内存不足中断，根因未确证。未选择凭推测修改原生返回键、页面延迟/第二状态机、用JS模拟宣称Android通过，或在键盘门禁前消费真实额度。
+
+### Consequences
+
+生产代码继续1382974基线。恢复设备验收后先跑原生键盘诊断及8个冻结场景；如需修补，必须RED→GREEN和fresh全量。预检当前仍是旧微型图片实现，真实调用前须测试先行改为批准的微型文字，不能悄悄把旧能力写成已通过。Review Packet 包含单独 Provider Not Run 证据；本轮状态保持 APK_4_PENDING_DEVICE_TEST，无云/数据库/产品范围变化。
+
+## 2026-10-04 — APK-4 implemented narrow native BYOK boundary
+
+### Decision
+
+执行已批准 c8606e3 和用户补充冻结要求。只支持文字、1–6张截图/组合，经本地 strict 校验、完整数字 token 核对和三态审核，明确确认后用现有 RecipeLibrary.createDetails 保存普通 Recipe；SQLite4 / Preview7 / Backup2 不变。
+
+### Context
+
+原本地核心和安全 Replace 已验收；可选在线录入不能新增云主库/登录/第二种菜谱实体、来源持久化或持有业务数据库锁。密钥不能进入 WebView、业务数据、日志或备份。
+
+### Alternatives
+
+未采用 WebView 直接请求、持久 AI 草稿、云中转/共享内置 key、SDK/新秘密存储依赖、模型自动回退或重试。没有借本轮升级旧 Web/Android 依赖。
+
+### Reason
+
+原生 Keystore AES-GCM + AtomicFile/noBackup 密文、受保护 password dialog、固定系统 TLS HTTPS 和无 plaintext getter 形成窄边界。来源时间/用量保守审核和 UI/service 双确认防模型直接写库；操作 UUID/generation、终态先释放后回复和既有 FIFO precondition 保护取消/重复保存/恢复排序。私有临时图与永久资产完全分离，清理失败保留 owner，恢复后清理重试同时回收文件和会话名额，不只清除 UI 警告。
+
+### Consequences
+
+只增加 INTERNET，核心无需网络；Android 云备份和设备转移排除规则不变。同设备业务 Replace 不操作 device credential；备份不能在新设备或明确删除 key 后恢复它。原输入、临时图、raw response、fieldChecks 和 Provider metadata 不进入正式 Recipe/Backup2。生产代码的两个最终审查修补都有 RED→GREEN，最终证据另外记录，不能用历史数字宣称完成。
+
+qwen3.8-flash 是候选，固定北京 endpoint。用户原生输入真实 key 后先一次微型图片/JSON preflight，成功才冻结账号实际可用；随后最多文字/单图/条件多图3次，合计最多4POST。当前实际付费 POST=0，没有实际账号错误，不标成 AI_PROVIDER_ACCESS_BLOCKED。自动化/JVM/connected 全部 Fake；未完成真实账号 smoke 时交付状态必须 pending。以下“待审技术约定”保留为此前计划阶段历史，当前执行与验证以 CURRENT_STATE/checkpoint 为准。
+
 ## 2026-10-04 — APK-4 冻结范围与待审技术约定
 
 ### Decision

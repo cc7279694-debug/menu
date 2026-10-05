@@ -1,5 +1,31 @@
 # Architecture
 
+## APK-4 可选原生 AI Intake（2026-10-04）
+
+```text
+新增 → 手动录入（原路径） / AI 整理
+AiIntakeService（App 生命周期内存 input / draft / generation）
+  → lazy LocalAiIntake bridge
+      → Android native password dialog / AiSecretStore
+          → AndroidKeystore AES-GCM + noBackupFilesDir AtomicFile
+      → cache/ai-import/<operation UUID> / SAF / sampled Bitmap + EXIF
+      → 单 worker / AiRequestLifecycle / fixed Beijing HTTPS QwenClient
+  → strict JSON + Zod → 保守 normalization → 三态 fieldChecks
+  → 共用 RecipeEditor + 明确审核和保存
+  → AiRecipeSaver → RecipeLibrary.createDetails（现有 FIFO gate + operation UUID）
+  → 原 SQLite4 / Preview7 / Backup2
+```
+
+没有新增业务表、Migration、备份字段或第二种 AI Recipe。Provider 输出、Prompt、原文字、临时截图、审核和秘密不进入正式 Recipe/备份；仅经用户审核的普通字段进入现有事务。Web Preview 不设置密钥或直连 Provider，展示 Android 能力边界。
+
+主 JS 无 plaintext key getter/setter。原生受保护输入和密文不经 WebView；密钥修改与请求共用互斥生命周期。仅主动操作发一个 POST，无自动请求/重试/模型回退。固定北京兼容域名、候选 qwen3.8-flash、系统 TLS，账号可用性须用户原生 preflight 后确认；无账户调用证据不能宣称模型已实测。
+
+请求/解码使用操作 UUID、代次、取消 token 和图片 pin。终态先释放互斥/图片再回复；取消迟到回应不能覆盖新草稿。独立 cache 不属于永久媒体引用闭包；丢弃失败保留原生 pending owner，显式清理重试同时回收文件和会话名额。冷启动只清已登记失活目录，未知文件/符号链接保守保留并提示。无法清理不阻塞本地库。
+
+严格校验后以来源数字完整 token 核对分钟/份数，拒绝 15→5、12→2 和小数通配符；适量/模糊时间原文保留、未知时间 null。缺失/推断必须明确确认，UI 与 service 双门禁；AI 不能写数据库。同操作 UUID 丢失确认可回读原记录，不重复创建。Restore 同步失效内存上下文，现有 FIFO gate 取得前的旧保存在接触库前拒绝。
+
+仅新增 INTERNET；原系统云备份/设备转移排除不变。CSP/本地核心仍不依赖远程网络，Capacitor loggingBehavior=none 且原生 Logger 初始化先于注册。实际验证和未验证项独立见 verification/ai-intake-android.md；以下旧模块架构是历史，不表示当前 APK 没有可选 INTERNET 权限。
+
 ## APK-3 本地烹饪与个人演进（2026-10-04）
 
 ```text
