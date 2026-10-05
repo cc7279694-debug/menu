@@ -7,8 +7,16 @@ import { LibraryApp } from "./library-app";
 import { emptyDetails } from "./recipe-model";
 import { AiIntakeService } from "./ai/service";
 import { fakeAi } from "./ai/service.test-support";
+import { LinkImportService } from "./link-import/service";
 afterEach(__resetLocalDatabaseForTests);
 beforeEach(() => vi.spyOn(window, "scrollTo").mockImplementation(() => {}));
+it("add menu opens independent link intake without touching AI or the database", async () => {
+  const store = new PreviewRecipeLibrary(), fake = fakeAi(), ai = new AiIntakeService(fake.keys, fake.bridge, { store });
+  const port = { read: vi.fn(), cancel: vi.fn() }, link = new LinkImportService({ store, port, ai });
+  render(<LibraryApp store={store} ai={ai} link={link} />);
+  fireEvent.click(screen.getByRole("button", { name: "新增菜谱" })); fireEvent.click(await screen.findByRole("button", { name: "从网页链接导入" }));
+  await screen.findByLabelText("网页链接"); expect(port.read).not.toHaveBeenCalled(); expect(fake.bridge.organize).not.toHaveBeenCalled(); expect(await store.list()).toEqual([]);
+});
 it("add menu preserves manual entry and provides explicit AI path without sending on entry",async()=>{
   const store=new PreviewRecipeLibrary(),fake=fakeAi(),ai=new AiIntakeService(fake.keys,fake.bridge,{store});render(<LibraryApp store={store} ai={ai}/>);
   fireEvent.click(screen.getByRole("button",{name:"新增菜谱"}));expect(await screen.findByRole("button",{name:"手动录入"})).toBeInTheDocument();expect(screen.getByRole("button",{name:"AI 整理"})).toBeInTheDocument();expect(fake.bridge.organize).not.toHaveBeenCalled();
