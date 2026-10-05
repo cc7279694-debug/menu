@@ -16,6 +16,19 @@ public class AiSecretEnvelopeTest {
         assertFalse(new String(first,StandardCharsets.UTF_8).contains(new String(secret)));
         assertArrayEquals(secret,AiSecretEnvelope.decrypt(first,key));
     }
+    @Test public void workspaceDotSegmentsUseSameEncryptedEnvelopeWithoutPlaintext() throws Exception {
+        char[] generated = ("sk-ws-TEST." + java.util.UUID.randomUUID() + "." + java.util.UUID.randomUUID()).toCharArray();
+        char[] decoded = null;
+        try {
+            byte[] encoded = AiSecretEnvelope.encrypt(generated, key);
+            assertFalse(new String(encoded, StandardCharsets.UTF_8).contains(new String(generated)));
+            decoded = AiSecretEnvelope.decrypt(encoded, key);
+            assertArrayEquals(generated, decoded);
+        } finally {
+            Arrays.fill(generated, '\0');
+            if (decoded != null) Arrays.fill(decoded, '\0');
+        }
+    }
     @Test public void tamperAndWrongKeyAreRejected() throws Exception {
         byte[] encoded=AiSecretEnvelope.encrypt(secret,key);
         JSONObject json=new JSONObject(new String(encoded,StandardCharsets.UTF_8));

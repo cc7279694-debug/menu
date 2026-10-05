@@ -65,6 +65,19 @@ public class AiIntakeBoundaryInstrumentedTest {
         }));}
         Reply call=new Reply("preflight",new JSObject());plugin.preflight(call);call.await();assertNull(call.error);assertTrue(call.value.getBoolean("available"));assertEquals("beijing",call.value.getString("region"));assertFalse(call.value.has("rawJson"));assertEquals(1,posts.get());
     }
+    @Test public void nativeWorkspacePreflightReportsOnlyMatchingSafeProfile()throws Exception {
+        String generated="sk-ws-TEST."+UUID.randomUUID()+"."+UUID.randomUUID();
+        runtime.secrets.save(generated.toCharArray());
+        try(InputStream asset=context.getAssets().open("recipio-ai-intake-contract.json")){field(plugin,"client",new QwenClient(new AiIntakeContract(asset),(request,cancel)->{
+            posts.incrementAndGet();assertEquals("https://maas.qianwenaiapi.com/compatible-mode/v1/chat/completions",request.endpoint);
+            assertFalse(new String(request.body,StandardCharsets.UTF_8).contains(generated));
+            String response="{\"choices\":[{\"finish_reason\":\"stop\",\"message\":{\"content\":\"{\\\"status\\\":\\\"ok\\\"}\"}}]}";
+            return new QwenClient.HttpReply(200,new ByteArrayInputStream(response.getBytes(StandardCharsets.UTF_8)),()->{});
+        }));}
+        Reply call=new Reply("preflight",new JSObject());plugin.preflight(call);call.await();assertNull(call.error);
+        assertEquals("qianwen-platform",call.value.getString("region"));assertEquals(3,call.value.length());
+        assertFalse(call.value.toString().contains(generated));assertFalse(call.value.has("rawJson"));assertEquals(1,posts.get());
+    }
     @Test public void failedDiscardCanRetryOnlyItsOwnedSessionAfterFilesystemRecovers()throws Exception {
         String operation=session();File unexpected=new File(context.getCacheDir(),"ai-import/"+operation+"/unexpected.txt");assertTrue(unexpected.createNewFile());
         Reply first=new Reply("discardSession",new JSObject().put("operationId",operation));plugin.discardSession(first);first.await();assertEquals("storage_error",first.error);assertTrue(unexpected.delete());

@@ -12,9 +12,16 @@ import org.json.JSONObject;
 /** Standard platform AES-GCM; hexadecimal is only the envelope encoding. */
 final class AiSecretEnvelope {
     private static final byte[] AAD="app.recipio.local:ai-secret:v1".getBytes(StandardCharsets.UTF_8);
+    static boolean isWorkspaceKey(char[] value) {
+        return value != null && value.length >= 6 && value[0]=='s' && value[1]=='k' && value[2]=='-' && value[3]=='w' && value[4]=='s' && value[5]=='-';
+    }
     static void validate(char[] value) throws Exception {
         if(value==null||value.length<20||value.length>512||value[0]!='s'||value[1]!='k'||value[2]!='-')throw new Exception("key_unavailable");
-        for(char c:value)if(!((c>='a'&&c<='z')||(c>='A'&&c<='Z')||(c>='0'&&c<='9')||c=='-'||c=='_'))throw new Exception("key_unavailable");
+        // Token Plan credentials are not application API keys. Workspace keys are opaque,
+        // and the platform-issued signed form can include dot-separated segments.
+        if(value[3]=='s'&&value[4]=='p'&&value[5]=='-')throw new Exception("key_unavailable");
+        boolean workspace=isWorkspaceKey(value);
+        for(char c:value)if(!((c>='a'&&c<='z')||(c>='A'&&c<='Z')||(c>='0'&&c<='9')||c=='-'||c=='_'||workspace&&c=='.'))throw new Exception("key_unavailable");
     }
     static byte[] encrypt(char[] value,SecretKey key) throws Exception {
         validate(value);ByteBuffer buffer=StandardCharsets.UTF_8.encode(CharBuffer.wrap(value));byte[] plain=new byte[buffer.remaining()];buffer.get(plain);

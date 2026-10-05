@@ -64,8 +64,8 @@ public class LocalAiIntakePlugin extends Plugin {
     private synchronized void run(PluginCall call,String operation,String request,String text,List<UUID> images,boolean preflight)throws Exception {
         if(client==null)throw new AiFailure("native_unavailable");AiRequestLifecycle.Token token=runtime.lifecycle.tryBeginRequest(request);activeOperation=operation;activeRequest=request;activeToken=token;
         try{worker.execute(()->{
-            char[] key=null;String output=null;Exception failure=null;
-            try{token.check();key=runtime.secrets.readForRequest();final char[] secret=key;if(preflight)output=client.organize(new QwenClient.Request("",Collections.emptyList(),true),key,token);else output=runtime.images(getContext()).withPinnedImages(UUID.fromString(operation),images,selected->{token.check();List<QwenClient.Image> payload=new ArrayList<>();for(AiTemporaryImages.Processed image:selected)payload.add(new QwenClient.Image("image/jpeg",Base64.encodeToString(image.bytes,Base64.NO_WRAP),image.bytes.length));return client.organize(new QwenClient.Request(text,payload,false),secret,token);});token.check();synchronized(this){if(operation!=null&&!sessions.contains(operation))throw new AiFailure("stale_session");}}
+            char[] key=null;String output=null,providerProfile=null;Exception failure=null;
+            try{token.check();key=runtime.secrets.readForRequest();if(key==null)throw new AiFailure("key_missing");providerProfile=AiIntakeContract.providerFor(key).profile;final char[] secret=key;if(preflight)output=client.organize(new QwenClient.Request("",Collections.emptyList(),true),key,token);else output=runtime.images(getContext()).withPinnedImages(UUID.fromString(operation),images,selected->{token.check();List<QwenClient.Image> payload=new ArrayList<>();for(AiTemporaryImages.Processed image:selected)payload.add(new QwenClient.Image("image/jpeg",Base64.encodeToString(image.bytes,Base64.NO_WRAP),image.bytes.length));return client.organize(new QwenClient.Request(text,payload,false),secret,token);});token.check();synchronized(this){if(operation!=null&&!sessions.contains(operation))throw new AiFailure("stale_session");}}
             catch(Exception e){failure=e;}
             finally{
                 if(key!=null)Arrays.fill(key,'\0');
@@ -73,7 +73,7 @@ public class LocalAiIntakePlugin extends Plugin {
                 if(terminal!=null)failure=new AiFailure(terminal);
                 synchronized(this){if(request.equals(activeRequest)){activeRequest=null;activeOperation=null;activeToken=null;}}
             }
-            if(failure!=null)reject(call,failure);else if(preflight)call.resolve(new JSObject().put("available",true).put("model",AiIntakeContract.MODEL).put("region","beijing"));else call.resolve(new JSObject().put("rawJson",output));
+            if(failure!=null)reject(call,failure);else if(preflight)call.resolve(new JSObject().put("available",true).put("model",AiIntakeContract.MODEL).put("region",providerProfile));else call.resolve(new JSObject().put("rawJson",output));
         });}catch(RejectedExecutionException ignored){runtime.lifecycle.cancel(request);runtime.lifecycle.finishRequest(request);if(request.equals(activeRequest)){activeRequest=null;activeOperation=null;activeToken=null;}throw new AiFailure("stale_session");}
     }
     @Override protected void handleOnDestroy(){String request=activeRequest;if(request!=null)runtime.lifecycle.cancel(request);synchronized(this){Set<String> owned=new HashSet<>(sessions);owned.addAll(pendingDiscards);for(String id:owned)try{runtime.images(getContext()).discard(UUID.fromString(id));}catch(Exception ignored){/* Registered cache retried at next startup. */}sessions.clear();pendingDiscards.clear();completedDiscards.clear();}worker.shutdown();}

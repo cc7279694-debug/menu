@@ -23,6 +23,21 @@ public class AiKeyInputTest {
         finally { Arrays.fill(prepared, '\0'); }
     }
 
+    @Test public void workspaceCredentialWithDotsSurvivesInputAndEncryptedStorage() throws Exception {
+        String generated = "sk-ws-TEST." + UUID.randomUUID() + "." + UUID.randomUUID() + "_fake";
+        char[] prepared = AiKeyInput.prepare("\u00a0" + generated + "\ufeff");
+        char[] decoded = null;
+        try {
+            SecretKeySpec encryptionKey = new SecretKeySpec(new byte[32], "AES");
+            decoded = AiSecretEnvelope.decrypt(AiSecretEnvelope.encrypt(prepared, encryptionKey), encryptionKey);
+            assertArrayEquals(generated.toCharArray(), prepared);
+            assertArrayEquals(generated.toCharArray(), decoded);
+        } finally {
+            Arrays.fill(prepared, '\0');
+            if (decoded != null) Arrays.fill(decoded, '\0');
+        }
+    }
+
     @Test public void clipboardBoundaryWhitespaceBomAndZeroWidthSpaceAreRemoved() throws Exception {
         String key = generatedKey();
         for (String boundary : new String[]{" \t\r\n", "\u00a0", "\u2000", "\u202f", "\u3000", "\ufeff", "\u200b", "\ufeff\u00a0\u200b "}) {

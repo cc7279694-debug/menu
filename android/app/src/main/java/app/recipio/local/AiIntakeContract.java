@@ -6,7 +6,17 @@ import com.google.gson.*;
 import com.google.gson.stream.*;
 final class AiIntakeContract {
     static final String ENDPOINT="https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions";
+    static final String QIANWEN_ENDPOINT="https://maas.qianwenaiapi.com/compatible-mode/v1/chat/completions";
     static final String MODEL="qwen3.8-flash";
+    enum Provider {
+        BEIJING(ENDPOINT,"beijing"), QIANWEN(QIANWEN_ENDPOINT,"qianwen-platform");
+        final String endpoint, profile;
+        Provider(String endpoint,String profile){this.endpoint=endpoint;this.profile=profile;}
+    }
+    static Provider providerFor(char[] key)throws Exception {
+        AiSecretEnvelope.validate(key);
+        return AiSecretEnvelope.isWorkspaceKey(key)?Provider.QIANWEN:Provider.BEIJING;
+    }
     final JSONObject asset;private final JsonObject schema;
     AiIntakeContract(InputStream input)throws Exception{
         try(input;ByteArrayOutputStream out=new ByteArrayOutputStream()){byte[] buffer=new byte[4096];int n;while((n=input.read(buffer))!=-1){if(out.size()+n>262144)throw new AiFailure("invalid_output");out.write(buffer,0,n);}asset=new JSONObject(new String(out.toByteArray(),StandardCharsets.UTF_8));}

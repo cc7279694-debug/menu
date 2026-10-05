@@ -20,14 +20,14 @@ export function AiSettings({ keys, onChanged, verifyAccess }: {keys?: AiKeyPort;
       if(action==="read"){const r=await port.hasAiKey();if(alive.current)setConfigured(r.configured);}
       else if(action==="save"){const r=await port.saveAiKey();if(alive.current)setConfigured(r.configured);if(!r.cancelled){setVerified("");onChanged();}}
       else if(action==="delete"){await port.deleteAiKey();if(alive.current){setConfigured(false);setConfirm(false);setVerified("");}onChanged();}
-      else {await (verifyAccess??(()=>createAiBridge().preflight()))();if(alive.current){setVerified("模型访问已验证：qwen3.8-flash（北京）");setVerifyConfirm(false);}}
+      else {const result=await (verifyAccess??(()=>createAiBridge().preflight()))();if(alive.current){setVerified(`模型访问已验证：qwen3.8-flash（${result.region==="qianwen-platform"?"千问 AI 平台":"北京"}）`);setVerifyConfirm(false);}}
     }catch(e){if(alive.current){const safe=safeAiError(e);const diagnostic=safe.diagnostic;setError(safe.message+(diagnostic?.httpStatus?` HTTP ${diagnostic.httpStatus}${diagnostic.providerCode?` · ${diagnostic.providerCode}`:""}`:""));setVerifyConfirm(false);}}
     finally{lock.current=false;if(alive.current)setBusy(false);}
   }
   return <Card>
     <CardHeader><CardTitle><h3>AI 整理</h3></CardTitle></CardHeader>
     <CardContent className="space-y-4">
-      <p className="text-sm text-muted-foreground">可选联网功能。文字和选中的截图会发送给阿里云百炼，可能产生 API 费用；已有菜谱始终可离线使用。</p>
+      <p className="text-sm text-muted-foreground">可选联网功能。文字和选中的截图会按密钥类型发送给千问 AI 平台或北京百炼，可能产生 API 费用；已有菜谱始终可离线使用。</p>
       {supported && <p aria-live="polite">{configured===null?"正在读取本机密钥状态…":configured?"已配置":"未配置"}</p>}
       <p className="text-sm text-muted-foreground">密钥仅通过 Android 原生密码框设置，保存在本机安全存储，不进入菜谱或备份。更换设备需重新设置。</p>
       {error && <p role="alert">{error}</p>}
@@ -46,7 +46,7 @@ export function AiSettings({ keys, onChanged, verifyAccess }: {keys?: AiKeyPort;
       </Dialog>
       <Dialog open={verifyConfirm} onOpenChange={v=>{if(!busy)setVerifyConfirm(v);}}>
         <DialogContent showCloseButton={!busy}>
-          <DialogTitle>验证 qwen3.8-flash 访问？</DialogTitle><DialogDescription>将发送一张极小的程序生成图片到北京百炼接口，检查图片与 JSON 输出能力，可能产生少量 API 费用。不会发送已有菜谱，也不会自动重试。</DialogDescription>
+          <DialogTitle>验证 qwen3.8-flash 访问？</DialogTitle><DialogDescription>将发送极小的固定测试文字到密钥对应的官方接口，只检查模型访问与 JSON 输出，可能产生少量 API 费用。不验证图片识别，不发送已有菜谱，也不会自动重试。</DialogDescription>
           <DialogFooter><Button className="min-h-11" variant="outline" disabled={busy} onClick={()=>setVerifyConfirm(false)}>暂不验证</Button><Button className="min-h-11" disabled={busy} onClick={()=>void work("verify")}>{busy?"正在验证…":"确认验证"}</Button></DialogFooter>
         </DialogContent>
       </Dialog>

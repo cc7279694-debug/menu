@@ -104,7 +104,7 @@ public class AiKeyInputDialogInstrumentedTest {
             EditText input = (EditText) field("input");
             assertEquals(0, input.length());
             assertTrue(input.getError().toString().contains(explanation));
-            assertTrue(input.getError().toString().contains("尚未连接百炼"));
+            assertTrue(input.getError().toString().contains("尚未连接 AI 服务"));
             assertTrue(((AlertDialog) field("dialog")).isShowing());
         });
     }
@@ -137,5 +137,13 @@ public class AiKeyInputDialogInstrumentedTest {
         Reply reply = open(); pasteAndSave("sk-short"); assertLocalError("太短");
         String generated = "sk-" + UUID.randomUUID(); pasteAndSave("\u00a0" + generated + "\ufeff"); reply.await();
         assertNull(reply.error); assertTrue(reply.value.getBoolean("configured")); assertStored(generated);
+    }
+
+    @Test public void workspaceDotSegmentsSaveInProtectedNativeDialogWithoutLeakingReply() throws Exception {
+        String generated = "sk-ws-TEST." + UUID.randomUUID() + "." + UUID.randomUUID() + "_fake";
+        Reply reply = open(); pasteAndSave("\ufeff" + generated + "\u00a0"); reply.await();
+        assertNull(reply.error); assertTrue(reply.value.getBoolean("configured"));
+        assertEquals(2, reply.value.length()); assertFalse(reply.value.toString().contains(generated));
+        assertStored(generated);
     }
 }

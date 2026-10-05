@@ -15,6 +15,31 @@ public class QwenClientTest {
     private String envelope(Object content,String reason)throws Exception{return new JSONObject().put("choices",new JSONArray().put(new JSONObject().put("finish_reason",reason).put("message",new JSONObject().put("content",content)))).toString();}
     private QwenClient client(int status,String body)throws Exception{return new QwenClient(contract(),(request,cancel)->new QwenClient.HttpReply(status,new ByteArrayInputStream(body.getBytes(StandardCharsets.UTF_8)),()->{}));}
     private QwenClient.Request request(){return new QwenClient.Request("啤酒鸭",Collections.emptyList(),false);}
+    @Test public void workspaceKeyUsesOfficialPlatformForPreflightTextAndImagesWithoutFallback()throws Exception {
+        char[] generated=("sk-ws-TEST_"+UUID.randomUUID()).toCharArray();
+        List<QwenClient.Request> requests=List.of(new QwenClient.Request("unused",List.of(),true),request(),new QwenClient.Request("",List.of(new QwenClient.Image("image/png","AA==",1)),false));
+        AtomicInteger posts=new AtomicInteger();
+        try {
+            for(QwenClient.Request input:requests){
+                QwenClient client=new QwenClient(contract(),(req,cancel)->{
+                    posts.incrementAndGet();
+                    assertEquals("https://maas.qianwenaiapi.com/compatible-mode/v1/chat/completions",req.endpoint);
+                    assertArrayEquals(generated,req.key);
+                    assertFalse(new String(req.body,StandardCharsets.UTF_8).contains(new String(generated)));
+                    return new QwenClient.HttpReply(200,new ByteArrayInputStream(envelope(input.preflight?"{\"status\":\"ok\"}":draft(),"stop").getBytes(StandardCharsets.UTF_8)),()->{});
+                });
+                assertEquals(input.preflight?"{\"status\":\"ok\"}":draft(),client.organize(input,generated,token()));
+            }
+            assertEquals(3,posts.get());
+        }finally{Arrays.fill(generated,'\0');}
+    }
+    @Test public void tokenPlanAndMalformedWorkspaceKeysCannotReachAnyEndpoint()throws Exception {
+        AtomicInteger posts=new AtomicInteger();
+        QwenClient client=new QwenClient(contract(),(req,cancel)->{posts.incrementAndGet();throw new IOException();});
+        for(String generated:List.of("sk-sp-TEST_"+UUID.randomUUID(),"sk-ws-TEST."+UUID.randomUUID()+"\n","sk-ws-TEST."+UUID.randomUUID()+"/other"))
+            assertThrows(AiFailure.class,()->client.organize(new QwenClient.Request("test",List.of(),true),generated.toCharArray(),token()));
+        assertEquals(0,posts.get());
+    }
     @Test public void validReplyAndTextBlocksAreAccepted()throws Exception {
         String raw=draft();assertEquals(raw,client(200,envelope(raw,"stop")).organize(request(),key(),token()));
         JSONArray blocks=new JSONArray().put(new JSONObject().put("type","text").put("text",raw));assertEquals(raw,client(200,envelope(blocks,"stop")).organize(request(),key(),token()));

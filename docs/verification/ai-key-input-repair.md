@@ -1,5 +1,7 @@
 # APK-4 native key input repair — 2026-10-05
 
+Historical paste-boundary repair below. The later approved workspace-key/official-endpoint correction supersedes its character/single-Beijing assumptions; current evidence is [Qianwen compatibility](ai-qianwen-key-compatibility.md). Old counts/artifact/zero-call statements are retained history, not current acceptance results.
+
 Branch: `feat/recipio-ai-intake`; starting clean HEAD `2d0ab5b4c3ab417ad300ec47a17515f0cc800482`. Final committed HEAD is pinned by the review-packet manifest. Status: **APK_4_PENDING_DEVICE_TEST**.
 
 ## Problem and narrow correction

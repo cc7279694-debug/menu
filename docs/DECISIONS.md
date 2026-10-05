@@ -1,6 +1,24 @@
 # Decisions
 
+## 2026-10-05 — APK-4 approved Qianwen workspace-key compatibility
+
+### Decision
+
+用户明确批准修正格式与接口匹配。`sk-ws-` 应用密钥允许 ASCII 句点，走固定 `https://maas.qianwenaiapi.com/compatible-mode/v1/chat/completions`；旧北京百炼 `sk-` 保留原固定接口及字符规则。Token Plan `sk-sp-` 不作为应用凭据。两类都保留20–512长度、边界空白容忍、拒绝内部空白/控制字符/打码值。
+
+### Context / Alternatives / Reason
+
+用户授权的一次极小桌面文字诊断返回 HTTP200、严格 status-ok JSON（970ms，qwen3.8-flash）。官方首次调用文档明确新的 sk-ws- 与 maas 域名；旧本地 ASCII-only 判断及固定北京路由无法兼容该凭据。这不是用户复制错误或模型权限失败。未选择任意 URL、JS 持有 key、双接口探测/失败回退、更换模型或把 Token Plan 用于应用。完整凭据未写入项目/命令行/env/日志/包，诊断仅在内存使用后清理会话；用户应撤销已在聊天中披露的密钥。
+
+### Consequences
+
+本条替代下方历史记录的“仅北京”和“加密校验字符集完全不变”，不修改加密格式/AAD/路径、Keystore、SQLite4/Preview7/Backup2、权限或后续模块。格式由 AiSecretEnvelope 统一拥有；原生请求与状态回复使用同一 Provider 枚举，JS 仅收到白名单 profile。为保持桥兼容沿用 region 字段，qianwen-platform 表示服务平台，不宣称地理位置。一次桌面诊断不等于最终 APK、真实选图或手机审核保存验收；设备及图片 gates 仍 pending。不会重用曝光 key 追加真实请求。
+
+官方依据：https://platform.qianwenai.com/docs/developer-guides/getting-started/first-api-call
+
 ## 2026-10-05 — APK-4 native key paste compatibility without weakening stored credentials
+
+历史决定：字符集/单北京范围已由上方 workspace-key 兼容决定替代；边界处理、安全存储和历史验证证据保留。
 
 ### Decision
 

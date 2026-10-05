@@ -9,7 +9,7 @@ AiIntakeService（App 生命周期内存 input / draft / generation）
       → Android native password dialog / AiSecretStore
           → AndroidKeystore AES-GCM + noBackupFilesDir AtomicFile
       → cache/ai-import/<operation UUID> / SAF / sampled Bitmap + EXIF
-      → 单 worker / AiRequestLifecycle / fixed Beijing HTTPS QwenClient
+      → 单 worker / AiRequestLifecycle / fixed credential-matched official HTTPS QwenClient
   → strict JSON + Zod → 保守 normalization → 三态 fieldChecks
   → 共用 RecipeEditor + 明确审核和保存
   → AiRecipeSaver → RecipeLibrary.createDetails（现有 FIFO gate + operation UUID）
@@ -18,7 +18,7 @@ AiIntakeService（App 生命周期内存 input / draft / generation）
 
 没有新增业务表、Migration、备份字段或第二种 AI Recipe。Provider 输出、Prompt、原文字、临时截图、审核和秘密不进入正式 Recipe/备份；仅经用户审核的普通字段进入现有事务。Web Preview 不设置密钥或直连 Provider，展示 Android 能力边界。
 
-主 JS 无 plaintext key getter/setter。原生受保护输入和密文不经 WebView；密钥修改与请求共用互斥生命周期。仅主动操作发一个 POST，无自动请求/重试/模型回退。固定北京兼容域名、候选 qwen3.8-flash、系统 TLS，账号可用性须用户原生 preflight 后确认；无账户调用证据不能宣称模型已实测。
+主 JS 无 plaintext key getter/setter。原生受保护输入和密文不经 WebView；密钥修改与请求共用互斥生命周期。仅主动操作发一个 POST，无自动请求/重试/模型回退。用户2026-10-05批准 sk-ws-（允许句点）匹配固定 maas.qianwenaiapi.com，旧北京 sk- 保留 dashscope.aliyuncs.com；同一原生 Provider 枚举决定请求与安全状态回复，绝不失败后跨接口转发。字符规则由 AiSecretEnvelope 共用，Token Plan sk-sp- 拒绝。model=qwen3.8-flash、系统 TLS不变。桌面一次 tiny-text HTTP200证明当时文字账号可用，不能代替原生图片/保存/设备验收；完整APK4仍 pending。
 
 请求/解码使用操作 UUID、代次、取消 token 和图片 pin。终态先释放互斥/图片再回复；取消迟到回应不能覆盖新草稿。独立 cache 不属于永久媒体引用闭包；丢弃失败保留原生 pending owner，显式清理重试同时回收文件和会话名额。冷启动只清已登记失活目录，未知文件/符号链接保守保留并提示。无法清理不阻塞本地库。
 

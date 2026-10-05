@@ -17,7 +17,7 @@ export function AiIntakeScreen({service,onPreview,onCancel,onConfigureKey,onManu
   const count=Array.from(state.input.text.trim()).length;
   return <section className="space-y-5">
     <div className="flex flex-wrap items-center justify-between gap-3"><h2 className="text-2xl font-semibold">AI 整理菜谱</h2><Button variant="outline" className="min-h-11" disabled={discarding} onClick={()=>{destination.current="back";setConfirm(true);}}>返回</Button></div>
-    <p className="text-sm text-muted-foreground">可选联网功能。仅在点击整理后，将本轮文字与选中的截图发送给阿里云百炼，可能产生 API 费用。AI 结果需要人工检查，不会自动保存。</p>
+    <p className="text-sm text-muted-foreground">可选联网功能。仅在点击整理后，将本轮文字与选中的截图按密钥类型发送给千问 AI 平台或北京百炼，可能产生 API 费用。AI 结果需要人工检查，不会自动保存。</p>
     <label className="block space-y-2"><span>菜谱文字</span><textarea className="min-h-48 w-full rounded-xl border bg-background p-3" value={state.input.text} disabled={busy} onChange={e=>service.updateInput({...state.input,text:e.target.value})}/></label>
     <p className="text-sm text-muted-foreground">{count} / {AI_LIMITS.textCodePoints} 字符；支持口语、换行和 Emoji。</p>
     <div className="space-y-3"><h3 className="font-medium">本轮截图（{state.images.length} / 6）</h3><p className="text-sm text-muted-foreground">可只选截图，也可补充文字。JPG、PNG 或 WebP 会在本机检查、缩小；每张原图不超过 15 MiB / 3200 万像素。截图不会成为菜谱图片，也不会进入备份。</p>

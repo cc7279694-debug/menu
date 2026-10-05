@@ -25,13 +25,13 @@ public class LocalAiSecretPlugin extends Plugin {
     @PluginMethod public void saveAiKey(PluginCall call){
         if(!dialogBusy.compareAndSet(false,true)){call.reject("busy","busy");return;}
         pending=call;getActivity().runOnUiThread(()->{
-            input=new EditText(getActivity());input.setHint("北京区域百炼 API Key");input.setInputType(InputType.TYPE_CLASS_TEXT|InputType.TYPE_TEXT_VARIATION_PASSWORD);input.setSingleLine(true);input.setSaveEnabled(false);
+            input=new EditText(getActivity());input.setHint("千问 AI 平台或北京百炼 API Key");input.setInputType(InputType.TYPE_CLASS_TEXT|InputType.TYPE_TEXT_VARIATION_PASSWORD);input.setSingleLine(true);input.setSaveEnabled(false);
             if(Build.VERSION.SDK_INT>=26)input.setImportantForAutofill(View.IMPORTANT_FOR_AUTOFILL_NO_EXCLUDE_DESCENDANTS);
             dialog=new AlertDialog.Builder(getActivity()).setTitle("设置 AI 密钥").setMessage("密钥只保存在本机 Android 安全存储，不会交给网页或进入备份。").setView(input).setNegativeButton("取消",(d,w)->cancel()).setPositiveButton("保存",null).create();
             dialog.setOnCancelListener(d->cancel());dialog.setOnShowListener(d->dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(v->{
                 final char[] value;
                 try{value=AiKeyInput.prepare(input.getText());}
-                catch(AiKeyInput.InvalidInput error){input.getText().clear();input.setError(error.getMessage()+"。尚未连接百炼；输入已清空，请重新粘贴。");return;}
+                catch(AiKeyInput.InvalidInput error){input.getText().clear();input.setError(error.getMessage()+"。尚未连接 AI 服务；输入已清空，请重新粘贴。");return;}
                 input.getText().clear();
                 dialog.getButton(AlertDialog.BUTTON_POSITIVE).setEnabled(false);dialog.getButton(AlertDialog.BUTTON_NEGATIVE).setEnabled(false);dialog.setCancelable(false);
                 getBridge().execute(()->{String errorCode=null;try{lifecycle.withSecretMutation(()->{store.save(value);return null;});}catch(Exception error){errorCode=error instanceof AiFailure?((AiFailure)error).code:"key_unavailable";}finally{Arrays.fill(value,'\0');}

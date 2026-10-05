@@ -16,7 +16,7 @@ import com.google.gson.stream.JsonToken;
 import com.google.gson.Strictness;
 final class QwenClient {
     interface AiHttpTransport{HttpReply execute(PreparedRequest request,AiRequestLifecycle.Token cancellation)throws Exception;}
-    static final class PreparedRequest{final String endpoint=AiIntakeContract.ENDPOINT;final byte[] body;final char[] key;PreparedRequest(byte[] body,char[] key){this.body=body;this.key=key;}}
+    static final class PreparedRequest{final String endpoint;final byte[] body;final char[] key;PreparedRequest(byte[] body,char[] key)throws Exception{this.endpoint=AiIntakeContract.providerFor(key).endpoint;this.body=body;this.key=key;}}
     static final class HttpReply{final int status;final InputStream body;final Runnable close;HttpReply(int status,InputStream body,Runnable close){this.status=status;this.body=body;this.close=close;}}
     static final class Image{final String mimeType,base64;final int byteSize;Image(String mime,String base64,int bytes){mimeType=mime;this.base64=base64;byteSize=bytes;}}
     static final class Request{final String text;final List<Image> images;final boolean preflight;Request(String text,List<Image> images,boolean preflight){this.text=text;this.images=images;this.preflight=preflight;}}
@@ -79,8 +79,10 @@ final class QwenClient {
     }
     private static final class HttpsTransport implements AiHttpTransport {
         public HttpReply execute(PreparedRequest request,AiRequestLifecycle.Token token)throws Exception {
-            if(!AiIntakeContract.ENDPOINT.equals(request.endpoint))throw new AiFailure("input_invalid");
-            HttpsURLConnection connection=(HttpsURLConnection)new URL(AiIntakeContract.ENDPOINT).openConnection();
+            // Match the credential to exactly one fixed official endpoint. No probing,
+            // redirects, JS-configured host, or cross-endpoint credential fallback.
+            if(!AiIntakeContract.providerFor(request.key).endpoint.equals(request.endpoint))throw new AiFailure("input_invalid");
+            HttpsURLConnection connection=(HttpsURLConnection)new URL(request.endpoint).openConnection();
             token.onCancel(connection::disconnect);
             try{token.check();connection.setInstanceFollowRedirects(false);connection.setConnectTimeout(15000);connection.setReadTimeout(60000);connection.setRequestMethod("POST");connection.setDoOutput(true);connection.setRequestProperty("Content-Type","application/json; charset=utf-8");connection.setRequestProperty("Accept-Encoding","identity");connection.setRequestProperty("Authorization","Bearer "+new String(request.key));connection.setFixedLengthStreamingMode(request.body.length);
                 try(OutputStream output=connection.getOutputStream()){output.write(request.body);}token.check();int status=connection.getResponseCode();InputStream input=status==200?connection.getInputStream():connection.getErrorStream();if(input==null)input=new ByteArrayInputStream(new byte[0]);

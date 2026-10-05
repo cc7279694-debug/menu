@@ -30,7 +30,9 @@ AI 输入页（文字 + 临时截图；内存状态）
 
 查阅日 **2026-10-04**，候选固定为阿里云百炼中国内地服务 **`qwen3.8-flash`**，`enable_thinking=false`、`temperature=0.1`、`stream=false`、`max_tokens=16384`；不提供模型选择、不自动回退或重试、不启用联网搜索/代码执行/Function Calling。此 ID 是官方已列出的模型，不是沿用旧代码即认定可用；账号实际权限仍需后续原生 smoke 证明。
 
-固定北京兼容 endpoint：`https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions`。官方仍列为存量兼容域名，推荐生产大流量改用业务空间专属域名；本个人 BYOK MVP 不增加 WorkspaceId 配置或任意 URL。只接受北京百炼密钥，不承诺其他地域可混用。
+2026-10-05 用户批准的兼容补充替代原“仅北京”约束：原生只允许两种固定官方路由。北京百炼旧 `sk-` → `https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions`；千问 AI 平台 `sk-ws-` → `https://maas.qianwenaiapi.com/compatible-mode/v1/chat/completions`。不增加任意 URL、WorkspaceId 配置、模型选择、地域猜测或失败后跨接口转发凭据。contract asset 的 endpoint 继续表示旧默认路由，实际路由只由 Java 的固定 Provider 枚举与经校验密钥类型选择，不能从 WebView 传入。
+
+[千问官方首次调用说明](https://platform.qianwenai.com/docs/developer-guides/getting-started/first-api-call)明确新 sk-ws- key 及 maas 接口。一次经用户授权的桌面最小文字诊断获得 HTTP200/严格 status-ok（970ms）；仅证明当时该账号文字/JSON可用，不是最终 Android APK、图片或真实保存验收。本修补不再调用已披露密钥。
 
 纯文字请求用 `response_format.type=json_schema`、strict=true、所有键明确 required、additionalProperties=false。图片请求明确用 `json_object`，同一固定完整合约/合法空态放入提示词；两者都走同一个本地校验器。多模态不能宣称 Provider 严格 schema 已生效。`finish_reason` 非 stop、空/拒绝/非 JSON/截断/错 schema 均不给可保存草稿。
 
@@ -49,11 +51,11 @@ AI 输入页（文字 + 临时截图；内存状态）
 
 设置 → AI：仅未配置/已配置、设置/更换/删除及显式“验证模型访问”。2026-10-05 最终验收要求已测试先行落实：preflight 原生发送固定极小非私人文字 `返回 JSON：{"status":"ok"}`，max_tokens=128，strict JSON schema 仅允许一个 string status=ok。回读原始 JSON token，普通文本、错误值/类型、额外字段和重复键全部拒绝；不得附图片或调用方私有来源。仅回安全的状态/模型/地域及允许的 HTTP/Provider 错误码，不生成可保存Recipe。不能自动调用或伪装为免费；不提供任意模型/endpoint参数。17项 Qwen Mock 单元测试通过不等于实际账号可用；图片能力由单独截图 Smoke 验证。
 
-`saveAiKey()` 打开原生密码输入框，用户手动输入/粘贴并确认；JS 无 key 参数，不读取剪贴板、不回显旧值。取消保留旧 key；更换先成功加密并原子写入后替换。标准小写 `sk-` key 长度 20–512，仅允许 ASCII 字母、数字、连字符和下划线；非应用 API 凭据不能冒用。
+`saveAiKey()` 打开原生密码输入框，用户手动输入/粘贴并确认；JS 无 key 参数，不读取剪贴板、不回显旧值。取消保留旧 key；更换先成功加密并原子写入后替换。小写 `sk-` key 长度20–512；旧百炼允许 ASCII 字母/数字/连字符/下划线，sk-ws- 额外允许句点以兼容不透明的签名段。Token Plan sk-sp- 不能作为应用 API 凭据，拒绝发送。该格式检查不是鉴权成功声明。
 
-2026-10-05 密钥输入修补：原生输入边界统一由 `AiKeyInput` 处理，仅移除首尾 `Character.isWhitespace/isSpaceChar` 空白及复制常见 BOM U+FEFF / 零宽空格 U+200B。中间空白、控制/格式字符、星号/省略号打码值和其他非法字符仍拒绝；不自动拼接中间内容、不移除引号/Bearer、不转换大小写或全角字符。直接读取原生 Editable 到可清理 char[]，不额外生成完整密钥 String；最终仍通过原 `AiSecretEnvelope.validate`，加密/解密校验不变。
+2026-10-05 密钥输入修补：原生输入边界统一由 `AiKeyInput` 处理，仅移除首尾 `Character.isWhitespace/isSpaceChar` 空白及复制常见 BOM U+FEFF / 零宽空格 U+200B。中间空白、控制/格式字符、星号/省略号打码值和其他非法字符仍拒绝；不自动拼接中间内容、不移除引号/Bearer、不转换大小写或全角字符。直接读取原生 Editable 到可清理 char[]，不额外生成完整密钥 String；凭据字符规则统一调用 `AiSecretEnvelope.validate`，不再由输入层重复独立定义。加密格式/AAD/路径不变，新 sk-ws- 允许句点同时用于保存、解密和请求校验。
 
-错误只说明空输入、前缀、打码、过短/过长、中间不可见字符或其他非法字符，不包含输入内容。本机格式失败不代表 Provider 401/403；对话框明确“尚未连接百炼”。成功/失败均清空原生输入，失败允许重新粘贴、取消保留旧密文。格式保存成功不是账号有效性或模型访问成功，需用户单独发起“验证模型访问”。本修补不使用实际 Key、不调用真实 Provider、不改模型、地域、存储位置、权限、SQLite 或 Backup。
+错误只说明空输入、前缀、打码、过短/过长、中间不可见字符或不支持的格式，不包含输入内容。本机格式失败不代表 Provider 401/403；对话框明确“尚未连接 AI 服务”。成功/失败均清空原生输入，失败允许重新粘贴、取消保留旧密文。格式保存成功不是账号有效性或模型访问成功，需用户单独发起“验证模型访问”。预检 region 字段只返回白名单 beijing / qianwen-platform，后者是平台标签而非地理位置；UI 显示对应服务，不把平台认证成功误写为北京。
 
 AndroidKeyStore 不可导出 AES-256 key + 平台 `AES/GCM/NoPadding`，每次由 Cipher 生成新随机 IV；应用 ID / 合约版本为固定 AAD。版本化密文只存在 `noBackupFilesDir/ai-secret/key-v1.json`，采用 AtomicFile；不实现自制密码算法，不加第三方秘密存储依赖。包私有读取仅供 QwenClient，桥没有 plaintext getter。解密失败保留原密文并给“请重新配置”，不能清数据修复；删除必须在无请求时进行。
 
@@ -67,7 +69,7 @@ Typed API 只暴露 `saveAiKey / hasAiKey / deleteAiKey`；其余处理代码拿
 
 新增权限只有 INTERNET，原有系统备份禁用/全域排除维持。使用系统 HttpsURLConnection，不新增 HTTP SDK；固定 HTTPS 主机、默认系统证书和主机名验证，禁止 redirect、cookies、自定义 endpoint、信任全部证书及工具调用。
 
-不在 App 启动、回前台、读取本地库时访问 AI；未配置不发请求。每次“开始整理/重试”最多一个 POST；请求前显示“文字和选中的截图将发送给阿里云百炼，可能产生 API 费用”。核心离线功能不受 AI 状态影响。
+不在 App 启动、回前台、读取本地库时访问 AI；未配置不发请求。每次“开始整理/重试”最多一个 POST；请求前说明文字/截图按密钥类型发送给千问 AI 平台或北京百炼，可能产生 API 费用。预检确认框明确只发送固定小文字、不验证图片。核心离线功能不受 AI 状态影响。
 
 连接 15 秒、读取 60 秒、整体 90 秒（包含上传/读取，以 elapsedRealtime 为准，watchdog 断开连接）。请求编码后最多 **10 MiB**，响应解压后最多 **2 MiB**，失败体最多读取 **64 KiB** 后只映射允许的错误类别。主动禁用压缩或对解压流继续计量。Native 和 TS 都检查输入限制，不能只依赖 Content-Length。
 
@@ -125,9 +127,9 @@ Service 直接同步订阅既有 BackupController 状态，不靠 React effect �
 
 ## 9. Verification / delivery gate
 
-2026-10-05 用户收尾要求补充：键盘真实验收先于任何付费调用；首次 preflight 改为极小非私人**文字**/JSON。现有原生 preflight 仍按下方已实现旧图片协议运行，文字协议尚未实现/验证，不得冒称两者相同或擅自调用旧协议完成新要求。用户随后明确暂缓 Android 验收，当前只交付待设备验证产物。审查包改为十项白名单，在原九项上加入 `provider-smoke.md`（无原文、raw response 或秘密）。其余冻结范围不变。
+2026-10-05 用户收尾要求：原生文字/status-ok预检已经实现，旧图片预检已被替代。正常完整设备验收仍需真实 IME/Back 与最终安装验证；用户另行授权了一次桌面密钥诊断，只用于定位接口兼容缺陷，不关闭设备 gate。当前继续交付待设备验证产物。审查包十项白名单包括 `provider-smoke.md`，无原文/raw response/秘密；其余冻结范围不变。
 
-自动化 100% fake transport/generated input，不存在测试key回退、connected测试真实Qwen、无上限重试。最新批准的首次真实集成先以用户原生配置的北京百炼key、同一实际endpoint，进行1次极小非私人文字/JSON preflight；当前旧图片实现须先对齐。成功才正式冻结 qwen3.8-flash 为账号实测可用模型。模型不存在/无权限/地域不支持则停止真实调用，报告 AI_PROVIDER_ACCESS_BLOCKED 和真实 HTTP/允许的 Provider code，不擅自换模型、不返回可能含秘密的原始message。
+自动化 100% fake transport/generated input，不存在测试key回退、connected测试真实Qwen、无上限重试。最终原生真实集成使用用户在受保护框新配置的密钥及对应固定接口做文字/JSON preflight；桌面一次 HTTP200 不替代此环节。qwen3.8-flash 不变。模型不存在/无权限/地域不支持则停止真实调用，报告 AI_PROVIDER_ACCESS_BLOCKED 和真实 HTTP/允许的 Provider code，不擅自换模型、不返回可能含秘密的原始message。
 
 preflight之外，真实provider smoke最多3次明确调用：文字、单PNG；前两项均成功才做2–3图合并。合计最多4次POST，记录计数/结果类别，不保存key、原文或full response。失败停止自动消费，修复后追加调用须明确新的有限预算。无真实key时继续所有Fake和本地验证，最终如实PENDING而非伪造成功。
 

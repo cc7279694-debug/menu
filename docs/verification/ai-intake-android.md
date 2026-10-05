@@ -2,9 +2,17 @@
 
 Approved plan `c8606e3`; inherited APK-3 `78f1877664db0b0015c132e970a4cfffe7ff03fc`. Work ran 2026-10-04–05 Asia/Shanghai on `feat/recipio-ai-intake`. Historical production repair: `1382974`; this closeout adds the fixed-text preflight and eight-case native harness from `1c3da828`. Packet manifest pins the final committed implementation.
 
-Status: **APK_4_PENDING_DEVICE_TEST**. Implementation is not equivalent to real Provider or physical-phone acceptance. Real paid AI POSTs: **0**. No actual user key was read, stored in JS, or requested in chat.
+Status: **APK_4_PENDING_DEVICE_TEST**. Implementation is not equivalent to native Provider or physical-phone acceptance. Acceptance continuation real POSTs: **1** (earlier user-authorized transient desktop diagnostic); automated real POSTs: **0**. Compatibility implementation added **0 calls**. No key persisted in source/JS/database/logs/backup/packet. The already-disclosed chat key must be revoked, not reused.
 
-## Latest native key input repair — 2026-10-05
+## Latest workspace credential compatibility — 2026-10-05
+
+Started clean10f3362a; narrow credential validation/official routing/profile wording. Fresh whole174files/878passed(961.36s), JVM11suites/95passed(0failure/error/skip), typecheck/lint0errors5oldwarnings/localbuild/sync PASS. Gradle239 rerun tasks/5m4s; Android lint0errors35warnings; Debug/AndroidTest compile PASS. New workspace dialog/Fake HTTP boundary cases compiled **Not Run**. Old8IMEfailures remain historical open gates, not current execution numbers.
+
+Pending APK: `artifacts/recipio-ai-intake-v12-qianwen-key-debug.apk`,16573907bytes,SHA2563a185094ca316c446d0f2c4c1d6328d07142330bca0d028442e6b4b756eb4214. Same-v12 signing certificate;12text/10DEX expanded-secret scan, compiled unchanged permission/five-domain backup-transfer exclusions PASS. Old artifacts/data retained. SQLite4/Preview7/Backup2/model/permissions/dependencies unchanged; approved native workspace platform added.
+
+Current connected/newdialog/IME/overwriteinstall/phone/realnativeProvider/offlinecoldstart/backup-start **Not Run**. Only Mirra5554 online, untouched; dedicated5580 historically repeatedlyANRed, not relaunched under resource constraints. Desktop HTTP200/970ms/status-ok proves then-current text/JSON account access only. See [focused evidence](ai-qianwen-key-compatibility.md) and [provider evidence](ai-intake-provider-smoke.md). Historical zero-call statements below belong to earlier runs.
+
+## Previous native key input repair — 2026-10-05 (historical)
 
 Current delta is native paste normalization/error classification from clean2d0ab5b, not a Provider/IME repair. See [focused repair evidence](ai-key-input-repair.md) for exact commands, APK hash and native Not Run items. Current fresh whole174/875 (771.29s), JVM11 suites/91 (0 failures/errors/skips), typecheck/lint/localbuild/sync and appGradle239 rerun/3m8s pass. Android lint0errors35warnings; new3 dialog scenarios compile only.
 

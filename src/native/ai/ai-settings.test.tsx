@@ -71,3 +71,17 @@ it("failed preflight displays only allowed HTTP/provider diagnostics without aut
   fireEvent.click(screen.getByRole("button",{name:"验证模型访问"}));fireEvent.click(await screen.findByRole("button",{name:"确认验证"}));
   await screen.findByText(/HTTP 403 · ModelNotFound/);expect(screen.queryByText(/private response/)).not.toBeInTheDocument();expect(verify).toHaveBeenCalledTimes(1);
 });
+it("shows the verified Qianwen platform rather than falsely claiming Beijing",async()=>{
+  const verify=vi.fn(async()=>({available:true as const,model:"qwen3.8-flash" as const,region:"qianwen-platform" as const}));
+  render(<AiSettings keys={keys(true)} onChanged={()=>{}} verifyAccess={verify}/>);await screen.findByText("已配置");
+  fireEvent.click(screen.getByRole("button",{name:"验证模型访问"}));fireEvent.click(await screen.findByRole("button",{name:"确认验证"}));
+  await screen.findByText("模型访问已验证：qwen3.8-flash（千问 AI 平台）");
+  expect(screen.queryByText("模型访问已验证：qwen3.8-flash（北京）")).not.toBeInTheDocument();
+  expect(verify).toHaveBeenCalledTimes(1);
+});
+it("cost confirmation describes fixed text preflight and does not claim screenshot verification",async()=>{
+  const verify=vi.fn();render(<AiSettings keys={keys(true)} onChanged={()=>{}} verifyAccess={verify}/>);await screen.findByText("已配置");
+  fireEvent.click(screen.getByRole("button",{name:"验证模型访问"}));
+  expect(await screen.findByText(/固定测试文字/)).toBeInTheDocument();
+  expect(screen.queryByText(/程序生成图片/)).not.toBeInTheDocument();expect(verify).not.toHaveBeenCalled();
+});

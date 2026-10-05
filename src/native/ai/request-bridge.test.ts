@@ -17,6 +17,15 @@ it("preflight is explicit, argument-free and returns only safe account status",a
   const api=native(), bridge=createAiBridge(api);expect(api.preflight).not.toHaveBeenCalled();
   expect(await bridge.preflight()).toEqual({available:true,model:"qwen3.8-flash",region:"beijing"});expect(api.preflight.mock.calls).toEqual([[]]);
 });
+it("accepts only the additional safe Qianwen profile and rejects unknown profiles or key-bearing status",async()=>{
+  const api=native();
+  const reply={available:true,model:"qwen3.8-flash",region:"qianwen-platform"};
+  const bridge=createAiBridge({...api,preflight:async()=>reply});
+  expect(await bridge.preflight()).toEqual(reply);
+  for(const invalid of [{...reply,region:"untrusted-host"},{...reply,key:"PRIVATE_TEST_VALUE"}]){
+    await expect(createAiBridge({...api,preflight:async()=>invalid}).preflight()).rejects.toMatchObject({code:"invalid_output"});
+  }
+});
 it("rejects secret-bearing bridge reply and oversized raw JSON",async()=>{
   const api=native();const bridge=createAiBridge({...api,organize:async()=>({rawJson:"{}",key:"private"})});
   await expect(bridge.organize({operationId,requestId,text:"鸭",imageIds:[]})).rejects.toMatchObject({code:"invalid_output"});
