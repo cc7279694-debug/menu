@@ -16,6 +16,8 @@ Only user clicking AI may start existing APK-4 `AiIntakeService`; no automatic f
 
 Source URLs, HTML/JSON-LD/text/warnings and draft are memory-only, released on save/abandon/leave. Process death may lose unsaved input. Web images are not fetched or saved. No ImportJob/RecipeSource/schema/migration changes. SQLite4 and Backup2 remain frozen; INTERNET already exists. Automated fixtures and HTTP/AI fakes only; no paid requests.
 
+Android cleartext policy explicitly permits the approved HTTP page input. This is not a new permission and does not relax Qwen's fixed HTTPS or the WebView CSP (`connect-src 'self'`, no remote frame/script/image); only the native public-page bridge accepts HTTP. HTTPS chains cannot downgrade. No trust-manager or certificate exception.
+
 ## Stable error categories
 
 invalid_url, unsafe_url, unsupported_scheme, unsupported_port, dns_blocked, redirect_blocked, too_many_redirects, network_unavailable, timeout, http_error, unsupported_content, page_too_large, page_unreadable, recipe_not_found, parser_partial, ai_key_missing, ai_failed, invalid_ai_output. Lifecycle adds busy/cancelled/stale_session/native_unavailable/storage_error/save_uncertain. UI never exposes raw exception messages or remote source data.

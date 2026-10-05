@@ -11,6 +11,7 @@ public class MainActivity extends BridgeActivity {
         registerPlugin(LocalBackupPlugin.class);
         registerPlugin(LocalAiSecretPlugin.class);
         registerPlugin(LocalAiIntakePlugin.class);
+        registerPlugin(LocalWebImportPlugin.class);
         super.onCreate(savedInstanceState);
         getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
             @Override
