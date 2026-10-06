@@ -7,6 +7,13 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import org.junit.*;
 
 public class AiTemporaryImagesTest {
+    @Test public void sharedTransferMayOnlyRollbackAnEmptyOwnedSession()throws Exception {
+        images.requireEmptySession(a);
+        add(a);
+        assertEquals("busy",assertThrows(AiFailure.class,()->images.requireEmptySession(a)).code);
+        assertEquals("stale_session",assertThrows(AiFailure.class,()->images.requireEmptySession(UUID.randomUUID())).code);
+        assertTrue(folder(a).exists());
+    }
     private File cache;private long[] now;private AiTemporaryImages images;private UUID a,b;
     private final byte[] jpeg={(byte)255,(byte)216,(byte)255,(byte)217};
     @Before public void before()throws Exception {cache=Files.createTempDirectory("recipio-ai-fixture-").toFile();now=new long[]{100};images=new AiTemporaryImages(cache,()->now[0],(file,mime)->new AiTemporaryImages.Processed(jpeg,200,100));a=UUID.randomUUID();b=UUID.randomUUID();images.create(a);images.create(b);}

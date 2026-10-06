@@ -1,0 +1,31 @@
+// @vitest-environment node
+import {afterEach,expect,it} from "vitest";
+import {randomUUID} from "node:crypto";
+import {testDatabase} from "../backup/sqlite-test-driver.mjs";
+import {SQLiteBackupRepository} from "../backup/repository";
+import {DataOperationCoordinator} from "../backup/coordinator";
+import {goldenSource,goldenAssets,manifestFor,time} from "../backup/test-fixtures";
+import {toPortableData} from "../backup/references";
+import {validateBackupData} from "../backup/compatibility";
+import {RecipeNameStore} from "../recipe-store";
+import {emptyDetails} from "../recipe-model";
+import {AiIntakeService} from "../ai/service";
+import {fakeAi,image} from "../ai/service.test-support";
+const databases=[];
+afterEach(()=>databases.splice(0).forEach(db=>db.close()));
+it("Share sources and staging never enter SQLite/Backup; only human-confirmed ordinary Recipe persists",async()=>{
+  const {db,driver}=testDatabase();databases.push(db);const gate=new DataOperationCoordinator(),store=new RecipeNameStore(driver,()=>new Date(time),gate),repo=new SQLiteBackupRepository(driver,gate,()=>new Date(time));
+  await repo.replace(goldenSource(),{operationId:"generated",generationId:"generated",dataSha256:"a".repeat(64),committedAt:time});const before=await repo.snapshot();
+  const fake=fakeAi(),service=new AiIntakeService(fake.keys,fake.bridge,{store});
+  const source="GENERATED_SHARE_PRIVATE_TEXT\n中文 🍚",receipt=randomUUID();
+  await service.prepareSharedInput({text:source,transferImages:async op=>[image(op)]});
+  expect(await repo.snapshot()).toEqual(before);expect(fake.bridge.organize).not.toHaveBeenCalled();
+  await service.organize(service.snapshot().input);await expect(service.save(emptyDetails("人工确认测试菜"))).rejects.toMatchObject({code:"review_required"});
+  expect(await repo.snapshot()).toEqual(before);service.setConfirmed(true);await service.save(emptyDetails("人工确认测试菜"));
+  const data=toPortableData(await repo.snapshot(),goldenAssets()),checked=validateBackupData(data,manifestFor(data));
+  expect(checked.manifest.formatVersion).toBe(2);expect(checked.manifest.databaseSchemaVersion).toBe(4);expect(db.prepare("PRAGMA user_version").get().user_version).toBe(4);
+  expect(data.recipes.find(r=>r.title==="人工确认测试菜")).toMatchObject({coverAssetId:null});
+  const serialized=JSON.stringify(data);for(const forbidden of [source,receipt,"share-inbox","ai-import","content:","rawJson","fieldChecks","provider","operationId"])expect(serialized).not.toContain(forbidden);
+  expect(Object.keys(data).sort()).toEqual(["changes","cookingRecords","ingredients","keyTips","preparations","recipes","settings","steps"].sort());
+  expect(service.snapshot()).toMatchObject({phase:"saved",images:[],input:{text:"",imageIds:[]},operationId:null});expect(fake.bridge.discardSession).toHaveBeenCalledOnce();
+});

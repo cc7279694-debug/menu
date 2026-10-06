@@ -47,6 +47,28 @@ export class AiIntakeService {
     if(this.flight||this.cancelling||this.state.imageBusy||["saving","saved","uncertain"].includes(this.state.phase))throw new AiIntakeError("busy");
     this.set({...this.state,input:{text:input.text,imageIds:[...input.imageIds]},phase:"input",draft:null,confirmed:false,error:null});
   }
+  async prepareSharedInput(input:{text:string;transferImages?:(operationId:string)=>Promise<AiTemporaryImage[]>;isCurrent?:()=>boolean}):Promise<void>{
+    const current=this.state;
+    if(this.flight||this.cancelling||this.restoreBlocked||current.imageBusy||current.phase!=="input"||current.draft||current.input.text!==""||current.images.length||current.input.imageIds.length)throw new AiIntakeError("busy");
+    if(new TextEncoder().encode(input.text).length>32768||Array.from(input.text).length>AI_LIMITS.textCodePoints||!input.text.trim()&&!input.transferImages)throw new AiIntakeError("input_invalid");
+    // Reserve the empty session synchronously, before asynchronous create/transfer.
+    this.set({...current,imageBusy:true,error:null});
+    let operationId:string|null=null;
+    const initialGeneration=this.generation;
+    try{
+      operationId=await this.startSession();
+      const generation=this.generation;
+      const images=input.transferImages?await input.transferImages(operationId):[];
+      if(generation!==this.generation||operationId!==this.state.operationId||this.restoreBlocked||input.isCurrent&&!input.isCurrent())throw new AiIntakeError("stale_session");
+      if(images.length>AI_LIMITS.imageCount||input.transferImages&&!images.length||new Set(images.map(image=>image.id)).size!==images.length)throw new AiIntakeError("image_invalid");
+      this.set({...this.state,phase:"input",input:{text:input.text,imageIds:images.map(image=>image.id)},images,draft:null,confirmed:false,imageBusy:false,error:null});
+    }catch(error){
+      const safe=safeAiError(error);
+      if(operationId===this.state.operationId){await this.discard();this.set({...this.state,error:safe});}
+      else if(operationId===null&&this.generation<=initialGeneration+1&&this.state.imageBusy)this.set({...this.state,imageBusy:false,error:safe});
+      throw safe;
+    }
+  }
   async refreshKey():Promise<boolean>{return (await this.keys.hasAiKey()).configured;}
   setConfirmed(value:boolean):void{if(this.state.phase!=="preview"||!this.state.draft||!this.state.operationId||this.restoreBlocked)throw new AiIntakeError("stale_session");this.set({...this.state,confirmed:value});}
   assertCanSave():void{if(!this.state.draft||!this.state.operationId||this.restoreBlocked||this.flight||this.cancelling||this.state.imageBusy||this.state.phase!=="preview")throw new AiIntakeError("stale_session");if(requiresAiReview(this.state.draft)&&!this.state.confirmed)throw new AiIntakeError("review_required");}

@@ -22,7 +22,7 @@ it("unmount during lazy entry leaves the consumed receipt available for the repl
   await import("../link-import/service");
   const shared = { status: "url" as const, id: crypto.randomUUID(), url: "https://generated.example/r", replaced: false };
   const queue: ShareReply[] = [shared];
-  const share = new ShareTargetController({ consume: async () => queue.shift() ?? { status: "empty" }, listen: async () => () => {} });
+  const share = new ShareTargetController({ consume: async () => queue.shift() ?? { status: "empty" }, listen: async () => () => {},release:async()=>{},transferImages:async()=>[] });
   const view = render(<LibraryApp store={new PreviewRecipeLibrary()} share={share} />);
   await screen.findByLabelText("待处理分享");
   await act(async () => { await load.entered; });

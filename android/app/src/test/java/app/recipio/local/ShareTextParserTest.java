@@ -18,8 +18,26 @@ public class ShareTextParserTest {
         invalid("multiple_links","https://generated.example/one https://generated.example/two");
         invalid("multiple_links","https://generated.example/r?q=1 https://generated.example/r?q=2");
     }
-    @Test public void absentTextAndNonWebSchemesNeverBecomeAiInput() {
-        for(String text:new String[]{null,"","普通菜谱文字","javascript:alert(1)","content://generated/recipe","file:///test.html"}) invalid("no_url",text);
+    @Test public void absentTextIsRejectedAndPlainTextIsPreservedWithoutNetwork() {
+        for(String text:new String[]{null,""," \n "}) invalid("no_url",text);
+        for(String text:new String[]{"普通菜谱文字","鸡翅500克\n小火20分钟\n🍗","javascript:alert(1)","content://generated/recipe","file:///test.html"}) {
+            ShareTextParser.Result result=parse(text);
+            assertNull(result.url); assertNull(result.reason); assertEquals(text,result.text);
+        }
+    }
+    @Test public void multipleLinksRetainBoundedOriginalTextForExplicitChoice() {
+        String text="做法一 https://generated.example/a\n做法二 https://generated.example/b";
+        ShareTextParser.Result result=parse(text);
+        assertEquals("multiple_links",result.reason); assertEquals(text,result.text); assertNull(result.url);
+    }
+    @Test public void urlPrecedenceDoesNotSilentlyConvertTitleIntoAiText() {
+        ShareTextParser.Result result=parse("可乐鸡翅\nhttps://generated.example/r");
+        assertEquals("https://generated.example/r",result.url); assertNull(result.text);
+        assertEquals("可乐鸡翅",result.companionText);
+    }
+    @Test public void aiCodepointLimitIsCheckedWithoutTruncatingText() {
+        invalid("oversized","x".repeat(30001));
+        assertEquals("x".repeat(30000),parse("x".repeat(30000)).text);
     }
     @Test public void existingUrlValidatorRejectsUnsafeAuthorityAndMalformedInput() {
         for(String text:new String[]{"http://localhost/recipe","http://thing.local/recipe","https://user:pass@generated.example/recipe","https://generated.example:444/recipe","https://[invalid/recipe","https://generated.example/recipe\\other"}) invalid("unsafe_url",text);

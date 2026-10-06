@@ -20,7 +20,7 @@ function setup(backup?: BackupController) {
   const store = new PreviewRecipeLibrary(), fake = fakeAi(), ai = new AiIntakeService(fake.keys, fake.bridge, { store, backup });
   const web = { read: vi.fn(), cancel: vi.fn() }, link = new LinkImportService({ store, ai, backup, port: web });
   let notify = () => {}; const queue: ShareReply[] = [];
-  const share = new ShareTargetController({ consume: async () => queue.shift() ?? { status: "empty" }, listen: async fn => { notify = fn; return () => {}; } });
+  const share = new ShareTargetController({ consume: async () => queue.shift() ?? { status: "empty" }, listen: async fn => { notify = fn; return () => {}; },release:async()=>{},transferImages:async()=>[] });
   const emit = async (reply: ShareReply = { status: "url", id: crypto.randomUUID(), url, replaced: false }) => { await act(async () => { queue.push(reply); notify(); }); };
   return { store, ai, fake, web, link, share, emit, backup };
 }

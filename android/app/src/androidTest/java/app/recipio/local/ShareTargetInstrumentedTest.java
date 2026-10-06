@@ -117,7 +117,6 @@ public class ShareTargetInstrumentedTest {
         LocalShareTargetPlugin plugin = (LocalShareTargetPlugin) activity.getBridge().getPlugin("LocalShareTarget").getInstance();
         for (Intent intent : new Intent[] {
             new Intent(Intent.ACTION_SEND_MULTIPLE).setType("text/plain").putExtra(Intent.EXTRA_TEXT, URL),
-            new Intent(Intent.ACTION_SEND).setType("image/png").putExtra(Intent.EXTRA_TEXT, URL),
             new Intent(Intent.ACTION_VIEW).setData(Uri.parse(URL)),
             new Intent(Intent.ACTION_SEND).setType("text/plain").putExtra(Intent.EXTRA_STREAM, Uri.parse("content://generated/not-opened")),
             new Intent(Intent.ACTION_SEND).setType("text/plain").putExtra(Intent.EXTRA_HTML_TEXT, "<a>" + URL + "</a>")
@@ -131,10 +130,10 @@ public class ShareTargetInstrumentedTest {
         assertEquals("false", js("!!document.querySelector('textarea')||!!document.querySelector('input[type=url]')"));
         click("手动输入网页链接"); assertPrefill("");
     }
-    @Test public void plainTextWithoutUrl_showsReason_withoutEnteringAI() throws Exception {
+    @Test public void plainTextWithoutUrl_prefillsAi_withoutOrganizing() throws Exception {
         launch(share("APK5B GENERATED 这是普通文字，没有链接"));
-        until("document.body.innerText.includes('分享内容里没有网页链接')");
-        assertEquals("false", js("!!document.querySelector('textarea')||!!document.querySelector('input[type=url]')"));
+        until("document.querySelector('textarea')?.value==='APK5B GENERATED 这是普通文字，没有链接'");
+        assertEquals("false",js("!!document.querySelector('input[type=url]')||document.body.innerText.includes('正在整理')||document.body.innerText.includes('检查 AI 整理结果')"));
     }
     @Test public void destroyedBridgeQueuedConsume_cannotStealNextColdShare() throws Exception {
         // Capacitor quitSafely still runs queued plugin calls after onDestroy.
@@ -181,13 +180,14 @@ public class ShareTargetInstrumentedTest {
         for (int i = 0; i < node.getChildCount(); i++) if (nativeClick(node.getChild(i), label)) return true;
         return false;
     }
-    @Test public void actualAndroidChooser_listsRecipio_forTextOnly() throws Exception {
+    @Test public void actualAndroidChooser_listsRecipio_forTextAndImagesOnly() throws Exception {
         PackageManager manager = instrumentation.getTargetContext().getPackageManager();
-        for (String type : new String[] { "text/plain", "image/png", "video/mp4", "audio/mpeg", "text/html", "application/octet-stream" }) {
+        for (String type : new String[] { "text/plain", "image/jpeg", "image/png", "image/webp", "image/*", "video/mp4", "audio/mpeg", "text/html", "application/pdf", "application/octet-stream" }) {
             List<ResolveInfo> results = manager.queryIntentActivities(new Intent(Intent.ACTION_SEND).setType(type), PackageManager.MATCH_DEFAULT_ONLY);
             long owned = results.stream().filter(r -> r.activityInfo.packageName.equals("app.recipio.local")).count();
-            assertEquals(type, type.equals("text/plain") ? 1 : 0, owned);
+            assertEquals(type, type.equals("text/plain")||type.startsWith("image/") ? 1 : 0, owned);
         }
+        assertEquals(1,manager.queryIntentActivities(new Intent(Intent.ACTION_SEND_MULTIPLE).setType("image/*"),PackageManager.MATCH_DEFAULT_ONLY).stream().filter(r->r.activityInfo.packageName.equals("app.recipio.local")).count());
         launch(new Intent(instrumentation.getTargetContext(), MainActivity.class));
         Intent payload = new Intent(Intent.ACTION_SEND).setType("text/plain").putExtra(Intent.EXTRA_TEXT, URL);
         instrumentation.getTargetContext().startActivity(Intent.createChooser(payload, "APK5B GENERATED SHARE").addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));

@@ -1,6 +1,9 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Test fixture is not publicly readable: positive cases need a real temporary grant. -->
+    <permission android:name="app.recipio.local.test.READ_SHARE_FIXTURE" android:protectionLevel="signature" />
     <application>
         <!-- Test APK only. Generated files, real provider descriptors and injected IO failures. -->
         <provider android:name="app.recipio.local.LocalBackupPluginTest$FileProvider" android:authorities="app.recipio.local.test.backup-test" android:exported="true" />
+        <provider android:name="app.recipio.local.ShareMediaInboxInstrumentedTest$FixtureProvider" android:authorities="app.recipio.local.test.share-fixture" android:exported="true" android:readPermission="app.recipio.local.test.READ_SHARE_FIXTURE" android:grantUriPermissions="true" />
     </application>
 </manifest>

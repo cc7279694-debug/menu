@@ -52,6 +52,18 @@ public class LocalAiIntakePlugin extends Plugin {
         call.resolve(new JSObject().put("pendingCleanup",pending));
     });}catch(Exception e){reject(call,e);}}
     @PluginMethod public void removeImage(PluginCall call){try{keys(call,"operationId","imageId");String id=operation(call),image=call.getString("imageId");if(!AiRequestLifecycle.uuid(image))throw new AiFailure("image_invalid");submit(call,()->{operation(call);runtime.images(getContext()).remove(UUID.fromString(id),UUID.fromString(image));call.resolve();});}catch(Exception e){reject(call,e);}}
+    @PluginMethod public void transferShareImagesToAi(PluginCall call){
+        try{keys(call,"id","operationId");String operation=operation(call),receipt=call.getString("id");
+            if(!AiRequestLifecycle.uuid(receipt)||!ShareTargetInbox.PROCESS.isLeasedMedia(receipt))throw new AiFailure("image_invalid");
+            submit(call,()->{
+                operation(call);if(!ShareTargetInbox.PROCESS.isLeasedMedia(receipt))throw new AiFailure("image_invalid");
+                List<AiTemporaryImages.Image> images=ShareMediaInbox.forContext(getContext()).transfer(UUID.fromString(receipt),runtime.images(getContext()),UUID.fromString(operation));
+                operation(call);JSArray result=new JSArray();
+                for(AiTemporaryImages.Image image:images)result.put(new JSObject().put("id",image.id).put("mimeType","image/jpeg").put("byteSize",image.byteSize).put("width",image.width).put("height",image.height).put("previewUri",image.previewUri));
+                ShareTargetInbox.PROCESS.release(receipt);call.resolve(new JSObject().put("images",result));
+            });
+        }catch(Exception e){reject(call,e);}
+    }
     @PluginMethod public synchronized void pickImage(PluginCall call){try{keys(call,"operationId");operation(call);if(picking||activeToken!=null)throw new AiFailure("busy");picking=true;Intent intent=new Intent(Intent.ACTION_OPEN_DOCUMENT);intent.addCategory(Intent.CATEGORY_OPENABLE);intent.setType("image/*");intent.putExtra(Intent.EXTRA_MIME_TYPES,new String[]{"image/jpeg","image/png","image/webp"});intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);try{startActivityForResult(call,intent,"imageSelected");}catch(RuntimeException ignored){picking=false;throw new AiFailure("image_invalid");}}catch(Exception e){reject(call,e);}}
     @ActivityCallback private void imageSelected(PluginCall call,ActivityResult result){
         if(call==null){synchronized(this){picking=false;}return;}

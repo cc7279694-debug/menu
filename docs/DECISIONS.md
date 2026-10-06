@@ -1,5 +1,45 @@
 # Decisions
 
+## 2026-10-06 — Share reader retirement requires OS exit, not Binder death
+
+### Decision
+
+Before Share cache mutation, completion acknowledgment or the next reader, the metadata worker confirms every handshaken reader PID has exited. Only `ESRCH` from a signal-zero probe succeeds. A started request without a valid PID fails closed. Keep the 30s read cutoff separate from the bounded 5s retirement confirmation budget.
+
+### Context
+
+Strict Android deadline/cancellation assertions observed a live process after Binder death. ActivityManager also retained stale process records, so neither a Binder callback nor an ActivityManager listing proves OS exit.
+
+### Alternatives / Reason
+
+Do not add a grace delay or relax the exit assertion. Reuse the existing orphan-reader exit probe in the background retirement path. If confirmation fails, preserve the active request and its bytes, return a safe failure and permit explicit release retry; do not start another writer or repeat the stage-completion callback.
+
+### Consequences
+
+No schema, Backup, Provider, permission or dependency change. Generated Android fault injection covers quarantine, queue exclusion, cleanup failure and retry. All final regressions and APK/device evidence must be recreated after this production repair; earlier green runs remain historical.
+
+## 2026-10-06 — Share is a temporary entrance, not a second importer
+
+### Decision
+
+Extend acceptedURLShare with exact text and1–6static images into existingAPK-4AI input. Preserve URL precedence, explicitStart/humanPreview gate and ordinaryRecipe save. KeepSQLite4/Preview7/Backup2 unchanged; no persistent Share queue or new permission.
+
+### Context
+
+External temporary grants expire and arbitrary ContentProviders can block. DeferredShare must not overwrite ongoing work or leak temporary files.
+
+### Alternatives
+
+Deferred URI reading inJS, databaseSharequeue, or a cancellation-only worker susceptible to noncooperative Binder/read blocking. Rejected as inconsistent with approved safety/lifecycle contract.
+
+### Reason
+
+Immediate private staging plus reusedAiImageCodec, bounded disposable same-UID native reader, memoryreceipt ownership and atomic freshAI transfer preserve existing local model. Actual-delete release callbacks and retries protect cancellation/replacement races.
+
+### Consequences
+
+Private non-exportedservice adds no permission/dependency. Sources remain temporary, process death may discard pending. RealAndroid and physicalShareSheet verification stay separate from compile/browser evidence. No automaticQwen, video, cloud or main promotion.
+
 ## 2026-10-06 — Share Bridge lifetime and Android fixture readiness
 
 ### Decision

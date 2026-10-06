@@ -1,5 +1,22 @@
 # Architecture
 
+## APK-5C-A Android Text / Images Share（2026-10-06）
+
+```text
+SEND text/plain → ShareTextParser → URL precedence / exact text / multiple-link choices
+SEND / SEND_MULTIPLE image/* → LocalShareTarget → process receipt
+  → ShareMediaInbox metadata worker +30s watchdog
+  → private non-exported :sharemedia reader → ContentResolver + reused AiImageCodec
+  → UUID-marked private Share staging → memory-only pending / lease / actual release
+  → user opens safe receipt → fresh LocalAiIntake operation → atomic temp transfer
+  → AiIntakeService.prepareSharedInput → normal AI input (Provider0)
+  → explicit Start → inherited APK-4 Preview / human gate / ordinary Recipe / Backup2
+```
+
+All image IO stays off Activity main; the reader is disposable to bound malicious providers that ignore cancellation. Before cache mutation/completion/next writer, the metadata worker confirms OS exit (`ESRCH`) for every handshaken PID, including pre-READ cancellation. Binder death alone is insufficient. A bounded confirmation failure quarantines the active request and bytes for release retry; no later writer starts and no stage callback is duplicated. Replacement/Ignore release acknowledgment waits last transfer pin and actual deletion; errors remain retryable. Activity recreation protects native-owned pending media; launch extras are scrubbed, old Bridge cannot steal new receipt. JS sees only operation-owned existing AI temporary image metadata, never external URI or Share-cache paths.
+
+Dirty/busy/backup/Focus/Guided/uncertain/modal flows defer; safe pages only prefill, no automatic network/save. Source queue stays process memory, images temporary private cache. SQLite4/Preview7/Backup2 unchanged; no migration/dependency/new permission/video. This approved module supersedes only APK-5B's text-only admission scope; its URL routing and safety remain inherited. Actual final evidence in verification/share-intake*.md.
+
 ## APK-5B URL-only Android Share entry（2026-10-05）
 
 ```text

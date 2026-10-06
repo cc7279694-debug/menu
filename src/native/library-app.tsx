@@ -112,11 +112,11 @@ export function LibraryApp({
     const owner = { active: true }; shareOwner.current = owner;
     return () => { owner.active = false; };
   }, []);
-  const shareRoute = useRef<(ignoreOwnLock?: boolean) => boolean>(() => false);
+  const shareRoute = useRef<(item: ShareItem,ignoreOwnLock?: boolean,explicit?:boolean) => boolean>(() => false);
   const shareOpen = useRef<(item: ShareItem) => Promise<void>>(async () => {});
   // Fresh owner state is checked again after lazy module loading. Receiving a share
   // cannot cancel an import, restore preview, editor, modal or cooking viewer.
-  function canOpenShare(ignoreOwnLock = false, checkLiveDialog = true) {
+  function canOpenShare(ignoreOwnLock = false, checkLiveDialog = true,item=shares?.snapshot().pending,explicit=true) {
       if ((!ignoreOwnLock && (busy || lock.current)) || viewer || addOpen || fromAiSettings || fromLinkSettings || checkLiveDialog && document.querySelector('[role="dialog"]')) return false;
       const b = backup?.getState() ?? backupState;
       if (backupBusy(b) || b.phase === "preview" || b.phase === "uncertain") return false;
@@ -124,17 +124,19 @@ export function LibraryApp({
       if (a.imageBusy || ["requesting", "saving", "uncertain"].includes(a.phase)) return false;
       const l = linkService?.snapshot() ?? linkState;
       if (l && (l.url !== "" || l.parsed || l.parserDraft || !["input", "saved"].includes(l.phase))) return false;
-      return ["home", "library", "settings", "detail", "changes", "history", "link-input"].includes(view);
+      if(view==="ai-input")return item?.status!=="url"&&a.phase==="input"&&!a.draft&&a.input.text===""&&!a.images.length&&!a.input.imageIds.length;
+      if(view==="link-input")return item?.status==="url"||explicit;
+      return ["home", "library", "settings", "detail", "changes", "history"].includes(view);
   }
   useLayoutEffect(() => {
-    shareRoute.current = canOpenShare;
-    shareOpen.current = item => openLinkImport(item);
+    shareRoute.current = (item,ignore=false,explicit=true)=>canOpenShare(ignore,true,item,explicit);
+    shareOpen.current = item => openSharedInput(item);
   });
   useEffect(() => shares?.start(), [shares]);
   useEffect(() => {
     const item = shareState.pending;
-    if (!shares || !item || item.status !== "url" || shareState.deferred || shareOpening.current === item.id) return;
-    if (!shareRoute.current()) shares.defer(item.id);
+    if (!shares || !item || item.status === "invalid" || shareState.deferred || shareOpening.current === item.id) return;
+    if (!shareRoute.current(item,false,false)) shares.defer(item.id);
     else void shareOpen.current(item);
   }, [shares, shareState.pending, shareState.deferred]);
   useEffect(() => {
@@ -304,9 +306,26 @@ export function LibraryApp({
     window.scrollTo(0, 0);
   }
   function showAiRecipe(recipe:RecipeDetails){setSelected(recipe);setRevision(n=>n+1);setView("detail");window.scrollTo(0,0);}
+  async function openSharedInput(item:ShareItem){
+    if(item.status==="url"){await openLinkImport(item);return;}
+    if(!shares||!shareRoute.current(item)||shares.snapshot().pending?.id!==item.id){shares?.defer(item.id);return;}
+    const text=item.status==="text"?item.text:item.status==="media"?item.text??"":item.reason==="multiple_links"?item.text:null;
+    if(text==null)return;
+    const owner=shareOwner.current;
+    shareOpening.current=item.id;lock.current=true;setBusy(true);
+    const current=()=>owner.active&&shares.snapshot().pending?.id===item.id;
+    try{
+      if(intake.snapshot().phase==="saved")await intake.discard();
+      if(!current())return;
+      await intake.prepareSharedInput({text,isCurrent:current,...(item.status==="media"?{transferImages:(operationId:string)=>shares.transferImages(item.id,operationId)}:{})});
+      if(!current())return;
+      shares.complete(item.id);setView("ai-input");setAddOpen(false);setError("");
+    }catch{shares.defer(item.id);setError("分享内容暂时无法打开，请重试；当前菜谱和编辑内容不受影响。");}
+    finally{lock.current=false;setBusy(false);shareOpening.current=null;}
+  }
   async function openLinkImport(shared?: ShareItem) {
     const owner = shareOwner.current;
-    if (shared && (!shareRoute.current() || shares?.snapshot().pending?.id !== shared.id)) { shares?.defer(shared.id); return; }
+    if (shared && (!shareRoute.current(shared) || shares?.snapshot().pending?.id !== shared.id)) { shares?.defer(shared.id); return; }
     if (lock.current) return;
     if (shared) shareOpening.current = shared.id;
     lock.current = true; setBusy(true);
@@ -315,12 +334,12 @@ export function LibraryApp({
       if (!linkService) {
         // Parser/UI code is loaded only when this optional online feature is opened.
         const [{ LinkImportService }, { createWebImportPort }] = await Promise.all([import("./link-import/service"), import("./link-import/native-bridge")]);
-        if (shared && (!owner.active || !shareRoute.current(true) || shares?.snapshot().pending?.id !== shared.id)) { shares?.defer(shared.id); return; }
+        if (shared && (!owner.active || !shareRoute.current(shared,true) || shares?.snapshot().pending?.id !== shared.id)) { shares?.defer(shared.id); return; }
         service = new LinkImportService({ store, ai: intake, backup, port: createWebImportPort() });
         setLinkService(service);
       }
       if (shared) {
-        if (!owner.active || shared.status !== "url" || !shareRoute.current(true) || shares?.snapshot().pending?.id !== shared.id) { shares?.defer(shared.id); return; }
+        if (!owner.active || shared.status !== "url" || !shareRoute.current(shared,true) || shares?.snapshot().pending?.id !== shared.id) { shares?.defer(shared.id); return; }
         service!.setUrl(shared.url);
         shares?.complete(shared.id);
       }
@@ -413,12 +432,13 @@ export function LibraryApp({
         )}
       </header>
       {shareState.pending && <aside aria-label="待处理分享" role="status" className="mb-5 space-y-3 rounded-xl border p-4">
-        <p>{shareState.pending.status === "url" ? `收到网页链接：${new URL(shareState.pending.url).hostname}。请先完成当前操作，再打开。` : shareReasons[shareState.pending.reason]}</p>
+        <p>{shareState.pending.status === "url" ? `收到网页链接：${new URL(shareState.pending.url).hostname}。请先完成当前操作，再打开。` : shareState.pending.status==="text"?"收到一段分享文字。请先完成当前操作，再打开。":shareState.pending.status==="media"?`收到 ${shareState.pending.imageCount} 张${shareState.pending.text?.trim()?"图片和文字":"分享图片"}。请先完成当前操作，再打开。`:shareReasons[shareState.pending.reason]}</p>
         {shareState.replaced && <p className="text-sm text-muted-foreground">较早的待处理分享已被新分享替换；当前编辑内容保持不变。</p>}
         <div className="flex flex-wrap gap-2">
-          {shareState.pending.status === "url" ? <Button className="min-h-11" disabled={busy || !canOpenShare(false, false)} onClick={() => { const item = shares?.snapshot().pending; if (item) void shareOpen.current(item); }}>打开分享的链接</Button> : <>
-            <Button className="min-h-11" disabled={busy || !canOpenShare(false, false)} onClick={() => { if (!shareRoute.current()) return; const item = shares?.snapshot().pending; if (item) shares?.complete(item.id); void navigate("home"); }}>回到首页</Button>
-            <Button className="min-h-11" variant="outline" disabled={busy || !canOpenShare(false, false)} onClick={() => { if (!shareRoute.current()) return; const item = shares?.snapshot().pending; if (item) shares?.complete(item.id); void openLinkImport(); }}>手动输入网页链接</Button>
+          {shareState.pending.status !== "invalid" ? <Button className="min-h-11" disabled={busy || !canOpenShare(false, false)} onClick={() => { const item = shares?.snapshot().pending; if (item) void shareOpen.current(item); }}>{shareState.pending.status==="url"?"打开分享的链接":"打开这次分享"}</Button> : <>
+            {shareState.pending.reason==="multiple_links"&&shareState.pending.text&&<Button className="min-h-11" disabled={busy||!canOpenShare(false,false)} onClick={()=>{const item=shares?.snapshot().pending;if(item)void shareOpen.current(item);}}>整理这段分享文字</Button>}
+            <Button className="min-h-11" disabled={busy || !canOpenShare(false, false)} onClick={() => { const item = shares?.snapshot().pending; if(!item||!shareRoute.current(item))return;shares?.complete(item.id); void navigate("home"); }}>回到首页</Button>
+            <Button className="min-h-11" variant="outline" disabled={busy || !canOpenShare(false, false)} onClick={() => { const item = shares?.snapshot().pending;if(!item||!shareRoute.current(item))return;shares?.complete(item.id); void openLinkImport(); }}>手动输入网页链接</Button>
           </>}
           <Button className="min-h-11" variant="outline" onClick={() => { const item = shares?.snapshot().pending; if (item) shares?.complete(item.id); }}>忽略这次分享</Button>
         </div>

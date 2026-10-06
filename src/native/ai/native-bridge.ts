@@ -64,6 +64,11 @@ const imageSchema=z.strictObject({id:z.uuid(),mimeType:z.literal("image/jpeg"),b
 function ownedImage(image:AiTemporaryImage,operationId:string):boolean{
   return new RegExp(`^file:///data/(?:user/\\d+|data)/app\\.recipio\\.local/cache/ai-import/${operationId}/${image.id}\\.jpg$`).test(image.previewUri)&&Math.max(image.width,image.height)<=Math.min(image.width,image.height)*200;
 }
+export function parseTransferredAiImages(value:unknown,operationId:string):AiTemporaryImage[]{
+  const reply=z.strictObject({images:z.array(imageSchema).min(1).max(AI_LIMITS.imageCount)}).safeParse(value);
+  if(!z.uuid().safeParse(operationId).success||!reply.success||new Set(reply.data.images.map(image=>image.id)).size!==reply.data.images.length||reply.data.images.some(image=>!ownedImage(image,operationId)))throw new AiIntakeError("invalid_output");
+  return reply.data.images;
+}
 export function aiImagePreviewUri(image:AiTemporaryImage):string{return Capacitor.convertFileSrc(image.previewUri);}
 export function createAiBridge(api?:NativeAiApi):AiBridge {
   let native=api;const getNative=()=>native??(native=registerPlugin<NativeAiApi>("LocalAiIntake"));
