@@ -46,6 +46,7 @@ writeFileSync(resolve(destination,"manifest.json"),JSON.stringify(manifest,null,
 const q=value=>"'"+value.replaceAll("'","''")+"'";
 assertPinned();
 const command=`$ErrorActionPreference='Stop'
+Add-Type -AssemblyName System.IO.Compression
 Add-Type -AssemblyName System.IO.Compression.FileSystem
 $file=[IO.File]::Open(${q(zip)},[IO.FileMode]::CreateNew,[IO.FileAccess]::ReadWrite,[IO.FileShare]::None)
 try{$archive=[IO.Compression.ZipArchive]::new($file,[IO.Compression.ZipArchiveMode]::Create,$true)
