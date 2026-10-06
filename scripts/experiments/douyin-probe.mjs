@@ -5,6 +5,7 @@ import https from "node:https";
 import { isIP } from "node:net";
 import { pathToFileURL } from "node:url";
 import { load } from "cheerio";
+import { resolveDoh } from "./doh-resolver.mjs";
 
 const PAGE_LIMIT = 2 * 1024 * 1024, RANGE_LIMIT = 65536, TIMEOUT = 20000;
 const REDIRECT = new Set([301,302,303,307,308]);
@@ -27,7 +28,7 @@ export function isGlobalAddress(address) {
   const halves = text.split("::"), left = halves[0] ? halves[0].split(":") : [], right = halves[1] ? halves[1].split(":") : [];
   const groups = halves.length === 1 ? left : [...left,...Array(8 - left.length - right.length).fill("0"),...right];
   const b = groups.flatMap(group => { const number = parseInt(group,16); return [number >> 8,number & 255]; });
-  if (b.slice(0,10).every(value => value === 0) && b[10] === 255 && b[11] === 255) return v4(b.slice(12).join("."));
+  // IPv4-mapped IPv6 is not global-unicast IPv6; no exception in this experiment.
   if ((b[0] & 224) !== 32) return false;
   if (b[0] === 32 && b[1] === 1 && ((b[2] & 254) === 0 || b[2] === 13 && b[3] === 184)) return false;
   return !(b[0] === 32 && b[1] === 2 || b[0] === 63 && b[1] === 255 && (b[2] & 240) === 0);
@@ -45,10 +46,11 @@ export function safeTarget(input) {
   return url;
 }
 export async function publicAddresses(url, resolver = host => lookup(host,{all:true,verbatim:true})) {
-  const host = hostOf(url), addresses = isIP(host) ? [{address:host,family:isIP(host)}] : await resolver(host);
+  const host = hostOf(url), raw = isIP(host) ? [{address:host,family:isIP(host)}] : await resolver(host);
+  const addresses = raw.map(item => Object.freeze({address:item.address,family:item.family}));
   const dns = {allPublic:addresses.length > 0 && addresses.every(item => isGlobalAddress(item.address)),fakeIp:addresses.some(item => /^198\.(?:18|19)\./.test(item.address)),count:addresses.length};
-  if (!dns.allPublic || addresses.length > 64) throw Object.assign(fail("dns_blocked"),{dns});
-  return addresses;
+  if (!dns.allPublic || addresses.length > 64 || addresses.some(item => isIP(item.address) !== item.family)) throw Object.assign(fail("dns_blocked"),{dns});
+  return Object.freeze(addresses);
 }
 export function pinnedLookup(host, addresses) {
   return (requested, options, callback) => {
@@ -95,26 +97,50 @@ function sanitizedTarget(url) {
   const match = url.pathname.match(/^\/video\/(\d+)\/?$/);
   return {host:hostOf(url),pathType:match ? "video/numeric-id" : url.pathname === "/" ? "root" : "other",videoIdDigits:match ? match[1].length : null};
 }
-export async function directTransport(url, mode) {
+async function systemSummary(host, resolver) {
+  try {
+    const deadline=AbortSignal.timeout(2000);
+    const addresses=await Promise.race([resolver(host),new Promise((_,reject) => deadline.addEventListener("abort",() => reject(fail("timeout")),{once:true}))]);
+    const fakeIp=addresses.some(item => /^198\.(?:18|19)\./.test(item.address));
+    return {systemState:fakeIp ? "FAKE_IP" : addresses.length && addresses.every(item => isGlobalAddress(item.address)) ? "PUBLIC" : "ERROR",systemCount:addresses.length};
+  } catch { return {systemState:"ERROR",systemCount:null}; }
+}
+async function resolveEvidence(url, resolver, systemResolver) {
+  const system=systemSummary(hostOf(url),systemResolver);
+  try {
+    const addresses=await publicAddresses(url,resolver);
+    return {addresses,dns:{...await system,source:"DOH",dohState:"PUBLIC",allPublic:true,fakeIp:false,count:addresses.length,aCount:addresses.filter(item => item.family === 4).length,aaaaCount:addresses.filter(item => item.family === 6).length}};
+  } catch (error) {
+    throw Object.assign(error.category ? error : fail("dns_unavailable"),{dns:{...error.dns,...await system,source:"DOH",dohState:error.category === "dns_blocked" ? "BLOCKED" : "ERROR"}});
+  }
+}
+export async function dnsSelfCheck(host,{resolver=resolveDoh,systemResolver=name => lookup(name,{all:true,verbatim:true})}={}) {
+  const url=safeTarget(`https://${host}/`);
+  try { return {host:hostOf(url),...(await resolveEvidence(url,resolver,systemResolver)).dns}; }
+  catch (error) { return {host:hostOf(url),...error.dns,failure:error.category || "dns_unavailable"}; }
+}
+export function createTransport({resolver=resolveDoh,systemResolver=host => lookup(host,{all:true,verbatim:true}),request=(url,options,callback) => (url.protocol === "https:" ? https:http).request(url,options,callback)}={}) {
+return async (url, mode) => {
   const deadline = AbortSignal.timeout(TIMEOUT);
-  let addresses;
-  try { addresses = await Promise.race([publicAddresses(url),new Promise((_,reject) => deadline.addEventListener("abort",() => reject(fail("timeout")),{once:true}))]); }
+  let addresses,dns;
+  try { ({addresses,dns} = await Promise.race([resolveEvidence(url,resolver,systemResolver),new Promise((_,reject) => deadline.addEventListener("abort",() => reject(fail("timeout")),{once:true}))])); }
   catch (error) { throw error.category ? error : fail("dns_unavailable"); }
-  const dns = {allPublic:true,fakeIp:false,count:addresses.length}, headers = {"User-Agent":"RECIPIO/0.8 Stage0 PublicProbe","Accept-Encoding":"identity","Accept":mode === "GET_HTML" ? "text/html, application/xhtml+xml" : "video/*, application/octet-stream"};
+  const headers = {"User-Agent":"RECIPIO/0.8 Stage0 PublicProbe","Accept-Encoding":"identity","Accept":mode === "GET_HTML" ? "text/html, application/xhtml+xml" : "video/*, application/octet-stream"};
   if (mode === "RANGE") headers.Range = "bytes=0-65535";
   return new Promise((resolve,reject) => {
-    const client = url.protocol === "https:" ? https : http;
-    const request = client.request(url,{method:mode === "HEAD" ? "HEAD" : "GET",headers,agent:false,lookup:pinnedLookup(hostOf(url),addresses),signal:deadline}, async response => {
+    const req = request(url,{method:mode === "HEAD" ? "HEAD" : "GET",headers,agent:false,lookup:pinnedLookup(hostOf(url),addresses),signal:deadline,servername:isIP(hostOf(url)) ? undefined:hostOf(url),rejectUnauthorized:true}, async response => {
       try {
         const result = await readResponseBody(response,mode);
         resolve({status:response.statusCode,headers:response.headers,body:result.bytes,byteCount:result.bytes.length,complete:result.complete,dns});
-      } catch (error) { response.destroy(); reject(error.category ? error : fail("network_unavailable")); }
+      } catch (error) { response.destroy(); reject(Object.assign(error.category ? error : fail("network_unavailable"),{dns})); }
     });
-    request.setTimeout(8000,() => request.destroy(fail("timeout")));
-    request.on("error",error => reject(error.category ? error : fail(deadline.aborted ? "timeout" : "network_unavailable")));
-    request.end();
+    req.setTimeout(8000,() => req.destroy(fail("timeout")));
+    req.on("error",error => reject(Object.assign(error.category ? error : fail(deadline.aborted ? "timeout" : "network_unavailable"),{dns})));
+    req.end();
   });
+};
 }
+export const directTransport = createTransport();
 async function chain(source, mode, transport, events) {
   let url = safeTarget(source); const visited = new Set(); let secure = url.protocol === "https:";
   for (let hop = 0; ; hop++) {
@@ -130,7 +156,7 @@ async function chain(source, mode, transport, events) {
     secure ||= next.protocol === "https:"; url = next;
   }
 }
-export function analyzeHtml(html, base = "https://example.org/") {
+export function analyzeHtml(html, base = "https://example.org/", headers = {}) {
   const $ = load(html), candidates = [], seen = new Set(), fields = new Set(); let jsonBlocks = 0, jsonParsed = 0, nodes = 0, scanLimited = false;
   const add = (value, source) => {
     if (typeof value !== "string" || candidates.length >= 8) return;
@@ -169,8 +195,13 @@ export function analyzeHtml(html, base = "https://example.org/") {
       walk(JSON.parse(data),type === "application/ld+json" ? "standard" : "embedded"); jsonParsed++;
     } catch { /* No eval, JS execution, dynamic API/signature reconstruction or raw dump. */ }
   });
-  const title = $("title").text();
-  return {candidates,summary:{standardVideoMetadata:candidates.some(item => item.source === "standard"),embeddedVideoMetadata:candidates.some(item => item.source === "embedded"),publicFields:[...fields].slice(0,48),jsonBlocks,jsonParsed,scanLimited,titlePresent:!!title.trim(),challengeTitle:/captcha|验证|安全检测|访问受限|forbidden|access denied/i.test(title),loginTitle:/登录|log.?in|sign.?in/i.test(title),bodyTextPresent:!!$("body").clone().find("script,style").remove().end().text().trim(),scriptCount:$("script").length}};
+  const title = $("title").text(), bodyTextPresent = !!$("body").clone().find("script,style").remove().end().text().trim(), scriptCount = $("script").length;
+  // Observe known challenge markers only; never execute JS or echo cookie values.
+  const nonceIdentifierPresent = html.includes("__ac_nonce"), signatureIdentifierPresent = html.includes("__ac_signature");
+  const cookieHeaders = headers["set-cookie"] || [];
+  const nonceCookieIssued = (Array.isArray(cookieHeaders) ? cookieHeaders : [cookieHeaders]).some(value => /^__ac_nonce=/i.test(value));
+  const challengeScript = !bodyTextPresent && scriptCount > 0 && signatureIdentifierPresent && (nonceIdentifierPresent || nonceCookieIssued);
+  return {candidates,summary:{standardVideoMetadata:candidates.some(item => item.source === "standard"),embeddedVideoMetadata:candidates.some(item => item.source === "embedded"),publicFields:[...fields].slice(0,48),jsonBlocks,jsonParsed,scanLimited,titlePresent:!!title.trim(),challengeTitle:/captcha|验证|安全检测|访问受限|forbidden|access denied/i.test(title),loginTitle:/登录|log.?in|sign.?in/i.test(title),bodyTextPresent,scriptCount,nonceIdentifierPresent,signatureIdentifierPresent,nonceCookieIssued,challengeScript}};
 }
 function mediaSignature(bytes) {
   return bytes.length >= 12 && (bytes.toString("ascii",4,8) === "ftyp" || bytes.subarray(0,4).equals(Buffer.from([26,69,223,163])) || bytes.toString("ascii",0,4) === "RIFF" && bytes.toString("ascii",8,12) === "AVI ");
@@ -197,7 +228,7 @@ export async function inspectSample(label, source, {transport = directTransport,
       if (mime.startsWith("video/")) { const check = await inspectMedia({url:final.url.href,source:"direct"},transport,pause); result.media.push(check); result.publicVideoFound = check.cookieFreeAccessible && check.shortRecheckAccessible; if (result.publicVideoFound) result.classification = "A"; }
       else result.failure = "unsupported_content";
     } else {
-      result.htmlBytes = final.response.byteCount; const analyzed = analyzeHtml(final.response.body.toString("utf8"),final.url.href); result.html = analyzed.summary; result.candidateCount = analyzed.candidates.length;
+      result.htmlBytes = final.response.byteCount; const analyzed = analyzeHtml(final.response.body.toString("utf8"),final.url.href,final.response.headers); result.html = analyzed.summary; result.candidateCount = analyzed.candidates.length;
       if (final.response.status >= 200 && final.response.status < 300) {
         for (const candidate of analyzed.candidates.slice(0,2)) { const check = await inspectMedia(candidate,transport,pause); result.media.push(check); if (check.cookieFreeAccessible && check.shortRecheckAccessible) {result.publicVideoFound = true; result.classification = "B"; break;} }
       } else result.failure = "http_error";
@@ -207,7 +238,7 @@ export async function inspectSample(label, source, {transport = directTransport,
   result.elapsedMillis = Math.round(performance.now() - start);
   const networkFailures = new Set(["dns_blocked","dns_unavailable","timeout","network_unavailable"]);
   const networkLimited = networkFailures.has(result.failure) || !result.publicVideoFound && result.media.some(item => networkFailures.has(item.failure));
-  result.limitCategory = networkLimited ? "NETWORK_ENVIRONMENT_LIMIT" : result.failure === "http_error" || result.html?.challengeTitle || result.html?.loginTitle ? "DOUYIN_PLATFORM_LIMIT" : result.publicVideoFound ? "PUBLIC_RESOURCE_OBSERVED" : "NO_PUBLIC_RESOURCE_OBSERVED";
+  result.limitCategory = networkLimited ? "NETWORK_ENVIRONMENT_LIMIT" : result.failure === "http_error" || result.html?.challengeTitle || result.html?.loginTitle || result.html?.challengeScript ? "DOUYIN_PLATFORM_LIMIT" : result.publicVideoFound ? "PUBLIC_RESOURCE_OBSERVED" : "NO_PUBLIC_RESOURCE_OBSERVED";
   if (result.limitCategory === "NETWORK_ENVIRONMENT_LIMIT") {
     result.classification = null;
     result.classificationStatus = "UNDETERMINED_NETWORK_LIMIT";
@@ -218,5 +249,10 @@ export async function inspectSample(label, source, {transport = directTransport,
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   const inputs = process.argv.slice(2);
   if (!inputs.length || inputs.length > 3) { console.error("Provide 1-3 sample URLs; URL values are never printed."); process.exitCode = 2; }
-  else for (const [index,input] of inputs.entries()) console.log(JSON.stringify(await inspectSample(String.fromCharCode(65 + index),input),null,2));
+  else {
+    const hosts=new Set(["v.douyin.com"]);
+    for (const input of inputs) { try { hosts.add(hostOf(safeTarget(input))); } catch { /* inspectSample reports invalid input without printing it. */ } }
+    for (const host of hosts) console.log(JSON.stringify({dnsSelfCheck:await dnsSelfCheck(host)},null,2));
+    for (const [index,input] of inputs.entries()) console.log(JSON.stringify(await inspectSample(String.fromCharCode(65 + index),input),null,2));
+  }
 }

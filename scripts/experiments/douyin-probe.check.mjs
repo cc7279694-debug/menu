@@ -2,7 +2,8 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { Readable } from "node:stream";
-import { analyzeHtml, boundedBytes, inspectSample, isGlobalAddress, publicAddresses, pinnedLookup, readResponseBody, safeTarget } from "./douyin-probe.mjs";
+import { EventEmitter } from "node:events";
+import { analyzeHtml, boundedBytes, createTransport, inspectSample, isGlobalAddress, publicAddresses, pinnedLookup, readResponseBody, safeTarget } from "./douyin-probe.mjs";
 
 // Breaks caught: unsafe URL/IP accepted, redirects not revalidated, raw URLs leaked,
 // media misclassified from MIME alone, or unbounded response bytes consumed.
@@ -14,7 +15,7 @@ test("rejects unsafe URL forms including normalized IP aliases", () => {
 });
 test("rejects special IP ranges in both families", () => {
   for (const address of ["0.1.2.3", "10.0.0.1", "100.64.1.1", "127.1.2.3", "169.254.0.1", "172.16.0.1", "192.168.0.1", "192.0.2.1", "198.18.0.1", "198.19.255.1", "198.51.100.1", "203.0.113.1", "224.0.0.1", "::1", "fc00::1", "fe80::1", "2001:db8::1", "2001:2::1", "2002:0808:0808::1", "3fff::1", "::ffff:198.18.0.1"]) assert.equal(isGlobalAddress(address), false, address);
-  for (const address of ["8.8.8.8", "1.1.1.1", "2606:4700:4700::1111", "::ffff:8.8.8.8"]) assert.equal(isGlobalAddress(address), true, address);
+  for (const address of ["8.8.8.8", "1.1.1.1", "2606:4700:4700::1111"]) assert.equal(isGlobalAddress(address), true, address);
 });
 test("rejects mixed public/private DNS and pins only validated results", async () => {
   await assert.rejects(() => publicAddresses(safeTarget("https://example.org/"), async () => [{address:"8.8.8.8",family:4},{address:"198.18.0.1",family:4}]), /dns_blocked/);
@@ -131,4 +132,55 @@ test("network failure on short media recheck does not claim platform denial", as
   }});
   assert.equal(result.limitCategory, "NETWORK_ENVIRONMENT_LIMIT");
   assert.equal(result.classification, null);
+});
+test("validated address sets are frozen before being passed to a connection", async () => {
+  const raw = [{address:"8.8.8.8",family:4}];
+  const validated = await publicAddresses(safeTarget("https://example.org/"),async () => raw);
+  raw[0].address="127.0.0.1";
+  assert.equal(validated[0].address,"8.8.8.8");
+  assert(Object.isFrozen(validated)); assert(Object.isFrozen(validated[0]));
+});
+test("non-global IPv6 mapped addresses are rejected even with a public IPv4 suffix", () => {
+  assert.equal(isGlobalAddress("::ffff:8.8.8.8"),false);
+});
+test("DoH transport ignores system Fake-IP and pins validated addresses with strict TLS", async () => {
+  const requests = [], resolved = [];
+  const transport = createTransport({resolver:async host => { resolved.push(host); return [{address:"8.8.8.8",family:4}]; },systemResolver:async () => [{address:"198.18.0.1",family:4}],request:(url,options,callback) => {
+    const req = new EventEmitter(); req.setTimeout=() => req;
+    req.end=() => { requests.push({url,options}); queueMicrotask(() => { const response=Readable.from([Buffer.from("<html>ok</html>")]); response.statusCode=200; response.headers={"content-type":"text/html"}; callback(response); }); };
+    return req;
+  }});
+  const response = await transport(safeTarget("https://example.org/"),"GET_HTML");
+  assert.equal(response.dns.source,"DOH"); assert.equal(response.dns.systemState,"FAKE_IP");
+  assert.equal(response.dns.dohState,"PUBLIC"); assert.equal(response.status,200);
+  assert.deepEqual(resolved,["example.org"]);
+  const {options} = requests[0];
+  assert.equal(options.servername,"example.org"); assert.equal(options.rejectUnauthorized,true);
+  assert.deepEqual(await new Promise((resolve,reject) => options.lookup("example.org",{all:true},(err,value) => err ? reject(err):resolve(value))),[{address:"8.8.8.8",family:4}]);
+  assert.equal(options.headers.Cookie,undefined); assert.equal(options.headers.Authorization,undefined); assert.equal(options.headers.Referer,undefined);
+});
+test("each redirect host resolves independently before any pinned request", async () => {
+  const resolved = [], requested = [];
+  const transport = createTransport({resolver:async host => { resolved.push(host); if (host === "blocked.example.org") return [{address:"10.0.0.1",family:4}]; return [{address:"8.8.8.8",family:4}]; },systemResolver:async () => [{address:"198.18.0.1",family:4}],request:(url,_options,callback) => {
+    const req=new EventEmitter(); req.setTimeout=() => req;
+    req.end=() => { requested.push(url.hostname); queueMicrotask(() => { const response=Readable.from([]); response.statusCode=302; response.headers={location:"https://blocked.example.org/"}; callback(response); }); }; return req;
+  }});
+  const result=await inspectSample("A","https://example.org/",{transport});
+  assert.deepEqual(resolved,["example.org","blocked.example.org"]);
+  assert.deepEqual(requested,["example.org"]);
+  assert.equal(result.failure,"dns_blocked"); assert.equal(result.classification,null);
+});
+test("script-only nonce/signature challenge is classified without using Cookie or JS", async () => {
+  const body='<html><head><script>const nonce="__ac_nonce"; const signature="__ac_signature";</script><script>document.cookie="secretCanaryValue";</script></head><body></body></html>';
+  const result=await inspectSample("A","https://example.org/",{transport:async () => page(body,200,{"set-cookie":["__ac_nonce=secretCanaryValue; Path=/"]})});
+  assert.equal(result.html.challengeScript,true);
+  assert.equal(result.html.nonceCookieIssued,true);
+  assert.equal(result.html.signatureIdentifierPresent,true);
+  assert.equal(result.limitCategory,"DOUYIN_PLATFORM_LIMIT");
+  assert.equal(result.classification,"C");
+  assert(!JSON.stringify(result).includes("secretCanaryValue"));
+});
+test("ordinary visible page mentioning challenge identifiers is not a challenge", () => {
+  const summary=analyzeHtml('<body>Documentation about __ac_nonce and __ac_signature<script>console.log("example")</script></body>').summary;
+  assert.equal(summary.challengeScript,false);
 });
