@@ -5,6 +5,7 @@ import android.app.AlertDialog;
 import android.app.Instrumentation;
 import android.view.WindowManager;
 import android.widget.EditText;
+import android.webkit.WebView;
 import androidx.test.core.app.ActivityScenario;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 import androidx.test.platform.app.InstrumentationRegistry;
@@ -18,6 +19,8 @@ import java.util.Arrays;
 import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
+import org.json.JSONArray;
 import org.junit.*;
 import org.junit.runner.RunWith;
 
@@ -62,6 +65,28 @@ public class AiKeyInputDialogInstrumentedTest {
             originalStore = field("store"); originalLifecycle = field("lifecycle");
             field("store", store); field("lifecycle", new AiRequestLifecycle());
         });
+        awaitLocalLibraryReady();
+    }
+
+    private void awaitLocalLibraryReady() throws Exception {
+        // The native-only dialog can finish before React's SQLite bootstrap.
+        // Do not destroy its Activity between beginTransaction and commit.
+        AtomicReference<WebView> view = new AtomicReference<>();
+        scenario.onActivity(activity -> view.set(activity.getBridge().getWebView()));
+        long deadline = android.os.SystemClock.elapsedRealtime() + 15000;
+        String body = "";
+        do {
+            AtomicReference<String> reply = new AtomicReference<>(); CountDownLatch done = new CountDownLatch(1);
+            instrumentation.runOnMainSync(() -> view.get().evaluateJavascript(
+                "JSON.stringify({ready:!!document.querySelector('nav[aria-label=\"主要导航\"]'),body:(document.body?.innerText??'').slice(0,1500)})",
+                value -> { reply.set(value); done.countDown(); }));
+            assertTrue("Local library bootstrap callback", done.await(15, TimeUnit.SECONDS));
+            org.json.JSONObject state = new org.json.JSONObject(new JSONArray("[" + reply.get() + "]").getString(0));
+            if (state.getBoolean("ready")) return;
+            body = state.getString("body");
+            Thread.sleep(100);
+        } while (android.os.SystemClock.elapsedRealtime() < deadline);
+        fail("Native dialog fixture must await SQLite/Backup readiness before teardown: " + body);
     }
 
     @After public void cleanup() throws Exception {

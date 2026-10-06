@@ -32,7 +32,14 @@ import { AiPreview } from "./ai/preview";
 import { AiSaveRecovery } from "./ai/save-recovery";
 import { Dialog,DialogContent,DialogDescription,DialogTitle } from "@/components/ui/dialog";
 import type { LinkImportService } from "./link-import/service";
+import { openShareTargetRuntime } from "./share-target/native-bridge";
+import type { ShareTargetController } from "./share-target/controller";
+import { shareReasons, type ShareItem } from "./share-target/contract";
 const LinkImportScreen = lazy(() => import("./link-import/screen").then(module => ({ default: module.LinkImportScreen })));
+const noShare = { pending: null, deferred: false, replaced: false, unavailable: false };
+const noShareSnapshot = () => noShare;
+const noShareSubscribe = () => () => {};
+const noLinkSnapshot = () => null;
 
 type View =
   | "home"
@@ -51,17 +58,22 @@ export function LibraryApp({
   aiKeys,
   ai,
   link,
+  share,
 }: {
   store: RecipeLibrary;
   backup?: BackupController;
   aiKeys?: AiKeyPort;
   ai?: AiIntakeService;
   link?: LinkImportService;
+  share?: ShareTargetController;
 }) {
+  const shares = useMemo(() => share ?? openShareTargetRuntime(), [share]);
+  const shareState = useSyncExternalStore(shares?.subscribe ?? noShareSubscribe, shares?.snapshot ?? noShareSnapshot, noShareSnapshot);
   const intake=useMemo(()=>ai??openAiIntakeRuntime(store,backup),[ai,store,backup]);
   const intakeState=useSyncExternalStore(intake.subscribe,intake.snapshot,intake.snapshot);
   const [addOpen,setAddOpen]=useState(false),[fromAiSettings,setFromAiSettings]=useState(false);
   const [linkService, setLinkService] = useState<LinkImportService | null>(link ?? null);
+  const linkState = useSyncExternalStore(linkService?.subscribe ?? noShareSubscribe, linkService?.snapshot ?? noLinkSnapshot, noLinkSnapshot);
   const [fromLinkSettings, setFromLinkSettings] = useState(false);
   const backupState = useBackupState(backup);
   const restored = useRef<unknown>(null);
@@ -94,6 +106,37 @@ export function LibraryApp({
   const [pending, setPending] = useState<
     Array<{ id: string; title: string; expires: number }>
   >([]);
+  const shareOpening = useRef<string | null>(null);
+  const shareOwner = useRef({ active: false });
+  useLayoutEffect(() => {
+    const owner = { active: true }; shareOwner.current = owner;
+    return () => { owner.active = false; };
+  }, []);
+  const shareRoute = useRef<(ignoreOwnLock?: boolean) => boolean>(() => false);
+  const shareOpen = useRef<(item: ShareItem) => Promise<void>>(async () => {});
+  // Fresh owner state is checked again after lazy module loading. Receiving a share
+  // cannot cancel an import, restore preview, editor, modal or cooking viewer.
+  function canOpenShare(ignoreOwnLock = false, checkLiveDialog = true) {
+      if ((!ignoreOwnLock && (busy || lock.current)) || viewer || addOpen || fromAiSettings || fromLinkSettings || checkLiveDialog && document.querySelector('[role="dialog"]')) return false;
+      const b = backup?.getState() ?? backupState;
+      if (backupBusy(b) || b.phase === "preview" || b.phase === "uncertain") return false;
+      const a = intake.snapshot();
+      if (a.imageBusy || ["requesting", "saving", "uncertain"].includes(a.phase)) return false;
+      const l = linkService?.snapshot() ?? linkState;
+      if (l && (l.url !== "" || l.parsed || l.parserDraft || !["input", "saved"].includes(l.phase))) return false;
+      return ["home", "library", "settings", "detail", "changes", "history", "link-input"].includes(view);
+  }
+  useLayoutEffect(() => {
+    shareRoute.current = canOpenShare;
+    shareOpen.current = item => openLinkImport(item);
+  });
+  useEffect(() => shares?.start(), [shares]);
+  useEffect(() => {
+    const item = shareState.pending;
+    if (!shares || !item || item.status !== "url" || shareState.deferred || shareOpening.current === item.id) return;
+    if (!shareRoute.current()) shares.defer(item.id);
+    else void shareOpen.current(item);
+  }, [shares, shareState.pending, shareState.deferred]);
   useEffect(() => {
     if (
       backupState.phase === "success" &&
@@ -261,18 +304,29 @@ export function LibraryApp({
     window.scrollTo(0, 0);
   }
   function showAiRecipe(recipe:RecipeDetails){setSelected(recipe);setRevision(n=>n+1);setView("detail");window.scrollTo(0,0);}
-  async function openLinkImport() {
+  async function openLinkImport(shared?: ShareItem) {
+    const owner = shareOwner.current;
+    if (shared && (!shareRoute.current() || shares?.snapshot().pending?.id !== shared.id)) { shares?.defer(shared.id); return; }
     if (lock.current) return;
+    if (shared) shareOpening.current = shared.id;
     lock.current = true; setBusy(true);
     try {
+      let service = linkService;
       if (!linkService) {
         // Parser/UI code is loaded only when this optional online feature is opened.
         const [{ LinkImportService }, { createWebImportPort }] = await Promise.all([import("./link-import/service"), import("./link-import/native-bridge")]);
-        setLinkService(new LinkImportService({ store, ai: intake, backup, port: createWebImportPort() }));
+        if (shared && (!owner.active || !shareRoute.current(true) || shares?.snapshot().pending?.id !== shared.id)) { shares?.defer(shared.id); return; }
+        service = new LinkImportService({ store, ai: intake, backup, port: createWebImportPort() });
+        setLinkService(service);
+      }
+      if (shared) {
+        if (!owner.active || shared.status !== "url" || !shareRoute.current(true) || shares?.snapshot().pending?.id !== shared.id) { shares?.defer(shared.id); return; }
+        service!.setUrl(shared.url);
+        shares?.complete(shared.id);
       }
       setAddOpen(false); setView("link-input");
-    } catch { setError("网页导入入口暂时无法打开，请重试；本地菜谱不受影响。"); }
-    finally { lock.current = false; setBusy(false); }
+    } catch { if (shared) shares?.defer(shared.id); setError("网页导入入口暂时无法打开，请重试；本地菜谱不受影响。"); }
+    finally { lock.current = false; setBusy(false); shareOpening.current = null; }
   }
   async function navigate(next: "home" | "library" | "settings") {
     if (
@@ -358,6 +412,18 @@ export function LibraryApp({
           </Button>
         )}
       </header>
+      {shareState.pending && <aside aria-label="待处理分享" role="status" className="mb-5 space-y-3 rounded-xl border p-4">
+        <p>{shareState.pending.status === "url" ? `收到网页链接：${new URL(shareState.pending.url).hostname}。请先完成当前操作，再打开。` : shareReasons[shareState.pending.reason]}</p>
+        {shareState.replaced && <p className="text-sm text-muted-foreground">较早的待处理分享已被新分享替换；当前编辑内容保持不变。</p>}
+        <div className="flex flex-wrap gap-2">
+          {shareState.pending.status === "url" ? <Button className="min-h-11" disabled={busy || !canOpenShare(false, false)} onClick={() => { const item = shares?.snapshot().pending; if (item) void shareOpen.current(item); }}>打开分享的链接</Button> : <>
+            <Button className="min-h-11" disabled={busy || !canOpenShare(false, false)} onClick={() => { if (!shareRoute.current()) return; const item = shares?.snapshot().pending; if (item) shares?.complete(item.id); void navigate("home"); }}>回到首页</Button>
+            <Button className="min-h-11" variant="outline" disabled={busy || !canOpenShare(false, false)} onClick={() => { if (!shareRoute.current()) return; const item = shares?.snapshot().pending; if (item) shares?.complete(item.id); void openLinkImport(); }}>手动输入网页链接</Button>
+          </>}
+          <Button className="min-h-11" variant="outline" onClick={() => { const item = shares?.snapshot().pending; if (item) shares?.complete(item.id); }}>忽略这次分享</Button>
+        </div>
+      </aside>}
+      {shareState.unavailable && <aside role="status" className="mb-4 rounded-xl border p-3"><p>暂时无法接收分享，本地菜谱仍可正常使用。</p><Button className="min-h-11 mt-2" variant="outline" onClick={() => shares?.retry()}>重试接收分享</Button></aside>}
       <Dialog open={addOpen} onOpenChange={setAddOpen}><DialogContent><DialogTitle>添加菜谱</DialogTitle><DialogDescription>手动记录始终可离线使用；AI 整理和网页读取是可选联网能力。</DialogDescription><div className="grid gap-3"><Button className="min-h-11" disabled={busy} onClick={()=>{setAddOpen(false);setView("new");}}>手动录入</Button><Button className="min-h-11" variant="outline" disabled={busy} onClick={()=>{setAddOpen(false);setView("ai-input");}}>AI 整理</Button><Button className="min-h-11" variant="outline" disabled={busy} onClick={()=>void openLinkImport()}>从网页链接导入</Button></div></DialogContent></Dialog>
       {error && (
         <div role="alert" className="mb-5 rounded-xl border p-4">

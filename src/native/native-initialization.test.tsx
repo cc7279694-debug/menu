@@ -5,7 +5,10 @@ import { __resetLocalDatabaseForTests } from "@/features/offline/local-db";
 import { PreviewRecipeLibrary } from "./preview-store";
 const bridge = vi.hoisted(() => ({ open: vi.fn(), backup: vi.fn(async () => undefined) }));
 vi.mock("./backup/runtime", () => ({ openBackupService: bridge.backup }));
-vi.mock("@capacitor/core", () => ({ Capacitor: { getPlatform: () => "android" } }));
+vi.mock("@capacitor/core", async importOriginal => {
+  const actual = await importOriginal<typeof import("@capacitor/core")>();
+  return { ...actual, Capacitor: { ...actual.Capacitor, getPlatform: () => "android" } };
+});
 vi.mock("./sqlite", () => ({ openRecipeStore: bridge.open }));
 import { NativeApp } from "./app";
 afterEach(__resetLocalDatabaseForTests);

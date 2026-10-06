@@ -28,7 +28,7 @@ AI 只在主动录入/找新做法时联网，预览确认才写正式库。区�
 
 ## APK-3 已批准增量（2026-10-04）
 
-以下 APK-3/4 是已批准模块的历史边界。2026-10-05 APK-4 已验收冻结；本轮新授权仅为 APK-5A。
+以下 APK-3/4/5A 是已批准模块的历史边界。当前另行批准 APK-5B，见本文件末节；不会把后续授权倒写成旧模块范围。
 
 本节固化用户已经批准的产品范围，不是重新设计。APK-2 基线 `b541d8a` 已验收；本轮固定 SOL，仅烹饪体验、做菜记录和个人菜谱演进。实施任务见 `superpowers/plans/2026-10-04-apk-3-cooking-experience.md`。
 
@@ -66,3 +66,11 @@ AI 只在主动录入/找新做法时联网，预览确认才写正式库。区�
 - 仅新增窄原生公网 GET bridge、OkHttp4.12.0，复用 Cheerio/组件/AI服务。SQLite4、Preview7、Backup2及原恢复语义不变，无新业务表、权限、登录或云依赖。已存菜谱仍可离线查看、编辑、搜索、烹饪与备份。
 - 拒绝私网/本机/保留地址、混合 DNS、认证 URL、非默认端口及不安全跳转；无 Cookie 登录、验证码绕过、反爬、Headless Browser、社交专项、URL持久化、Share Target、视频、搜索、APK-5B/C。
 - 网页失败提供重试、文字/截图及手动入口；不承诺所有网站可读。真实网站随时可能失效，生成 fixture 是正式回归基础；少量真实网络与 Fake/原生/浏览器证据分开记录，真实 AI 不为本轮重复验收。
+
+## APK-5B 已批准增量（2026-10-05）
+
+- Android 系统分享中提供“谱序 RECIPIO”，只接 SEND / text/plain 的 EXTRA_TEXT；标题加一个 URL、换行/空格、单 URL或完全重复同 URL 可接受，两个不同 URL 明确拒绝。原 path/query/fragment 保留，不猜测或重写尾部标点。
+- 无附件、图片、视频、文件、SEND_MULTIPLE、HTML、VIEW/BROWSABLE、外部搜索、社交专项或5C。分享只预填既有网页入口，用户点击“读取网页”后才执行5A；不自动 Fetch/Parser/AI/Save。
+- 安全页面可自动预填；新建/编辑/完成、AI、已有链接、请求/保存/恢复、不确定状态、Focus/Guided与弹窗均保留现场。待处理横幅只显示 hostname，延后后必须主动打开或忽略；最新分享替代旧 pending 时明确提示，不覆盖活动输入。
+- 原生进程内单 pending / UUID / 一次性消费；冷启动迟注册和 singleTask 热启动可接收，无新的来源实体/数据库/备份字段。重建不重复消费；进程终止可能丢未处理分享。SQLite4/Preview7/Backup2、Key安全和原IME/Back能力不变，无新依赖或权限。
+- 目标v14/0.7.0-share-target。自动化Fake、真实系统Share Sheet/IME及专用模拟器生成数据分开报告；真实手机/OEM验收若未运行必须标明。保留v13/v12，不部署、不进入5C。

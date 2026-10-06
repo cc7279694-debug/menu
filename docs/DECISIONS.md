@@ -1,5 +1,35 @@
 # Decisions
 
+## 2026-10-06 — Share Bridge lifetime and Android fixture readiness
+
+### Decision
+
+分享插件销毁与 consume/intent 回调使用同一 monitor，销毁后排队调用不得消费新 Activity 的内存槽。Android 原生密钥 Dialog 夹具先等待真实本地导航出现，再进行 Dialog 与关闭 Activity 验证；不改 SQLite 生产层或 schema。
+
+### Context / Alternatives / Reason
+
+Capacitor quitSafely 仍执行旧插件队列。生成回归用例在旧插件销毁后发布新 receipt，旧 consume 实测 RED（返回 url 而非 empty），最小生命周期门禁修复。全量测试另出现 database locked，实际 DOM 是数据库启动错误而非分享丢失；旧原生 Dialog 夹具不等 React/Backup 启动便关闭 Activity。等待业务就绪后完整回归通过，但未保留足够事务尾部日志，不把具体某一事务认定为已证明的原因。夹具等待真实就绪，不改 SQLite 生产层、不增加任意 delay、超时或跳过断言。
+
+真实 IME 日志还显示未结束的显示动画与 Back 隐藏请求重叠。AndroidTest-only `AndroidImeProbe` 等待平台动画结束、可见状态和窗口焦点，再执行原有 Back/草稿/门禁断言；不改变键盘、页面路由或生产监听，不增加第二套页面状态机。
+
+### Consequences
+
+旧分享调用不会抢新 receipt；保持来源仅内存、单次消费和显式网络操作。最终全仓与 Android 结果需来自补丁后的实现，不复用补丁前绿灯；生成夹具不清除数据库或私人数据。
+
+## 2026-10-05 — Accepted APK-5A ff promotion and URL-only Share entry
+
+### Decision
+
+用户明确批准将 APK-5A `f7c5d8de8cf2dde94cc61f2d7ca9f896e73417af` fast-forward 提升 main，并创建 annotated `v0.6.0-link-import`；普通 push，保留所有历史。APK-5B 从该 main 建立 `feat/recipio-share-target`，只接 Android SEND/text/plain 中唯一 HTTP(S) URL，预填既有网页入口。
+
+### Context / Alternatives / Reason
+
+分享是入口而非新导入系统。未选择自动抓取/AI、Share Target 接收图片/视频、来源表、持久化 pending 或第二套 IME 状态。Native 只读取 EXTRA_TEXT，32KiB UTF-8、精确去重、复用无 DNS 的 URL 校验；网络连接安全仍由用户点击 Read 后的 APK-5A 负责。事件只提示有新项，JS 显式消费权威内存槽。
+
+### Consequences
+
+新 pending 可替代旧 pending 并提示，但不会覆盖正在编辑/请求/恢复/查看中的状态；安全页面立即预填，延后分享必须用户 Open/Ignore。异步打开检查挂载所有者与最新路由，监听失败可重新连接，父级订阅已有 Link 状态以避免按钮滞后。Native 清理已消费 payload，保留 Intent 身份以兼容真实生命周期；不持久化处理标记。进程关闭可能丢未处理分享，不支持附件或猜测末尾标点。无新权限/依赖/schema/Backup；本轮0真实AI，交付后停在5B，不授权5C。
+
 ## 2026-10-05 — APK-5A Parser First with pinned native public-page reads
 
 ### Decision

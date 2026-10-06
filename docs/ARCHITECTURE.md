@@ -1,5 +1,25 @@
 # Architecture
 
+## APK-5B URL-only Android Share entry（2026-10-05）
+
+```text
+Android ACTION_SEND / exact text/plain / EXTRA_TEXT
+  → LocalShareTargetPlugin.handleOnNewIntent（cold + singleTask warm）
+  → ShareTextParser（≤32KiB UTF-8 / exact URL dedupe / WebUrlSafety.parse, no DNS）
+  → process-memory ShareTargetInbox（UUID / one pending / one-shot consume）
+  → payload-free shareAvailable hint → strict JS consume → ShareTargetController
+  → LibraryApp fresh route/lock/backup/viewer ownership check
+      → safe: existing lazy LinkImportService.setUrl, no read
+      → protected: hostname-only pending banner → explicit Open / Ignore
+  → user clicks Read → unchanged APK-5A safe fetch/parser/explicit AI/Preview
+```
+
+Native removes consumed EXTRA_TEXT/ClipData but keeps Intent action identity. Capacitor's initial load already forwards the cold Intent; there is no second cold capture, persisted pending, URL event payload or raw-source logging. React subscribes to the existing link service for eligibility updates; async lazy opening rechecks the current mounted owner and latest pending UUID before prefill. Failed listener setup can be retried; stale setup handles are released. Browser has no native Share capability.
+
+LocalShareTarget's destruction/consume/intent callbacks share a lifecycle monitor: queued calls from a destroyed Bridge cannot drain a new Activity's process-memory receipt. No data-layer lifecycle or schema is changed.
+
+No dependency, permission, SQLite4/Preview7/Backup2 change. No auto Fetch/Parser/AI/save, attachment reads, SEND_MULTIPLE, VIEW/BROWSABLE or custom keyboard state. Process death may discard pending. Text punctuation is not guessed or rewritten. See share-target-contract.md and verification/share-target*.md for actual results; historic sections below retain their original scope.
+
 ## APK-5A 普通网页导入（2026-10-05）
 
 ```text

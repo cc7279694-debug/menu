@@ -31,6 +31,7 @@ import org.junit.runner.RunWith;
 public class WebLinkIntakeInstrumentedTest {
     private final Instrumentation instrumentation=InstrumentationRegistry.getInstrumentation();
     private ActivityScenario<MainActivity> scenario; private MainActivity activity; private WebView web;
+    private AndroidImeProbe ime;
     private String originalIme,alias; private File root; private AiNativeRuntime runtime;
     private final AtomicInteger reads=new AtomicInteger(),posts=new AtomicInteger();
     private final CountDownLatch entered=new CountDownLatch(1),release=new CountDownLatch(1);
@@ -71,7 +72,7 @@ public class WebLinkIntakeInstrumentedTest {
             return new QwenClient.HttpReply(200,new ByteArrayInputStream(body.getBytes(StandardCharsets.UTF_8)),()->{});
         }));}
     }
-    private void launch()throws Exception{scenario=ActivityScenario.launch(MainActivity.class);scenario.onActivity(a->{activity=a;web=a.getBridge().getWebView();});until("!!document.querySelector('button[aria-label=\"新增菜谱\"]')");awaitWindow();}
+    private void launch()throws Exception{scenario=ActivityScenario.launch(MainActivity.class);scenario.onActivity(a->{activity=a;web=a.getBridge().getWebView();ime=new AndroidImeProbe(a);});until("!!document.querySelector('button[aria-label=\"新增菜谱\"]')");awaitWindow();}
     private String js(String expression)throws Exception {
         AtomicReference<String> result=new AtomicReference<>();CountDownLatch done=new CountDownLatch(1);
         instrumentation.runOnMainSync(()->web.evaluateJavascript(expression,value->{result.set(value);done.countDown();}));assertTrue(done.await(15,TimeUnit.SECONDS));return new JSONArray("["+result.get()+"]").optString(0);
@@ -85,7 +86,7 @@ public class WebLinkIntakeInstrumentedTest {
     private String titleInput(){return "[...document.querySelectorAll('label')].find(l=>l.querySelector('span')?.textContent==='菜名').querySelector('input')";}
     private void read()throws Exception{setInput("document.querySelector('input[type=url]')","https://recipes.example/generated");click("读取网页");}
     private boolean imeVisible(){AtomicReference<Boolean> result=new AtomicReference<>(false);instrumentation.runOnMainSync(()->{WindowInsetsCompat insets=ViewCompat.getRootWindowInsets(activity.getWindow().getDecorView());result.set(insets!=null&&insets.isVisible(WindowInsetsCompat.Type.ime()));});return result.get();}
-    private void awaitIme(boolean visible)throws Exception{long deadline=android.os.SystemClock.elapsedRealtime()+8000;do{if(imeVisible()==visible)return;Thread.sleep(100);}while(android.os.SystemClock.elapsedRealtime()<deadline);fail("Actual IME visible="+visible);}
+    private void awaitIme(boolean visible)throws Exception{long deadline=android.os.SystemClock.elapsedRealtime()+8000;do{if(ime.settled(instrumentation,visible))return;Thread.sleep(100);}while(android.os.SystemClock.elapsedRealtime()<deadline);fail("Actual IME visible="+visible);}
     private void awaitWindow()throws Exception{
         long deadline=android.os.SystemClock.elapsedRealtime()+8000;AtomicBoolean focused=new AtomicBoolean();
         do{instrumentation.runOnMainSync(()->focused.set(activity.hasWindowFocus()));if(focused.get())return;Thread.sleep(100);}while(android.os.SystemClock.elapsedRealtime()<deadline);

@@ -42,6 +42,7 @@ public class AiImeBackInstrumentedTest {
     private ActivityScenario<MainActivity> scenario;
     private MainActivity activity;
     private WebView web;
+    private AndroidImeProbe ime;
     private String originalHardwareIme;
     private File root;
     private String alias;
@@ -100,7 +101,7 @@ public class AiImeBackInstrumentedTest {
     }
     private void awaitIme(boolean shown)throws Exception {
         long deadline=android.os.SystemClock.elapsedRealtime()+8000;
-        do {if(imeVisible()==shown)return;Thread.sleep(100);}while(android.os.SystemClock.elapsedRealtime()<deadline);
+        do {if(ime.settled(instrumentation,shown))return;Thread.sleep(100);}while(android.os.SystemClock.elapsedRealtime()<deadline);
         fail("Actual window IME must be "+shown+"; dispatched page backs="+js("window.__imeTestBackCount"));
     }
     private void openIme()throws Exception {openIme("document.querySelector('textarea')");}
@@ -122,7 +123,7 @@ public class AiImeBackInstrumentedTest {
         originalHardwareIme=Settings.Secure.getString(instrumentation.getTargetContext().getContentResolver(),"show_ime_with_hard_keyboard");
         instrumentation.getUiAutomation().executeShellCommand("settings put secure show_ime_with_hard_keyboard 1").close();
         scenario=ActivityScenario.launch(MainActivity.class);
-        scenario.onActivity(a->{activity=a;web=a.getBridge().getWebView();});
+        scenario.onActivity(a->{activity=a;web=a.getBridge().getWebView();ime=new AndroidImeProbe(a);});
         until("!!document.querySelector('button')");nativeFakeOnly();
         click("新增菜谱");click("AI 整理");until("!!document.querySelector('textarea')");
         js("(()=>{const e=document.querySelector('textarea');Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype,'value').set.call(e,'APK4 IME GENERATED 中文 🍚');e.dispatchEvent(new Event('input',{bubbles:true}));window.__imeTestBackCount=0;window.addEventListener('recipio:back',()=>window.__imeTestBackCount++);return true})()");

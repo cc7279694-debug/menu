@@ -1,6 +1,6 @@
 import "fake-indexeddb/auto";
 import { afterEach, expect, it, vi } from "vitest";
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { __resetLocalDatabaseForTests } from "@/features/offline/local-db";
 import { PreviewRecipeLibrary } from "../preview-store";
 import { AiIntakeService } from "../ai/service";
@@ -38,14 +38,18 @@ it("same-name save prompts rather than overwrites the original recipe", async ()
   const { store, onSaved } = setup(); await store.create("测试网页菜"); await read(); await screen.findByRole("heading", { name: "检查网页菜谱" });
   fireEvent.click(screen.getByRole("button", { name: "确认保存菜谱" })); await screen.findByRole("dialog", { name: "已存在同名菜谱" });
   fireEvent.click(screen.getByRole("button", { name: "返回检查" })); expect(onSaved).not.toHaveBeenCalled(); expect(await store.list()).toHaveLength(1);
+  await waitFor(() => expect(screen.getByRole("button", { name: "确认保存菜谱" })).toBeEnabled());
   fireEvent.click(screen.getByRole("button", { name: "确认保存菜谱" })); fireEvent.click(await screen.findByRole("button", { name: "仍然新建菜谱" }));
   await waitFor(() => expect(onSaved).toHaveBeenCalledOnce()); expect(await store.list()).toHaveLength(2);
 });
 it("absent UUID recovery preserves the user's attempted edits rather than original page values", async () => {
   const { store } = setup(); await read(); await screen.findByRole("heading", { name: "检查网页菜谱" });
   fireEvent.change(screen.getByLabelText("菜名"), { target: { value: "认真修改过的菜" } });
+  // This case isolates ambiguous-write recovery, not IndexedDB title-query timing.
+  vi.spyOn(store, "hasExactTitle").mockResolvedValue(false);
   vi.spyOn(store, "createDetails").mockRejectedValueOnce(new Error("write")); vi.spyOn(store, "getDetails").mockRejectedValueOnce(new Error("read"));
-  fireEvent.click(screen.getByRole("button", { name: "确认保存菜谱" })); fireEvent.click(await screen.findByRole("button", { name: "核对保存结果" }));
+  await act(async () => { fireEvent.click(screen.getByRole("button", { name: "确认保存菜谱" })); });
+  fireEvent.click(await screen.findByRole("button", { name: "核对保存结果" }));
   expect(await screen.findByLabelText("菜名")).toHaveValue("认真修改过的菜");
 });
 it("Back during fetch asks once, does not duplicate requests, and abandon cancels native work", async () => {
