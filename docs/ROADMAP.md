@@ -1,6 +1,6 @@
 # RECIPIO Android Roadmap
 
-2026-10-06：已验收APK-5B通过授权普通fast-forward成为稳定main7205a3c / v0.7.0-share-target，既有历史/分支保留。当前批准APK-5C-A文字/静态图片Share；仅功能分支实施，不进入视频。
+2026-10-06：当前已批准稳定基线main8b2246d / v0.8.0-share-intake；历史分支/Tag与独立未合并Logo v16保留。本轮仅批准APK-6帮我找做法，在feat/recipio-find-recipe实施，不合并main，不进入视频。
 
 | Module | Status | Scope |
 | --- | --- | --- |
@@ -11,8 +11,9 @@
 | APK-4 | Accepted / Frozen | main d01589e / v0.5.0-ai-intake；用户与自动化证据分开保留，SQLite4 / Backup2不变 |
 | APK-5A | Accepted / Stable main | main f7c5d8d / v0.6.0-link-import；公开网页 Native安全GET / DNS固定 / Parser First / 人工Preview / 显式AI；历史960全仓、114JVM、53Android不复用为5B证据 |
 | APK-5B | Accepted / Stable main | main7205a3c / v0.7.0-share-target；用户Share Sheet PASS，历史982/125/64不复用为5C-A数字 |
-| APK-5C-A | Native verified; pending physical Share Sheet | Text /1–6静态图片Share→既有AI入口；修复后全仓998/JVM144/Android89、v14→v15及离线闭环PASS；0真实AI；v15/0.8.0-share-intake；真机A–E Not Run |
-| APK-5C-B | Deferred; not authorized | 视频/社交专项、搜索与多做法比较，不在本轮范围 |
+| APK-5C-A | Accepted stable baseline for APK-6 | main8b2246d /v0.8.0-share-intake；Text /1–6静态图片Share→既有AI入口；历史998/144/89不复用为APK-6数字 |
+| APK-5C-B | Deferred; not authorized as product implementation | 视频/社交专项，仅已有独立可行性实验；本轮不进入 |
+| APK-6 | APK_6_PENDING_DEVICE_TEST; final automatic/emulator verification passed | 显式菜名搜索→已验证公开来源候选→用户选定来源提取→既有人工Preview→普通本地Recipe；新密钥真机Provider验收独立待做 |
 
-当前模块证据见 verification/share-intake*.md、checkpoints/2026-10-06-share-intake.md。APK-4/5A/5B验收保留，不扩写为本轮真实Provider证据；本轮真实AI0次，重新执行相应回归。不恢复收藏、购物、菜单、Timer或云同步；交付5C-A后暂停，视频需另行批准。
+当前模块证据见 verification/find-recipe*.md、checkpoints/2026-10-06-find-recipe.md。已验收模块作为稳定基线继承，不扩写为本轮真实Provider证据；本轮真实AI0次，重新执行最终回归。不恢复收藏、购物、菜单、Timer或云同步；交付APK-6后暂停，任何后续模块需另行批准。
 此前浏览器 Dexie Repository 与 `/offline/app` 纵切是可复用资产，不是 Android SQLite 验收证据。

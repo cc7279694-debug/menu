@@ -2,7 +2,7 @@ import type { RecipeLibrary,RecipeDetails,RecipeDetailsInput } from "../recipe-m
 import {sameEditableDetails} from "../recipe-history";
 import {AiRecipeSaver,type AiSaveResult} from "./save";
 import type { BackupController } from "../backup/backup-controls";
-import type { AiReviewDraft } from "./contract";
+import type { AiReviewDraft, AiSourceContext } from "./contract";
 import { AI_LIMITS,requiresAiReview } from "./contract";
 import { parseAiDraft } from "./normalize";
 import { z } from "zod";
@@ -138,6 +138,30 @@ export class AiIntakeService {
       assertCurrent();this.set({...this.state,phase:"preview",requestId:null,draft,confirmed:false,error:null});return draft;
     }catch(error){const safe=flight.generation===this.generation?safeAiError(error):new AiIntakeError("stale_session");if(flight.generation===this.generation)this.set({...this.state,phase:"error",requestId:null,draft:null,error:safe});throw safe;}
     finally{if(this.flight===flight)this.flight=null;}
+  }
+  // Narrow handoff from a Native-verified external source. The same normalizer,
+  // Review gate and saver remain the sole path into ordinary Recipe data.
+  async acceptExternalDraft(rawJson:string,source:AiSourceContext,isCurrent:()=>boolean):Promise<void>{
+    if(this.flight||this.cancelling||this.state.imageBusy||this.restoreBlocked||this.state.phase!=="input"||this.state.draft||this.state.input.text||this.state.images.length)throw new AiIntakeError("busy");
+    let draft:AiReviewDraft;
+    try{draft=parseAiDraft(rawJson,source);}catch{throw new AiIntakeError("invalid_output");}
+    if(!isCurrent())throw new AiIntakeError("stale_session");
+    // Reserve synchronously, as shared-input handoff does: edits or a second
+    // owner cannot race the asynchronous Native session allocation.
+    const initialGeneration=this.generation;
+    this.set({...this.state,imageBusy:true,error:null});
+    let operationId:string|null=null;
+    try{
+      operationId=await this.startSession();
+      const generation=this.generation;
+      if(!isCurrent()||this.restoreBlocked||operationId!==this.state.operationId)throw new AiIntakeError("stale_session");
+      this.set({...this.state,operationId,phase:"preview",input:{text:"",imageIds:[]},draft,confirmed:false,error:null,imageBusy:false});
+      if(generation!==this.generation)throw new AiIntakeError("stale_session");
+    }catch(error){
+      if(operationId!==null&&operationId===this.state.operationId)await this.discard();
+      else if(operationId===null&&this.generation<=initialGeneration+1&&this.state.imageBusy)this.set({...this.state,imageBusy:false});
+      throw safeAiError(error);
+    }
   }
   async cancelRequest():Promise<void>{
     const flight=this.flight;if(!flight)return;

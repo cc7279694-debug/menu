@@ -32,10 +32,12 @@ import { AiPreview } from "./ai/preview";
 import { AiSaveRecovery } from "./ai/save-recovery";
 import { Dialog,DialogContent,DialogDescription,DialogTitle } from "@/components/ui/dialog";
 import type { LinkImportService } from "./link-import/service";
+import type { FindRecipeService } from "./find-recipe/service";
 import { openShareTargetRuntime } from "./share-target/native-bridge";
 import type { ShareTargetController } from "./share-target/controller";
 import { shareReasons, type ShareItem } from "./share-target/contract";
 const LinkImportScreen = lazy(() => import("./link-import/screen").then(module => ({ default: module.LinkImportScreen })));
+const FindRecipeScreen = lazy(() => import("./find-recipe/screen").then(module => ({ default: module.FindRecipeScreen })));
 const noShare = { pending: null, deferred: false, replaced: false, unavailable: false };
 const noShareSnapshot = () => noShare;
 const noShareSubscribe = () => () => {};
@@ -51,7 +53,7 @@ type View =
   | "changes"
   | "completion"
   | "history";
-type AiView="ai-input"|"ai-preview"|"link-input";
+type AiView="ai-input"|"ai-preview"|"link-input"|"find-input";
 export function LibraryApp({
   store,
   backup,
@@ -59,6 +61,7 @@ export function LibraryApp({
   ai,
   link,
   share,
+  finder,
 }: {
   store: RecipeLibrary;
   backup?: BackupController;
@@ -66,6 +69,7 @@ export function LibraryApp({
   ai?: AiIntakeService;
   link?: LinkImportService;
   share?: ShareTargetController;
+  finder?: FindRecipeService;
 }) {
   const shares = useMemo(() => share ?? openShareTargetRuntime(), [share]);
   const shareState = useSyncExternalStore(shares?.subscribe ?? noShareSubscribe, shares?.snapshot ?? noShareSnapshot, noShareSnapshot);
@@ -75,6 +79,8 @@ export function LibraryApp({
   const [linkService, setLinkService] = useState<LinkImportService | null>(link ?? null);
   const linkState = useSyncExternalStore(linkService?.subscribe ?? noShareSubscribe, linkService?.snapshot ?? noLinkSnapshot, noLinkSnapshot);
   const [fromLinkSettings, setFromLinkSettings] = useState(false);
+  const [finderService,setFinderService]=useState<FindRecipeService|null>(finder??null);
+  const [fromFindSettings,setFromFindSettings]=useState(false);
   const backupState = useBackupState(backup);
   const restored = useRef<unknown>(null);
   const [view, setView] = useState<View|AiView>("home");
@@ -117,7 +123,7 @@ export function LibraryApp({
   // Fresh owner state is checked again after lazy module loading. Receiving a share
   // cannot cancel an import, restore preview, editor, modal or cooking viewer.
   function canOpenShare(ignoreOwnLock = false, checkLiveDialog = true,item=shares?.snapshot().pending,explicit=true) {
-      if ((!ignoreOwnLock && (busy || lock.current)) || viewer || addOpen || fromAiSettings || fromLinkSettings || checkLiveDialog && document.querySelector('[role="dialog"]')) return false;
+      if ((!ignoreOwnLock && (busy || lock.current)) || viewer || addOpen || fromAiSettings || fromLinkSettings || fromFindSettings || view==="find-input" || checkLiveDialog && document.querySelector('[role="dialog"]')) return false;
       const b = backup?.getState() ?? backupState;
       if (backupBusy(b) || b.phase === "preview" || b.phase === "uncertain") return false;
       const a = intake.snapshot();
@@ -347,6 +353,16 @@ export function LibraryApp({
     } catch { if (shared) shares?.defer(shared.id); setError("网页导入入口暂时无法打开，请重试；本地菜谱不受影响。"); }
     finally { lock.current = false; setBusy(false); shareOpening.current = null; }
   }
+  async function openFinder(dish="") {
+    if(lock.current||backupBusy(backupState)||backupState.phase==="preview"||backupState.phase==="uncertain")return;
+    lock.current=true;setBusy(true);
+    try {
+      let service=finderService;
+      if(!service){const [{FindRecipeService},{createFinderPort}]=await Promise.all([import("./find-recipe/service"),import("./find-recipe/native-bridge")]);service=new FindRecipeService({port:createFinderPort(),ai:intake,backup});setFinderService(service);}
+      service.updateInput(dish,"");setAddOpen(false);setView("find-input");
+    }catch{setError("寻找做法入口暂时无法打开，本地菜谱不受影响。");}
+    finally{lock.current=false;setBusy(false);}
+  }
   async function navigate(next: "home" | "library" | "settings") {
     if (
       lock.current ||
@@ -365,6 +381,8 @@ export function LibraryApp({
     const back = (event: Event) => {
       if (event.defaultPrevented) return;
       if (view === "link-input") return;
+      if (view === "find-input") return;
+      if (view === "settings" && fromFindSettings) { event.preventDefault(); setFromFindSettings(false); setView("find-input"); return; }
       if (view === "settings" && fromLinkSettings) { event.preventDefault(); setFromLinkSettings(false); setView("link-input"); return; }
       if((view==="ai-input"||view==="ai-preview")&&intakeState.phase==="uncertain"){event.preventDefault();return;}
       if(view==="ai-input")return;
@@ -402,7 +420,7 @@ export function LibraryApp({
     };
     window.addEventListener("recipio:back", back);
     return () => window.removeEventListener("recipio:back", back);
-  }, [view, returnView, backupState, viewer,fromAiSettings,fromLinkSettings,intakeState.draft,intakeState.phase]);
+  }, [view, returnView, backupState, viewer,fromAiSettings,fromLinkSettings,fromFindSettings,intakeState.draft,intakeState.phase]);
   return (
     <div className="mx-auto min-h-dvh max-w-3xl px-4 pb-28 pt-5 sm:px-8">
       <header className="mb-7 flex items-center justify-between gap-4">
@@ -444,7 +462,7 @@ export function LibraryApp({
         </div>
       </aside>}
       {shareState.unavailable && <aside role="status" className="mb-4 rounded-xl border p-3"><p>暂时无法接收分享，本地菜谱仍可正常使用。</p><Button className="min-h-11 mt-2" variant="outline" onClick={() => shares?.retry()}>重试接收分享</Button></aside>}
-      <Dialog open={addOpen} onOpenChange={setAddOpen}><DialogContent><DialogTitle>添加菜谱</DialogTitle><DialogDescription>手动记录始终可离线使用；AI 整理和网页读取是可选联网能力。</DialogDescription><div className="grid gap-3"><Button className="min-h-11" disabled={busy} onClick={()=>{setAddOpen(false);setView("new");}}>手动录入</Button><Button className="min-h-11" variant="outline" disabled={busy} onClick={()=>{setAddOpen(false);setView("ai-input");}}>AI 整理</Button><Button className="min-h-11" variant="outline" disabled={busy} onClick={()=>void openLinkImport()}>从网页链接导入</Button></div></DialogContent></Dialog>
+      <Dialog open={addOpen} onOpenChange={setAddOpen}><DialogContent><DialogTitle>添加菜谱</DialogTitle><DialogDescription>手动记录始终可离线使用；AI 整理和网页读取是可选联网能力。</DialogDescription><div className="grid gap-3"><Button className="min-h-11" disabled={busy} onClick={()=>{setAddOpen(false);setView("new");}}>手动录入</Button><Button className="min-h-11" variant="outline" disabled={busy} onClick={()=>{setAddOpen(false);setView("ai-input");}}>AI 整理</Button><Button className="min-h-11" variant="outline" disabled={busy} onClick={()=>void openLinkImport()}>从网页链接导入</Button><Button className="min-h-11" variant="outline" disabled={busy} onClick={()=>void openFinder()}>帮我找做法</Button></div></DialogContent></Dialog>
       {error && (
         <div role="alert" className="mb-5 rounded-xl border p-4">
           <p>{error}</p>
@@ -460,7 +478,8 @@ export function LibraryApp({
       )}
       {intakeState.pendingCleanup&&<aside role="status" className="mb-4 rounded-xl border p-3"><p>临时文件清理待重试；已保存的菜谱不受影响。</p><Button className="min-h-11 mt-2" variant="outline" onClick={()=>void intake.retryCleanup()}>重试临时文件清理</Button></aside>}
       {linkService && (view === "link-input" || fromLinkSettings) && <div hidden={view !== "link-input"}><Suspense fallback={<p role="status">正在打开网页导入…</p>}><LinkImportScreen service={linkService} active={view === "link-input"} onSaved={showAiRecipe} onCancel={()=>setView(returnView)} onConfigureKey={()=>{setFromLinkSettings(true);setView("settings");}} onFallback={target=>{setSelected(null);setView(target === "ai" ? "ai-input" : "new");}} /></Suspense></div>}
-      {view === "link-input" ? null : (view==="ai-input"||view==="ai-preview")&&intakeState.phase==="uncertain"?<AiSaveRecovery service={intake} onSaved={showAiRecipe} onAbsent={()=>setView("ai-preview")} onLibrary={()=>setView(returnView)}/>:view==="ai-input"?<AiIntakeScreen service={intake} onPreview={()=>setView("ai-preview")} onCancel={()=>setView(returnView)} onManual={()=>{setSelected(null);setView("new");}} onConfigureKey={()=>{setFromAiSettings(true);setView("settings");}}/>:view==="ai-preview"?intakeState.draft?<AiPreview draft={intakeState.draft} confirmed={intakeState.confirmed} onConfirmedChange={value=>intake.setConfirmed(value)} hasExactTitle={title=>store.hasExactTitle(title)} onSave={async input=>{showAiRecipe(await intake.save(input));}} onCancel={()=>setView("ai-input")}/>:<section className="space-y-4"><p>本轮结果已失效，请重新整理。</p><Button className="min-h-11" variant="outline" onClick={()=>setView("ai-input")}>返回本轮输入</Button></section>:view === "new" || view === "edit" ? (
+      {finderService&&(view==="find-input"||fromFindSettings)&&<div hidden={view!=="find-input"}><Suspense fallback={<p role="status">正在打开寻找做法…</p>}><FindRecipeScreen service={finderService} active={view==="find-input"} onSaved={showAiRecipe} onCancel={()=>setView(returnView)} onConfigureKey={()=>{setFromFindSettings(true);setView("settings");}} onFallback={target=>{setSelected(null);if(target==="link")void openLinkImport();else setView(target==="ai"?"ai-input":"new");}}/></Suspense></div>}
+      {view === "link-input"||view==="find-input" ? null : (view==="ai-input"||view==="ai-preview")&&intakeState.phase==="uncertain"?<AiSaveRecovery service={intake} onSaved={showAiRecipe} onAbsent={()=>setView("ai-preview")} onLibrary={()=>setView(returnView)}/>:view==="ai-input"?<AiIntakeScreen service={intake} onPreview={()=>setView("ai-preview")} onCancel={()=>setView(returnView)} onManual={()=>{setSelected(null);setView("new");}} onConfigureKey={()=>{setFromAiSettings(true);setView("settings");}}/>:view==="ai-preview"?intakeState.draft?<AiPreview draft={intakeState.draft} confirmed={intakeState.confirmed} onConfirmedChange={value=>intake.setConfirmed(value)} hasExactTitle={title=>store.hasExactTitle(title)} onSave={async input=>{showAiRecipe(await intake.save(input));}} onCancel={()=>setView("ai-input")}/>:<section className="space-y-4"><p>本轮结果已失效，请重新整理。</p><Button className="min-h-11" variant="outline" onClick={()=>setView("ai-input")}>返回本轮输入</Button></section>:view === "new" || view === "edit" ? (
         <RecipeEditor
           key={selected?.id ?? "new"}
           initial={view === "edit" && selected ? selected : undefined}
@@ -530,6 +549,7 @@ export function LibraryApp({
           <h2 className="text-2xl font-semibold">设置</h2>
           {fromAiSettings&&<Button className="min-h-11" variant="outline" onClick={()=>{setFromAiSettings(false);setView("ai-input");}}>返回本轮 AI 整理</Button>}
           {fromLinkSettings && <Button className="min-h-11" variant="outline" onClick={()=>{setFromLinkSettings(false);setView("link-input");}}>返回本轮网页导入</Button>}
+          {fromFindSettings && <Button className="min-h-11" variant="outline" onClick={()=>{setFromFindSettings(false);setView("find-input");}}>返回本轮寻找做法</Button>}
           <div className="rounded-2xl border p-5 space-y-3">
             <h3 className="font-medium">本机数据</h3>
             <p className="text-sm text-muted-foreground">
@@ -564,6 +584,7 @@ export function LibraryApp({
               }}
             />
           </label>
+          {view==="home"&&search.trim()&&<Button className="mt-3 min-h-11 max-w-full whitespace-normal" variant="outline" disabled={busy} onClick={()=>void openFinder(search.trim())}>帮我找『{search.trim()}』的做法</Button>}
           {view === "library" && (
             <label className="mt-4 flex items-center gap-3 text-sm">
               耗时筛选
@@ -704,7 +725,7 @@ export function LibraryApp({
           ))}
         </aside>
       )}
-      {view !== "new" && view !== "edit" && view !== "completion" && view!=="ai-input" && view!=="ai-preview" && view!=="link-input" && !fromAiSettings && !fromLinkSettings && (
+      {view !== "new" && view !== "edit" && view !== "completion" && view!=="ai-input" && view!=="ai-preview" && view!=="link-input" && view!=="find-input" && !fromAiSettings && !fromLinkSettings && !fromFindSettings && (
         <nav
           aria-label="主要导航"
           className="fixed inset-x-0 bottom-0 z-10 border-t bg-background/95 pb-[env(safe-area-inset-bottom)]"

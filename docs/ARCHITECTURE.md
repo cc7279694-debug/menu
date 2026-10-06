@@ -1,5 +1,20 @@
 # Architecture
 
+## APK-6 optional Find a Recipe (2026-10-06)
+
+```text
+Local home search → RecipeLibrary.list (no Provider)
+Explicit Find Start → FindRecipeService → LocalRecipeFinder → fixed Qwen Responses endpoint
+  → completed structured sources → Native-owned candidates
+Explicit selection → selected-source extractor gate
+  → Native AI schema → existing JS schema/normalizer → existing AI Review
+  → explicit confirmation → ordinary RecipeLibrary.createDetails → SQLite4 / local files
+```
+
+Search and extraction are separate explicit one-request actions. The Native plugin owns credentials, selected URLs, cancellation and session generations. Provider output is untrusted; extraction rejects any other target or executed search, despite both tools being advertised per the official API requirement. Existing ChatCompletions and APK-5A safety/parser are unchanged.
+
+No Finder database, source history, persistent query, remote image or second Preview/saver is introduced. Backup preview/restoring/uncertain gates new actions; restoring invalidates transient sessions and late results. SQLite4 / Preview7 / Backup2 stay frozen. Current verification and pending new-key physical Provider acceptance: `verification/find-recipe*.md` and `checkpoints/2026-10-06-find-recipe.md`.
+
 ## APK-5C-A Android Text / Images Share（2026-10-06）
 
 ```text

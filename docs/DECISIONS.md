@@ -1,5 +1,19 @@
 # Decisions
 
+## 2026-10-06 — Explicit Find actions with Native-owned source authority
+
+### Decision
+
+APK-6 adds an optional Find a Recipe entrance, not a remote replacement for local search. Typing and entering Find send no request. Start performs one Responses search; selecting a verified candidate performs one separate extraction. No automatic retry, fallback, source substitution or save.
+
+### Context / Alternatives / Reason
+
+The approved implementation reuses the existing Keystore credential profiles, Native lifecycle, AI schema/normalizer, human Review gate and ordinary Recipe saver. Only completed search-tool structured URL sources authorize candidates; full canonical path/query participates in membership. Assistant-prose links are not authority. The Provider requires advertising search alongside extractor, but phase2 rejects any executed search, other tool or extractor target outside the frozen selected source.
+
+### Consequences
+
+Dish, preference, candidates, source text and Provider envelopes are transient. SQLite4 / Preview7 / Backup2 and existing ChatCompletions are unchanged. Restoring invalidates the session; uncertain writes use the original UUID recovery path. Existing Back/IME ownership remains the sole keyboard owner. Deferred Preview cleanup reserves a transition synchronously and checks generation before publishing; repeated Back cannot overwrite a later action. HTTP5xx reports temporary service failure rather than invalid credentials. Both repairs have RED→GREEN tests. All automated Provider responses are generated Fakes; physical new-key acceptance remains separate. Main v15 and unmerged Logo v16 are retained; this feature uses unique versionCode17 / 0.9.0-find-recipe, with no main merge, deployment or video work.
+
 ## 2026-10-06 — Share reader retirement requires OS exit, not Binder death
 
 ### Decision

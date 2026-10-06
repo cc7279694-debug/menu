@@ -11,6 +11,7 @@ public class MainActivity extends BridgeActivity {
         registerPlugin(LocalBackupPlugin.class);
         registerPlugin(LocalAiSecretPlugin.class);
         registerPlugin(LocalAiIntakePlugin.class);
+        registerPlugin(LocalRecipeFinderPlugin.class);
         registerPlugin(LocalWebImportPlugin.class);
         registerPlugin(LocalShareTargetPlugin.class);
         super.onCreate(savedInstanceState);
