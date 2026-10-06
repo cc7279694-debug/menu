@@ -1,5 +1,31 @@
 # Decisions
 
+## 2026-10-06 — Carry approved brand assets into the accepted feature lineage
+
+### Decision
+
+Keep frozen APK-6 RC2 intact at880b0e8; integrate the exact approved Logo assets
+from055c727 into a separate narrow successor branch. Do not copy the old Logo
+branch's CURRENT_STATE or replace current business code.
+
+### Context / Alternatives / Reason
+
+The user accepted v18 functionality but observed its old icon. The Logo branch
+was not an ancestor of either stable main or APK-6, so packaging faithfully
+retained the old artwork. This is missing integration, not merely a phone cache.
+The user then explicitly authorized Logo changes. Reuse its completed source
+conversions rather than redesigning the PNG or cherry-picking stale context.
+
+### Consequences
+
+Unique versionCode19 /0.9.1-logo-refresh permits forward install-r over v18;
+package/signature and SQLite4 /Preview7 /Backup2 remain unchanged. Preserve v16,
+v17,v18 and both feature histories. No main/tag action this turn. After separate
+visual acceptance and main authorization, the promotion target must contain
+both accepted functionality and the approved brand, not just old880b0e8.
+Verification and remaining physical/OEM limits are in the Logo integration
+checkpoint. No new Provider request is made.
+
 ## 2026-10-06 — RC2 uses result functions without weakening source authority
 
 ### Decision

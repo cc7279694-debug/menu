@@ -2,36 +2,67 @@
 
 ## Current stage
 
-2026-10-06 — APK-6 RC2 implementation and fresh automatic/emulator verification are complete on `feat/recipio-find-recipe`, but physical/new-key Search acceptance is pending. Status: **APK_6_RC2_PENDING_DEVICE_TEST**. APK-6 is not accepted for promotion: the user's v17 Search for 土豆丝 returned invalid_output. Exact private Provider failure stage is unknown.
+2026-10-06 — User accepted APK-6 RC2, frozen at
+`880b0e8e7b75793f5439103a70b1faa4dfa3c35a`. This is user-reported phone/Provider
+evidence, not a new Codex AI call. The subsequent authorized task integrates the
+already approved Logo into that feature lineage on `feat/recipio-logo-integration`.
+Implementation, resource/build/signing and narrow emulator checks passed.
+Status: **RECIPIO_LOGO_REFRESH_PENDING_DEVICE_TEST**.
 
-Frozen pre-repair feature: `a2ee25ba094e9f31dc5e99546a1fd15c26c4509b`. Stable local/remote main remains `8b2246dbfac674aa837cb25675893fbbef2d79c5` / `v0.8.0-share-intake`. No merge, release tag, deploy or next module. Original v17 artifacts/evidence and the separate unmerged Logo v16 remain unchanged.
+Stable local/remote main remains `8b2246dbfac674aa837cb25675893fbbef2d79c5` /
+`v0.8.0-share-intake`. APK-6 main promotion and release tagging are deferred while
+this newer visual deliverable awaits separate acceptance. Frozen APK-6/Logo
+branches and all historical delivery files remain intact. No merge, tag, deploy
+or next product module.
 
-## Implemented
+## Verified delta
 
-- Search submits candidates through one completed `submit_candidates` function; selected-source extraction uses one completed `submit_recipe_draft` with the unchanged APK-4 Recipe schema. Strict JSON/schema validation remains mandatory; assistant JSON is not a fallback.
-- Completed structured search sources remain the sole source authority. Full canonical path/query, evidence, exclusions and deduplication remain enforced. Selected extraction rejects executed search, foreign extractors and unexpected calls.
-- Verified sources without candidate handoff have a specific stable error and Chinese guidance. No paid automatic retry, alternate provider/model or permission/dependency change.
-- Existing Native schema → JS Zod → normalization → explicit/inferred/missing human Review → ordinary RecipeLibrary.createDetails remains the only save path. No Finder database/history/media entity.
-- Local recipe library, Cooking, Change History, safe Backup/Restore, AI Intake, Link Import and Share Intake remain available. SQLite4 / Preview7 / Backup2 unchanged.
+- Exact approved1254×1254 PNG preserved; header, Launcher/Round/Adaptive,
+  backgrounds,11existing splash images and legacy Web/PWA brand assets replaced.
+  No redraw, recolor, crop, header layout change or ordinary UI icon replacement.
+- Source +32derived byte checks passed (old header RED → new source-conversion
+  GREEN); dark symbol inside the33dp safe zone.
+- Packaged27active PNGs match conversion pixels;16JS/CSS and9non-resource DEX
+  are byte-identical to accepted v18. Only the remaining183-class AndroidR DEX
+  changes for resource IDs. Manifest changes only the two version values.
+- Fresh typecheck/lint/local build/Capacitor sync/Android lintDebug and
+  assembleDebug/signature/package checks passed. Web lint:0errors/5existing
+  warnings; Android lint:0errors/38warnings. Existing large-chunk warning remains.
+- Actual v18 SHA/name checked before install-r to v19. After an observed SystemUI
+  ANR and one inherited hierarchy-reader failure, both retained, the fresh
+  continuation passed6checks against the independent already-proven v18
+  preservation reference:8tables,2generated recipes,1current/history/retained
+  image, schema4/integrity/FK unchanged. No data clear, downgrade or SQL mutation.
+- Flight-mode cold startup, exact new40px header, local detail and second startup
+  passed. Actual Launcher and stable Recents system task icon were visually
+  checked. Device network settings1/0/0 unchanged. Observed connected WebView
+  external requests0; real AI calls0. No phone or other project environment used.
+- SQLite4 /Preview7 /Backup2, business logic, Native plugins, AI safety, keys,
+  dependencies and permissions are unchanged. Bounded secret-format scans0;
+  credentials/private snapshots are not included in Git.
 
-## Fresh final verification
+## Delivery and evidence
 
-After the last production prompt correction: full repo **193 files /1029 PASS**; native-app subset **69 files /441 PASS**; Native JVM **22 suites /188 PASS**; unfiltered connected Android **16 classes /105 PASS**, zero failures/errors/skips. The subset overlaps the full suite; do not sum them. Typecheck, lint, local build, Capacitor sync, Android lint, Debug/test builds and signing passed. Inherited warnings: five image lint warnings, large Web chunk and 37 Android lint warnings.
+`artifacts/recipio-logo-integration-v19-debug.apk`, package `app.recipio.local`,
+versionCode19 / `0.9.1-logo-refresh`, **17,238,136bytes**.
+SHA-256: `e0a4257ce46bddac8bed015f03ae7e81392f10388b44fee8afc0a3085f98e18d`.
+Same debug signature as v18; unique file, no prior delivery overwritten.
 
-Actual installed v17 → v18 install-r preserved all eight-table rows/IDs/times/order, current/history/retained image SHA-256 and key-configured boolean. Flight-mode force-stop cold startup, retained detail/image/Guided/real Back, Backup SAF open/cancel and Finder entry/typing/leave passed. Search/extract/Provider/page-read/export-write attempts0; observed connected WebView external requests/runtime exceptions0. A cancelled SAF picker is not a fresh backup archive.
-
-The first connected attempt was interrupted by an observed SystemUI ANR; its failed XML is retained, not counted as green. The passing full rerun left one known APK-5A generated save-test recipe. Strict pre-offline comparison caught it; exact fixture identity/content and unchanged prior rows were verified before deleting only that generated row and its two child rows transactionally, with no image deletion. All eight baseline tables then matched exactly. The first offline failure record remains; an independent offline rerun passed against a byte-identical copy of the original baseline. Production/test code was not changed for this cleanup.
-
-## Delivery / safety
-
-APK: `artifacts/recipio-find-recipe-v18-debug.apk`; package `app.recipio.local`; versionCode18 / `0.9.0-find-recipe-rc2`; **17,250,133 bytes**; SHA-256 `701e58e61f2e6b58f0185dc59fb4222bc8b13605f96b0e89f527302bfd1fcec6`. Debug only; byte-identical to the tested final build.
-
-Evidence: `checkpoints/2026-10-06-find-recipe-rc2.md`, `verification/find-recipe-rc2.md`, `verification/find-recipe-rc2-android.md`. Review Packet: `artifacts/find-recipe-rc2/review-packet-apk-6-find-recipe-rc2.zip`, generated/read back after the clean focused commit; its manifest pins exact HEAD and hashes without self-referential documentation SHA. Private baselines, database/media, raw logcat/Provider response and credentials are excluded. Final Git/Packet metadata belong to the delivery report.
-
-Only owned Recipio_Backup_36 /API36/emulator-5580 was operated and normally shut down without wipe. Original airplane/Wi-Fi/data settings restored/read back exactly. No physical phone/personal data or other project environment was operated. Real AI calls0; exposed chat keys not reused. Changed-text/APK/logcat bounded credential scans found0matches; this is not a universal non-disclosure guarantee.
+Evidence: `checkpoints/2026-10-06-logo-integration.md`, `brand-assets.md` and
+ignored `artifacts/logo-integration/`. Historical RC2 full-suite/Provider evidence
+stays in its original checkpoints; it is not relabeled as fresh Logo testing.
+Full business/connected suites and real Provider smoke were intentionally not
+rerun for the visual-only scope. Splash pixels are verified; its transient
+onscreen display was not independently photographed.
 
 ## Next task / limits
 
-Only user physical v18 retest remains: use the new key already configured in Native settings; **at most one Search for 土豆丝**, then stop. Do not automatically Extract/retry. Fake tests are not real Provider acceptance. If Search fails, record its safe stable category without another paid call. Do not promote main or begin another module before separate acceptance/authorization.
+User covers v18 with this v19 APK and checks home, Launcher and Recents branding.
+Do not uninstall or clear local data. Physical/OEM/theme-mask acceptance remains
+unverified. After that acceptance and explicit main authorization, use a promotion
+target that retains both accepted APK-6 and this Logo integration; silently
+promoting only the old880b0e8 would lose the Logo again.
 
-Inherited test-harness limitation: APK-5A's completeParser save test retains its generated row; preservation acceptance must detect and safely isolate it, never weaken equality or delete unknown data. Historical v17 numbers remain in its checkpoint, not reused as RC2 evidence.
+Inherited SystemUI/low-memory emulator instability and legacy lint warnings are
+documented; no production defect is inferred from the test-environment ANR.
+Do not enter video or any next module.

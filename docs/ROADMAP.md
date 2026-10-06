@@ -1,6 +1,6 @@
 # RECIPIO Android Roadmap
 
-2026-10-06：当前已批准稳定基线main8b2246d / v0.8.0-share-intake；历史分支/Tag与独立未合并Logo v16保留。本轮仅批准APK-6帮我找做法，在feat/recipio-find-recipe实施，不合并main，不进入视频。
+2026-10-06：稳定main仍8b2246d / v0.8.0-share-intake。用户已验收APK-6 RC2功能冻结880b0e8；后续批准集成既定Logo，在feat/recipio-logo-integration交付v19。旧独立Logo v16及所有历史分支/Tag保留。本轮不合并main、不建Release Tag、不进入视频。
 
 | Module | Status | Scope |
 | --- | --- | --- |
@@ -13,7 +13,8 @@
 | APK-5B | Accepted / Stable main | main7205a3c / v0.7.0-share-target；用户Share Sheet PASS，历史982/125/64不复用为5C-A数字 |
 | APK-5C-A | Accepted stable baseline for APK-6 | main8b2246d /v0.8.0-share-intake；Text /1–6静态图片Share→既有AI入口；历史998/144/89不复用为APK-6数字 |
 | APK-5C-B | Deferred; not authorized as product implementation | 视频/社交专项，仅已有独立可行性实验；本轮不进入 |
-| APK-6 | APK_6_RC2_PENDING_DEVICE_TEST; not accepted after physical v17 invalid_output | v18函数参数提交替代正文JSON；1029/441/188/105回归及离线保留验证通过，真机土豆丝一次Search复测独立；不进入下一模块 |
+| APK-6 | User accepted / frozen feature; main promotion deferred | RC2 v18/880b0e8已获用户真机确认；历史1029/441/188/105及原失败证据保留，不改写为Logo本轮测试；功能不重新开发 |
+| Logo integration | RECIPIO_LOGO_REFRESH_PENDING_DEVICE_TEST | 既定源图接入APK-6功能后继v19，资源/build/signing/模拟器覆盖保留/实际Launcher与Recents通过；手机视觉验收独立 |
 
-当前模块证据见 verification/find-recipe-rc2*.md、checkpoints/2026-10-06-find-recipe-rc2.md；原v17记录仅历史。已验收模块作为稳定基线继承，不扩写为本轮真实Provider证据；本轮真实AI0次，最终回归已重新执行，441项为1029项子集。不恢复收藏、购物、菜单、Timer或云同步；交付APK-6后暂停，任何后续模块需另行批准。
+APK-6历史证据见 verification/find-recipe-rc2*.md 与原checkpoint，441项是1029项的子集，不能重复相加。当前Logo集成证据见checkpoints/2026-10-06-logo-integration.md：纯资源任务未重复全仓/connected/Provider测试，完成构建和窄模拟器视觉/数据保留验证；手机视觉验收独立。用户APK-6确认不是Codex重新调用AI的证据。不恢复收藏、购物、菜单、Timer或云同步；任何后续模块或main收口需另行批准。
 此前浏览器 Dexie Repository 与 `/offline/app` 纵切是可复用资产，不是 Android SQLite 验收证据。
