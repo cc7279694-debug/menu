@@ -15,8 +15,9 @@ public class RecipeFinderSourcesTest {
     static JSONObject search(String[] urls,JSONObject... candidates)throws Exception {
         JSONArray sources=new JSONArray();for(String url:urls)sources.put(new JSONObject().put("type","url").put("url",url));
         JSONObject root=new JSONObject().put("output",new JSONArray().put(new JSONObject().put("type","web_search_call").put("status","completed").put("action",new JSONObject().put("type","search").put("sources",sources))));
-        root.getJSONArray("output").put(message(new JSONObject().put("candidates",new JSONArray(Arrays.asList(candidates))).toString()));return root;
+        root.getJSONArray("output").put(function("submit_candidates",new JSONObject().put("candidates",new JSONArray(Arrays.asList(candidates))).toString()));return root;
     }
+    static JSONObject function(String name,String arguments)throws Exception {return new JSONObject().put("type","function_call").put("name",name).put("status","completed").put("arguments",arguments).put("id","fc_generated").put("call_id","call_generated");}
     static JSONObject message(String text)throws Exception {return new JSONObject().put("type","message").put("role","assistant").put("status","completed").put("content",new JSONArray().put(new JSONObject().put("type","output_text").put("text",text)));}
     static JSONObject extractor(String url,String text)throws Exception {return new JSONObject().put("type","web_extractor_call").put("status","completed").put("urls",new JSONArray().put(url)).put("goal","读取菜谱").put("output",text);}
     @Test public void acceptsOnlyStructuredSourcesAndReturnsSafePublicFields()throws Exception {
@@ -79,5 +80,17 @@ public class RecipeFinderSourcesTest {
             JSONObject root=new JSONObject().put("output",new JSONArray().put(extractor(url,"鸭肉500克")).put(new JSONObject().put("type",type).put("status","completed")));
             assertEquals("source_mismatch",assertThrows(AiFailure.class,()->RecipeFinderSources.extractedText(root,url)).code);
         }
+    }
+    @Test public void draftSubmissionIsNotAnAdditionalSourceOrPermissionToSearch()throws Exception {
+        String url="https://recipes.example/duck";
+        JSONObject root=new JSONObject().put("output",new JSONArray().put(extractor(url,"鸭肉500克")).put(function("submit_recipe_draft","{}")));
+        assertEquals("鸭肉500克",RecipeFinderSources.extractedText(root,url));
+        root.getJSONArray("output").put(function("submit_candidates","{\"candidates\":[]}"));
+        assertEquals("source_mismatch",assertThrows(AiFailure.class,()->RecipeFinderSources.extractedText(root,url)).code);
+    }
+    @Test public void assistantTextNeverSuppliesMissingCandidateHandoff()throws Exception {
+        String url="https://recipes.example/duck";JSONObject root=search(new String[]{url},candidate(url));
+        root.getJSONArray("output").put(1,message(new JSONObject().put("candidates",new JSONArray().put(candidate(url))).toString()));
+        assertEquals("candidate_output_missing",assertThrows(AiFailure.class,()->RecipeFinderSources.search(root)).code);
     }
 }

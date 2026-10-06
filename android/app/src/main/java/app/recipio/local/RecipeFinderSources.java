@@ -25,16 +25,26 @@ final class RecipeFinderSources {
         }catch(AiFailure failure){throw failure;}catch(Exception ignored){throw new AiFailure("source_mismatch");}
     }
     private static JSONArray output(JSONObject root)throws AiFailure {Object value=root.opt("output");if(!(value instanceof JSONArray)||((JSONArray)value).length()>128)throw new AiFailure("invalid_output");return (JSONArray)value;}
-    static String finalText(JSONObject root)throws Exception {
+    static JSONObject candidateSchema()throws Exception {
+        JSONObject properties=new JSONObject();
+        for(String name:List.of("title","sourceUrl","summary","preparationHint","timeEvidence","preparationEvidence"))properties.put(name,new JSONObject().put("type","string"));
+        properties.put("highlights",new JSONObject().put("type","array").put("maxItems",3).put("items",new JSONObject().put("type","string")));
+        properties.put("totalMinutes",new JSONObject().put("anyOf",new JSONArray().put(new JSONObject().put("type","integer")).put(new JSONObject().put("type","null"))));
+        JSONObject candidate=new JSONObject().put("type","object").put("properties",properties)
+            .put("required",new JSONArray(List.of("title","sourceUrl","summary","highlights","totalMinutes","preparationHint","timeEvidence","preparationEvidence"))).put("additionalProperties",false);
+        return new JSONObject().put("type","object").put("properties",new JSONObject().put("candidates",new JSONObject().put("type","array").put("maxItems",3).put("items",candidate)))
+            .put("required",new JSONArray().put("candidates")).put("additionalProperties",false);
+    }
+    static String functionArguments(JSONObject root,String name,String missingCode)throws Exception {
         String found=null;JSONArray items=output(root);
         for(int i=0;i<items.length();i++) {
-            JSONObject item=items.getJSONObject(i);if(!"message".equals(item.optString("type")))continue;
-            if(!"assistant".equals(item.optString("role"))||!"completed".equals(item.optString("status"))||found!=null)throw new AiFailure("invalid_output");
-            JSONArray content=item.getJSONArray("content");if(content.length()<1||content.length()>16)throw new AiFailure("invalid_output");StringBuilder text=new StringBuilder();
-            for(int j=0;j<content.length();j++){JSONObject block=content.getJSONObject(j);if(!"output_text".equals(block.optString("type"))||!(block.opt("text") instanceof String))throw new AiFailure("invalid_output");text.append(block.getString("text"));if(text.length()>524288)throw new AiFailure("invalid_output");}
-            found=text.toString();
+            JSONObject item=items.getJSONObject(i);if(!"function_call".equals(item.optString("type")))continue;
+            if(!name.equals(item.optString("name"))||!"completed".equals(item.optString("status"))||found!=null||!(item.opt("arguments") instanceof String))throw new AiFailure("invalid_output");
+            found=item.getString("arguments");if(found.trim().isEmpty()||found.length()>524288)throw new AiFailure("invalid_output");
         }
-        if(found==null||found.trim().isEmpty())throw new AiFailure("invalid_output");return found;
+        if(found==null)throw new AiFailure(missingCode);
+        if(!RecipeFinderClient.parseStrict(found).isJsonObject())throw new AiFailure("invalid_output");
+        return found;
     }
     static List<Candidate> search(JSONObject root)throws Exception {
         JSONArray items=output(root);Set<String> verified=new HashSet<>();Map<String,String> evidence=new HashMap<>();boolean completed=false;
@@ -49,7 +59,10 @@ final class RecipeFinderSources {
         }
         if(!completed)throw new AiFailure("search_not_triggered");
         for(int i=0;i<items.length();i++){JSONObject item=items.getJSONObject(i);if(!"web_extractor_call".equals(item.optString("type"))||!"completed".equals(item.optString("status")))continue;JSONArray urls=item.optJSONArray("urls");Object text=item.opt("output");if(urls==null||urls.length()!=1||!(text instanceof String))continue;try{String url=canonical(urls.getString(0));if(verified.contains(url))evidence.put(url,boundedText((String)text));}catch(AiFailure ignored){/* Unverifiable extraction cannot support a claim. */}}
-        JSONObject message=new JSONObject(RecipeFinderClient.parseStrict(finalText(root)).toString());exactKeys(message,"candidates");JSONArray proposed=message.getJSONArray("candidates");if(proposed.length()>3)throw new AiFailure("invalid_output");
+        String arguments=functionArguments(root,"submit_candidates",verified.isEmpty()?"source_missing":"candidate_output_missing");
+        com.google.gson.JsonElement decoded=RecipeFinderClient.parseStrict(arguments);
+        AiIntakeContract.validate(AiIntakeContract.parse(candidateSchema().toString()).getAsJsonObject(),decoded);
+        JSONObject message=new JSONObject(decoded.toString());exactKeys(message,"candidates");JSONArray proposed=message.getJSONArray("candidates");if(proposed.length()>3)throw new AiFailure("invalid_output");
         if(proposed.length()==0){if(verified.isEmpty())throw new AiFailure("source_missing");return Collections.emptyList();}
         List<Candidate> candidates=new ArrayList<>();Set<String> used=new HashSet<>();
         for(int i=0;i<proposed.length();i++){
@@ -68,7 +81,9 @@ final class RecipeFinderSources {
     static String extractedText(JSONObject root,String selected)throws Exception {
         String canonicalSelected=canonical(selected);JSONArray items=output(root);StringBuilder text=new StringBuilder();boolean completed=false;
         for(int i=0;i<items.length();i++){
-            JSONObject item=items.getJSONObject(i);String type=item.optString("type");if(type.endsWith("_call")&&!"web_extractor_call".equals(type))throw new AiFailure("source_mismatch");if(!"web_extractor_call".equals(type))continue;
+            JSONObject item=items.getJSONObject(i);String type=item.optString("type");
+            boolean draftHandoff="function_call".equals(type)&&"submit_recipe_draft".equals(item.optString("name"));
+            if(type.endsWith("_call")&&!"web_extractor_call".equals(type)&&!draftHandoff)throw new AiFailure("source_mismatch");if(!"web_extractor_call".equals(type))continue;
             JSONArray urls=item.optJSONArray("urls");if(urls==null||urls.length()!=1||!(urls.opt(0) instanceof String)||!canonicalSelected.equals(canonical(urls.getString(0))))throw new AiFailure("source_mismatch");
             if(!"completed".equals(item.optString("status")))throw new AiFailure("source_unreadable");Object value=item.opt("output");if(!(value instanceof String)||((String)value).trim().isEmpty())throw new AiFailure("source_unreadable");
             completed=true;if(text.length()>0)text.append('\n');text.append((String)value);

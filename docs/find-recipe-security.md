@@ -9,7 +9,7 @@ Date: 2026-10-06. Scope: the new Finder path and its reuse of the frozen AI Prev
 - The existing store encrypts the credential using an Android Keystore AES-GCM key and writes the envelope under `getNoBackupFilesDir()`, not SQLite or Web storage: `android/app/src/main/java/app/recipio/local/AiSecretStore.java:16` and `:23`.
 - Finder shares `AiNativeRuntime.secrets` and the existing request / key-mutation lifecycle. Only the Native worker reads the credential; its `char[]` is cleared in `finally`: `android/app/src/main/java/app/recipio/local/LocalRecipeFinderPlugin.java:46`.
 - The HTTP client sets `Authorization` only on a fixed official Responses endpoint selected by the existing credential profile. Redirect following is disabled; there is no endpoint probing or user-controlled authenticated destination: `android/app/src/main/java/app/recipio/local/RecipeFinderClient.java:23` and `:86`.
-- Raw and parsed Provider envelopes and the decoded assistant JSON are checked for reflection of the active credential before any result crosses the bridge. This is defense in depth, not a reason to disclose credentials to JS.
+- Raw and parsed Provider envelopes and decoded result-function arguments are checked for reflection of the active credential before any result crosses the bridge, including nested JSON Unicode escapes. This is defense in depth, not a reason to disclose credentials to JS.
 
 No change is made to the existing Android backup exclusions. `android:allowBackup="false"`, legacy backup exclusions and Android data-extraction exclusions remain present. Finder does not add a new key store, key profile, cloud account or database.
 
@@ -21,6 +21,8 @@ The client uses `qwen3.8-flash`, `store=false`, `stream=false`, and no `conversa
 
 The official [Responses API reference](https://platform.qianwenai.com/docs/api-reference/chat/openai-responses) was checked by the main task in this implementation turn. `store=false` concerns the Responses storage / conversation path; it is **not** a guarantee that the Provider keeps no operational logs.
 
+RC2 declares one additional custom function per stage, using the official flattened `type=function/name/parameters` shape. Search uses strict candidate parameters; Extract directly reuses the unchanged APK-4 Recipe schema. No assistant JSON fallback, permissive parser, guessed response-format parameter or undocumented strict option is introduced. Local strict JSON/schema/source validation is mandatory even when a Provider supplies valid-looking function arguments. The shared validator's visibility alone is package-private for reuse; its validation behavior is unchanged.
+
 Request bodies are bounded to 256 KiB; success / error response reads are bounded to 2 MiB / 64 KiB. Strict UTF-8 and JSON parsing reject malformed content, duplicate object keys and excessive nesting. The existing 90-second Native lifecycle deadline, HTTP timeouts, disconnect-on-cancel and completion acknowledgment bound in-flight work. Errors crossing the bridge are stable allowlisted codes, not raw Provider text.
 
 ## Source and Preview gates
@@ -29,9 +31,11 @@ See [source-verification evidence](verification/find-recipe-sources.md). The imp
 
 ```text
 completed structured search sources
+  → submit_candidates strict arguments (not source authority)
   → full canonical URL membership
   → Native-owned candidate UUID
   → exactly selected completed extractor target
+  → submit_recipe_draft strict arguments
   → Native AI schema
   → JS Zod / deterministic normalization
   → existing explicit / inferred / missing Preview
@@ -76,6 +80,8 @@ These numbers are scoped implementation evidence, **not final frozen-HEAD totals
 4. Preview remains an editable personal Recipe form, not a generic data-loss-prevention system. The no-provenance rule applies to automatic Finder data transfer; deliberate user-entered notes are ordinary user content.
 5. Physical-device / fresh-key Provider acceptance remains pending. ZIP readback is performed by the clean-HEAD delivery builder and captured separately, not replaced by a unit-test simulation. Previously exposed chat keys must not be reused or included in artifacts.
 
-## Final static audit
+## Historical v17 static audit (not RC2 acceptance)
 
 After the final production build and Android fixture-only repair:35 changed/new text paths contain0 credential-shaped matches. The immutable v17 APK contains226 scanned text/DEX entries with0matches; all17 Native-copied Web assets are byte-equal to the packaged entries. Device logcat scanned in memory during final connected regression contains0credential-shaped matches; no matching values or raw logcat are placed in the Packet. These bounded static scans do not prove that arbitrary future credentials can never be exposed, and do not replace Native-only ownership/tests. Final Packet generation/readback is recorded separately after the clean committed HEAD.
+
+RC2's fresh evidence is recorded in `verification/find-recipe-rc2.md` and `verification/find-recipe-rc2-android.md`. The reported physical v17 invalid_output is not treated as accepted; its exact live failure stage remains unknown without the private response. Generated legacy diagnostics record only counts/booleans/an allowlisted stage, never a response, URL, key or page body. Previously exposed chat keys are never reused for this repair.

@@ -8,6 +8,8 @@ Date: 2026-10-06. This note records the actual Native / TypeScript gates and the
 
 Search output is bounded and validated. Proposed candidates must have the exact expected JSON keys and at most three entries. Each proposed `sourceUrl` must be in the verified canonical set. Invalid / unsafe / unmatched candidates are dropped, duplicate canonical pages are deduplicated, and all-invalid proposals fail safely. Zero reliable proposals is an empty result only after a completed search with at least one verified source; it is not three invented recipes.
 
+RC2 only reads one completed `submit_candidates` function's string arguments. Candidate schema requires every field and rejects additional properties/type/array drift before membership filtering. Assistant messages, including valid or fenced JSON, cannot replace the handoff. Verified sources without the function report `candidate_output_missing`; malformed/duplicate function calls remain invalid_output.
+
 Native creates each candidate UUID and derives `sourceHost` locally. Native-owned session candidates are the selection authority. JS submits only `sessionId`, request UUID and `candidateId`; it cannot replace the selected URL in the extraction call: `android/app/src/main/java/app/recipio/local/LocalRecipeFinderPlugin.java:27` and `android/app/src/main/java/app/recipio/local/RecipeFinderSessions.java:11`.
 
 ## Canonical equality
@@ -31,15 +33,15 @@ Preparation text must exactly equal its quoted evidence and occur in the same pa
 
 ## Selected-source gate
 
-`RecipeFinderSources.extractedText()` requires at least one completed, nonempty `web_extractor_call`. Every extractor has exactly one URL, and that canonical URL must equal the frozen selection. A failed / missing extractor, unrelated target, multiple targets or any executed `_call` item other than `web_extractor_call` blocks Preview: `android/app/src/main/java/app/recipio/local/RecipeFinderSources.java:68`.
+`RecipeFinderSources.extractedText()` requires at least one completed, nonempty `web_extractor_call`. Every extractor has exactly one URL, and that canonical URL must equal the frozen selection. A failed / missing extractor, unrelated target, multiple targets or any executed `_call` item other than `web_extractor_call` or the expected `submit_recipe_draft` function blocks Preview. The draft function is separately required and strictly validated.
 
-Consequently an executed `web_search_call`, `code_interpreter_call`, `function_call` or unknown tool-call item in phase 2 is rejected, even if a valid selected extractor is also present. Non-tool metadata does not authorize a different source. The selected source text is bounded to 30,000 Unicode code points for normalization; it is temporary evidence, not a stored webpage.
+Consequently an executed `web_search_call`, `code_interpreter_call`, unexpected function or unknown tool-call item in phase 2 is rejected, even if a valid selected extractor is also present. Only `submit_recipe_draft` passes this transport-specific gate; it grants no source authority. Non-tool metadata does not authorize a different source. The selected source text is bounded to 30,000 Unicode code points for normalization; it is temporary evidence, not a stored webpage.
 
 The current official [Responses API reference](https://platform.qianwenai.com/docs/api-reference/chat/openai-responses), checked in this implementation turn by the main task, requires `web_extractor` to be paired with `web_search`. Therefore both are declared in phase 2, but instructions prohibit search and the local gate refuses any result in which it executes. This does **not** claim Provider-side tool permission isolation or that an unwanted upstream call can be reversed.
 
 ## From extraction to ordinary Recipe
 
-`RecipeFinderClient` requires a completed response for the fixed model, no Provider error, one valid completed assistant JSON result and the existing Native Recipe AI schema. Strict parsing rejects malformed / duplicate-key JSON. Native blocks credential reflection and source-URL / selected-host leakage, including decoded nested JSON: `android/app/src/main/java/app/recipio/local/RecipeFinderClient.java:34` and `:51`.
+`RecipeFinderClient` requires a completed response for the fixed model, no Provider error, one completed `submit_recipe_draft` function result and the existing Native Recipe AI schema directly reused as its parameters. Strict argument parsing rejects malformed / duplicate-key JSON; ordinary assistant JSON is not a fallback. Native blocks credential reflection and source-URL / selected-host leakage, including decoded nested JSON.
 
 JS independently validates bridge data, decodes Recipe JSON before its source-leak check and hands it to `AiIntakeService.acceptExternalDraft()`. The existing Zod schema, deterministic normalizer, `explicit / inferred / missing`, Review checkbox, editable Preview, duplicate warning and uncertain-save recovery remain the sole save path. No third Provider call is used to build Preview: `src/native/find-recipe/service.ts:62` and `src/native/ai/service.ts:144`.
 
@@ -68,4 +70,4 @@ These test files were read during the scoped audit. Final pass counts for the Na
 
 These were generated fixtures only, **0 real AI requests**. They used actual Node SQLite, the production services and a validated portable Backup2 restoration into a separate database. They were not Android, physical-device or ZIP image-hash verification.
 
-Final root-owned evidence:full193files /1027PASS, native-app69files /439PASS, JVM174PASS, real WebView/IME specialist16PASS and unfiltered Android105PASS; actual v16→v17 image-byte preservation and flight-mode walkthrough passed. Source/APK/logcat static credential scans0matches. See `find-recipe.md` and `find-recipe-android.md` for exact scope, timings, failed runs and repairs. Only fresh-key physical Provider/source-readability acceptance remains Not Run; fake envelopes do not establish it.
+Historical v17 evidence only:full193files /1027PASS, native-app69files /439PASS, JVM174PASS, real WebView/IME specialist16PASS and unfiltered Android105PASS; actual v16→v17 image-byte preservation and flight-mode walkthrough passed. See `find-recipe.md` and `find-recipe-android.md` for the historical scope. User subsequently reported real Search invalid_output, so these numbers do not accept APK-6. Fresh RC2 evidence is in `find-recipe-rc2.md` and `find-recipe-rc2-android.md`; fake envelopes do not establish real Provider acceptance.

@@ -13,7 +13,7 @@
 | APK-5B | Accepted / Stable main | main7205a3c / v0.7.0-share-target；用户Share Sheet PASS，历史982/125/64不复用为5C-A数字 |
 | APK-5C-A | Accepted stable baseline for APK-6 | main8b2246d /v0.8.0-share-intake；Text /1–6静态图片Share→既有AI入口；历史998/144/89不复用为APK-6数字 |
 | APK-5C-B | Deferred; not authorized as product implementation | 视频/社交专项，仅已有独立可行性实验；本轮不进入 |
-| APK-6 | APK_6_PENDING_DEVICE_TEST; final automatic/emulator verification passed | 显式菜名搜索→已验证公开来源候选→用户选定来源提取→既有人工Preview→普通本地Recipe；新密钥真机Provider验收独立待做 |
+| APK-6 | APK_6_RC2_PENDING_DEVICE_TEST; not accepted after physical v17 invalid_output | v18函数参数提交替代正文JSON；1029/441/188/105回归及离线保留验证通过，真机土豆丝一次Search复测独立；不进入下一模块 |
 
-当前模块证据见 verification/find-recipe*.md、checkpoints/2026-10-06-find-recipe.md。已验收模块作为稳定基线继承，不扩写为本轮真实Provider证据；本轮真实AI0次，重新执行最终回归。不恢复收藏、购物、菜单、Timer或云同步；交付APK-6后暂停，任何后续模块需另行批准。
+当前模块证据见 verification/find-recipe-rc2*.md、checkpoints/2026-10-06-find-recipe-rc2.md；原v17记录仅历史。已验收模块作为稳定基线继承，不扩写为本轮真实Provider证据；本轮真实AI0次，最终回归已重新执行，441项为1029项子集。不恢复收藏、购物、菜单、Timer或云同步；交付APK-6后暂停，任何后续模块需另行批准。
 此前浏览器 Dexie Repository 与 `/offline/app` 纵切是可复用资产，不是 Android SQLite 验收证据。

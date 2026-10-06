@@ -2,30 +2,36 @@
 
 ## Current stage
 
-2026-10-06 — APK-6 **Find a Recipe / 帮我找做法** implemented and final automatic/emulator verification passed. Status:**APK_6_PENDING_DEVICE_TEST**, solely physical/new-key Provider acceptance. Branch `feat/recipio-find-recipe`, created directly from stable main `8b2246dbfac674aa837cb25675893fbbef2d79c5` / annotated `v0.8.0-share-intake`. No experiment branch merged; main and the separate unmerged Logo Refresh v16 remain unchanged. Delivery:unique v17 / `0.9.0-find-recipe`.
+2026-10-06 — APK-6 RC2 implementation and fresh automatic/emulator verification are complete on `feat/recipio-find-recipe`, but physical/new-key Search acceptance is pending. Status: **APK_6_RC2_PENDING_DEVICE_TEST**. APK-6 is not accepted for promotion: the user's v17 Search for 土豆丝 returned invalid_output. Exact private Provider failure stage is unknown.
+
+Frozen pre-repair feature: `a2ee25ba094e9f31dc5e99546a1fd15c26c4509b`. Stable local/remote main remains `8b2246dbfac674aa837cb25675893fbbef2d79c5` / `v0.8.0-share-intake`. No merge, release tag, deploy or next module. Original v17 artifacts/evidence and the separate unmerged Logo v16 remain unchanged.
 
 ## Implemented
 
-- Home typing remains local Repository search. Explicit Find entry makes0paid calls; explicit Start Search makes1; explicit chosen-source Extract makes1. No automatic retry, fallback, recommendation or save.
-- Fixed Native-only Qwen Responses client shares existing Keystore credential profiles/lifecycle. `qwen3.8-flash`, `store=false`, no Provider conversation; bounded strict JSON and stable errors. Phase2 rejects executed search or any extractor target other than the Native-owned selected source.
-- Only completed structured search-source URLs authorize0–3 candidates; canonical full path/query retained. Selected-source verification and existing Native schema→Zod→normalization→human Preview gate remain mandatory.
-- Ordinary Recipe save, duplicate warning and uncertain-save recovery reuse the existing library. Query/preferences/source/candidates/Responses metadata remain transient; no Finder database/history/media entity.
-- SQLite4 / Preview7 / Backup2, permissions, dependencies and backup exclusions unchanged. Local library, full-step default, optional Focus/Guided, explicit Cooking Records, Change History, safe Backup/Restore, AI Intake, Link Import and Share Intake retained. No cloud/login/video/timer/meal planner/favorites/shopping.
+- Search submits candidates through one completed `submit_candidates` function; selected-source extraction uses one completed `submit_recipe_draft` with the unchanged APK-4 Recipe schema. Strict JSON/schema validation remains mandatory; assistant JSON is not a fallback.
+- Completed structured search sources remain the sole source authority. Full canonical path/query, evidence, exclusions and deduplication remain enforced. Selected extraction rejects executed search, foreign extractors and unexpected calls.
+- Verified sources without candidate handoff have a specific stable error and Chinese guidance. No paid automatic retry, alternate provider/model or permission/dependency change.
+- Existing Native schema → JS Zod → normalization → explicit/inferred/missing human Review → ordinary RecipeLibrary.createDetails remains the only save path. No Finder database/history/media entity.
+- Local recipe library, Cooking, Change History, safe Backup/Restore, AI Intake, Link Import and Share Intake remain available. SQLite4 / Preview7 / Backup2 unchanged.
 
-## Final verification
+## Fresh final verification
 
-Fresh final production regression:193files /1027PASS,564.46s; native-app subset69files /439PASS,131.66s; fresh Native JVM21suites /174PASS. Typecheck, lint (5 inherited image warnings), local build, Capacitor sync, Android lint (0errors /37 inherited warnings), Debug build/test build and signature passed. A test-only bootstrap cleanup repair followed an incomplete connected run; specialist16/16PASS and fresh unfiltered connected105/105PASS across16classes,0failures/errors/skips. Final APK byte-identical to the device-tested candidate. New source/APK/logcat credential scans0matches; no relevant production changes after Android verification.
+After the last production prompt correction: full repo **193 files /1029 PASS**; native-app subset **69 files /441 PASS**; Native JVM **22 suites /188 PASS**; unfiltered connected Android **16 classes /105 PASS**, zero failures/errors/skips. The subset overlaps the full suite; do not sum them. Typecheck, lint, local build, Capacitor sync, Android lint, Debug/test builds and signing passed. Inherited warnings: five image lint warnings, large Web chunk and 37 Android lint warnings.
 
-Actual installed v16→v17 preserves eight-table rows/IDs/times/order, all current/history/retained image hashes and key-configured boolean; SQLite4 integrity/FK valid. Flight-mode force-stop cold startup, recipe/cover/Guided/real Back and Backup SAF open/cancel passed with unchanged generated emulator data. Finder entry/typing/leave0Provider attempts; observed connected WebView external requests/runtime errors0. A cancelled picker is not new backup archive evidence. Earlier SystemUI ANR and incomplete instrumented run are documented, not hidden as green runs.
+Actual installed v17 → v18 install-r preserved all eight-table rows/IDs/times/order, current/history/retained image SHA-256 and key-configured boolean. Flight-mode force-stop cold startup, retained detail/image/Guided/real Back, Backup SAF open/cancel and Finder entry/typing/leave passed. Search/extract/Provider/page-read/export-write attempts0; observed connected WebView external requests/runtime exceptions0. A cancelled SAF picker is not a fresh backup archive.
 
-## Environment and acceptance boundary
+The first connected attempt was interrupted by an observed SystemUI ANR; its failed XML is retained, not counted as green. The passing full rerun left one known APK-5A generated save-test recipe. Strict pre-offline comparison caught it; exact fixture identity/content and unchanged prior rows were verified before deleting only that generated row and its two child rows transactionally, with no image deletion. All eight baseline tables then matched exactly. The first offline failure record remains; an independent offline rerun passed against a byte-identical copy of the original baseline. Production/test code was not changed for this cleanup.
 
-Only owned `Recipio_Backup_36` /API36/emulator5580 was operated and then normally shut down without wiping data. No physical phone or personal database was cleared; no other project device/daemon was operated. Original emulator airplane/Wi-Fi/data settings restored/read back exactly. Real AI calls this module:0. Previously exposed keys are not reused. User APK-4 / Share acceptance is inherited history, not new APK-6 Provider evidence.
+## Delivery / safety
 
-Physical phone with a **new key configured through Native settings**, actual Responses Search→Select→Extract→Preview (at most2paid POSTs), source readability and OEM behavior remain Not Run. Desktop preflight and generated Mock/Fake tests are not that acceptance.
+APK: `artifacts/recipio-find-recipe-v18-debug.apk`; package `app.recipio.local`; versionCode18 / `0.9.0-find-recipe-rc2`; **17,250,133 bytes**; SHA-256 `701e58e61f2e6b58f0185dc59fb4222bc8b13605f96b0e89f527302bfd1fcec6`. Debug only; byte-identical to the tested final build.
 
-## Delivery and next
+Evidence: `checkpoints/2026-10-06-find-recipe-rc2.md`, `verification/find-recipe-rc2.md`, `verification/find-recipe-rc2-android.md`. Review Packet: `artifacts/find-recipe-rc2/review-packet-apk-6-find-recipe-rc2.zip`, generated/read back after the clean focused commit; its manifest pins exact HEAD and hashes without self-referential documentation SHA. Private baselines, database/media, raw logcat/Provider response and credentials are excluded. Final Git/Packet metadata belong to the delivery report.
 
-Evidence:`docs/checkpoints/2026-10-06-find-recipe.md` and `docs/verification/find-recipe*.md`. APK:`artifacts/recipio-find-recipe-v17-debug.apk`,17,451,024bytes/SHA256 `319c52b22c40169a310eee4e2bc8b68b6379a87a9dd5572e6106443469437ea7`, Debug only. Packet:`artifacts/find-recipe/review-packet-apk-6-find-recipe.zip`; generated after the clean final commit, manifest pins feature HEAD and exact APK rather than a self-referential documentation SHA. Builder checks whitelist, all entry sizes/SHA and readback; excludes credentials, private URLs/images, databases/backups, raw Provider responses and logcat. Normal focused feature commit/push only; final remote/local equality and clean status are checked separately in delivery output.
+Only owned Recipio_Backup_36 /API36/emulator-5580 was operated and normally shut down without wipe. Original airplane/Wi-Fi/data settings restored/read back exactly. No physical phone/personal data or other project environment was operated. Real AI calls0; exposed chat keys not reused. Changed-text/APK/logcat bounded credential scans found0matches; this is not a universal non-disclosure guarantee.
 
-Next only:APK-6 physical/new-key Provider acceptance after delivery. Stop; do not merge main, tag, deploy or begin video/another module without separate authorization.
+## Next task / limits
+
+Only user physical v18 retest remains: use the new key already configured in Native settings; **at most one Search for 土豆丝**, then stop. Do not automatically Extract/retry. Fake tests are not real Provider acceptance. If Search fails, record its safe stable category without another paid call. Do not promote main or begin another module before separate acceptance/authorization.
+
+Inherited test-harness limitation: APK-5A's completeParser save test retains its generated row; preservation acceptance must detect and safely isolate it, never weaken equality or delete unknown data. Historical v17 numbers remain in its checkpoint, not reused as RC2 evidence.

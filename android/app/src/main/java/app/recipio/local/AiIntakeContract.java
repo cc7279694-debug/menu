@@ -34,7 +34,7 @@ final class AiIntakeContract {
         int steps=recipe.getAsJsonArray("steps").size();for(JsonElement tip:recipe.getAsJsonArray("keyTips")){JsonElement number=tip.getAsJsonObject().get("stepNumber");if(!number.isJsonNull()&&number.getAsInt()>steps)throw new AiFailure("invalid_output");}
     }
     private static void require(boolean good)throws AiFailure {if(!good)throw new AiFailure("invalid_output");}
-    private static void validate(JsonObject rules,JsonElement value)throws AiFailure {
+    static void validate(JsonObject rules,JsonElement value)throws AiFailure {
         if(rules.has("anyOf")){for(JsonElement alternative:rules.getAsJsonArray("anyOf")){try{validate(alternative.getAsJsonObject(),value);return;}catch(AiFailure ignored){}}throw new AiFailure("invalid_output");}
         String type=rules.get("type").getAsString();
         switch(type){

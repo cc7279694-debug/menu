@@ -1,5 +1,19 @@
 # Decisions
 
+## 2026-10-06 — RC2 uses result functions without weakening source authority
+
+### Decision
+
+Replace Finder assistant-text JSON transport with `submit_candidates` and `submit_recipe_draft` custom functions. Strict JSON/schema validation and all existing source, cancellation, Review and save gates remain mandatory. The draft function directly reuses the existing Recipe schema; no second Recipe contract or assistant-text fallback.
+
+### Context / Alternatives / Reason
+
+Physical v17 Search for 土豆丝 returned invalid_output; that screenshot establishes failure but not the private response's exact stage. Generated legacy diagnostic tests show prose/fences/field drift can trigger the old failure. Official Responses documents custom function parameters; do not infer ChatCompletions response_format or undocumented strict support. Finder locally replaces two APK-4 prompt rules that otherwise ban tools/require body JSON; the shared asset and factual explicit/inferred/missing semantics remain unchanged.
+
+### Consequences
+
+Verified structured search sources alone grant source membership. A missing candidate function has a specific stable error. Selected extraction still rejects any executed search or unrelated target. No retry/provider/model/dependency/permission/storage changes. SQLite4 / Preview7 / Backup2 frozen. RC2 is v18 /0.9.0-find-recipe-rc2; immutable v17 artifacts remain. Fresh regressions precede at most one new-key physical Search; no automatic paid Extract. Feature-only commit/push; no main/tag/deploy/next module.
+
 ## 2026-10-06 — Explicit Find actions with Native-owned source authority
 
 ### Decision

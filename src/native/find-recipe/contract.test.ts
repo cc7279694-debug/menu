@@ -22,3 +22,8 @@ it("does not expose raw provider exceptions or URL tokens", () => {
   expect(safeFinderError(new Error("private token url"))).toMatchObject({ code: "invalid_output" });
   expect(safeFinderError({ code: "source_mismatch", message: "private token url" }).message).not.toContain("private");
 });
+it("distinguishes a missing candidate handoff without exposing Provider text", () => {
+  const error = safeFinderError({ code: "candidate_output_missing", message: "private provider text" });
+  expect(error.code).toBe("candidate_output_missing");
+  expect(error.message).not.toContain("private");
+});

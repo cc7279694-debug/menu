@@ -15,6 +15,14 @@ function fixture() {
   return { port, ai, store, service: new FindRecipeService({ port, ai }) };
 }
 function mount(service: FindRecipeService) { const onCancel = vi.fn(), onSaved = vi.fn(), onFallback = vi.fn(); render(<FindRecipeScreen service={service} active onCancel={onCancel} onSaved={onSaved} onConfigureKey={vi.fn()} onFallback={onFallback}/>); return { onCancel, onSaved, onFallback }; }
+it("missing function submission shows a stable message without retrying or extracting", async () => {
+  const { service, port } = fixture(); port.search.mockRejectedValueOnce({ code: "candidate_output_missing", message: "private provider text" });
+  mount(service); fireEvent.change(screen.getByLabelText("想做什么菜"), { target: { value: "土豆丝" } });
+  fireEvent.click(screen.getByRole("button", { name: "开始寻找" }));
+  await screen.findByText("搜索到了来源，但结果整理没有完成，请手动重试。");
+  expect(port.search).toHaveBeenCalledTimes(1); expect(port.extract).not.toHaveBeenCalled();
+  expect(screen.queryByText("private provider text")).not.toBeInTheDocument();
+});
 it("explicit search shows candidates; explicit choice enters existing Review with required confirmation", async () => {
   const { service, port, ai } = fixture(); mount(service); fireEvent.change(screen.getByLabelText("想做什么菜"), { target: { value: "啤酒鸭" } });
   expect(port.search).not.toHaveBeenCalled(); fireEvent.click(screen.getByRole("button", { name: "开始寻找" }));

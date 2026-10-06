@@ -44,6 +44,7 @@ const messages = {
   provider_access: "当前 AI 密钥、账号或模型无访问权限。", unauthorized: "当前 AI 密钥、账号或模型无访问权限。", forbidden: "当前 AI 密钥、账号或模型无访问权限。",
   search_failed: "寻找做法未成功，请重试或改为手动录入。", search_not_triggered: "未获得可验证的搜索结果，请手动重试。",
   source_missing: "没有找到可验证的公开来源。", source_mismatch: "这个来源暂时无法读取。", no_candidates: "暂时没有找到适合整理的公开菜谱。",
+  candidate_output_missing: "搜索到了来源，但结果整理没有完成，请手动重试。",
   extract_failed: "这个来源暂时无法读取。", source_unreadable: "这个来源暂时无法读取。", invalid_output: "返回结果未通过校验，请手动重试。",
   rate_limited: "请求过于频繁，请稍后重试。", provider_unavailable: "AI 服务暂不可用，请稍后重试。", response_too_large: "返回内容过大，请换一个来源。",
   cancelled: "已取消请求。", busy: "当前操作尚未结束，请稍候。", stale_session: "本轮寻找已结束，请重新开始。",

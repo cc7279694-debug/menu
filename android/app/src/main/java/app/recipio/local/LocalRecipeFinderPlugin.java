@@ -13,7 +13,7 @@ public final class LocalRecipeFinderPlugin extends Plugin {
     private final RecipeFinderSessions sessions=new RecipeFinderSessions();
     private AiNativeRuntime runtime;private RecipeFinderClient client;
     private String activeSession,activeRequest;private AiRequestLifecycle.Token activeToken;private boolean destroyed;
-    private static final Set<String> ERRORS=Set.of("input_invalid","key_missing","network_unavailable","timeout","provider_access","provider_unavailable","search_failed","search_not_triggered","source_missing","source_mismatch","no_candidates","extract_failed","source_unreadable","invalid_output","rate_limited","cancelled","busy","stale_session");
+    private static final Set<String> ERRORS=Set.of("input_invalid","key_missing","network_unavailable","timeout","provider_access","provider_unavailable","search_failed","search_not_triggered","source_missing","source_mismatch","no_candidates","candidate_output_missing","extract_failed","source_unreadable","invalid_output","rate_limited","cancelled","busy","stale_session");
     @Override public void load(){runtime=AiNativeRuntime.get(getContext());try{client=new RecipeFinderClient(new AiIntakeContract(getContext().getAssets().open("recipio-ai-intake-contract.json")));}catch(Exception ignored){client=null;}}
     private static void keys(PluginCall call,String... names)throws AiFailure {try{RecipeFinderSources.exactKeys(call.getData(),names);}catch(AiFailure ignored){throw new AiFailure("input_invalid");}}
     private synchronized String session(PluginCall call)throws AiFailure {if(destroyed)throw new AiFailure("stale_session");String id=call.getString("sessionId");sessions.generation(id);return id;}

@@ -32,11 +32,11 @@ final class RecipeFinderTestProvider {
             JSONArray sources=new JSONArray();for(int i=1;i<=9;i++)sources.put(new JSONObject().put("type","url").put("url","https://recipes.example.com/duck?variant="+i));
             JSONArray candidates=new JSONArray();int count=mode==Mode.ZERO?0:mode==Mode.ONE?1:3;
             for(int i=1;i<=count;i++)candidates.put(new JSONObject().put("title",title+" "+i).put("sourceUrl",mode==Mode.UNVERIFIED_CANDIDATE&&i==2?"https://recipes.example.com/invented":"https://recipes.example.com/duck?variant="+i).put("summary","先煎后炖 "+i).put("highlights",new JSONArray().put("鸭肉500克").put("小火慢炖")).put("totalMinutes",JSONObject.NULL).put("preparationHint","").put("timeEvidence","").put("preparationEvidence",""));
-            return envelope(new JSONArray().put(new JSONObject().put("type","reasoning").put("content",new JSONArray())).put(new JSONObject().put("type","web_search_call").put("status","completed").put("action",new JSONObject().put("type","search").put("sources",sources))).put(message(new JSONObject().put("candidates",candidates).toString())));
+            return envelope(new JSONArray().put(new JSONObject().put("type","reasoning").put("content",new JSONArray())).put(new JSONObject().put("type","web_search_call").put("status","completed").put("action",new JSONObject().put("type","search").put("sources",sources))).put(function("submit_candidates",new JSONObject().put("candidates",candidates).toString())));
         }
         private JSONObject extractEnvelope(JSONObject body)throws Exception {
             JSONObject input=new JSONObject(body.getJSONArray("input").getJSONObject(0).getString("content"));String url=input.getString("selectedSourceUrl");
-            return envelope(new JSONArray().put(new JSONObject().put("type","web_extractor_call").put("status","completed").put("urls",new JSONArray().put(mode==Mode.WRONG_EXTRACT_URL?"https://recipes.example.com/other":url)).put("goal","读取已选菜谱").put("output",title+"，鸭肉500克。小火煮20分钟。加盐适量。")).put(message(draft())));
+            return envelope(new JSONArray().put(new JSONObject().put("type","web_extractor_call").put("status","completed").put("urls",new JSONArray().put(mode==Mode.WRONG_EXTRACT_URL?"https://recipes.example.com/other":url)).put("goal","读取已选菜谱").put("output",title+"，鸭肉500克。小火煮20分钟。加盐适量。")).put(function("submit_recipe_draft",draft())));
         }
         private String draft()throws Exception {
             JSONObject recipe=new JSONObject().put("title",title).put("totalMinutes",JSONObject.NULL).put("servings",JSONObject.NULL).put("caloriesPerServing",JSONObject.NULL).put("coverPath",JSONObject.NULL).put("notes","")
@@ -44,7 +44,7 @@ final class RecipeFinderTestProvider {
             return new JSONObject().put("recipe",recipe).put("fieldChecks",new JSONArray()).put("warnings",new JSONArray()).toString();
         }
         private static JSONObject envelope(JSONArray output)throws Exception{return new JSONObject().put("status","completed").put("model","qwen3.8-flash").put("error",JSONObject.NULL).put("output",output);}
-        private static JSONObject message(String text)throws Exception{return new JSONObject().put("type","message").put("role","assistant").put("status","completed").put("content",new JSONArray().put(new JSONObject().put("type","output_text").put("text",text)));}
+        private static JSONObject function(String name,String arguments)throws Exception{return new JSONObject().put("type","function_call").put("name",name).put("arguments",arguments).put("status","completed").put("call_id","call_"+UUID.randomUUID()).put("id","fc_"+UUID.randomUUID());}
         @Override public void close()throws Exception {release.countDown();runtime.secrets.delete();KeyStore store=KeyStore.getInstance("AndroidKeyStore");store.load(null);if(store.containsAlias(alias))store.deleteEntry(alias);LocalBackupArchive.deleteOwnedTree(root);}
     }
     private static void field(Object object,String name,Object value)throws Exception {Field field=object.getClass().getDeclaredField(name);field.setAccessible(true);field.set(object,value);}
