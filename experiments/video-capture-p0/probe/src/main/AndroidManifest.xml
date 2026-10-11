@@ -1,0 +1,25 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PROJECTION" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <queries>
+        <package android:name="app.recipio.captureprobesource" />
+        <package android:name="com.ss.android.ugc.aweme" />
+        <package android:name="com.xingin.xhs" />
+        <package android:name="tv.danmaku.bili" />
+    </queries>
+    <application android:name=".ProbeApplication" android:allowBackup="false" android:fullBackupContent="false"
+        android:dataExtractionRules="@xml/no_backup" android:icon="@android:drawable/ic_menu_camera"
+        android:theme="@android:style/Theme.Material.Light.NoActionBar"
+        android:label="RECIPIO Video Capture Probe">
+        <activity android:name=".ProbeActivity" android:exported="true" android:launchMode="singleTask">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+        <service android:name=".CaptureService" android:exported="false"
+            android:foregroundServiceType="mediaProjection" />
+    </application>
+</manifest>

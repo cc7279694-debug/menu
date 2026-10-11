@@ -1,0 +1,14 @@
+**/build/
+.gradle/
+local.properties
+artifacts/
+*.apk
+*.png
+*.jpg
+*.jpeg
+*.webp
+*.wav
+*.pcm
+*.part
+*.mp4
+*.mov
