@@ -22,12 +22,14 @@ public final class SourceActivity extends Activity {
     private View pattern;
     private boolean allowed = true;
     private String toneError = "";
+    private long sceneStart;
     private final Runnable animate = new Runnable() {
         @Override public void run() { pattern.invalidate(); ui.postDelayed(this, 100); }
     };
 
     @Override public void onCreate(Bundle state) {
         super.onCreate(state);
+        sceneStart=state==null?SystemClock.elapsedRealtime():state.getLong("sceneStart",SystemClock.elapsedRealtime());
         LinearLayout root = new LinearLayout(this); root.setOrientation(LinearLayout.VERTICAL);
         root.setOnApplyWindowInsetsListener((v, insets) -> {
             if (android.os.Build.VERSION.SDK_INT >= 30) {
@@ -44,16 +46,21 @@ public final class SourceActivity extends Activity {
             stopTone(); startTone();
         });
         root.addView(policy);
+        Button restart=new Button(this);restart.setText("重新开始六步骤画面（每场景 20 秒）");
+        restart.setOnClickListener(v->{sceneStart=SystemClock.elapsedRealtime();pattern.invalidate();});root.addView(restart);
         pattern = new View(this) {
             private final Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
             @Override protected void onDraw(Canvas canvas) {
                 long t = SystemClock.elapsedRealtime();
                 canvas.drawColor(Color.HSVToColor(new float[]{(t / 20f) % 360, .65f, .8f}));
                 paint.setColor(Color.WHITE); paint.setTextSize(30 * getResources().getDisplayMetrics().scaledDensity);
-                canvas.drawText("RECIPIO 受控测试源", 24, 100, paint);
-                canvas.drawText("动态时间 " + t / 1000 + " 秒", 24, 170, paint);
-                canvas.drawText(allowed ? "内部播放：交替高低音" : "内部声音：禁止采集", 24, 240, paint);
-                if (!toneError.isEmpty()) { paint.setTextSize(20 * getResources().getDisplayMetrics().scaledDensity); canvas.drawText(toneError, 24, 310, paint); }
+                canvas.drawText("RECIPIO 自生成测试画面", 24, 100, paint);
+                int scene=RecipeScenes.index(t-sceneStart);String[] lines=RecipeScenes.lines(scene);
+                paint.setTextSize(Math.min(30 * getResources().getDisplayMetrics().scaledDensity, getWidth()/13f));
+                for(int i=0;i<lines.length;i++)canvas.drawText(lines[i],24,190+i*80,paint);
+                paint.setTextSize(18 * getResources().getDisplayMetrics().scaledDensity);
+                canvas.drawText("P1 只采集画面 / "+Math.max(0,(t-sceneStart)/1000)+" 秒",24,450,paint);
+                if (!toneError.isEmpty()) canvas.drawText(toneError,24,500,paint);
                 float x = 35 + (t % 4000) / 4000f * Math.max(1, getWidth() - 70);
                 canvas.drawCircle(x, getHeight() * .6f, 32, paint);
             }
@@ -96,4 +103,5 @@ public final class SourceActivity extends Activity {
     }
     @Override protected void onResume() { super.onResume(); startTone(); ui.post(animate); }
     @Override protected void onPause() { ui.removeCallbacks(animate); stopTone(); super.onPause(); }
+    @Override protected void onSaveInstanceState(Bundle saved){saved.putLong("sceneStart",sceneStart);super.onSaveInstanceState(saved);}
 }

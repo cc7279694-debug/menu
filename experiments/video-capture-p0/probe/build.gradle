@@ -6,10 +6,21 @@ android {
         applicationId 'app.recipio.captureprobe'
         minSdk 29
         targetSdk 36
-        versionCode 1
-        versionName '0.1.0-video-p0'
+        versionCode 2
+        versionName '0.2.0-video-visual-p1'
+        testInstrumentationRunner 'app.recipio.captureprobe.P1Instrumentation'
     }
     compileOptions { sourceCompatibility JavaVersion.VERSION_17; targetCompatibility JavaVersion.VERSION_17 }
     testOptions { unitTests.all { maxHeapSize = '128m'; maxParallelForks = 1 } }
 }
-dependencies { testImplementation 'junit:junit:4.13.2' }
+dependencies {
+    // Only the isolated Probe needs the official read-only FileProvider.
+    implementation 'androidx.core:core:1.13.0'
+    constraints {
+        implementation 'androidx.annotation:annotation:1.8.1'
+        implementation 'androidx.collection:collection:1.1.0'
+        implementation 'androidx.concurrent:concurrent-futures:1.1.0'
+        implementation 'androidx.profileinstaller:profileinstaller:1.3.1'
+    }
+    testImplementation 'junit:junit:4.13.2'
+}

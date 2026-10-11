@@ -1,290 +1,143 @@
 package app.recipio.captureprobe;
 
-import android.Manifest;
-import android.app.Notification;
-import android.app.NotificationChannel;
-import android.app.NotificationManager;
-import android.app.PendingIntent;
-import android.app.Service;
+import android.app.*;
 import android.content.Intent;
-import android.content.pm.PackageManager;
 import android.content.pm.ServiceInfo;
 import android.graphics.Bitmap;
 import android.graphics.PixelFormat;
-import android.hardware.display.DisplayManager;
-import android.hardware.display.VirtualDisplay;
-import android.media.AudioAttributes;
-import android.media.AudioFormat;
-import android.media.AudioPlaybackCaptureConfiguration;
-import android.media.AudioRecord;
+import android.hardware.display.*;
 import android.media.Image;
 import android.media.ImageReader;
-import android.media.projection.MediaProjection;
-import android.media.projection.MediaProjectionManager;
-import android.os.Build;
-import android.os.Handler;
-import android.os.HandlerThread;
-import android.os.IBinder;
-import android.os.Looper;
-import android.os.SystemClock;
+import android.media.projection.*;
+import android.os.*;
 import android.util.DisplayMetrics;
-import app.recipio.captureprobe.core.CaptureLifecycle;
-import app.recipio.captureprobe.core.AudioReadPolicy;
-import app.recipio.captureprobe.core.OwnedResource;
-import app.recipio.captureprobe.core.ProbeFiles;
-import app.recipio.captureprobe.core.ResourceScope;
-import app.recipio.captureprobe.core.SignalChecks;
-import app.recipio.captureprobe.core.WavSample;
-import java.io.File;
-import java.io.FileOutputStream;
+import app.recipio.captureprobe.core.*;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-/** Resource owner. Only system-approved projection + UID-filtered playback; never microphone. */
+/** P1 visual-only owner. Single grant/display, bounded sequential worker, no audio/network. */
 public final class CaptureService extends Service {
-    static final String START = "app.recipio.captureprobe.START", STOP = "app.recipio.captureprobe.STOP";
-    static final String CHANNEL = "capture-session";
-    private final Handler main = new Handler(Looper.getMainLooper());
-    private final AtomicBoolean closing = new AtomicBoolean();
+    static final String START="app.recipio.captureprobe.START",STOP="app.recipio.captureprobe.STOP",CHANNEL="capture-session";
+    private final Handler main=new Handler(Looper.getMainLooper());
+    private final AtomicBoolean closing=new AtomicBoolean();
+    private final OwnedResource<ImageReader> readers=new OwnedResource<>();
     private long session;
-    private HandlerThread workerThread;
+    private HandlerThread thread;
     private Handler worker;
     private MediaProjection projection;
-    private MediaProjection.Callback projectionCallback;
+    private MediaProjection.Callback callback;
     private VirtualDisplay display;
-    private final OwnedResource<ImageReader> readers = new OwnedResource<>();
     private int readerEpoch;
-    private AudioRecord recorder;
-    private WavSample wav;
-    private ProbeFiles files;
-    private int targetUid;
-    private final byte[] audioBuffer = new byte[4096];
-    private final Runnable timeout = () -> end("auto_stop_15s");
-
-    static void ensureChannel(NotificationManager manager) {
-        manager.createNotificationChannel(new NotificationChannel(CHANNEL, "本次屏幕采集（含停止入口）", NotificationManager.IMPORTANCE_LOW));
-    }
-    @Override public int onStartCommand(Intent intent, int flags, int startId) {
-        if (intent == null) { stopSelf(); return START_NOT_STICKY; }
-        long incoming = intent.getLongExtra("session", -1);
-        if (STOP.equals(intent.getAction())) {
-            if (session == 0) stopSelf(); else if (session == incoming) end("user_stop");
-            return START_NOT_STICKY;
-        }
-        if (!START.equals(intent.getAction()) || session != 0
-                || incoming != ProbeRuntime.lifecycle.id() || ProbeRuntime.lifecycle.state() != CaptureLifecycle.State.STARTING) {
-            if (session == 0) stopSelf();
-            return START_NOT_STICKY;
-        }
-        session = incoming;
-        NotificationManager manager = getSystemService(NotificationManager.class);
-        ensureChannel(manager);
-        if (!manager.areNotificationsEnabled() || manager.getNotificationChannel(CHANNEL).getImportance() == NotificationManager.IMPORTANCE_NONE) {
-            end("notification_unavailable"); return START_NOT_STICKY;
-        }
-        Intent stop = new Intent(this, CaptureService.class).setAction(STOP).putExtra("session", session);
-        PendingIntent stopAction = PendingIntent.getService(this, 1, stop, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
-        PendingIntent open = PendingIntent.getActivity(this, 0, new Intent(this, ProbeActivity.class)
-                .addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP), PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
-        Notification notification = new Notification.Builder(this, CHANNEL)
-                .setSmallIcon(android.R.drawable.ic_menu_camera).setContentTitle("RECIPIO 本次采集")
-                .setContentText("仅本机缓存，15 秒自动结束；点击停止可立即结束")
-                .setContentIntent(open).setOngoing(true)
-                .addAction(new Notification.Action.Builder(null, "停止采集", stopAction).build()).build();
-        try {
-            startForeground(1, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PROJECTION);
-            Intent grant = Build.VERSION.SDK_INT >= 33
-                    ? intent.getParcelableExtra("grant", Intent.class) : intent.getParcelableExtra("grant");
-            if (grant == null || checkSelfPermission(Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
-                end("permission_or_grant_missing"); return START_NOT_STICKY;
-            }
-            String targetPackage = intent.getStringExtra("target");
-            targetUid = getPackageManager().getApplicationInfo(targetPackage, 0).uid;
-            if (getPackageManager().getPackageInfo(targetPackage, 0).sharedUserId != null) { end("declared_shared_audio_uid"); return START_NOT_STICKY; }
-            String[] packages = getPackageManager().getPackagesForUid(targetUid);
-            if (packages == null || packages.length != 1 || !targetPackage.equals(packages[0])) {
-                end("ambiguous_audio_uid"); return START_NOT_STICKY;
-            }
-            projection = getSystemService(MediaProjectionManager.class).getMediaProjection(intent.getIntExtra("result", 0), grant);
-            // Do not retain the consent Intent after consuming its one-shot token.
+    private VisualFiles files;
+    private VisualSampler sampler;
+    private final Runnable timeout=()->end("auto_stop_120s");
+    static void ensureChannel(NotificationManager manager){manager.createNotificationChannel(new NotificationChannel(CHANNEL,"本次画面采集（可停止）",NotificationManager.IMPORTANCE_LOW));}
+    @Override public int onStartCommand(Intent intent,int flags,int startId){
+        if(intent==null){stopSelf();return START_NOT_STICKY;}
+        long incoming=intent.getLongExtra("session",-1);
+        if(STOP.equals(intent.getAction())){if(session==0)stopSelf();else if(session==incoming)end("user_stop");return START_NOT_STICKY;}
+        if(!START.equals(intent.getAction())||session!=0||incoming!=ProbeRuntime.lifecycle.id()||ProbeRuntime.lifecycle.state()!=CaptureLifecycle.State.STARTING){if(session==0)stopSelf();return START_NOT_STICKY;}
+        session=incoming;
+        try{
+            NotificationManager manager=getSystemService(NotificationManager.class);ensureChannel(manager);
+            if(!manager.areNotificationsEnabled()||manager.getNotificationChannel(CHANNEL).getImportance()==0){end("notification_unavailable");return START_NOT_STICKY;}
+            Intent stop=new Intent(this,CaptureService.class).setAction(STOP).putExtra("session",session);
+            PendingIntent action=PendingIntent.getService(this,1,stop,PendingIntent.FLAG_UPDATE_CURRENT|PendingIntent.FLAG_IMMUTABLE);
+            PendingIntent open=PendingIntent.getActivity(this,0,new Intent(this,ProbeActivity.class).addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP|Intent.FLAG_ACTIVITY_SINGLE_TOP),PendingIntent.FLAG_UPDATE_CURRENT|PendingIntent.FLAG_IMMUTABLE);
+            Notification note=new Notification.Builder(this,CHANNEL).setSmallIcon(android.R.drawable.ic_menu_camera)
+                    .setContentTitle("RECIPIO P1 正在采集画面").setContentText("只存本机；最长 120 秒；不采集声音")
+                    .setOngoing(true).setContentIntent(open).addAction(new Notification.Action.Builder(null,"结束采集",action).build()).build();
+            startForeground(1,note,ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PROJECTION);
+            Intent grant=Build.VERSION.SDK_INT>=33?intent.getParcelableExtra("grant",Intent.class):intent.getParcelableExtra("grant");
+            if(grant==null){end("missing_grant");return START_NOT_STICKY;}
+            projection=getSystemService(MediaProjectionManager.class).getMediaProjection(intent.getIntExtra("result",0),grant);
             intent.removeExtra("grant");
-            if (projection == null) { end("projection_unavailable"); return START_NOT_STICKY; }
-            workerThread = new HandlerThread("capture-p0-samples"); workerThread.start();
-            worker = new Handler(workerThread.getLooper());
-            projectionCallback = new MediaProjection.Callback() {
-                @Override public void onStop() { end("system_projection_stop"); }
-                @Override public void onCapturedContentResize(int width, int height) {
-                    if (worker != null && !closing.get()) worker.post(() -> resize(width, height));
-                }
+            if(projection==null){end("projection_unavailable");return START_NOT_STICKY;}
+            thread=new HandlerThread("visual-p1-worker");thread.start();worker=new Handler(thread.getLooper());
+            callback=new MediaProjection.Callback(){
+                @Override public void onStop(){end("system_projection_stop");}
+                @Override public void onCapturedContentResize(int w,int h){if(!closing.get())worker.post(()->resize(w,h));}
             };
-            projection.registerCallback(projectionCallback, main);
-            main.postDelayed(timeout, Math.max(0, ProbeRuntime.lifecycle.deadline() - SystemClock.elapsedRealtime()));
-            worker.post(this::beginCapture);
-        } catch (Exception error) { end("start_failed_" + error.getClass().getSimpleName()); }
+            projection.registerCallback(callback,main);
+            main.postDelayed(timeout,Math.max(0,ProbeRuntime.lifecycle.deadline()-SystemClock.elapsedRealtime()));
+            worker.post(this::begin);
+        }catch(Exception e){end("start_failed_"+e.getClass().getSimpleName());}
         return START_NOT_STICKY;
     }
-
-    private void beginCapture() {
-        try {
-            if (closing.get() || SystemClock.elapsedRealtime() >= ProbeRuntime.lifecycle.deadline()) { endAsync("start_deadline"); return; }
-            files = new ProbeFiles(getCacheDir());
-            DisplayMetrics metrics = getResources().getDisplayMetrics();
-            int[] size = boundedSize(metrics.widthPixels, metrics.heightPixels);
-            // Exactly once per grant. Resize reuses this VirtualDisplay.
-            readers.replace(() -> createReader(size[0], size[1]), candidate -> {
-                display = projection.createVirtualDisplay("RECIPIO-P0", size[0], size[1], metrics.densityDpi,
-                        DisplayManager.VIRTUAL_DISPLAY_FLAG_AUTO_MIRROR, candidate.getSurface(), null, worker);
-                if (display == null) throw new IOException("empty display");
+    private void begin(){
+        try{
+            if(closing.get()||SystemClock.elapsedRealtime()>=ProbeRuntime.lifecycle.deadline()){endAsync("start_deadline");return;}
+            files=new VisualFiles(getCacheDir());sampler=new VisualSampler(ProbeRuntime.lifecycle.deadline()-120000);
+            DisplayMetrics metrics=getResources().getDisplayMetrics();int[] size=FrameCodec.size(metrics.widthPixels,metrics.heightPixels,2048);
+            readers.replace(()->reader(size[0],size[1]),candidate->{
+                display=projection.createVirtualDisplay("RECIPIO-P1",size[0],size[1],metrics.densityDpi,DisplayManager.VIRTUAL_DISPLAY_FLAG_AUTO_MIRROR,candidate.getSurface(),null,worker);
+                if(display==null)throw new IOException("display unavailable");
             });
-            if (display == null || !ProbeRuntime.lifecycle.started(session)) { endAsync("display_start_failed"); return; }
-            ProbeRuntime.everCaptured = true; ProbeRuntime.message = "正在采集：15 秒自动结束";
-            beginPlaybackAudio();
-        } catch (Exception error) { endAsync("capture_init_" + error.getClass().getSimpleName()); }
+            if(!ProbeRuntime.lifecycle.started(session)){endAsync("display_start_failed");return;}
+            ProbeRuntime.everCaptured=true;ProbeRuntime.message="正在采集画面：最长 120 秒，请播放目标视频";
+        }catch(Exception e){endAsync("capture_init_"+e.getClass().getSimpleName());}
     }
-    private static int[] boundedSize(int width, int height) {
-        if (width <= 0 || height <= 0) throw new IllegalArgumentException("empty size");
-        double factor = Math.min(1, 960d / Math.max(width, height));
-        return new int[]{Math.max(1, (int) (width * factor)), Math.max(1, (int) (height * factor))};
+    private ImageReader reader(int width,int height){
+        ImageReader created=ImageReader.newInstance(width,height,PixelFormat.RGBA_8888,2);int epoch=++readerEpoch;
+        created.setOnImageAvailableListener(source->frame(source,epoch),worker);return created;
     }
-    private ImageReader createReader(int width, int height) {
-        ImageReader created = ImageReader.newInstance(width, height, PixelFormat.RGBA_8888, 2);
-        int epoch = ++readerEpoch;
-        created.setOnImageAvailableListener(source -> captureFrame(source, epoch), worker);
-        return created;
+    private void resize(int width,int height){
+        if(closing.get()||display==null)return;
+        try{
+            int[] size=FrameCodec.size(width,height,2048);ImageReader old=readers.get();
+            if(old!=null&&old.getWidth()==size[0]&&old.getHeight()==size[1])return;
+            readers.replace(()->reader(size[0],size[1]),candidate->{display.resize(size[0],size[1],getResources().getDisplayMetrics().densityDpi);display.setSurface(candidate.getSurface());});
+        }catch(Exception e){endAsync("resize_failed");}
     }
-    private void resize(int width, int height) {
-        if (closing.get() || display == null) return;
-        try {
-            int[] size = boundedSize(width, height);
-            ImageReader previous = readers.get();
-            if (previous != null && previous.getWidth() == size[0] && previous.getHeight() == size[1]) return;
-            readers.replace(() -> createReader(size[0], size[1]), candidate -> {
-                display.resize(size[0], size[1], getResources().getDisplayMetrics().densityDpi);
-                display.setSurface(candidate.getSurface());
-            });
-        } catch (Exception error) { endAsync("resize_failed"); }
-    }
-    private void captureFrame(ImageReader source, int epoch) {
-        Image image = null; Bitmap bitmap = null;
-        File partial = null;
-        try {
-            // A resize can leave an already-queued callback from the closed previous reader.
-            if (epoch != readerEpoch || closing.get()) return;
-            image = source.acquireLatestImage(); // Drain continuously, even between sample slots.
-            if (image == null || epoch != readerEpoch || closing.get()) return;
-            int slot = ProbeRuntime.lifecycle.takeFrameSlot(session, SystemClock.elapsedRealtime());
-            if (slot < 0) return;
-            Image.Plane plane = image.getPlanes()[0];
-            ByteBuffer buffer = plane.getBuffer();
-            int width = image.getWidth(), height = image.getHeight(), stride = plane.getRowStride(), pixel = plane.getPixelStride();
-            if (pixel < 4 || stride < width * pixel) throw new IOException("unsupported RGBA stride");
-            int[] colors = new int[width * height];
-            int base = buffer.position(), limit = buffer.limit();
-            for (int y = 0; y < height; y++) for (int x = 0; x < width; x++) {
-                long offset = (long) base + (long) y * stride + (long) x * pixel;
-                if (offset < base || offset + 3 >= limit) throw new IOException("RGBA bounds");
-                int index = (int) offset;
-                colors[y * width + x] = ((buffer.get(index + 3) & 255) << 24)
-                        | ((buffer.get(index) & 255) << 16) | ((buffer.get(index + 1) & 255) << 8) | (buffer.get(index + 2) & 255);
+    private void frame(ImageReader source,int epoch){
+        Image image=null;Bitmap bitmap=null;
+        try{
+            if(epoch!=readerEpoch||closing.get())return;
+            image=source.acquireLatestImage();if(image==null||closing.get()||epoch!=readerEpoch)return;
+            long elapsed=SystemClock.elapsedRealtime();
+            if(!ProbeRuntime.lifecycle.maySample(session,elapsed))return;
+            int id=sampler.take(elapsed);if(id<0)return;
+            Image.Plane plane=image.getPlanes()[0];ByteBuffer buffer=plane.getBuffer();
+            int w=image.getWidth(),h=image.getHeight(),row=plane.getRowStride(),pixel=plane.getPixelStride();
+            if(w>2048||h>2048||pixel<4||row<(long)w*pixel)throw new IOException("RGBA stride");
+            int[] colors=new int[w*h];int base=buffer.position(),limit=buffer.limit();
+            for(int y=0;y<h;y++)for(int x=0;x<w;x++){
+                long offset=(long)base+(long)y*row+(long)x*pixel;if(offset<base||offset+3>=limit)throw new IOException("RGBA bounds");
+                int i=(int)offset;colors[y*w+x]=((buffer.get(i+3)&255)<<24)|((buffer.get(i)&255)<<16)|((buffer.get(i+1)&255)<<8)|(buffer.get(i+2)&255);
             }
-            bitmap = Bitmap.createBitmap(colors, width, height, Bitmap.Config.ARGB_8888);
-            partial = files.file("frame-" + slot + ".part"); File destination = files.file("frame-" + slot + ".png");
-            if (!ProbeRuntime.lifecycle.maySample(session, SystemClock.elapsedRealtime())) return;
-            try (FileOutputStream output = new FileOutputStream(partial)) {
-                if (!bitmap.compress(Bitmap.CompressFormat.PNG, 100, output)) throw new IOException("frame encode");
-                output.getFD().sync();
-            }
-            if (closing.get() || !ProbeRuntime.lifecycle.maySample(session, SystemClock.elapsedRealtime())) return;
-            if (destination.exists() || !partial.renameTo(destination)) throw new IOException("frame publish");
-            partial = null; ProbeRuntime.frames++;
-            if (SignalChecks.mostlyBlack(colors)) ProbeRuntime.blackFrames++;
-        } catch (Exception error) { if (!closing.get()) endAsync("frame_failed_" + error.getClass().getSimpleName()); }
-        finally {
-            if (image != null) image.close(); if (bitmap != null) bitmap.recycle();
-            if (partial != null && partial.exists() && !partial.delete()) endAsync("partial_cleanup_failed");
-        }
+            image.close();image=null;
+            FrameScore score=FrameScore.measure(colors,w,h);bitmap=Bitmap.createBitmap(colors,w,h,Bitmap.Config.ARGB_8888);
+            byte[] jpeg=FrameCodec.jpeg(bitmap,2048,1024*1024),thumb=FrameCodec.jpeg(bitmap,240,128*1024);
+            if(closing.get()||!ProbeRuntime.lifecycle.maySample(session,SystemClock.elapsedRealtime()))return;
+            files.storeCandidate(id,jpeg,thumb);
+            ProbeRuntime.add(new VisualFrame(id,elapsed-(ProbeRuntime.lifecycle.deadline()-120000),score.hash,score.clarity,score.useful));
+            ProbeRuntime.frames++;if(!score.useful)ProbeRuntime.blackFrames++;
+        }catch(IOException e){if(!closing.get())endAsync("frame_or_cache_limit");}
+        catch(RuntimeException e){if(!closing.get())endAsync("frame_failed_"+e.getClass().getSimpleName());}
+        catch(OutOfMemoryError e){endAsync("memory_limit_stop");}
+        finally{if(image!=null)image.close();if(bitmap!=null)bitmap.recycle();}
     }
-    private void beginPlaybackAudio() {
-        try {
-            if (checkSelfPermission(Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) throw new SecurityException("audio permission revoked");
-            AudioPlaybackCaptureConfiguration configuration = new AudioPlaybackCaptureConfiguration.Builder(projection)
-                    .addMatchingUid(targetUid).addMatchingUsage(AudioAttributes.USAGE_MEDIA)
-                    .addMatchingUsage(AudioAttributes.USAGE_GAME).addMatchingUsage(AudioAttributes.USAGE_UNKNOWN).build();
-            int minimum = AudioRecord.getMinBufferSize(16000, AudioFormat.CHANNEL_IN_MONO, AudioFormat.ENCODING_PCM_16BIT);
-            if (minimum <= 0) throw new IOException("unsupported audio format");
-            recorder = new AudioRecord.Builder().setAudioFormat(new AudioFormat.Builder().setSampleRate(16000)
-                            .setChannelMask(AudioFormat.CHANNEL_IN_MONO).setEncoding(AudioFormat.ENCODING_PCM_16BIT).build())
-                    .setBufferSizeInBytes(Math.max(minimum, 8192)).setAudioPlaybackCaptureConfig(configuration).build();
-            if (recorder.getState() != AudioRecord.STATE_INITIALIZED) throw new IOException("audio unavailable");
-            wav = new WavSample(files.file("audio.part"), files.file("audio.wav"));
-            recorder.startRecording(); ProbeRuntime.audio = "内部播放采样中（不是麦克风）"; worker.post(audioTick);
-        } catch (Exception error) {
-            releaseAudio(false); ProbeRuntime.audio = "内部播放音频不可用（" + error.getClass().getSimpleName() + "）；仍检查画面";
-        }
-    }
-    private final Runnable audioTick = new Runnable() {
-        @Override public void run() {
-            if (closing.get()) return;
-            if (!ProbeRuntime.lifecycle.maySample(session, SystemClock.elapsedRealtime())) { endAsync("auto_stop_15s"); return; }
-            try {
-                int count = recorder.read(audioBuffer, 0, audioBuffer.length, AudioRecord.READ_NON_BLOCKING);
-                AudioReadPolicy.Decision decision = AudioReadPolicy.decide(count);
-                if (decision == AudioReadPolicy.Decision.DISABLE_AUDIO) {
-                    releaseAudio(true); ProbeRuntime.audio = "内部播放读取不可用（" + count + "）；仅继续检查画面"; return;
-                }
-                if (decision == AudioReadPolicy.Decision.DATA && ProbeRuntime.lifecycle.maySample(session, SystemClock.elapsedRealtime())) {
-                    int written = wav.append(audioBuffer, count);
-                    ProbeRuntime.audioBytes += written;
-                    ProbeRuntime.audioPeak = Math.max(ProbeRuntime.audioPeak, SignalChecks.peakPcm16(audioBuffer, written));
-                }
-                worker.postDelayed(this, 20);
-            } catch (IOException error) { endAsync("audio_io_failed"); }
-            catch (RuntimeException error) { releaseAudio(true); ProbeRuntime.audio = "内部播放读取已中断；仅继续检查画面"; }
-        }
-    };
-    private void endAsync(String reason) { main.post(() -> end(reason)); }
-    private void end(String reason) {
-        if (session == 0 || !ProbeRuntime.lifecycle.stop(session, reason) || !closing.compareAndSet(false, true)) return;
-        main.removeCallbacks(timeout); ProbeRuntime.message = "采集已停止，正在释放资源（" + reason + "）";
-        // Revoke capture promptly on the main thread, independent of file encoding/cleanup.
-        if (projection != null) {
-            try { projection.stop(); } catch (RuntimeException error) { ProbeRuntime.message = "系统采集已中断；正在清理"; }
-        }
-        if (worker == null) { finishService(); return; }
-        worker.removeCallbacks(audioTick);
-        worker.post(() -> {
-            // One failing close cannot skip the remaining resources or leave the foreground service alive.
-            ResourceScope cleanup = new ResourceScope();
-            cleanup.own(() -> { if (projection != null && projectionCallback != null) projection.unregisterCallback(projectionCallback); });
-            cleanup.own(() -> { readerEpoch++; readers.close(); });
-            cleanup.own(() -> { if (display != null) { display.release(); display = null; } });
-            cleanup.own(() -> releaseAudio(true));
-            if (!cleanup.release()) ProbeRuntime.cacheError = "资源清理出现异常；请结束并重启实验 App";
-            main.post(this::finishService);
+    private void endAsync(String reason){main.post(()->end(reason));}
+    private void end(String reason){
+        if(session==0||!ProbeRuntime.lifecycle.stop(session,reason)||!closing.compareAndSet(false,true))return;
+        main.removeCallbacks(timeout);ProbeRuntime.message="采集已停止，正在释放资源（"+reason+"）";
+        if(projection!=null)try{projection.stop();}catch(RuntimeException e){ProbeRuntime.message="系统采集已中断，正在清理";}
+        if(worker==null){finishService();return;}
+        worker.post(()->{
+            ResourceScope cleanup=new ResourceScope();
+            cleanup.own(()->{if(projection!=null&&callback!=null)projection.unregisterCallback(callback);});
+            cleanup.own(()->{readerEpoch++;readers.close();});
+            cleanup.own(()->{if(display!=null){display.release();display=null;}});
+            if(!cleanup.release())ProbeRuntime.cacheError="资源清理异常，请结束并重启实验 App";
+            ProbeRuntime.suggest();main.post(this::finishService);
         });
     }
-    private void releaseAudio(boolean publish) {
-        AudioRecord audio = recorder; WavSample sample = wav; recorder = null; wav = null;
-        ResourceScope cleanup = new ResourceScope();
-        if (sample != null) cleanup.own(() -> {
-            try {
-                boolean valid = publish && sample.finish();
-                ProbeRuntime.audio = valid ? "内部音频样本已保存；必须试听确认内容" : "没有可试听的内部音频样本";
-            } catch (IOException error) { ProbeRuntime.audio = "音频文件未完成，不作为可用样本"; }
-            finally { sample.close(); }
-        });
-        if (audio != null) cleanup.own(() -> {
-            try { if (audio.getRecordingState() == AudioRecord.RECORDSTATE_RECORDING) audio.stop(); }
-            finally { audio.release(); }
-        });
-        if (!cleanup.release()) ProbeRuntime.cacheError = "音频资源/临时文件清理失败，请结束并重启实验 App";
+    private void finishService(){
+        if(thread!=null){thread.quitSafely();thread=null;}
+        ProbeRuntime.lifecycle.released(session);ProbeRuntime.message="采集结束（"+ProbeRuntime.lifecycle.reason()+"）；请检查和调整关键画面";
+        stopForeground(STOP_FOREGROUND_REMOVE);stopSelf();
     }
-    private void finishService() {
-        if (workerThread != null) { workerThread.quitSafely(); workerThread = null; }
-        ProbeRuntime.lifecycle.released(session); ProbeRuntime.message = "本次采集结束（" + ProbeRuntime.lifecycle.reason() + "）";
-        stopForeground(STOP_FOREGROUND_REMOVE); stopSelf();
-    }
-    @Override public void onDestroy() { end("service_destroyed"); super.onDestroy(); }
-    @Override public IBinder onBind(Intent intent) { return null; }
+    @Override public void onDestroy(){end("service_destroyed");super.onDestroy();}
+    @Override public IBinder onBind(Intent intent){return null;}
 }

@@ -8,10 +8,16 @@ public final class CaptureLifecycle {
     private long id, start, deadline;
     private String reason = "";
     private int nextFrame;
+    private long duration = DURATION_MILLIS;
     public CaptureLifecycle() { this(0); }
     public CaptureLifecycle(long seed) {
         if (seed < 0 || seed == Long.MAX_VALUE) throw new IllegalArgumentException("session seed");
         id = seed;
+    }
+    public CaptureLifecycle(long seed, long duration) {
+        this(seed);
+        if (duration <= 0 || duration > 120000) throw new IllegalArgumentException("duration");
+        this.duration=duration;
     }
     public synchronized long beginConsent() {
         if (state != State.IDLE && state != State.DONE) return -1;
@@ -22,8 +28,8 @@ public final class CaptureLifecycle {
         stop(session, "consent_owner_finished"); released(session); return true;
     }
     public synchronized boolean grant(long session, long elapsed) {
-        if (session != id || state != State.CONSENT || elapsed < 0 || elapsed > Long.MAX_VALUE - DURATION_MILLIS) return false;
-        start = elapsed; deadline = elapsed + DURATION_MILLIS; state = State.STARTING; return true;
+        if (session != id || state != State.CONSENT || elapsed < 0 || elapsed > Long.MAX_VALUE - duration) return false;
+        start = elapsed; deadline = elapsed + duration; state = State.STARTING; return true;
     }
     public synchronized boolean started(long session) {
         if (session != id || state != State.STARTING) return false;
