@@ -114,30 +114,37 @@ Result: BUILD SUCCESSFUL, 124 actionable tasks executed, no reused test green.
 | zipalign `-c 4` (all three) | PASS |
 | Compiled Manifest `aapt dump xmltree`, permission inspection | PASS; no network/audio permissions |
 | P0/P1 certificate equality | PASS: `29ded26bea44f1afe4fe383a302e4b507423d16223469d7da3fe578d9a7f83b9` |
-| Actual P0 → P1 covering install | NOT RUN; matching package/version/signature is not an install test |
-| Android 13 boundary checks | NOT RUN — queued; built only |
-| Actual controlled projection/share and lifecycle | NOT RUN — queued |
+| Actual P0 → P1 covering install | PASS on 2026-10-11, actual sequential covering installs |
+| Android boundary suite | PASS, 13/13 fresh runtime checks, exit 0; not Android version 13 |
+| Actual controlled projection/share and lifecycle | PASS for scoped owned-emulator checks; exact observed cases and remaining limits in Android verification |
 | User P1 six-platform-sample quality | NOT RUN — user acceptance required |
 | Production Web/TypeScript/RECIPIO regression | NOT RUN — no production changes; independent Java experiment |
 | Real AI requests | 0 |
 
 The old `aapt dump badging` tool could print package/version but failed resolving
 the inherited framework icon reference; it is not counted as a passing command.
-Compiled Manifest inspection succeeded instead. Android icon rendering is still
-part of pending runtime verification. Build also emitted SDK-XML mismatch,
+Compiled Manifest inspection succeeded instead. A separate launcher-icon visual
+audit was NOT RUN and is not part of this scoped Android handoff. Build also emitted SDK-XML mismatch,
 Gradle deprecation and low-metaspace warnings; no dependency/SDK upgrades or
 warning suppression were used to hide them.
 
 Android boundary instrumentation uses generated pixels; it does not substitute
 for actual projection or cross-process sharing.
 
-Android runtime checks are queued by explicit user instruction until the other
-project's Lithic task has finished and a safe RECIPIO test environment is free.
-Its emulator will not be used, stopped or modified. Lithic subsequently completed
-and its device was closed, but the next pre-launch check measured only
-1,959,368 KiB available physical memory. The safety guard refused to launch a
-new emulator. A thread heartbeat queues rechecks every 15 minutes, stays quiet
-while unchanged, and must stop after the scoped Android handoff. See
+Android checks were initially queued after the user requested isolation from
+Lithic. Earlier low-memory readiness refusals remain environmental history,
+not product/platform NO_GO evidence. On 2026-10-11 Lithic was idle and no other
+emulator remained. Guarded RECIPIO-owned environments completed the scoped
+Android handoff: 13 generated boundary checks, real single-app consent/refusal,
+two complete controlled-source captures (117 frames each, auto_stop_120s),
+manual/system/process stops, rotation, editable selection/count limits, and
+one/six-image system sharing to the existing v19 RECIPIO. Six receiver images
+loaded in deliberately reordered sequence; no AI or Recipe save occurred.
+Existing v19 SQLite v4 had exactly the same final hash/counts and passed readonly
+integrity/foreign-key checks. Only generated intake/cache data was cleaned.
+Owned test environments were closed normally and temporary density/rotation
+settings restored. The queue heartbeat was set to PAUSED at this scoped handoff. Exact
+commands, artifact baseline, environment limitations and unrun cases:
 [P1_ANDROID_VERIFICATION.md](P1_ANDROID_VERIFICATION.md).
 
 ## Review disposition
@@ -150,14 +157,16 @@ while unchanged, and must stop after the scoped Android handoff. See
 - Exact-only deduplication is an intentional conservative limitation and is
   documented above. No complex model was added.
 - Added fail-closed bounded-encoder payload handling and Android overflow check;
-  the Android check is pending execution, not reported as passed.
+  the compiled Android boundary check was subsequently run in the 13/13 suite.
 
 ## Acceptance still required
 
-1. Generated six-scene capture → editable selection → 1–6-image share → RECIPIO
-   display, with **zero AI calls** during Codex checks.
-2. Android stop/consent/rotation/repeated-session/process cleanup and cross-process
-   read authorization on an owned test device.
+1. **Delivered:** generated six-scene capture → editable selection → one/six-image
+   share → existing RECIPIO display, with **zero AI calls** during Codex checks.
+2. **Delivered for observed cases:** owned-device Android consent/refusal, manual /
+   system / automatic / process stop, rotation, repeated sessions, cache cleanup
+   and cross-process receiving. Physical-device interruptions and prolonged
+   cache-pressure/delayed-reading behavior remain unverified.
 3. User physical-phone tests: two user-selected lawful videos per platform,
    including caption-rich and predominantly spoken examples. Codex will not
    automate platform apps or request an API Key. Any AI call is the user's
@@ -188,5 +197,8 @@ Focused implementation/verification commit and ordinary push are made only to
 `git log -1 --format=%H -- experiments/video-capture-p0/P1_REPORT.md`; the final
 handoff reports it and verifies remote/local equality. No tag/main merge/deploy.
 
-Resume from Android boundary checks and controlled-source integration in
-P1_ANDROID_VERIFICATION; do not repeat completed implementation or real AI smoke.
+Next: user six-sample physical-phone quality assessment in P1_QUALITY_TEMPLATE.
+Do not repeat completed Android checks, call real AI, develop the next module or
+declare Video P1 useful without that user evidence. Frozen App implementation
+and APKs remain those from `6a71feaa1394e0900e991bcdc6eae19d0e8a3973`;
+this handoff changes only experimental evidence/documentation.

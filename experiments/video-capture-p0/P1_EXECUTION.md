@@ -59,8 +59,8 @@ experiment. No production document rewrite is authorized here.
 
 ## Evidence / progress
 
-- Tasks 1–4 implementation complete; Android runtime/controlled integration
-  pending. Six-step source and 13 Android boundary checks built, not run.
+- Tasks 1–4 implementation complete; scoped Android runtime/controlled integration
+  delivered on 2026-10-11. User physical-phone six-sample quality is pending.
 - TDD policy run: 48 tests / 10 failures from expected policy stubs.
 - TDD storage run: storage stub failures reproduced before implementation.
 - TDD source: 3 tests / 2 failures reproduced missing scene behavior.
@@ -71,9 +71,20 @@ experiment. No production document rewrite is authorized here.
   0 failures/errors/skips, lint 0 errors / 12 warnings, three APK builds PASS,
   all 124 Gradle tasks executed. Exact command and warning disposition in report.
 - Delivery signature/alignment/hash/compiled Manifest checks PASS; P0 certificate
-  matches, P0 artifact hashes unchanged. Actual covering install pending.
+  matches, P0 artifact hashes unchanged. Actual covering install subsequently PASS.
 - Independent SOL read-only review: one Important fixed, one Minor test improved,
   conservative exact-dedup limitation documented; Android/platform judgments
   explicitly declined without runtime evidence. No production change/AI call.
-- Next: queued owned-Android boundary and controlled-source integration checks,
-  followed by user six-sample quality assessment. `VIDEO_P1_PENDING_DEVICE_TEST`.
+- Queued Android handoff: frozen implementation `6a71feaa1394e0900e991bcdc6eae19d0e8a3973`
+  unchanged; fresh 13/13 Android runtime PASS on owned API36 AVD; controlled
+  single-app capture (117 frames/auto_stop_120s), manual/system/process stop,
+  rotation, 0/1/6/7 selection boundaries, editable review, native one/six sharing
+  to existing v19, decoded-image order and cold lease/cache checks PASS for
+  observed cases. v6 capture AVD was not upgraded. v19 receiver database retained
+  exact original hash, schema4/eight counts and readonly integrity PASS.
+  Test sessions were abandoned without Recipe save/AI, generated caches deleted,
+  temporary environment settings restored and owned AVDs closed. No production
+  App code changed; 63 JVM/build evidence is retained, not newly rerun.
+- The queue heartbeat is PAUSED at this scoped handoff. Next: user six-sample quality
+  assessment only. `VIDEO_P1_PENDING_DEVICE_TEST`. Exact limits and commands in
+  P1_ANDROID_VERIFICATION; no phone/platform testing or usefulness claim by Codex.
