@@ -1,5 +1,31 @@
 # Decisions
 
+## 2026-10-23 — UI V2 uses an isolated visual gate before production wiring
+
+### Decision
+
+Treat the user-provided UI V2 specification/execution file and Concept A as the
+fixed design baseline. G0/G1 builds a separate serve-only Vite showcase from
+stable main649804a. Do not replace the production entry until user visual approval.
+
+### Context / Alternatives / Reason
+
+The older pasted design prompt suggested several concepts, Compose, extra tabs
+and timers. Those conflict with the supplied final specification and the real
+React/Capacitor product. Reuse existing Base UI behavior, Lucide and local pure
+recipe types; style under `.recipio-ui-v2` instead of modifying shared Web UI.
+Five HR design capabilities are existing playbooks, not five packages to install.
+
+### Consequences
+
+Three root destinations only; complete recipe steps stay the default. Focus is
+viewing, Guided completion needs an explicit action. Fixtures and the explicitly
+approved generated food images exist only in the isolated sample, without
+IndexedDB/SQLite/Provider initialization or production fallback. SQLite4,
+Preview7, Backup2, Native security and existing Logo remain unchanged. G1 does
+not require an APK and does not prove Android IME/TalkBack/OEM/performance or
+production data preservation. See ui-v2/EXECUTION.md for the G2–G4 approval gate.
+
 ## 2026-10-06 — Carry approved brand assets into the accepted feature lineage
 
 ### Decision

@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
+    "dev:ui-v2": "vite --config vite.ui-v2.config.mts",
     "dev:local": "vite --config vite.native.config.mts",
     "build:local": "vite build --config vite.native.config.mts",
     "preview:local": "vite preview --config vite.native.config.mts",
