@@ -74,6 +74,25 @@ No new runtime warning assessment was possible.
 
 ## Change / Git boundary / continuation
 
+### Bounded retry — 2026-10-23, 23:37–23:40 China Standard Time
+
+- User requested one retry. Entry local/fetched remote feature HEAD matched
+  `1ba1f680416ae485191a2cbc63ae7c36e11d8a20`; workspace clean; remote main still
+  `649804a8209413f9d682f1079a4fd19ea84cd064`.
+- Candidate reread:17,249,848 bytes; SHA-256 still
+  `c2c770e12e1af995c522da3d1e2b898ad1eca2a6fe3535ea3a065fe524d57090`.
+- Free RAM: **3.925 GiB** at `2026-10-23T15:37:58.9710113Z`, then
+  **2.938 GiB** at `2026-10-23T15:39:59.9379380Z`. Both below4GiB; gate **FAIL**.
+- No running emulator/QEMU, Android Studio, Java or Gradle found. Existing ADB
+  host inventory again reported0 emulators/1 non-emulator device; no device-target
+  commands sent. Dedicated Recipio_Backup_36 registration/configuration unchanged.
+- No launch, install, app-data access, runtime test, AI call, process shutdown or
+  recurring retry. All A–E runtime results above remain **NOT_RUN**. Production
+  code and APK unchanged; only this report receives the fresh retry evidence.
+- Status remains **UI_V2_G2_ANDROID_ENV_BLOCKED**. Stop; do not reduce the gate.
+
+### Protected boundary
+
 - Production source, tests, dependencies, Android configuration, SQLitev4,
   Backupv2, Logo and APK bytes: **unchanged**.
 - Only this report is added. Entry workspace was clean; final commit and normal
