@@ -1,0 +1,120 @@
+{
+  "baseRevision": "c956e59bc791ed1ea728f2af4092c19e38902eca",
+  "dirtyAtRun": true,
+  "fingerprint": "59c62730ceaa6fe6b285e77cff0eea70ca2afb00b2f24e6903c01b8f8178ccd5",
+  "algorithm": "sha256 of sorted JSON path/raw-file-sha256 entries",
+  "entries": [
+    {
+      "path": "scripts/ui-v2-evidence-source.mjs",
+      "sha256": "cbb682ca4794853957c54032eea76d6a363f8418bd535ce4ec1670d08104dae2"
+    },
+    {
+      "path": "scripts/verify-ui-v2-themes.mjs",
+      "sha256": "12e3adcce84595eda7dec0d78c034f8e60a473894debb697eae35ff0ebaede05"
+    },
+    {
+      "path": "scripts/verify-ui-v2.mjs",
+      "sha256": "a0fc2a9d7aa6517db225085edfdcc2c62811f13886587f5a82491f29f72ff38f"
+    },
+    {
+      "path": "src/native/ui-v2/appearance.tsx",
+      "sha256": "261f53b00c04e4fbeae4ed0584d89be4e99c344c278ffd2366a57a8c17e174c2"
+    },
+    {
+      "path": "src/native/ui-v2/components.tsx",
+      "sha256": "cdd42458788bf1807e3240503ce39406ee431c93d68c76999c138394ead45c5f"
+    },
+    {
+      "path": "src/native/ui-v2/showcase/assets/README.md",
+      "sha256": "39f044c6ac02248771f994fdc0a24fef7998cef07a76081d7fbebf485f1a6ef7"
+    },
+    {
+      "path": "src/native/ui-v2/showcase/assets/broccoli.webp",
+      "sha256": "06d309df8b32df41c41c3c087b8bc555d0cabed63a5f8f080c7c1ce612e4648e"
+    },
+    {
+      "path": "src/native/ui-v2/showcase/assets/cola-step.webp",
+      "sha256": "526e5f9a7240b86417463f0c547ae62bc9a84e72e5035d183867a6a301a5a951"
+    },
+    {
+      "path": "src/native/ui-v2/showcase/assets/cola-wings.webp",
+      "sha256": "8288a5a41a3de3ae718ec403c3f028ab9150943b271ccbe742c7cfc72e10645d"
+    },
+    {
+      "path": "src/native/ui-v2/showcase/assets/tomato-egg-soup.webp",
+      "sha256": "430dca452a8942167a075395d44acc9c41af5f275f8fc1f6f60af0cc959a44a2"
+    },
+    {
+      "path": "src/native/ui-v2/showcase/components-page.css",
+      "sha256": "3f5957538e65bd192a3795ac5d76778c6b310bf675b14974f0e91933f71f52db"
+    },
+    {
+      "path": "src/native/ui-v2/showcase/components-page.tsx",
+      "sha256": "e85cbbfb24985156358be632198589784c7d174977d179f427545cb5aa0ca1ad"
+    },
+    {
+      "path": "src/native/ui-v2/showcase/cooking.tsx",
+      "sha256": "cbd920dbbdf874b7665ea398e7888c825034425d107a0492ff46f5cbec698c69"
+    },
+    {
+      "path": "src/native/ui-v2/showcase/demo-data.ts",
+      "sha256": "822c4d06deea9b5ac1205c703ccf107587d8e029ea9fac49a1c2c5dd552042d1"
+    },
+    {
+      "path": "src/native/ui-v2/showcase/detail.tsx",
+      "sha256": "97c99aad64a927222378a0a8f6ea59b5b12b2447f986bf8b8e90d3ae97b915cf"
+    },
+    {
+      "path": "src/native/ui-v2/showcase/home.tsx",
+      "sha256": "8190c75c6f4c863aa9414ba293b3d2963e5506d22e1e63f47683e94b67f68e6b"
+    },
+    {
+      "path": "src/native/ui-v2/showcase/main.tsx",
+      "sha256": "04c60b0f8a6a129d473d1d77f60bc0e8f68bc2f7bee3df5f246be67bb31355bd"
+    },
+    {
+      "path": "src/native/ui-v2/showcase/material-sample.tsx",
+      "sha256": "358592c9e42fc30aabdaa8b2fc8d00c30a533bba3cbca5b20211a6c764d03c63"
+    },
+    {
+      "path": "src/native/ui-v2/showcase/showcase.test.tsx",
+      "sha256": "d1c23e88d94a528e605d220829cee21283dbdde838d631a06d497189cc9b6660"
+    },
+    {
+      "path": "src/native/ui-v2/showcase/showcase.tsx",
+      "sha256": "4cb4f4b20bd2bd9a54f491ce7711bd88622465b40a6b3742480b2343ae1c685a"
+    },
+    {
+      "path": "src/native/ui-v2/showcase/styles.css",
+      "sha256": "dec74bb9540be8d13b409c4a0dff9dcec82363345bccb7794f975d49ae728d8c"
+    },
+    {
+      "path": "src/native/ui-v2/showcase/theme-picker.tsx",
+      "sha256": "767aa7fa0e850f75428e7e8c2e5d094dd0fb28f730fed9a7d9d188d10457116e"
+    },
+    {
+      "path": "src/native/ui-v2/showcase/theme-refresh.test.tsx",
+      "sha256": "b40b9fc99148be4a4eac4ec462a7d903e6b203465b008f46364a85cc28f6cc0c"
+    },
+    {
+      "path": "src/native/ui-v2/showcase/vite-env.d.ts",
+      "sha256": "65996936fbb042915f7b74a200fcdde7e410f32a669b1ab9597cfaa4b0faddb5"
+    },
+    {
+      "path": "src/native/ui-v2/tokens.css",
+      "sha256": "b697c9a2a386cbc02c9242ad972ed795d84c472ebd9c982f08fb03f1cdd9a2dc"
+    },
+    {
+      "path": "src/native/ui-v2/use-control-clearance.ts",
+      "sha256": "e1f355b970c8267576bb1adf0979c1fb90d068edcb7a4a307df76014ee7746f8"
+    },
+    {
+      "path": "ui-v2-showcase/index.html",
+      "sha256": "a7370c1528719ad9d853990d1a769d1ba5bb0cdefea507fbc308257ac29fce0a"
+    },
+    {
+      "path": "vite.ui-v2.config.mts",
+      "sha256": "bd6587ae2ed6b61f91510b73005f4156cd126a1314aa5c4d9d486ac56928e32f"
+    }
+  ]
+}

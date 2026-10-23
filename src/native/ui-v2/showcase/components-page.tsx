@@ -2,6 +2,7 @@ import { useRef, useState } from "react";
 import { AlertCircle, ArrowUpRight, BookOpen, Check, ImageIcon, Plus, Search, Trash2, X } from "lucide-react";
 import { StateBadge, V2Button, V2Sheet } from "../components";
 import { demoRecipes } from "./demo-data";
+import { MaterialSample } from "./material-sample";
 
 type ButtonVariant = "primary" | "secondary" | "icon" | "danger";
 type DemoState = "default" | "pressed" | "focus" | "disabled" | "busy" | "error";
@@ -76,6 +77,7 @@ export function ComponentsPage() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [toastVisible, setToastVisible] = useState(false);
   const searchInput = useRef<HTMLInputElement>(null);
+  const cancelConfirmation = useRef<HTMLButtonElement>(null);
   const recipe = demoRecipes[0];
   const cardRecipe = demoRecipes[1];
   const matches = search.trim() ? demoRecipes.filter(({ details }) => details.title.includes(search.trim())) : [];
@@ -91,6 +93,8 @@ export function ComponentsPage() {
           <p>以下均为演示内容。操作只改变当前页面，不联网、不写入正式菜谱，刷新后重置。</p>
         </div>
       </header>
+
+      <MaterialSample onOpen={() => setSheetOpen(true)} />
 
       <section className="v2-gallery-section" aria-labelledby="v2-actions-title">
         <div className="v2-gallery-section-heading">
@@ -202,15 +206,15 @@ export function ComponentsPage() {
         {toastVisible && <div className="v2-gallery-toast" role="status"><Check size={20} aria-hidden="true" /><span>提示已显示，仅用于检查反馈样式。</span><V2Button variant="icon" aria-label="关闭提示样例" onClick={() => setToastVisible(false)}><X size={20} aria-hidden="true" /></V2Button></div>}
       </section>
 
-      <footer className="v2-gallery-footer">暖白内容层 · 鼠尾草绿操作 · 完整状态反馈</footer>
+      <footer className="v2-gallery-footer">同一套结构 · 三种主题 · 内容清晰优先</footer>
 
       <V2Sheet open={sheetOpen} onOpenChange={setSheetOpen} title="食材清单样例" description="可乐鸡翅 · 只读演示内容，不记录勾选进度。">
         <dl className="v2-gallery-sheet-ingredients">{recipe.details.ingredients.map((ingredient) => <div key={ingredient.name}><dt>{ingredient.name}</dt><dd>{ingredient.amount}</dd></div>)}</dl>
         <V2Button variant="secondary" className="v2-gallery-review-save" onClick={() => setSheetOpen(false)}>返回组件样板</V2Button>
       </V2Sheet>
-      <V2Sheet open={dialogOpen} onOpenChange={setDialogOpen} title="移除这份样例？" description="这仅演示确认与取消。不会删除菜谱、图片或其他正式数据。" kind="dialog">
+      <V2Sheet open={dialogOpen} onOpenChange={setDialogOpen} title="移除这份样例？" description="这仅演示确认与取消。不会删除菜谱、图片或其他正式数据。" kind="dialog" initialFocus={cancelConfirmation}>
         <div className="v2-gallery-dialog-actions">
-          <V2Button variant="secondary" autoFocus onClick={() => setDialogOpen(false)}>取消，保留样例</V2Button>
+          <V2Button ref={cancelConfirmation} variant="secondary" onClick={() => setDialogOpen(false)}>取消，保留样例</V2Button>
           <V2Button variant="danger" onClick={() => { setDialogOpen(false); setFeedback("移除确认已响应；没有删除任何正式数据。"); }}>确认演示操作</V2Button>
         </div>
       </V2Sheet>

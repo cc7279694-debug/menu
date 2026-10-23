@@ -15,7 +15,7 @@
 | APK-5C-B | Deferred; not authorized as product implementation | 视频/社交专项，仅已有独立可行性实验；本轮不进入 |
 | APK-6 | Accepted stable baseline | 已接受功能与 Logo 已在稳定 main649804a；历史1029/441/188/105及原失败证据保留，不改写为 UI V2 本轮测试 |
 | Logo integration | Accepted stable baseline | 用户已认可新 Logo 并授权与 APK-6 共同进入稳定 main；既定品牌不在 UI V2 重绘，历史手机/OEM测试不冒称新执行 |
-| UI V2 G0/G1 | UI_V2_VISUAL_READY_FOR_REVIEW | Concept A冻结；作用域Token、组件状态与首页/详情/烹饪隔离交互样板。1049全仓/461子集/41浏览器通过；见 ui-v2/G1_VERIFICATION.md；正式入口不变 |
+| UI V2 G0/G1 | Second-round refinement awaiting visual review | Concept A结构不变；三主题共享布局，增强控制层玻璃与排版。最新验收见 ui-v2/THEME_REFRESH_VERIFICATION.md；原1049/461/41仅为G1历史证据；正式入口不变 |
 | UI V2 G2–G4 | Gated / not yet authorized | 待三屏视觉认可后接入生产核心、统一导入/Finder/设置/分享/备份，最终 Android/真机门禁 |
 
 APK-6历史证据见 verification/find-recipe-rc2*.md 与原checkpoint，441项是1029项的子集，不能重复相加。当前Logo集成证据见checkpoints/2026-10-06-logo-integration.md：纯资源任务未重复全仓/connected/Provider测试，完成构建和窄模拟器视觉/数据保留验证；手机视觉验收独立。用户APK-6确认不是Codex重新调用AI的证据。不恢复收藏、购物、菜单、Timer或云同步；任何后续模块或main收口需另行批准。

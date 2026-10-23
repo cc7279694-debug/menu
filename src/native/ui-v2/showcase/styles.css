@@ -1,32 +1,33 @@
 /* This stylesheet is imported exclusively by the DEV-only showcase entry. */
-.recipio-ui-v2.v2-app { height: 100dvh; max-width: 960px; margin: 0 auto; display: flex; flex-direction: column; background: var(--v2-canvas); }
-.recipio-ui-v2 .v2-demo-bar { flex-shrink: 0; display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 0 20px; color: var(--v2-caption); font-size: .75rem; border-bottom: 1px solid var(--v2-border); }
+.recipio-ui-v2.v2-app { --v2-controls-height: 0px; height: 100dvh; max-width: 960px; margin: 0 auto; display: grid; grid-template-columns: minmax(0,1fr); grid-template-rows: auto minmax(0,1fr); position: relative; background: var(--v2-canvas); }
+.recipio-ui-v2 .v2-demo-bar { grid-area: 1/1; display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 0 20px; color: var(--v2-caption); font-size: .75rem; border-bottom: 1px solid var(--v2-border); }
 .recipio-ui-v2 .v2-demo-bar button { min-height: 48px; border: 0; padding: 8px 0 8px 12px; background: transparent; color: var(--v2-action); font-size: .75rem; cursor: pointer; flex-shrink: 0; }
-.recipio-ui-v2 .v2-viewport { display: flex; flex-direction: column; flex: 1; min-height: 0; }
+.recipio-ui-v2 .v2-viewport { grid-area: 2/1; display: flex; flex-direction: column; min-height: 0; isolation: isolate; }
 .recipio-ui-v2 .v2-page-region { flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin; }
-.recipio-ui-v2 .v2-home { width: 100%; max-width: 680px; padding: 16px 20px 24px; margin-inline: auto; }
-.recipio-ui-v2 .v2-home-header { display: flex; align-items: center; justify-content: space-between; gap: 16px; min-height: 56px; margin-bottom: 20px; }
+.recipio-ui-v2 .v2-home { width: 100%; max-width: 680px; padding: 0 20px calc(var(--v2-controls-height,0px) + 28px); margin-inline: auto; scroll-padding-bottom: calc(var(--v2-controls-height,0px) + 24px); }
+.recipio-ui-v2 .v2-home-controls { position: sticky; top: 0; z-index: 1; margin-inline: -20px; padding: 18px 20px; border-bottom: 1px solid var(--v2-glass-low-edge); border-radius: 0 0 24px 24px; }
+.recipio-ui-v2 .v2-home-header { display: flex; align-items: center; justify-content: space-between; gap: 16px; min-height: 56px; margin-bottom: 18px; }
 .recipio-ui-v2 .v2-home-header > .v2-button { border: 1px solid var(--v2-border); flex: 0 0 48px; }
 .recipio-ui-v2 .v2-brand { display: flex; align-items: center; gap: 12px; }
 .recipio-ui-v2 .v2-brand img { width: 40px; height: 40px; flex-shrink: 0; border-radius: 10px; }
 .recipio-ui-v2 .v2-brand h1 { font-size: 1.5rem; font-weight: 600; line-height: 1.33; letter-spacing: .05em; }
 .recipio-ui-v2 .v2-brand span { display: block; font-size: .625rem; letter-spacing: .28em; line-height: 1.6; }
 .recipio-ui-v2 .v2-page-title { font-size: 1.75rem; font-weight: 600; line-height: 1.28; overflow-wrap: anywhere; }
-.recipio-ui-v2 .v2-search { display: flex; align-items: center; min-height: 52px; padding: 0 12px 0 16px; gap: 10px; background: var(--v2-surface); border: 1px solid var(--v2-control); border-radius: 18px; }
+.recipio-ui-v2 .v2-search { display: flex; align-items: center; min-height: 52px; padding: 0 12px 0 16px; gap: 10px; background: var(--v2-field-shield); border: 1px solid var(--v2-control); border-radius: 18px; box-shadow: inset 0 1px 0 var(--v2-glass-edge); }
 .recipio-ui-v2 .v2-search > svg { flex: 0 0 20px; height: 20px; color: var(--v2-caption); stroke-width: 1.6; }
 .recipio-ui-v2 .v2-search input { width: 100%; min-width: 0; min-height: 50px; border: 0; padding: 8px 0; background: transparent; outline-offset: 3px; font-size: 1rem; }
 .recipio-ui-v2 .v2-search input::placeholder { color: var(--v2-caption); }
 .recipio-ui-v2 .v2-search input::-webkit-search-cancel-button { display: none; }
 .recipio-ui-v2 .v2-search .v2-button { flex: 0 0 48px; margin-right: -10px; background: transparent; }
-.recipio-ui-v2 .v2-entry-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 20px; }
-.recipio-ui-v2 .v2-entry-card { display: flex; flex-direction: column; align-items: flex-start; min-width: 0; gap: 4px; padding: 18px 16px; background: var(--v2-surface); border: 1px solid rgba(222,218,211,.6); border-radius: 24px; text-align: left; cursor: pointer; transition: background 120ms var(--v2-ease); }
+.recipio-ui-v2 .v2-entry-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 24px; }
+.recipio-ui-v2 .v2-entry-card { display: flex; flex-direction: column; align-items: flex-start; min-width: 0; gap: 5px; padding: 20px 16px; background: var(--v2-surface); border: 1px solid var(--v2-border); border-radius: 24px; text-align: left; cursor: pointer; transition: background 120ms var(--v2-ease); }
 .recipio-ui-v2 .v2-entry-card:active { background: var(--v2-muted); }
 .recipio-ui-v2 .v2-entry-symbol { width: 36px; height: 36px; margin-bottom: 9px; border-radius: 50%; display: grid; place-items: center; background: var(--v2-soft); color: var(--v2-action); }
 .recipio-ui-v2 .v2-entry-symbol svg { width: 21px; height: 21px; stroke-width: 1.5; }
-.recipio-ui-v2 .v2-entry-symbol--find { background: #edf0ec; }
+.recipio-ui-v2 .v2-entry-symbol--find { background: var(--v2-muted); }
 .recipio-ui-v2 .v2-entry-card strong { font-size: 1.0625rem; line-height: 1.42; font-weight: 600; overflow-wrap: anywhere; }
 .recipio-ui-v2 .v2-entry-card > span:last-child { color: var(--v2-secondary); font-size: .875rem; line-height: 1.57; }
-.recipio-ui-v2 .v2-section { margin-top: 28px; }
+.recipio-ui-v2 .v2-section { margin-top: 32px; }
 .recipio-ui-v2 .v2-section-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 12px; }
 .recipio-ui-v2 .v2-section-heading h2, .recipio-ui-v2 .v2-content-section > h2 { font-size: 1.25rem; line-height: 1.4; font-weight: 600; }
 .recipio-ui-v2 .v2-section-heading .v2-button { font-size: .875rem; font-weight: 400; color: var(--v2-secondary); padding-inline: 0; flex-shrink: 0; }
@@ -48,30 +49,31 @@
 .recipio-ui-v2 .v2-empty { display: flex; flex-direction: column; align-items: flex-start; gap: 16px; padding-block: 32px; }
 .recipio-ui-v2 .v2-empty > svg { color: var(--v2-sage); width: 32px; height: 32px; stroke-width: 1.4; }
 .recipio-ui-v2 .v2-empty h2 { font-size: 1.25rem; font-weight: 600; }
-.recipio-ui-v2 .v2-nav-area { padding: 8px 16px max(12px,env(safe-area-inset-bottom)); flex-shrink: 0; }
-.recipio-ui-v2 .v2-bottom-nav { min-height: 64px; width: min(100%,648px); margin-inline: auto; padding: 5px 12px; display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); border: 1px solid rgba(222,218,211,.8); border-radius: 28px; box-shadow: var(--v2-shadow); }
-.recipio-ui-v2 .v2-glass { background: var(--v2-glass); backdrop-filter: var(--v2-glass-blur); }
-.recipio-ui-v2[data-overlay-open="true"] .v2-glass { backdrop-filter: none; }
-.recipio-ui-v2 .v2-bottom-nav button { min-height: 54px; min-width: 0; padding: 6px 8px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; background: transparent; border: 0; border-radius: 20px; color: var(--v2-secondary); cursor: pointer; font-size: .75rem; line-height: 1.5; }
+.recipio-ui-v2 .v2-nav-area { grid-area: 2/1; align-self: end; position: relative; padding: 8px 16px max(12px,env(safe-area-inset-bottom)); pointer-events: none; }
+.recipio-ui-v2 .v2-bottom-nav { pointer-events: auto; min-height: 64px; width: min(100%,648px); margin-inline: auto; padding: 6px; display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); border: 1px solid var(--v2-glass-edge); border-radius: 28px; }
+.recipio-ui-v2 .v2-glass { background: var(--v2-glass); backdrop-filter: var(--v2-glass-blur); -webkit-backdrop-filter: var(--v2-glass-blur); box-shadow: inset 0 1px 0 var(--v2-glass-edge), inset 0 -1px 0 var(--v2-glass-low-edge), var(--v2-shadow); }
+/* Every V2 modal, including cooking/component portals, suspends background large blur. */
+body:has(.v2-portal .v2-sheet) .v2-app :is(.v2-glass,.v2-detail-navigation .v2-button) { backdrop-filter: none; -webkit-backdrop-filter: none; background: var(--v2-surface); }
+.recipio-ui-v2 .v2-bottom-nav button { min-height: 54px; min-width: 0; padding: 6px 8px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; background: transparent; border: 0; border-radius: 22px; color: var(--v2-text); cursor: pointer; font-size: .75rem; line-height: 1.5; }
 .recipio-ui-v2 .v2-bottom-nav button svg { width: 22px; height: 22px; stroke-width: 1.65; }
 .recipio-ui-v2 .v2-bottom-nav button[aria-current="page"] { color: var(--v2-action); background: var(--v2-soft); font-weight: 600; }
-.recipio-ui-v2 .v2-detail { height: 100%; min-height: 0; display: flex; flex-direction: column; width: 100%; max-width: 680px; margin-inline: auto; background: var(--v2-surface); }
-.recipio-ui-v2 .v2-detail-scroll { flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin; }
+.recipio-ui-v2 .v2-detail { height: 100%; min-height: 0; display: grid; grid-template-rows: minmax(0,1fr); width: 100%; max-width: 680px; margin-inline: auto; background: var(--v2-surface); }
+.recipio-ui-v2 .v2-detail-scroll { grid-area: 1/1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin; padding-bottom: calc(var(--v2-controls-height,112px) + 24px); scroll-padding-bottom: calc(var(--v2-controls-height,112px) + 24px); }
 .recipio-ui-v2 .v2-detail-hero { position: relative; }
 .recipio-ui-v2 .v2-cover-button { display: block; width: 100%; padding: 0; border: 0; background: transparent; cursor: zoom-in; }
 .recipio-ui-v2 .v2-cover { display: flex; width: 100%; height: auto; aspect-ratio: 4/3; object-fit: cover; }
 .recipio-ui-v2 .v2-detail-navigation { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 16px; }
 .recipio-ui-v2 .v2-detail-hero > .v2-detail-navigation { position: absolute; inset: 0 0 auto; pointer-events: none; }
-.recipio-ui-v2 .v2-detail-navigation .v2-button { pointer-events: auto; border: 1px solid rgba(222,218,211,.6); }
-.recipio-ui-v2 .v2-detail-body { position: relative; padding: 20px 20px 32px; background: var(--v2-surface); }
+.recipio-ui-v2 .v2-detail-navigation .v2-button { pointer-events: auto; border: 1px solid var(--v2-glass-edge); background: var(--v2-glass); backdrop-filter: var(--v2-glass-blur); -webkit-backdrop-filter: var(--v2-glass-blur); box-shadow: inset 0 1px 0 var(--v2-glass-edge), var(--v2-shadow); }
+.recipio-ui-v2 .v2-detail-body { position: relative; padding: 24px 20px 32px; background: var(--v2-surface); }
 .recipio-ui-v2 .v2-detail-body--overlap { margin-top: -12px; border-radius: 24px 24px 0 0; }
-.recipio-ui-v2 .v2-detail-title { font-size: 1.875rem; font-weight: 600; line-height: 1.333; overflow-wrap: anywhere; }
-.recipio-ui-v2 .v2-meta { display: flex; flex-wrap: wrap; gap: 12px 16px; margin-top: 18px; padding-block: 0 4px; }
+.recipio-ui-v2 .v2-detail-title { font-size: 1.875rem; font-weight: 600; line-height: 1.333; letter-spacing: -.025em; overflow-wrap: anywhere; }
+.recipio-ui-v2 .v2-meta { display: flex; flex-wrap: wrap; gap: 12px 16px; margin-top: 20px; padding-block: 0 4px; }
 .recipio-ui-v2 .v2-meta > div { flex: 1 1 auto; display: grid; grid-template-columns: 18px max-content; column-gap: 6px; align-content: start; min-width: 0; }
 .recipio-ui-v2 .v2-meta svg { grid-row: span 2; width: 18px; height: 18px; stroke-width: 1.6; margin-top: 3px; color: var(--v2-secondary); }
 .recipio-ui-v2 .v2-meta dt { font-size: .75rem; line-height: 1.5; color: var(--v2-secondary); }
 .recipio-ui-v2 .v2-meta dd { font-size: .875rem; line-height: 1.57; overflow-wrap: anywhere; }
-.recipio-ui-v2 .v2-content-section { margin-top: 28px; }
+.recipio-ui-v2 .v2-content-section { margin-top: 32px; }
 .recipio-ui-v2 .v2-content-section > h2 { margin-bottom: 12px; }
 .recipio-ui-v2 .v2-preparation-list { list-style: none; padding: 0; display: flex; flex-direction: column; gap: 14px; }
 .recipio-ui-v2 .v2-preparation-list > li { display: flex; align-items: baseline; gap: 10px; }
@@ -79,7 +81,7 @@
 .recipio-ui-v2 .v2-callout { display: flex; align-items: flex-start; gap: 12px; padding: 16px; border-radius: 18px; background: var(--v2-warning-surface); color: var(--v2-warning); font-size: .875rem; line-height: 1.57; }
 .recipio-ui-v2 .v2-callout > svg { width: 20px; height: 20px; flex: 0 0 20px; margin-top: 2px; }
 .recipio-ui-v2 .v2-step-list { list-style: none; padding: 0; }
-.recipio-ui-v2 .v2-step-list > li { display: grid; grid-template-columns: 1.75rem minmax(0,1fr); gap: 12px; margin-bottom: 24px; }
+.recipio-ui-v2 .v2-step-list > li { display: grid; grid-template-columns: 1.75rem minmax(0,1fr); gap: 12px; margin-bottom: 28px; }
 .recipio-ui-v2 .v2-step-number { font-size: 1rem; font-weight: 500; color: var(--v2-action); line-height: 48px; font-variant-numeric: tabular-nums; }
 .recipio-ui-v2 .v2-step-heading { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 4px 8px; min-height: 48px; }
 .recipio-ui-v2 .v2-step-heading h3 { font-size: 1.125rem; font-weight: 500; }
@@ -90,7 +92,7 @@
 .recipio-ui-v2 .v2-step-image { display: block; width: 100%; height: auto; border-radius: 18px; }
 .recipio-ui-v2 .v2-notes { display: flex; align-items: flex-start; gap: 10px; white-space: pre-wrap; overflow-wrap: anywhere; }
 .recipio-ui-v2 .v2-notes svg { flex: 0 0 18px; width: 18px; height: 18px; margin-top: 5px; color: var(--v2-secondary); }
-.recipio-ui-v2 .v2-bottom-actions { flex-shrink: 0; padding: 12px 20px max(16px,env(safe-area-inset-bottom)); display: flex; flex-wrap: wrap; gap: 12px; border-top: 1px solid var(--v2-border); }
+.recipio-ui-v2 .v2-bottom-actions { grid-area: 1/1; align-self: end; position: relative; margin: 12px 16px max(12px,env(safe-area-inset-bottom)); padding: 12px; display: flex; flex-wrap: wrap; gap: 12px; border: 1px solid var(--v2-glass-edge); border-radius: 26px; }
 .recipio-ui-v2 .v2-bottom-actions > .v2-button { flex: 1 1 auto; }
 .recipio-ui-v2 .v2-bottom-actions > .v2-button--secondary { flex-grow: 0; }
 .recipio-ui-v2 .v2-settings-note { display: flex; flex-direction: column; gap: 16px; padding-top: 16px; }
@@ -108,31 +110,42 @@
 .recipio-ui-v2 .v2-review-controls select { width: 100%; min-height: 52px; padding: 12px; border: 1px solid var(--v2-control); border-radius: 18px; background: var(--v2-surface); font-size: 1rem; }
 .recipio-ui-v2 .v2-review-controls > .v2-toggle-label { flex-direction: row; align-items: center; min-height: 48px; }
 .recipio-ui-v2 .v2-toggle-label input { width: 24px; height: 24px; flex-shrink: 0; accent-color: var(--v2-action); }
-.recipio-ui-v2[data-cooking="true"] { background: var(--v2-cook); --v2-focus: #d0ddcd; }
-.recipio-ui-v2[data-cooking="true"] > .v2-demo-bar { color: #c8cdc5; border-color: #51594f; }
-.recipio-ui-v2[data-cooking="true"] > .v2-demo-bar button { color: #d0ddcd; }
-.recipio-ui-v2.v2-cooking { width: 100%; max-width: 680px; height: 100%; min-height: 0; margin-inline: auto; display: flex; flex-direction: column; background: var(--v2-cook); }
-.recipio-ui-v2 .v2-cook-header { flex-shrink: 0; padding: 12px 20px 16px; }
-.recipio-ui-v2 .v2-cook-toolbar { display: grid; grid-template-columns: 48px minmax(0,1fr) 48px; align-items: center; gap: 12px; }
+.recipio-ui-v2 .v2-theme-picker { min-width: 0; margin: 0; padding: 0; border: 0; }
+.recipio-ui-v2 .v2-theme-picker legend { padding: 0; margin-bottom: 12px; font-weight: 600; }
+.recipio-ui-v2 .v2-theme-options { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 8px; }
+.recipio-ui-v2 .v2-theme-option { position: relative; display: flex; flex-direction: column; gap: 8px; padding: 12px 8px; min-height: 72px; border: 1px solid var(--v2-control); border-radius: 16px; font-size: .75rem; line-height: 1.5; overflow-wrap: anywhere; cursor: pointer; }
+.recipio-ui-v2 .v2-theme-option:has(:checked) { border-color: var(--v2-action); background: var(--v2-soft); box-shadow: inset 0 0 0 1px var(--v2-action); }
+.recipio-ui-v2 .v2-theme-option:focus-within { outline: 2px solid var(--v2-focus); outline-offset: 2px; }
+.recipio-ui-v2 .v2-theme-option input { accent-color: var(--v2-action); width: 18px; height: 18px; margin: 0; }
+.recipio-ui-v2 .v2-theme-swatch { display: grid; grid-template-columns: 1fr 1fr 1fr; height: 24px; overflow: hidden; border: 1px solid var(--v2-border); border-radius: 8px; }
+.recipio-ui-v2 .v2-theme-swatch i:nth-child(1) { background: var(--v2-canvas); }
+.recipio-ui-v2 .v2-theme-swatch i:nth-child(2) { background: var(--v2-surface); }
+.recipio-ui-v2 .v2-theme-swatch i:nth-child(3) { background: var(--v2-action); }
+.recipio-ui-v2[data-cooking="true"] { background: var(--v2-cook); --v2-focus: var(--v2-cook-focus); }
+.recipio-ui-v2[data-cooking="true"] > .v2-demo-bar { color: var(--v2-cook-secondary); border-color: var(--v2-cook-border); }
+.recipio-ui-v2[data-cooking="true"] > .v2-demo-bar button { color: var(--v2-cook-focus); }
+.recipio-ui-v2.v2-cooking { width: 100%; max-width: 680px; height: 100%; min-height: 0; margin-inline: auto; display: grid; grid-template-rows: auto minmax(0,1fr); background: var(--v2-cook); }
+.recipio-ui-v2 .v2-cook-header { grid-area: 1/1; padding: 12px 20px 18px; }
+.recipio-ui-v2 .v2-cook-toolbar { display: grid; grid-template-columns: 48px minmax(0,1fr) 48px; align-items: center; gap: 12px; padding: 5px; border: 1px solid var(--v2-glass-edge); border-radius: 999px; }
 .recipio-ui-v2 .v2-cook-toolbar p { text-align: center; font-size: 1rem; font-weight: 500; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; overflow-wrap: anywhere; }
-.recipio-ui-v2 .v2-cook-toolbar .v2-button { background: #353a34; }
+.recipio-ui-v2 .v2-cook-toolbar .v2-button { background: transparent; }
 .recipio-ui-v2 .v2-cook-progress { display: flex; align-items: center; gap: 16px; padding-top: 20px; }
-.recipio-ui-v2 .v2-cook-progress progress { appearance: none; height: 4px; border: 0; border-radius: 999px; width: 100%; min-width: 32px; background: #586152; color: #d9e5d4; }
-.recipio-ui-v2 .v2-cook-progress progress::-webkit-progress-bar { background: #586152; border-radius: 999px; }
-.recipio-ui-v2 .v2-cook-progress progress::-webkit-progress-value { background: #d9e5d4; border-radius: 999px; }
-.recipio-ui-v2 .v2-cook-progress progress::-moz-progress-bar { background: #d9e5d4; border-radius: 999px; }
+.recipio-ui-v2 .v2-cook-progress progress { appearance: none; height: 4px; border: 0; border-radius: 999px; width: 100%; min-width: 32px; background: var(--v2-cook-track); color: var(--v2-cook-focus); }
+.recipio-ui-v2 .v2-cook-progress progress::-webkit-progress-bar { background: var(--v2-cook-track); border-radius: 999px; }
+.recipio-ui-v2 .v2-cook-progress progress::-webkit-progress-value { background: var(--v2-cook-focus); border-radius: 999px; }
+.recipio-ui-v2 .v2-cook-progress progress::-moz-progress-bar { background: var(--v2-cook-focus); border-radius: 999px; }
 .recipio-ui-v2 .v2-cook-progress span { font-size: .75rem; color: var(--v2-secondary); flex-shrink: 0; }
-.recipio-ui-v2 .v2-cook-scroll { flex: 1; min-height: 0; overflow-y: auto; padding: 16px 24px 32px; overscroll-behavior: contain; }
-.recipio-ui-v2 .v2-cook-scroll h1 { font-size: 2rem; font-weight: 500; line-height: 1.35; margin-bottom: 20px; }
-.recipio-ui-v2 .v2-cook-instruction { font-size: 1.25rem; line-height: 1.6; white-space: pre-wrap; overflow-wrap: anywhere; }
+.recipio-ui-v2 .v2-cook-scroll { grid-area: 2/1; min-height: 0; overflow-y: auto; padding: 20px 24px calc(var(--v2-controls-height,112px) + 32px); scroll-padding-bottom: calc(var(--v2-controls-height,112px) + 24px); overscroll-behavior: contain; }
+.recipio-ui-v2 .v2-cook-scroll h1 { font-size: 2rem; font-weight: 600; line-height: 1.35; letter-spacing: -.025em; margin-bottom: 24px; }
+.recipio-ui-v2 .v2-cook-instruction { max-width: 32ch; font-size: 1.25rem; line-height: 1.7; white-space: pre-wrap; overflow-wrap: anywhere; }
 .recipio-ui-v2 .v2-cook-image-button { margin-top: 32px; border-radius: 24px; }
-.recipio-ui-v2 .v2-cook-image { display: block; width: 100%; height: auto; border-radius: 24px; object-fit: contain; }
-.recipio-ui-v2 .v2-cook-tip { margin-top: 24px; border-left: 2px solid #a7b9a0; padding: 12px 16px; color: #e6eada; background: #30382d; border-radius: 0 14px 14px 0; font-size: .875rem; }
+.recipio-ui-v2 .v2-cook-image { display: block; width: 100%; height: auto; min-height: min(50dvh,420px); border-radius: 24px; object-fit: cover; }
+.recipio-ui-v2 .v2-cook-tip { margin-top: 24px; border-left: 2px solid var(--v2-cook-focus); padding: 12px 16px; color: var(--v2-cook-tip-text); background: var(--v2-cook-tip); border-radius: 0 14px 14px 0; font-size: .875rem; }
 .recipio-ui-v2 .v2-cook-tip strong { display: block; margin-bottom: 8px; font-weight: 500; }
-.recipio-ui-v2 .v2-cook-footer { display: flex; flex-wrap: wrap; gap: 12px; padding: 16px 20px max(20px,env(safe-area-inset-bottom)); border-top: 1px solid var(--v2-border); flex-shrink: 0; }
+.recipio-ui-v2 .v2-cook-footer { grid-area: 2/1; align-self: end; position: relative; margin: 12px 16px max(12px,env(safe-area-inset-bottom)); display: flex; flex-wrap: wrap; gap: 12px; padding: 12px; border: 1px solid var(--v2-glass-edge); border-radius: 26px; }
 .recipio-ui-v2 .v2-cook-footer > .v2-button { flex: 1 1 auto; }
-.recipio-ui-v2 .v2-cook-footer .v2-button--secondary { background: transparent; }
-.recipio-ui-v2 .v2-cook-footer .v2-button:disabled { background: #30362d; color: #a5afa0; border-color: #586152; }
-.recipio-ui-v2 .v2-cook-notice { margin-top: 24px; color: #d9e5d4; }
-@media (min-width:600px) { .recipio-ui-v2 .v2-home { padding-inline: 24px; } .recipio-ui-v2 .v2-entry-card { padding: 24px; } }
-@media (max-width:359px) { .recipio-ui-v2 .v2-home, .recipio-ui-v2 .v2-detail-body { padding-inline: 16px; } .recipio-ui-v2 .v2-entry-grid { grid-template-columns: 1fr; } .recipio-ui-v2 .v2-entry-card { display: grid; grid-template-columns: 36px 1fr; column-gap: 12px; } .recipio-ui-v2 .v2-entry-symbol { grid-row: span 2; margin: 0; } .recipio-ui-v2 .v2-recent-card { flex-basis: 136px; } .recipio-ui-v2 .v2-recent-card > img, .recipio-ui-v2 .v2-recent-card > .v2-image-placeholder { height: 102px; } .recipio-ui-v2 .v2-meta > div { flex-basis: 120px; } .recipio-ui-v2 .v2-cook-progress { flex-wrap: wrap; } .recipio-ui-v2 .v2-cook-scroll { padding-inline: 20px; } .recipio-ui-v2 .v2-bottom-actions { padding-inline: 16px; } }
+.recipio-ui-v2 .v2-cook-footer .v2-button--secondary { background: var(--v2-cook); }
+.recipio-ui-v2 .v2-cook-footer .v2-button:disabled { background: var(--v2-cook-muted); color: var(--v2-cook-secondary); border-color: var(--v2-cook-track); }
+.recipio-ui-v2 .v2-cook-notice { margin-top: 24px; color: var(--v2-cook-focus); }
+@media (min-width:600px) { .recipio-ui-v2 .v2-home { padding-inline: 24px; } .recipio-ui-v2 .v2-home-controls { margin-inline: -24px; padding-inline: 24px; } .recipio-ui-v2 .v2-entry-card { padding: 24px; } }
+@media (max-width:359px) { .recipio-ui-v2 .v2-home, .recipio-ui-v2 .v2-detail-body { padding-inline: 16px; } .recipio-ui-v2 .v2-home-controls { margin-inline: -16px; padding-inline: 16px; } .recipio-ui-v2 .v2-entry-grid { grid-template-columns: 1fr; } .recipio-ui-v2 .v2-entry-card { display: grid; grid-template-columns: 36px 1fr; column-gap: 12px; } .recipio-ui-v2 .v2-entry-symbol { grid-row: span 2; margin: 0; } .recipio-ui-v2 .v2-recent-card { flex-basis: 136px; } .recipio-ui-v2 .v2-recent-card > img, .recipio-ui-v2 .v2-recent-card > .v2-image-placeholder { height: 102px; } .recipio-ui-v2 .v2-meta > div { flex-basis: 120px; } .recipio-ui-v2 .v2-cook-progress { flex-wrap: wrap; } .recipio-ui-v2 .v2-cook-scroll { padding-inline: 20px; } }

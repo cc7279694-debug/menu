@@ -1,17 +1,21 @@
-import type { RefObject } from "react";
+import { useRef, type RefObject } from "react";
 import { ArrowLeft, ChevronRight, Clock3, Flame, MoreHorizontal, NotebookPen, Utensils, TriangleAlert } from "lucide-react";
 import { IngredientsList, V2Button, V2Image } from "../components";
 import type { DemoRecipe } from "./demo-data";
+import { useControlClearance } from "../use-control-clearance";
 
 export function DetailScreen({ item, scrollRef, onBack, onMore, onEdit, onGuided, onFocus, onImage }: {
   scrollRef?: RefObject<HTMLDivElement | null>;
   item: DemoRecipe; onBack: () => void; onMore: () => void; onEdit: () => void;
   onGuided: () => void; onFocus: (index: number) => void; onImage: (src: string, title: string) => void;
 }) {
+  const rootRef = useRef<HTMLElement>(null);
+  const controlsRef = useRef<HTMLElement>(null);
+  useControlClearance(rootRef, controlsRef);
   const recipe = item.details;
   const cover = item.image;
   const navigation = <div className="v2-detail-navigation"><V2Button variant="icon" aria-label="返回菜谱" onClick={onBack}><ArrowLeft aria-hidden="true" /></V2Button><V2Button variant="icon" aria-label="更多菜谱操作" onClick={onMore}><MoreHorizontal aria-hidden="true" /></V2Button></div>;
-  return <article className="v2-detail">
+  return <article className="v2-detail" ref={rootRef}>
     <div className="v2-detail-scroll" ref={scrollRef}>
       {cover ? <div className="v2-detail-hero">
         <button className="v2-cover-button" onClick={() => onImage(cover, "菜谱封面")} aria-label="查看菜谱封面大图"><V2Image src={cover} alt={`${recipe.title}封面（演示图片）`} className="v2-cover" eager /></button>
@@ -41,6 +45,6 @@ export function DetailScreen({ item, scrollRef, onBack, onMore, onEdit, onGuided
         {recipe.notes ? <section className="v2-content-section"><h2>自己的备注</h2><p className="v2-notes"><NotebookPen aria-hidden="true" />{recipe.notes}</p></section> : null}
       </div>
     </div>
-    <footer className="v2-bottom-actions v2-glass"><V2Button variant="secondary" onClick={onEdit}>编辑</V2Button><V2Button data-v2-focus="guided" onClick={recipe.steps.length ? onGuided : onEdit}>{recipe.steps.length ? "开始烹饪" : "补充做法"}</V2Button></footer>
+    <footer className="v2-bottom-actions v2-glass" ref={controlsRef}><V2Button variant="secondary" onClick={onEdit}>编辑</V2Button><V2Button data-v2-focus="guided" onClick={recipe.steps.length ? onGuided : onEdit}>{recipe.steps.length ? "开始烹饪" : "补充做法"}</V2Button></footer>
   </article>;
 }

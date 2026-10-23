@@ -1,5 +1,32 @@
 # Decisions
 
+## 2026-10-23 — G1 theme skins share structure and transient state
+
+### Decision
+
+Apply the user-approved Warm Ivory, Pure Glass and Soft Sage tables to the same
+isolated showcase. Theme is an in-memory appearance context, explicitly supplied
+to nested cooking and portalled Sheets. Theme is never a React key or a database
+setting. Shared success/warning/error colors do not track the theme action color.
+
+### Context / Alternatives / Reason
+
+The user requested clearer glass and three skins before G2, not three page
+implementations or a production preference feature. Use existing CSS tint,
+blur, fine edges and actual control/content overlap; no new refraction library,
+image generation or redesign interview. Solid/no-support material fallback
+protects reading. Base UI owns focus; its initialFocus ref replaces native
+autoFocus on the sample safe-confirmation button to preserve the return target.
+
+### Consequences
+
+Only the shared showcase presentation, its tests/tools and repository handoff
+change. Every theme has the same information architecture, interactions and
+small spacing/type refinements. Memory resets on refresh, query is initialization
+only. Real browser evidence and input-file fingerprints accompany the visual
+gate; user/ChatGPT approval is still pending. No production/Native/Provider,
+Logo, SQLite4/Preview7/Backup2, main, APK or G2–G4 changes are authorized here.
+
 ## 2026-10-23 — UI V2 uses an isolated visual gate before production wiring
 
 ### Decision

@@ -14,6 +14,7 @@ export function HomeScreen({ recipes, library, query, filter, onQuery, onFilter,
     || details.ingredients.some((i) => i.name.toLocaleLowerCase().includes(term))) && matchesDuration(details.totalMinutes, library ? filter : "all"));
   const searching = term.length > 0;
   return <>
+    <div className="v2-home-controls v2-glass">
     <header className="v2-home-header">
       {library ? <h1 className="v2-page-title">我的菜谱</h1> : <div className="v2-brand">
         <img src={logo} alt="" width="40" height="40" />
@@ -27,6 +28,7 @@ export function HomeScreen({ recipes, library, query, filter, onQuery, onFilter,
       {query ? <V2Button variant="icon" aria-label="清空搜索" onClick={(event) => {
         onQuery(""); event.currentTarget.closest(".v2-search")?.querySelector("input")?.focus();
       }}><X aria-hidden="true" /></V2Button> : null}
+    </div>
     </div>
     {library ? <div className="v2-filters" role="group" aria-label="按耗时筛选">{([
       ["all", "全部"], ["short", "30 分钟内"], ["medium", "30–60 分钟"], ["long", "超过 60 分钟"],

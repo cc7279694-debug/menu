@@ -17,4 +17,5 @@ createRoot(document.getElementById("root")!).render(<UiV2Showcase
   initialScreen={screens.find((s) => s === requestedScreen) ?? "home"}
   initialScenario={scenarios.find((s) => s === requestedScenario) ?? "default"}
   initialMode={query.get("mode") === "focus" ? "focus" : "guided"}
+  initialTheme={query.get("theme")}
 />);

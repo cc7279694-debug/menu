@@ -17,13 +17,29 @@
   --v2-warning-surface: #f7eedd;
   --v2-error: #a2433d;
   --v2-error-surface: #f8e9e7;
+  --v2-success: #49684f;
+  --v2-success-surface: #e6efe5;
   --v2-cook: #202420;
+  --v2-cook-secondary: #c8cdc5;
+  --v2-cook-focus: #d0ddcd;
+  --v2-cook-border: #51594f;
+  --v2-cook-control: #a0ab9c;
+  --v2-cook-muted: #30362d;
+  --v2-cook-track: #586152;
+  --v2-cook-tip: #30382d;
+  --v2-cook-tip-text: #e6eada;
   --v2-radius-input: 18px;
   --v2-radius-card: 24px;
   --v2-radius-sheet: 28px;
-  --v2-glass: rgba(251,250,247,.88);
-  --v2-glass-blur: blur(20px) saturate(110%);
-  --v2-shadow: 0 8px 24px rgba(27,27,29,.08);
+  --v2-glass: rgba(251,250,247,.74);
+  --v2-sheet-glass: rgba(251,250,247,.88);
+  --v2-cook-glass: rgba(32,36,32,.74);
+  --v2-cook-sheet-glass: rgba(32,36,32,.88);
+  --v2-glass-blur: blur(24px) saturate(120%);
+  --v2-glass-edge: rgba(255,255,255,.92);
+  --v2-glass-low-edge: rgba(83,90,76,.14);
+  --v2-field-shield: rgba(251,250,247,.94);
+  --v2-shadow: 0 12px 32px rgba(36,41,30,.10), 0 2px 6px rgba(36,41,30,.05);
   --v2-ease: cubic-bezier(.2,.8,.2,1);
   color: var(--v2-text);
   font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
@@ -34,18 +50,56 @@
 .recipio-ui-v2[data-v2-solid="true"],
 .recipio-ui-v2[data-v2-solid="true"] .recipio-ui-v2 {
   --v2-glass: var(--v2-surface);
+  --v2-sheet-glass: var(--v2-surface);
   --v2-glass-blur: none;
 }
+.recipio-ui-v2[data-v2-theme="pure-glass"] {
+  --v2-canvas: #f7f9fb; --v2-surface: #ffffff; --v2-muted: #eef2f5;
+  --v2-text: #171b20; --v2-secondary: #59616a; --v2-caption: #626b75;
+  --v2-action: #2d6266; --v2-action-pressed: #214b4f; --v2-soft: #e4eff0;
+  --v2-focus: #2d6266; --v2-sage: #79999b;
+  --v2-border: #dee5e9; --v2-control: #7c8993; --v2-cook: #19242a;
+  --v2-cook-secondary: #c6d0d5; --v2-cook-focus: #cee4e7;
+  --v2-cook-border: #4c5a63; --v2-cook-control: #9cabb4;
+  --v2-cook-muted: #27373f; --v2-cook-track: #53646d;
+  --v2-cook-tip: #263a41; --v2-cook-tip-text: #dfeaed;
+  --v2-glass: rgba(255,255,255,.70); --v2-sheet-glass: rgba(255,255,255,.86);
+  --v2-cook-glass: rgba(25,36,42,.70); --v2-cook-sheet-glass: rgba(25,36,42,.86);
+  --v2-glass-blur: blur(26px) saturate(125%);
+  --v2-glass-edge: rgba(255,255,255,.96); --v2-glass-low-edge: rgba(66,91,107,.14);
+  --v2-field-shield: rgba(255,255,255,.94);
+  --v2-shadow: 0 12px 32px rgba(25,45,60,.10), 0 2px 6px rgba(25,45,60,.05);
+}
+.recipio-ui-v2[data-v2-theme="soft-sage"] {
+  --v2-canvas: #eff5ee; --v2-surface: #fafcf9; --v2-muted: #e3ede2;
+  --v2-text: #1b2820; --v2-secondary: #56695c; --v2-caption: #5b6c60;
+  --v2-action: #365e45; --v2-action-pressed: #274a34; --v2-soft: #dce9db;
+  --v2-focus: #365e45; --v2-sage: #7d9781;
+  --v2-border: #cfdccf; --v2-control: #788f7b; --v2-cook: #1d2b22;
+  --v2-cook-secondary: #c6d1c7; --v2-cook-focus: #dae8d7;
+  --v2-cook-border: #506353; --v2-cook-control: #a0b29f;
+  --v2-cook-muted: #2b3c2d; --v2-cook-track: #586f58;
+  --v2-cook-tip: #2b3f30; --v2-cook-tip-text: #dfeadd;
+  --v2-glass: rgba(248,252,247,.74); --v2-sheet-glass: rgba(248,252,247,.88);
+  --v2-cook-glass: rgba(29,43,34,.74); --v2-cook-sheet-glass: rgba(29,43,34,.88);
+  --v2-glass-blur: blur(24px) saturate(120%);
+  --v2-glass-edge: rgba(252,255,250,.94); --v2-glass-low-edge: rgba(61,92,60,.15);
+  --v2-field-shield: rgba(250,252,249,.94);
+  --v2-shadow: 0 12px 32px rgba(26,48,31,.10), 0 2px 6px rgba(26,48,31,.05);
+}
 .recipio-ui-v2[data-v2-dark="true"] {
-  --v2-surface: #202420;
+  --v2-surface: var(--v2-cook);
+  --v2-muted: var(--v2-cook-muted);
   --v2-text: #fbfaf7;
-  --v2-secondary: #c8cdc5;
-  --v2-caption: #c8cdc5;
-  --v2-border: #51594f;
-  --v2-control: #a0ab9c;
-  --v2-focus: #d0ddcd;
-  --v2-glass: rgba(32,36,32,.90);
-  --v2-glass-blur: blur(16px);
+  --v2-secondary: var(--v2-cook-secondary);
+  --v2-caption: var(--v2-cook-secondary);
+  --v2-border: var(--v2-cook-border);
+  --v2-control: var(--v2-cook-control);
+  --v2-focus: var(--v2-cook-focus);
+  --v2-glass: var(--v2-cook-glass);
+  --v2-sheet-glass: var(--v2-cook-sheet-glass);
+  --v2-glass-edge: rgba(235,247,235,.24);
+  --v2-glass-low-edge: rgba(0,0,0,.24);
 }
 .recipio-ui-v2 *, .recipio-ui-v2 *::before, .recipio-ui-v2 *::after { box-sizing: border-box; }
 .recipio-ui-v2 :where(h1,h2,h3,p,ul,ol,dl,dd) { margin: 0; }
@@ -81,7 +135,7 @@
 .recipio-ui-v2 .v2-button[data-demo-state="focus"] { outline: 2px solid var(--v2-focus); outline-offset: 2px; }
 .recipio-ui-v2 .v2-secondary { color: var(--v2-secondary); font-size: .875rem; line-height: 1.57; }
 .recipio-ui-v2 .v2-section-title { font-size: 1.25rem; line-height: 1.4; font-weight: 600; }
-.recipio-ui-v2 .v2-state-badge { display: inline-flex; align-items: center; gap: 6px; min-height: 28px; padding: 3px 8px; border-radius: 10px; font-size: .875rem; background: var(--v2-soft); color: var(--v2-action); }
+.recipio-ui-v2 .v2-state-badge { display: inline-flex; align-items: center; gap: 6px; min-height: 28px; padding: 3px 8px; border-radius: 10px; font-size: .875rem; background: var(--v2-success-surface); color: var(--v2-success); }
 .recipio-ui-v2 .v2-state-badge svg { width: 16px; height: 16px; flex-shrink: 0; }
 .recipio-ui-v2 .v2-state-badge--inferred, .recipio-ui-v2 .v2-state-badge--missing { color: var(--v2-warning); background: var(--v2-warning-surface); }
 .recipio-ui-v2 .v2-image-placeholder { display: flex; align-items: center; justify-content: center; gap: 8px; background: var(--v2-muted); color: var(--v2-caption); }
@@ -94,13 +148,21 @@
 @keyframes v2-spin { to { transform: rotate(360deg); } }
 .recipio-ui-v2.v2-portal { position: relative; }
 .recipio-ui-v2 .v2-backdrop { position: fixed; inset: 0; background: rgba(27,27,29,.28); }
-.recipio-ui-v2 .v2-sheet { position: fixed; inset-inline: 0; bottom: 0; margin-inline: auto; max-height: 85dvh; width: min(100%,680px); overflow-y: auto; overscroll-behavior: contain; border: 1px solid var(--v2-border); border-radius: 28px 28px 0 0; background: var(--v2-surface); color: var(--v2-text); box-shadow: var(--v2-shadow); outline-offset: -3px; }
+.recipio-ui-v2 .v2-sheet { position: fixed; inset-inline: 0; bottom: 0; margin-inline: auto; max-height: 85dvh; width: min(100%,680px); overflow-y: auto; overscroll-behavior: contain; border: 1px solid var(--v2-glass-edge); border-radius: 28px 28px 0 0; background: var(--v2-sheet-glass); backdrop-filter: var(--v2-glass-blur); -webkit-backdrop-filter: var(--v2-glass-blur); color: var(--v2-text); box-shadow: inset 0 1px 0 var(--v2-glass-edge), var(--v2-shadow); outline-offset: -3px; }
 .recipio-ui-v2 .v2-sheet--dialog { top: 50%; bottom: auto; transform: translateY(-50%); width: min(calc(100% - 32px),360px); border-radius: 28px; }
 .recipio-ui-v2 .v2-sheet-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; padding: 24px 20px 16px; }
 .recipio-ui-v2 .v2-sheet-header > div { min-width: 0; }
 .recipio-ui-v2 .v2-sheet-header .v2-button { flex: 0 0 48px; }
 .recipio-ui-v2 .v2-sheet-header .v2-secondary { margin-top: 8px; }
-.recipio-ui-v2 .v2-sheet-body { padding: 0 20px max(24px,env(safe-area-inset-bottom)); }
-@supports not (backdrop-filter: blur(1px)) { .recipio-ui-v2 { --v2-glass: var(--v2-surface); --v2-glass-blur: none; } }
+.recipio-ui-v2 .v2-sheet-header .v2-secondary { color: var(--v2-text); }
+.recipio-ui-v2 .v2-sheet-body { margin-inline: 10px; padding: 16px 14px max(24px,env(safe-area-inset-bottom)); background: var(--v2-surface); border-radius: 18px 18px 0 0; }
+/* Material consumers win over theme/dark variables, including portalled surfaces. */
+.recipio-ui-v2[data-v2-solid="true"] :is(.v2-glass,.v2-sheet,.v2-detail-navigation .v2-button),
+.recipio-ui-v2[data-v2-solid="true"].v2-cooking :is(.v2-glass,.v2-cook-toolbar) {
+  background: var(--v2-surface); backdrop-filter: none; -webkit-backdrop-filter: none;
+}
+@supports not (backdrop-filter: blur(1px)) {
+  .recipio-ui-v2[data-v2-theme] :is(.v2-glass,.v2-sheet,.v2-detail-navigation .v2-button,.v2-cook-toolbar) { background: var(--v2-surface); backdrop-filter: none; -webkit-backdrop-filter: none; }
+}
 @media (max-width:359px) { .recipio-ui-v2 .v2-ingredients > div { flex-wrap: wrap; gap: 4px 16px; } .recipio-ui-v2 .v2-ingredients dd { flex-shrink: 1; max-width: 100%; } }
 @media (prefers-reduced-motion:reduce) { .recipio-ui-v2 *, .recipio-ui-v2 *::before, .recipio-ui-v2 *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; } }

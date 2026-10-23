@@ -3,6 +3,7 @@ import { Button as ButtonPrimitive } from "@base-ui/react/button";
 import { Dialog as DialogPrimitive } from "@base-ui/react/dialog";
 import { BookOpen, Check, CircleHelp, LoaderCircle, TriangleAlert, X } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useV2Appearance } from "./appearance";
 
 type ButtonVariant = "primary" | "secondary" | "text" | "icon" | "danger" | "select";
 type V2ButtonProps = Omit<ComponentProps<typeof ButtonPrimitive>, "className"> & {
@@ -18,14 +19,16 @@ export function V2Button({ variant = "primary", busy = false, disabled, children
 }
 
 /** Positioned Dialog, not a custom focus trap or a second Back/IME state machine. */
-export function V2Sheet({ open, onOpenChange, title, description, children, kind = "sheet", dark = false }: {
+export function V2Sheet({ open, onOpenChange, title, description, children, kind = "sheet", dark = false, initialFocus }: {
   open: boolean; onOpenChange: (open: boolean) => void; title: string; description: string;
   children: ReactNode; kind?: "sheet" | "dialog"; dark?: boolean;
+  initialFocus?: ComponentProps<typeof DialogPrimitive.Popup>["initialFocus"];
 }) {
+  const { theme, solid } = useV2Appearance();
   return <DialogPrimitive.Root open={open} onOpenChange={onOpenChange}>
-    <DialogPrimitive.Portal className="recipio-ui-v2 v2-portal" data-v2-dark={dark || undefined}>
+    <DialogPrimitive.Portal className="recipio-ui-v2 v2-portal" data-v2-theme={theme} data-v2-solid={solid} data-v2-dark={dark || undefined}>
       <DialogPrimitive.Backdrop className="v2-backdrop" />
-      <DialogPrimitive.Popup className={cn("v2-sheet", kind === "dialog" && "v2-sheet--dialog")}>
+      <DialogPrimitive.Popup initialFocus={initialFocus} className={cn("v2-sheet", kind === "dialog" && "v2-sheet--dialog")}>
         <header className="v2-sheet-header">
           <div><DialogPrimitive.Title className="v2-section-title">{title}</DialogPrimitive.Title>
             <DialogPrimitive.Description className="v2-secondary">{description}</DialogPrimitive.Description></div>
