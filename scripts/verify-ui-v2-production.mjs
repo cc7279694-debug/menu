@@ -39,6 +39,10 @@ async function layout(name) {
   const size = await page.evaluate(() => ({ width: innerWidth, scrollWidth: document.documentElement.scrollWidth,
     height: innerHeight, scroll: scrollY }));
   layouts.push({ name, ...size }); assert.ok(size.scrollWidth <= size.width + 1, `${name}: horizontal overflow`);
+  const small = await page.locator('.v2-production button,.v2-production input,.v2-production select,.v2-production textarea,.v2-production-cooking button,.v2-portal button').evaluateAll(elements =>
+    elements.filter(element => { const r=element.getBoundingClientRect(); return r.width>0 && r.height>0 && (r.width<47.9 || r.height<47.9); })
+      .map(element => ({label:element.getAttribute('aria-label') || element.textContent, width:element.getBoundingClientRect().width,height:element.getBoundingClientRect().height})));
+  assert.deepEqual(small, [], `${name}: undersized touch target`);
 }
 async function nativeBack() { await page.evaluate(() => window.dispatchEvent(new Event("recipio:back", { cancelable: true }))); }
 const nav = () => page.getByRole("navigation", { name: "主要导航" });
@@ -120,10 +124,19 @@ try {
   await openRecipe(); await shot("detail-390");
   await check("full_content_local_image_and_readonly_focus", async () => {
     assert.equal(await nav().count(), 0);
-    await page.getByRole("img", { name: `${recipeTitle} 封面`, exact: true }).waitFor();
+    await page.locator('.v2-cover-button > img').waitFor();
+    await page.waitForFunction(() => {
+      const image=document.querySelector('.v2-cover-button > img');
+      return image instanceof HTMLImageElement && image.complete && image.naturalWidth>0 && image.src.startsWith('blob:');
+    });
     await page.getByRole("heading", { name: "完整步骤", exact: true }).waitFor();
     await page.getByRole("button", { name: "放大步骤 1", exact: true }).click();
     await page.getByRole("dialog", { name: "单步查看", exact: true }).waitFor();
+    await page.locator('.v2-cook-scroll img').waitFor();
+    await page.waitForFunction(() => {
+      const image=document.querySelector('.v2-cook-scroll img');
+      return image instanceof HTMLImageElement && image.complete && image.naturalWidth>0 && image.src.startsWith('blob:');
+    });
     await shot("focus-390"); await page.getByRole("button", { name: "返回完整步骤" }).click();
     await page.getByRole("dialog").waitFor({ state: "hidden" });
   });
@@ -139,6 +152,13 @@ try {
       await painted();
       await page.waitForFunction(y => Math.abs(scrollY - y) < 2, y);
     }
+    const restoredY=await page.evaluate(()=>scrollY);
+    await page.mouse.move(385,300); await page.mouse.wheel(0,-240);
+    await page.waitForFunction(y=>scrollY<y-100,restoredY);
+    const userY=await page.evaluate(()=>scrollY);
+    await page.evaluate(()=>document.querySelector('.v2-production').style.paddingBottom='64px');
+    await painted(); assert.equal(await page.evaluate(()=>scrollY),userY);
+    await page.evaluate(()=>document.querySelector('.v2-production').style.removeProperty('padding-bottom'));
   });
   await check("guided_sheet_back_and_explicit_completion_only", async () => {
     await page.getByRole("button", { name: "开始引导烹饪" }).click();
@@ -157,6 +177,12 @@ try {
     }, seeded); assert.equal(count, 1);
     await page.getByRole("button", { name: "完成这道菜", exact: true }).click();
     await page.getByRole("heading", { name: "已记录做过这道菜", exact: true }).waitFor(); await shot("completion-390");
+    const saved=await page.evaluate(async ({moduleBase,id})=>{
+      const {PreviewRecipeLibrary}=await import(moduleBase+'preview-store.ts');
+      const store=new PreviewRecipeLibrary(),rows=await store.listCookingRecords(id);
+      return {count:(await store.getCookingSummary(id)).count,ids:rows.map(row=>row.id)};
+    },seeded);
+    assert.equal(saved.count,2); assert.equal(saved.ids.length,2); assert.equal(new Set(saved.ids).size,2);
     await page.getByRole("button", { name: "返回菜谱", exact: true }).click();
   });
   await check("responsive_detail_controls_and_content_clearance", async () => {

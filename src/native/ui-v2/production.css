@@ -12,6 +12,7 @@
   isolation: isolate;
 }
 #root > .recipio-ui-v2.v2-production { padding-top: env(safe-area-inset-top); }
+#root .recipio-ui-v2.v2-production button { min-height: 48px; }
 #root .recipio-ui-v2.v2-production .v2-button--primary { min-height: 52px; }
 #root .recipio-ui-v2.v2-production .v2-search input { min-height: 50px; }
 .recipio-ui-v2.v2-production .v2-home { min-height: 100dvh; }
