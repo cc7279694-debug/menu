@@ -14,7 +14,7 @@ export function resolveV2Theme(value?: string | null): V2Theme {
 type Appearance = Readonly<{ theme: V2Theme; solid: boolean }>;
 const AppearanceContext = createContext<Appearance>({ theme: "warm-ivory", solid: false });
 
-/** Sample-only context; carries presentation through React portals, never persistence. */
+/** Presentation-only context shared by core UI and showcase; never persistence. */
 export function V2AppearanceProvider({ theme, solid, children }: Appearance & { children: ReactNode }) {
   const value = useMemo(() => ({ theme, solid }), [theme, solid]);
   return <AppearanceContext.Provider value={value}>{children}</AppearanceContext.Provider>;
