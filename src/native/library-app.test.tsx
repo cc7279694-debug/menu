@@ -47,13 +47,16 @@ it("a delayed completion cannot navigate over an editor or history while its rec
     for (const name of [
       "编辑菜谱",
       "返回菜谱库",
-      "删除这道菜",
+      "更多菜谱操作",
+      "补充做法",
       "查看修改记录",
       "查看做菜记录",
-      "设置",
     ]) {
       expect(screen.getByRole("button", { name })).toBeDisabled();
     }
+    expect(screen.queryByRole("navigation", { name: "主要导航" })).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "更多菜谱操作" }));
+    expect(screen.queryByRole("dialog", { name: "菜谱操作" })).not.toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "编辑菜谱" }));
     expect(screen.queryByLabelText("菜名")).not.toBeInTheDocument();
   } finally {

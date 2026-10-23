@@ -99,27 +99,29 @@ export function CookingCompletion({
     });
   }
   return (
-    <section className="space-y-5">
-      <Button
-        variant="ghost"
-        className="min-h-11"
-        disabled={busy}
-        onClick={() => leave()}
-      >
-        返回菜谱
-      </Button>
-      <h2 className="text-2xl font-semibold">已记录做过这道菜</h2>
-      <p>
-        做菜时间：
-        <time dateTime={record.cookedAt}>
-          {new Date(record.cookedAt).toLocaleString()}
-        </time>
-      </p>
-      <p className="text-sm text-muted-foreground">
-        已经保存在本机。下面都可跳过，不填写也可以直接返回。
-      </p>
-      <div className="rounded-xl border p-4 space-y-3">
-        <h3 className="font-semibold">成品照片（可选）</h3>
+    <section className="v2-production-form v2-completion space-y-5">
+      <header className="v2-history-header space-y-3">
+        <Button
+          variant="ghost"
+          className="min-h-11"
+          disabled={busy}
+          onClick={() => leave()}
+        >
+          返回菜谱
+        </Button>
+        <h2 className="v2-page-title text-2xl font-semibold">已记录做过这道菜</h2>
+        <p>
+          做菜时间：
+          <time dateTime={record.cookedAt}>
+            {new Date(record.cookedAt).toLocaleString()}
+          </time>
+        </p>
+        <p className="v2-secondary text-sm text-muted-foreground">
+          已经保存在本机。下面都可跳过，不填写也可以直接返回。
+        </p>
+      </header>
+      <div className="v2-form-section v2-form-media rounded-xl border p-4 space-y-3">
+        <h3 className="v2-section-title font-semibold">成品照片（可选）</h3>
         {value.finishedPhotoPath && (
           <LocalImage
             path={value.finishedPhotoPath}
@@ -137,7 +139,7 @@ export function CookingCompletion({
             {value.finishedPhotoPath ? "更换成品照片" : "添加成品照片"}
           </Button>
         ) : (
-          <label className="block">
+          <label className="v2-field-label block">
             {value.finishedPhotoPath ? "更换成品照片" : "添加成品照片"}
             <input
               aria-label="选择成品照片"
@@ -154,7 +156,7 @@ export function CookingCompletion({
           </label>
         )}
         {value.finishedPhotoPath && (
-          <div className="flex flex-wrap gap-3">
+          <div className="v2-form-actions flex flex-wrap gap-3">
             <Button
               variant="outline"
               className="min-h-11"
@@ -182,7 +184,7 @@ export function CookingCompletion({
           </div>
         )}
       </div>
-      <label className="block" htmlFor={`${id}-evaluation`}>
+      <label className="v2-field-label block" htmlFor={`${id}-evaluation`}>
         这次感觉（可选）
         <select
           id={`${id}-evaluation`}
@@ -204,7 +206,7 @@ export function CookingCompletion({
           <option value="adjust_next_time">下次调整</option>
         </select>
       </label>
-      <label className="block" htmlFor={`${id}-note`}>
+      <label className="v2-field-label block" htmlFor={`${id}-note`}>
         这次的备注
         <Textarea
           id={`${id}-note`}
@@ -230,7 +232,7 @@ export function CookingCompletion({
         </div>
       )}
       {status && <p role="status">{status}</p>}
-      <div className="flex flex-wrap gap-3">
+      <div className="v2-form-actions flex flex-wrap gap-3">
         <Button
           className="min-h-11"
           disabled={busy}
@@ -258,7 +260,7 @@ export function CookingCompletion({
         </Button>
       </div>
       {error && (
-        <div className="flex flex-wrap gap-3">
+        <div className="v2-form-actions flex flex-wrap gap-3">
           <Button
             variant="ghost"
             className="min-h-11"

@@ -1,7 +1,6 @@
-import { lazy, Suspense, useEffect, useLayoutEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
-import { BookOpen, House, Plus, Settings } from "lucide-react";
+import { lazy, Suspense, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
+import { BookOpen, House, Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import {
   type RecipeDetails,
   type RecipeDetailsInput,
@@ -11,7 +10,11 @@ import {
 } from "./recipe-model";
 import { RecipeEditor } from "./recipe-editor";
 import { RecipeDetail } from "./recipe-detail";
-import { LocalImage } from "./local-image";
+import { CoreLibraryScreen } from "./ui-v2/library-screens";
+import { NativeV2Sheet } from "./ui-v2/native-sheet";
+import { V2Button } from "./ui-v2/components";
+import { V2AppearanceProvider } from "./ui-v2/appearance";
+import { useControlClearance } from "./ui-v2/use-control-clearance";
 import {
   BackupControls,
   backupBusy,
@@ -30,7 +33,6 @@ import { openAiIntakeRuntime } from "./ai/runtime";
 import { AiIntakeScreen } from "./ai/intake-screen";
 import { AiPreview } from "./ai/preview";
 import { AiSaveRecovery } from "./ai/save-recovery";
-import { Dialog,DialogContent,DialogDescription,DialogTitle } from "@/components/ui/dialog";
 import type { LinkImportService } from "./link-import/service";
 import type { FindRecipeService } from "./find-recipe/service";
 import { openShareTargetRuntime } from "./share-target/native-bridge";
@@ -95,6 +97,13 @@ export function LibraryApp({
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
   const lock = useRef(false);
+  const rootRef = useRef<HTMLDivElement>(null);
+  const navigationRef = useRef<HTMLElement>(null);
+  const listReturn = useRef({ scroll: 0, restore: false });
+  const detailPageReturn = useRef({ scroll: 0, restore: false });
+  const isRoot = ["home", "library", "settings"].includes(view) && !fromAiSettings && !fromLinkSettings && !fromFindSettings;
+  const isCore = ["home", "library", "detail", "new", "edit", "history", "changes", "completion"].includes(view);
+  useControlClearance(rootRef, navigationRef, isRoot && isCore);
   const [viewer, setViewer] = useState<{
     mode: "focus" | "guided";
     index: number;
@@ -182,6 +191,31 @@ export function LibraryApp({
       alive = false;
     };
   }, [store, search, page, filter, revision, view]);
+  useLayoutEffect(() => {
+    if ((view === "home" || view === "library") && !loading && listReturn.current.restore) {
+      listReturn.current.restore = false;
+      window.scrollTo(0, listReturn.current.scroll);
+    }
+  }, [view, records, loading]);
+  useLayoutEffect(() => {
+    if (view !== "detail" || !detailPageReturn.current.restore) return;
+    detailPageReturn.current.restore = false;
+    const scroll = detailPageReturn.current.scroll;
+    const restore = () => window.scrollTo(0, scroll);
+    restore();
+    // Local images and the existing history summary resolve asynchronously.
+    // Reapply the saved position on actual layout growth, never a guessed delay.
+    // Any new user interaction immediately hands scrolling back to the user.
+    const observer = typeof ResizeObserver === "undefined" ? null : new ResizeObserver(restore);
+    if (rootRef.current) observer?.observe(rootRef.current);
+    const stop = () => observer?.disconnect();
+    const interactions = ["pointerdown", "wheel", "touchstart", "keydown"] as const;
+    interactions.forEach(type => window.addEventListener(type, stop, { once: true, passive: true }));
+    return () => {
+      stop();
+      interactions.forEach(type => window.removeEventListener(type, stop));
+    };
+  }, [view]);
   useEffect(() => {
     if (!pending.length) return;
     const timer = setTimeout(
@@ -217,6 +251,8 @@ export function LibraryApp({
     }
   }
   async function open(id: string) {
+    if (lock.current) return;
+    listReturn.current.scroll = window.scrollY;
     let recipe: RecipeDetails | null = null;
     const origin = view === "library" ? "library" : "home";
     await work(async () => {
@@ -231,6 +267,21 @@ export function LibraryApp({
       setView("detail");
       window.scrollTo(0, 0);
     }
+  }
+  const backToList = useCallback(() => {
+    if (lock.current) return;
+    listReturn.current.restore = true;
+    setView(returnView);
+  }, [returnView]);
+  function openDetailPage(next: "edit" | "history" | "changes") {
+    if (lock.current) return;
+    detailPageReturn.current.scroll = window.scrollY;
+    setView(next);
+    window.scrollTo(0, 0);
+  }
+  function backToDetail() {
+    detailPageReturn.current.restore = true;
+    setView("detail");
   }
   function showViewer(
     mode: "focus" | "guided",
@@ -269,6 +320,7 @@ export function LibraryApp({
   function finishCompletion(next: "detail" | "edit" = "detail") {
     setCookingRecord(null);
     completionAttempt.current = null;
+    detailPageReturn.current = { scroll: 0, restore: false };
     setView(next);
     setRevision((n) => n + 1);
     window.scrollTo(0, 0);
@@ -308,8 +360,8 @@ export function LibraryApp({
     if (!saved) throw new Error("保存后无法读取菜谱，请重试");
     setSelected(saved);
     setRevision((n) => n + 1);
-    setView("detail");
-    window.scrollTo(0, 0);
+    if (selected) backToDetail();
+    else { setView("detail"); window.scrollTo(0, 0); }
   }
   function showAiRecipe(recipe:RecipeDetails){setSelected(recipe);setRevision(n=>n+1);setView("detail");window.scrollTo(0,0);}
   async function openSharedInput(item:ShareItem){
@@ -380,6 +432,10 @@ export function LibraryApp({
   useLayoutEffect(() => {
     const back = (event: Event) => {
       if (event.defaultPrevented) return;
+      // Native dispatch targets window itself. Chromium invokes at-target
+      // listeners in registration order, even with capture=true. Defer to the
+      // currently mounted sheet without consuming its event or closing its page.
+      if (document.querySelector(".v2-portal .v2-sheet")) return;
       if (view === "link-input") return;
       if (view === "find-input") return;
       if (view === "settings" && fromFindSettings) { event.preventDefault(); setFromFindSettings(false); setView("find-input"); return; }
@@ -408,8 +464,8 @@ export function LibraryApp({
         return;
       event.preventDefault();
       if (lock.current) return;
-      if (view === "detail") setView(returnView);
-      else if (view === "changes") setView("detail");
+      if (view === "detail") backToList();
+      else if (view === "changes") backToDetail();
       else {
         setView("home");
         setPage(0);
@@ -420,10 +476,11 @@ export function LibraryApp({
     };
     window.addEventListener("recipio:back", back);
     return () => window.removeEventListener("recipio:back", back);
-  }, [view, returnView, backupState, viewer,fromAiSettings,fromLinkSettings,fromFindSettings,intakeState.draft,intakeState.phase]);
+  }, [view, returnView, backToList, backupState, viewer,fromAiSettings,fromLinkSettings,fromFindSettings,intakeState.draft,intakeState.phase]);
   return (
-    <div className="mx-auto min-h-dvh max-w-3xl px-4 pb-28 pt-5 sm:px-8">
-      <header className="mb-7 flex items-center justify-between gap-4">
+    <V2AppearanceProvider theme="warm-ivory" solid={false}>
+    <div ref={rootRef} className={isCore ? "recipio-ui-v2 v2-production" : "mx-auto min-h-dvh max-w-3xl px-4 pb-28 pt-5 sm:px-8"} data-v2-theme={isCore ? "warm-ivory" : undefined}>
+      {!isCore && <header className="mb-7 flex items-center justify-between gap-4">
         <div className="flex items-center gap-3">
           <img src="./icon.png" alt="" className="h-10 w-10 rounded-xl" />
           <div>
@@ -433,22 +490,7 @@ export function LibraryApp({
             </p>
           </div>
         </div>
-        {(view === "home" || view === "library") && (
-          <Button
-            size="icon"
-            className="h-11 w-11"
-            aria-label="新增菜谱"
-            disabled={busy||backupBusy(backupState)||backupState.phase==="uncertain"}
-            onClick={() => {
-              setSelected(null);
-              setReturnView(view);
-              setAddOpen(true);
-            }}
-          >
-            <Plus size={22} />
-          </Button>
-        )}
-      </header>
+      </header>}
       {shareState.pending && <aside aria-label="待处理分享" role="status" className="mb-5 space-y-3 rounded-xl border p-4">
         <p>{shareState.pending.status === "url" ? `收到网页链接：${new URL(shareState.pending.url).hostname}。请先完成当前操作，再打开。` : shareState.pending.status==="text"?"收到一段分享文字。请先完成当前操作，再打开。":shareState.pending.status==="media"?`收到 ${shareState.pending.imageCount} 张${shareState.pending.text?.trim()?"图片和文字":"分享图片"}。请先完成当前操作，再打开。`:shareReasons[shareState.pending.reason]}</p>
         {shareState.replaced && <p className="text-sm text-muted-foreground">较早的待处理分享已被新分享替换；当前编辑内容保持不变。</p>}
@@ -462,7 +504,12 @@ export function LibraryApp({
         </div>
       </aside>}
       {shareState.unavailable && <aside role="status" className="mb-4 rounded-xl border p-3"><p>暂时无法接收分享，本地菜谱仍可正常使用。</p><Button className="min-h-11 mt-2" variant="outline" onClick={() => shares?.retry()}>重试接收分享</Button></aside>}
-      <Dialog open={addOpen} onOpenChange={setAddOpen}><DialogContent><DialogTitle>添加菜谱</DialogTitle><DialogDescription>手动记录始终可离线使用；AI 整理和网页读取是可选联网能力。</DialogDescription><div className="grid gap-3"><Button className="min-h-11" disabled={busy} onClick={()=>{setAddOpen(false);setView("new");}}>手动录入</Button><Button className="min-h-11" variant="outline" disabled={busy} onClick={()=>{setAddOpen(false);setView("ai-input");}}>AI 整理</Button><Button className="min-h-11" variant="outline" disabled={busy} onClick={()=>void openLinkImport()}>从网页链接导入</Button><Button className="min-h-11" variant="outline" disabled={busy} onClick={()=>void openFinder()}>帮我找做法</Button></div></DialogContent></Dialog>
+      <NativeV2Sheet open={addOpen} onOpenChange={setAddOpen} title="添加菜谱" description="手动记录始终可离线使用；AI 整理和网页读取是可选联网能力。"><div className="v2-action-list">
+        <V2Button variant="text" disabled={busy} onClick={()=>{setAddOpen(false);setView("new");}}>手动录入</V2Button>
+        <V2Button variant="text" disabled={busy} aria-label="AI 整理" onClick={()=>{setAddOpen(false);setView("ai-input");}}>文字／截图 AI 整理</V2Button>
+        <V2Button variant="text" disabled={busy} onClick={()=>void openLinkImport()}>从网页链接导入</V2Button>
+        <V2Button variant="text" disabled={busy} onClick={()=>void openFinder()}>帮我找做法</V2Button>
+      </div></NativeV2Sheet>
       {error && (
         <div role="alert" className="mb-5 rounded-xl border p-4">
           <p>{error}</p>
@@ -481,16 +528,17 @@ export function LibraryApp({
       {finderService&&(view==="find-input"||fromFindSettings)&&<div hidden={view!=="find-input"}><Suspense fallback={<p role="status">正在打开寻找做法…</p>}><FindRecipeScreen service={finderService} active={view==="find-input"} onSaved={showAiRecipe} onCancel={()=>setView(returnView)} onConfigureKey={()=>{setFromFindSettings(true);setView("settings");}} onFallback={target=>{setSelected(null);if(target==="link")void openLinkImport();else setView(target==="ai"?"ai-input":"new");}}/></Suspense></div>}
       {view === "link-input"||view==="find-input" ? null : (view==="ai-input"||view==="ai-preview")&&intakeState.phase==="uncertain"?<AiSaveRecovery service={intake} onSaved={showAiRecipe} onAbsent={()=>setView("ai-preview")} onLibrary={()=>setView(returnView)}/>:view==="ai-input"?<AiIntakeScreen service={intake} onPreview={()=>setView("ai-preview")} onCancel={()=>setView(returnView)} onManual={()=>{setSelected(null);setView("new");}} onConfigureKey={()=>{setFromAiSettings(true);setView("settings");}}/>:view==="ai-preview"?intakeState.draft?<AiPreview draft={intakeState.draft} confirmed={intakeState.confirmed} onConfirmedChange={value=>intake.setConfirmed(value)} hasExactTitle={title=>store.hasExactTitle(title)} onSave={async input=>{showAiRecipe(await intake.save(input));}} onCancel={()=>setView("ai-input")}/>:<section className="space-y-4"><p>本轮结果已失效，请重新整理。</p><Button className="min-h-11" variant="outline" onClick={()=>setView("ai-input")}>返回本轮输入</Button></section>:view === "new" || view === "edit" ? (
         <RecipeEditor
+          appearance="v2"
           key={selected?.id ?? "new"}
           initial={view === "edit" && selected ? selected : undefined}
           onSave={save}
-          onCancel={() => setView(selected ? "detail" : returnView)}
+          onCancel={() => selected ? backToDetail() : setView(returnView)}
         />
       ) : view === "history" && selected ? (
         <CookingHistory
           recipeId={selected.id}
           store={store}
-          onBack={() => setView("detail")}
+          onBack={backToDetail}
           onChanged={() => setRevision((n) => n + 1)}
         />
       ) : view === "completion" && cookingRecord ? (
@@ -506,43 +554,29 @@ export function LibraryApp({
         <RecipeChangeHistory
           recipeId={selected.id}
           store={store}
-          onBack={() => setView("detail")}
+          onBack={backToDetail}
         />
       ) : view === "detail" && selected ? (
         <div hidden={!!viewer}>
           <RecipeDetail
             recipe={selected}
             onEdit={() => {
-              if (!lock.current) setView("edit");
+              openDetailPage("edit");
             }}
             onBack={() => {
-              if (!lock.current) setView(returnView);
+              backToList();
             }}
             onDelete={() => void remove()}
             onFocus={(index, trigger) => showViewer("focus", index, trigger)}
             onGuided={(trigger) => showViewer("guided", 0, trigger)}
             onComplete={() => void complete()}
             completing={busy}
+            onChanges={() => openDetailPage("changes")}
+            overview={<CookingOverview
+              recipeId={selected.id} store={store} revision={revision} disabled={busy}
+              onHistory={() => openDetailPage("history")}
+            />}
           />
-          <CookingOverview
-            recipeId={selected.id}
-            store={store}
-            revision={revision}
-            disabled={busy}
-            onHistory={() => {
-              if (!lock.current) setView("history");
-            }}
-          />
-          <Button
-            variant="outline"
-            className="mt-5 min-h-11"
-            disabled={busy}
-            onClick={() => {
-              if (!lock.current) setView("changes");
-            }}
-          >
-            查看修改记录
-          </Button>
         </div>
       ) : view === "settings" ? (
         <section className="space-y-6">
@@ -568,126 +602,12 @@ export function LibraryApp({
           <AiSettings keys={aiKeys??intake.keys} onChanged={() => intake.keyChanged()} />
         </section>
       ) : (
-        <>
-          <h2 className="mb-4 text-2xl font-semibold">
-            {view === "home" ? "今天想做什么？" : "我的菜谱"}
-          </h2>
-          <label className="block">
-            <span className="sr-only">搜索菜名或食材</span>
-            <Input
-              className="min-h-12"
-              placeholder="搜索菜名或食材"
-              value={search}
-              onChange={(e) => {
-                setSearch(e.target.value);
-                setPage(0);
-              }}
-            />
-          </label>
-          {view==="home"&&search.trim()&&<Button className="mt-3 min-h-11 max-w-full whitespace-normal" variant="outline" disabled={busy} onClick={()=>void openFinder(search.trim())}>帮我找『{search.trim()}』的做法</Button>}
-          {view === "library" && (
-            <label className="mt-4 flex items-center gap-3 text-sm">
-              耗时筛选
-              <select
-                aria-label="耗时筛选"
-                className="min-h-11 rounded-lg border bg-background px-3"
-                value={filter}
-                onChange={(e) => {
-                  setFilter(e.target.value as DurationFilter);
-                  setPage(0);
-                }}
-              >
-                <option value="all">全部</option>
-                <option value="short">30 分钟内</option>
-                <option value="medium">超过 30 至 60 分钟</option>
-                <option value="long">超过 60 分钟</option>
-              </select>
-            </label>
-          )}
-          <h3 className="mb-4 mt-6 text-sm text-muted-foreground">
-            {search ? "搜索结果" : view === "home" ? "最近加入" : "全部菜谱"}
-          </h3>
-          {loading && !records.length ? (
-            <p role="status">正在读取本地菜谱…</p>
-          ) : !records.length ? (
-            <section className="rounded-2xl border border-dashed px-5 py-12 text-center">
-              <BookOpen className="mx-auto mb-4 text-muted-foreground" />
-              <p>
-                {search || filter !== "all"
-                  ? "没有符合条件的菜谱"
-                  : "先记下第一道想做的菜"}
-              </p>
-              <p className="mt-2 text-sm text-muted-foreground">
-                只记菜名也可以，以后再完善。
-              </p>
-              <Button
-                variant="outline"
-                className="mt-5"
-                onClick={() => {
-                  setSelected(null);
-                  setView("new");
-                }}
-              >
-                记下一个菜名
-              </Button>
-            </section>
-          ) : (
-            <ul className="grid gap-4 sm:grid-cols-2">
-              {records.map((r) => (
-                <li
-                  key={r.id}
-                  className="overflow-hidden rounded-2xl border bg-card"
-                >
-                  <button
-                    className="block w-full text-left disabled:opacity-60"
-                    aria-label={`打开 ${r.title}`}
-                    disabled={busy}
-                    onClick={() => void open(r.id)}
-                  >
-                    <LocalImage
-                      path={r.coverPath}
-                      alt={`${r.title} 封面`}
-                      className="h-40 w-full object-cover"
-                    />
-                    <div className="p-4">
-                      <p className="break-words font-semibold">{r.title}</p>
-                      <p className="mt-2 text-sm text-muted-foreground">
-                        {r.totalMinutes == null
-                          ? "耗时未记录"
-                          : `${r.totalMinutes} 分钟`}
-                        {view === "home" && r.caloriesPerServing != null
-                          ? ` · 约 ${r.caloriesPerServing} kcal/份`
-                          : ""}
-                      </p>
-                      {view === "home" && r.preparationHint && (
-                        <p className="mt-3 line-clamp-2 text-xs text-muted-foreground">
-                          提前准备：{r.preparationHint}
-                        </p>
-                      )}
-                      {view === "home" && r.lastCookedAt && (
-                        <p className="mt-3 text-xs text-muted-foreground">
-                          上次做过：{new Date(r.lastCookedAt).toLocaleString()}
-                        </p>
-                      )}
-                    </div>
-                  </button>
-                </li>
-              ))}
-            </ul>
-          )}
-          <div className="mt-5 flex gap-3">
-            {page > 0 && (
-              <Button variant="outline" onClick={() => setPage((n) => n - 1)}>
-                上一页
-              </Button>
-            )}
-            {records.length === 100 && (
-              <Button variant="outline" onClick={() => setPage((n) => n + 1)}>
-                下一页
-              </Button>
-            )}
-          </div>
-        </>
+        <CoreLibraryScreen records={records} library={view === "library"} query={search} filter={filter}
+          loading={loading} busy={busy || backupBusy(backupState) || backupState.phase === "uncertain"} page={page}
+          onQuery={value => { setSearch(value); setPage(0); }} onFilter={value => { setFilter(value); setPage(0); }}
+          onPage={setPage} onOpen={id => void open(id)} onLibrary={() => void navigate("library")}
+          onAdd={() => { setSelected(null); setReturnView(view === "library" ? "library" : "home"); setAddOpen(true); }}
+          onFind={dish => void openFinder(dish)} />
       )}
       {viewer && selected && (
         <StepViewer
@@ -725,12 +645,13 @@ export function LibraryApp({
           ))}
         </aside>
       )}
-      {view !== "new" && view !== "edit" && view !== "completion" && view!=="ai-input" && view!=="ai-preview" && view!=="link-input" && view!=="find-input" && !fromAiSettings && !fromLinkSettings && !fromFindSettings && (
+      {isRoot && (
         <nav
           aria-label="主要导航"
-          className="fixed inset-x-0 bottom-0 z-10 border-t bg-background/95 pb-[env(safe-area-inset-bottom)]"
+          className="recipio-ui-v2 v2-nav-area v2-production-nav"
+          ref={navigationRef}
         >
-          <div className="mx-auto grid max-w-3xl grid-cols-3">
+          <div className="v2-bottom-nav v2-glass">
             {(
               [
                 { key: "home", label: "首页", icon: House },
@@ -746,16 +667,17 @@ export function LibraryApp({
                   backupState.phase === "uncertain"
                 }
                 onClick={() => void navigate(item.key)}
+                aria-label={item.label}
                 aria-current={view === item.key ? "page" : undefined}
-                className={`flex min-h-16 flex-col items-center justify-center gap-1 text-xs ${view === item.key ? "bg-muted font-semibold" : "text-muted-foreground"}`}
               >
-                <item.icon size={21} />
-                {item.label}
+                <item.icon aria-hidden="true" />
+                {item.key === "library" ? "菜谱" : item.label}
               </button>
             ))}
           </div>
         </nav>
       )}
     </div>
+    </V2AppearanceProvider>
   );
 }

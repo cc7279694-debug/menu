@@ -1,0 +1,241 @@
+@import "./tokens.css";
+@import "./layout.css";
+
+/* Real core routes use the document scroll owner retained by LibraryApp. */
+.recipio-ui-v2.v2-production {
+  min-width: 0;
+  min-height: 100dvh;
+  margin: 0;
+  padding: env(safe-area-inset-top) 0 0;
+  background: var(--v2-canvas);
+  overflow-wrap: anywhere;
+  isolation: isolate;
+}
+#root > .recipio-ui-v2.v2-production { padding-top: env(safe-area-inset-top); }
+#root .recipio-ui-v2.v2-production .v2-button--primary { min-height: 52px; }
+#root .recipio-ui-v2.v2-production .v2-search input { min-height: 50px; }
+.recipio-ui-v2.v2-production .v2-home { min-height: 100dvh; }
+.v2-production main.v2-home { padding-top: 0; }
+.v2-production .v2-production-filter { display: flex; align-items: center; flex-wrap: wrap; gap: 12px; margin-top: 12px; font-size: .875rem; }
+.v2-production .v2-production-filter select { min-height: 48px; max-width: 100%; padding: 8px 12px; border: 1px solid var(--v2-control); border-radius: 16px; background: var(--v2-surface); }
+.v2-production .v2-pagination { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 20px; }
+.v2-production .v2-search-find { margin-top: 20px; }
+.v2-production .v2-recent-card > [role="img"] { width: 100%; height: 114px; border-radius: 18px; }
+.v2-production .v2-recipe-row > [role="img"] { width: 72px; height: 72px; border-radius: 14px; flex-shrink: 0; }
+.recipio-ui-v2 .v2-action-list > .v2-button { width: 100%; min-height: 64px; justify-content: flex-start; text-align: left; }
+.v2-production .v2-cover-button > [role="img"] { aspect-ratio: 4/3; width: 100%; }
+.v2-production-cooking .v2-cook-image { max-height: 65dvh; object-fit: contain; }
+.v2-production .v2-step-image, .v2-production .v2-large-image { object-fit: contain; }
+.recipio-ui-v2.v2-production .v2-nav-area,
+.recipio-ui-v2.v2-production-nav {
+  position: fixed;
+  inset: auto 0 0;
+  z-index: 10;
+  width: 100%;
+  max-width: 680px;
+  margin-inline: auto;
+}
+.recipio-ui-v2 .v2-production-detail.v2-detail {
+  --v2-controls-height: 112px;
+  display: block;
+  height: auto;
+  min-height: 100dvh;
+}
+.recipio-ui-v2 .v2-production-detail .v2-detail-scroll {
+  overflow: visible;
+  overscroll-behavior: auto;
+  padding-bottom: calc(var(--v2-controls-height,112px) + max(24px,env(safe-area-inset-bottom)) + 12px);
+  scroll-padding-bottom: calc(var(--v2-controls-height,112px) + max(24px,env(safe-area-inset-bottom)) + 12px);
+}
+.recipio-ui-v2 .v2-production-detail .v2-bottom-actions {
+  position: fixed;
+  inset: auto 0 0;
+  z-index: 10;
+  width: calc(100% - 32px);
+  max-width: 648px;
+  margin-inline: auto;
+}
+.recipio-ui-v2 .v2-production-detail .v2-detail-navigation {
+  padding-top: max(16px,env(safe-area-inset-top));
+}
+
+/* Opt-in legacy forms/history retain their value, service and event owners. */
+.recipio-ui-v2 :is(.v2-production-form,.v2-production-history) {
+  --background: var(--v2-canvas);
+  --foreground: var(--v2-text);
+  --card: var(--v2-surface);
+  --card-foreground: var(--v2-text);
+  --muted: var(--v2-muted);
+  --muted-foreground: var(--v2-secondary);
+  --primary: var(--v2-action);
+  --primary-foreground: #fff;
+  --secondary: var(--v2-soft);
+  --secondary-foreground: var(--v2-action);
+  --destructive: var(--v2-error);
+  --border: var(--v2-border);
+  --input: var(--v2-control);
+  --ring: var(--v2-focus);
+  min-width: 0;
+  color: var(--v2-text);
+}
+.recipio-ui-v2 :is(.v2-production-form,.v2-production-history:not(.v2-production-overview)) {
+  width: 100%;
+  max-width: 680px;
+  margin-inline: auto;
+  padding: 24px 20px max(32px,env(safe-area-inset-bottom));
+}
+.recipio-ui-v2 :is(.v2-production-form,.v2-production-history) :is(fieldset,label) { min-width: 0; }
+.recipio-ui-v2 :is(.v2-production-form,.v2-production-history) fieldset { min-inline-size: 0; }
+.recipio-ui-v2 :is(.v2-production-form,.v2-production-history) :is(h2,h3,p,label,time) { overflow-wrap: anywhere; }
+.recipio-ui-v2 :is(.v2-production-form,.v2-production-history) > h2,
+.recipio-ui-v2 .v2-production-form > header h2 {
+  font-size: 1.75rem;
+  line-height: 1.28;
+  font-weight: 600;
+}
+.recipio-ui-v2 .v2-production-form > header > div { flex-wrap: wrap; }
+#root .recipio-ui-v2.v2-production :is(.v2-production-form,.v2-production-history) :is([data-slot="button"],[data-slot="input"],select,input[type="file"]) { min-height: 48px; }
+#root .recipio-ui-v2 .v2-production-form .v2-form-footer {
+  z-index: 2;
+  padding-bottom: max(12px,env(safe-area-inset-bottom));
+  border-top: 1px solid var(--v2-border);
+  background: var(--v2-surface);
+}
+.recipio-ui-v2 .v2-production-form :is(.v2-form-section,.v2-form-media),
+.recipio-ui-v2 .v2-production-history.v2-production-overview {
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+}
+.recipio-ui-v2 .v2-production-form .v2-form-section { margin-top: 32px; }
+.recipio-ui-v2 .v2-production-form .v2-form-row,
+.recipio-ui-v2 .v2-production-history .v2-history-row {
+  padding: 16px 0;
+  border: 0;
+  border-bottom: 1px solid var(--v2-border);
+  border-radius: 0;
+  background: transparent;
+}
+.recipio-ui-v2 :is(.v2-production-form,.v2-production-history) [data-slot="button"] {
+  min-width: 48px;
+  min-height: 48px;
+  height: auto;
+  max-width: 100%;
+  padding: 12px 16px;
+  border-radius: var(--v2-radius-input);
+  color: var(--v2-text);
+  font-size: 1rem;
+  line-height: 1.5;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  text-align: center;
+}
+.recipio-ui-v2 :is(.v2-production-form,.v2-production-history) [data-slot="button"].bg-primary {
+  background: var(--v2-action);
+  color: #fff;
+}
+.recipio-ui-v2 :is(.v2-production-form,.v2-production-history) [data-slot="button"].bg-secondary {
+  background: var(--v2-soft);
+  color: var(--v2-action);
+}
+.recipio-ui-v2 :is(.v2-production-form,.v2-production-history) [data-slot="button"].bg-background {
+  border-color: var(--v2-control);
+  background: var(--v2-surface);
+}
+.recipio-ui-v2 :is(.v2-production-form,.v2-production-history) [data-slot="button"].text-destructive {
+  background: var(--v2-error-surface);
+  color: var(--v2-error);
+}
+.recipio-ui-v2 :is(.v2-production-form,.v2-production-history) [data-slot="button"]:active:not(:disabled) { background: var(--v2-muted); }
+.recipio-ui-v2 :is(.v2-production-form,.v2-production-history) [data-slot="button"].bg-primary:active:not(:disabled) {
+  background: var(--v2-action-pressed);
+  color: #fff;
+}
+.recipio-ui-v2 :is(.v2-production-form,.v2-production-history) :is([data-slot="input"],[data-slot="textarea"],select,input[type="file"]) {
+  min-width: 0;
+  min-height: 48px;
+  height: auto;
+  max-width: 100%;
+  padding: 12px;
+  border: 1px solid var(--v2-control);
+  border-radius: var(--v2-radius-input);
+  background: var(--v2-surface);
+  color: var(--v2-text);
+  font-size: 1rem;
+  line-height: 1.5;
+}
+.recipio-ui-v2 :is(.v2-production-form,.v2-production-history) [data-slot="textarea"] {
+  min-height: 7rem;
+  resize: vertical;
+}
+.recipio-ui-v2 :is(.v2-production-form,.v2-production-history) :is([data-slot="input"],[data-slot="textarea"])::placeholder { color: var(--v2-caption); }
+.recipio-ui-v2 :is(.v2-production-form,.v2-production-history) input[type="file"]::file-selector-button {
+  min-height: 48px;
+  height: auto;
+  margin-right: 12px;
+  padding: 8px 12px;
+  border: 0;
+  border-radius: 12px;
+  background: var(--v2-soft);
+  color: var(--v2-action);
+  font: inherit;
+}
+.recipio-ui-v2 :is(.v2-production-form,.v2-production-history) :is([data-slot="button"],[data-slot="input"],[data-slot="textarea"],select):disabled {
+  background: var(--v2-muted);
+  color: var(--v2-caption);
+  border-color: var(--v2-border);
+  opacity: 1;
+}
+.recipio-ui-v2 :is(.v2-production-form,.v2-production-history) [role="alert"] {
+  padding: 16px;
+  border: 1px solid var(--v2-error);
+  border-radius: 18px;
+  background: var(--v2-error-surface);
+  color: var(--v2-error);
+}
+.recipio-ui-v2 .v2-production-history time { font-size: .875rem; line-height: 1.57; color: var(--v2-secondary); }
+.recipio-ui-v2 .v2-production-history ol { padding: 0; list-style: none; }
+
+/* The existing Base UI dialog remains the cooking portal and Back/focus owner. */
+.v2-production-cooking {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: flex;
+  width: 100%;
+  max-width: none;
+  height: 100dvh;
+  max-height: none;
+  margin: 0;
+  padding: 0;
+  gap: 0;
+  overflow: hidden;
+  border: 0;
+  border-radius: 0;
+  background: var(--v2-cook,#202420);
+  transform: none;
+  translate: none;
+}
+.v2-production-cooking > .recipio-ui-v2.v2-cooking { height: 100%; }
+.recipio-ui-v2.v2-production-cooking.v2-cooking { display: grid; max-width: 680px; margin-inline: auto; }
+.v2-production-cooking .v2-cook-header { padding-top: max(12px,env(safe-area-inset-top)); }
+body:has(.v2-production,.v2-production-cooking) .recipio-ui-v2.v2-portal { z-index: 70; }
+body:has(.v2-production,.v2-production-cooking) .recipio-ui-v2.v2-portal .v2-backdrop { z-index: 70; }
+body:has(.v2-production,.v2-production-cooking) .recipio-ui-v2.v2-portal .v2-sheet { z-index: 80; }
+body:has(.v2-portal .v2-sheet,.v2-production-cooking) .v2-production :is(.v2-glass,.v2-detail-navigation .v2-button),
+body:has(.v2-portal .v2-sheet) .v2-production-cooking :is(.v2-glass,.v2-cook-toolbar) {
+  background: var(--v2-surface);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+@media (min-width:600px) {
+  .recipio-ui-v2 :is(.v2-production-form,.v2-production-history:not(.v2-production-overview)) { padding-inline: 24px; }
+}
+@media (max-width:479px) {
+  .recipio-ui-v2 .v2-production-form .grid.grid-cols-2 { grid-template-columns: minmax(0,1fr); }
+}
+@media (max-width:359px) {
+  .recipio-ui-v2 :is(.v2-production-form,.v2-production-history:not(.v2-production-overview)) { padding-inline: 16px; }
+  .recipio-ui-v2 .v2-production-form > header > div { width: 100%; }
+}

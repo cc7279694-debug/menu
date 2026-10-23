@@ -28,13 +28,13 @@ async function menu(name: string) { fireEvent.click(screen.getByRole("button", {
 function nativeBack() { fireEvent(window, new Event("recipio:back", { cancelable: true })); }
 
 it("cold-like late receipt opens idle Link Input exactly once without Read, AI or Save", async () => {
-  const f = setup(), view = render(<LibraryApp {...f} />); await screen.findByText("自己的做法，随时翻开");
+  const f = setup(), view = render(<LibraryApp {...f} />); await screen.findByRole("main", { name: "首页" });
   const shared = { status: "url" as const, id: crypto.randomUUID(), url, replaced: false }; await f.emit(shared);
   expect(await screen.findByLabelText("网页链接")).toHaveValue(url);
   expect(f.web.read).not.toHaveBeenCalled(); expect(f.fake.bridge.organize).not.toHaveBeenCalled(); expect(await f.store.list()).toEqual([]);
   fireEvent.change(screen.getByLabelText("网页链接"), { target: { value: "https://generated.example/edited" } }); await f.emit(shared);
   expect(screen.getByLabelText("网页链接")).toHaveValue("https://generated.example/edited");
-  view.unmount(); render(<LibraryApp {...f} />); await screen.findByText("自己的做法，随时翻开"); expect(screen.queryByLabelText("网页链接")).not.toBeInTheDocument();
+  view.unmount(); render(<LibraryApp {...f} />); await screen.findByRole("main", { name: "首页" }); expect(screen.queryByLabelText("网页链接")).not.toBeInTheDocument();
 });
 it("new recipe draft is protected; returning home requires explicit Open and shows hostname only", async () => {
   const f = setup(); render(<LibraryApp {...f} />); await menu("手动录入");

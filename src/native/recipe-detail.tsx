@@ -1,175 +1,91 @@
-import { Button } from "@/components/ui/button";
+import { useRef, useState, type ReactNode } from "react";
+import { ArrowLeft, ChevronRight, Clock3, Flame, MoreHorizontal, NotebookPen, TriangleAlert, Utensils } from "lucide-react";
 import type { RecipeDetails } from "./recipe-model";
 import { LocalImage } from "./local-image";
 import { RecipeStepContent } from "./recipe-step-content";
-export function RecipeDetail({
-  recipe,
-  onEdit,
-  onBack,
-  onDelete,
-  onFocus,
-  onGuided,
-  onComplete,
-  completing = false,
+import { IngredientsList, V2Button } from "./ui-v2/components";
+import { NativeV2Sheet } from "./ui-v2/native-sheet";
+import { useControlClearance } from "./ui-v2/use-control-clearance";
+
+export function RecipeDetail({ recipe, onEdit, onBack, onDelete, onFocus, onGuided, onComplete,
+  completing = false, overview, onChanges,
 }: {
-  recipe: RecipeDetails;
-  onEdit: () => void;
-  onBack: () => void;
-  onDelete: () => void;
+  recipe: RecipeDetails; onEdit: () => void; onBack: () => void; onDelete: () => void;
   onFocus?: (index: number, trigger: HTMLElement) => void;
-  onGuided?: (trigger: HTMLElement) => void;
-  onComplete?: () => void;
-  completing?: boolean;
+  onGuided?: (trigger: HTMLElement) => void; onComplete?: () => void;
+  completing?: boolean; overview?: ReactNode; onChanges?: () => void;
 }) {
-  return (
-    <article className="space-y-6">
-      <div className="flex justify-between gap-2">
-        <Button variant="ghost" disabled={completing} onClick={onBack}>
-          返回菜谱库
-        </Button>
-        <Button variant="outline" disabled={completing} onClick={onEdit}>
-          编辑菜谱
-        </Button>
+  const rootRef = useRef<HTMLElement>(null), controlsRef = useRef<HTMLElement>(null);
+  const [more, setMore] = useState(false);
+  const [image, setImage] = useState<{ path: string; title: string } | null>(null);
+  useControlClearance(rootRef, controlsRef);
+  const navigation = <div className="v2-detail-navigation">
+    <V2Button variant="icon" aria-label="返回菜谱库" disabled={completing} onClick={onBack}><ArrowLeft aria-hidden="true" /></V2Button>
+    <V2Button variant="icon" aria-label="更多菜谱操作" disabled={completing} onClick={() => setMore(true)}><MoreHorizontal aria-hidden="true" /></V2Button>
+  </div>;
+  return <article className="v2-detail v2-production-detail" ref={rootRef}>
+    <div className="v2-detail-scroll">
+      {recipe.coverPath ? <div className="v2-detail-hero">
+        <button className="v2-cover-button" aria-label="查看菜谱封面大图" disabled={completing}
+          onClick={() => setImage({ path: recipe.coverPath!, title: "菜谱封面" })}>
+          <LocalImage path={recipe.coverPath} alt={`${recipe.title} 封面`} className="v2-cover" />
+        </button>{navigation}
+      </div> : <div className="v2-detail-navigation-inline">{navigation}</div>}
+      <div className={`v2-detail-body${recipe.coverPath ? " v2-detail-body--overlap" : ""}`}>
+        <header><h1 className="v2-detail-title">{recipe.title}</h1><dl className="v2-meta">
+          <div><Clock3 aria-hidden="true" /><dt>耗时</dt><dd>{recipe.totalMinutes === null ? "耗时未填写" : `${recipe.totalMinutes} 分钟`}</dd></div>
+          {recipe.servings !== null ? <div><Utensils aria-hidden="true" /><dt>份量</dt><dd>{recipe.servings} 人份</dd></div> : null}
+          {recipe.caloriesPerServing !== null ? <div className="v2-meta-calories"><Flame aria-hidden="true" /><dt>每份热量</dt><dd>约 {recipe.caloriesPerServing} kcal／份</dd></div> : null}
+        </dl></header>
+        <section className="v2-content-section"><h2>食材</h2><IngredientsList ingredients={recipe.ingredients} /></section>
+        {recipe.preparations.length ? <section className="v2-content-section"><h2>提前准备</h2><ol className="v2-preparation-list">
+          {recipe.preparations.map((preparation, index) => <li key={index}><span aria-hidden="true">{index + 1}</span><div>
+            <p>{preparation.instruction}</p><p className="v2-secondary">
+              {preparation.minutes !== null ? `约 ${preparation.minutes} 分钟` : ""}
+              {preparation.timingText ? `${preparation.minutes !== null ? " · " : ""}${preparation.timingText}` : ""}
+              {preparation.minutes === null && !preparation.timingText ? "时间未记录" : ""}
+            </p></div></li>)}
+        </ol></section> : null}
+        {recipe.keyTips.length ? <section className="v2-content-section"><h2>关键事项</h2><div className="v2-callout">
+          <TriangleAlert aria-hidden="true" /><div>{recipe.keyTips.map((tip, index) => <p key={index}>
+            {tip.instruction}{tip.stepNumber !== null ? `（步骤 ${tip.stepNumber}）` : ""}
+          </p>)}</div></div></section> : null}
+        <section className="v2-content-section"><div className="v2-section-heading"><h2>完整步骤</h2>
+          {recipe.steps.length ? <span className="v2-secondary">共 {recipe.steps.length} 步</span> : null}</div>
+          {recipe.steps.length ? <ol className="v2-step-list">{recipe.steps.map((_, index) => <li key={index}>
+            <span className="v2-step-number" aria-hidden="true">{String(index + 1).padStart(2, "0")}</span><div>
+              <div className="v2-step-heading"><h3>步骤 {index + 1}</h3>
+                {onFocus ? <V2Button variant="text" aria-label={`放大步骤 ${index + 1}`} disabled={completing}
+                  onClick={event => onFocus(index, event.currentTarget)}>单步查看<ChevronRight aria-hidden="true" /></V2Button> : null}
+              </div><RecipeStepContent recipe={recipe} stepIndex={index}
+                onImage={(path, title) => setImage({ path, title })} />
+            </div></li>)}</ol> : <p className="v2-secondary">只记菜名也没关系，需要时再补充做法。</p>}
+        </section>
+        {recipe.notes ? <section className="v2-content-section"><h2>个人备注</h2><p className="v2-notes"><NotebookPen aria-hidden="true" />{recipe.notes}</p></section> : null}
+        <section className="v2-content-section v2-production-history v2-production-overview">
+          <V2Button variant="secondary" disabled={!onComplete || completing} onClick={onComplete}>完成这道菜</V2Button>
+          {overview}
+          {onChanges ? <V2Button variant="text" disabled={completing} onClick={onChanges}>查看修改记录</V2Button> : null}
+        </section>
       </div>
-      {recipe.coverPath && (
-        <LocalImage
-          path={recipe.coverPath}
-          alt={`${recipe.title} 封面`}
-          className="max-h-80 w-full rounded-2xl object-cover"
-        />
-      )}
-      <header>
-        <h2 className="text-3xl font-semibold break-words">{recipe.title}</h2>
-        <p className="mt-3 text-sm text-muted-foreground">
-          {recipe.servings !== null
-            ? `约 ${recipe.servings} 人份`
-            : "份数未记录"}
-        </p>
-        {recipe.caloriesPerServing !== null && (
-          <p className="mt-2 text-sm text-muted-foreground">
-            每份约 {recipe.caloriesPerServing} kcal
-            {recipe.servings !== null
-              ? ` · 整道约 ${Math.round(recipe.caloriesPerServing * recipe.servings)} kcal（按 ${recipe.servings} 份）`
-              : " · 尚未填写份数，无法推算整道热量"}
-          </p>
-        )}
-      </header>
-      <section>
-        <h3 className="mb-3 text-lg font-semibold">食材</h3>
-        {recipe.ingredients.length ? (
-          <ul className="divide-y rounded-xl border px-4">
-            {recipe.ingredients.map((r, i) => (
-              <li key={i} className="flex justify-between gap-4 py-3">
-                <span className="break-words">{r.name}</span>
-                <span className="text-muted-foreground break-words">
-                  {r.amount || "用量未记录"}
-                </span>
-              </li>
-            ))}
-          </ul>
-        ) : (
-          <p className="text-muted-foreground">还没有食材，可以随时补充。</p>
-        )}
-      </section>
-      <section>
-        <h3 className="mb-2 text-lg font-semibold">总耗时</h3>
-        <p>
-          {recipe.totalMinutes === null
-            ? "耗时未记录"
-            : `${recipe.totalMinutes} 分钟`}
-        </p>
-      </section>
-      {!!recipe.preparations.length && (
-        <section className="rounded-xl bg-muted p-4">
-          <h3 className="mb-3 font-semibold">提前准备</h3>
-          <ul className="space-y-3">
-            {recipe.preparations.map((r, i) => (
-              <li key={i}>
-                <p className="whitespace-pre-wrap">{r.instruction}</p>
-                <p className="text-sm text-muted-foreground">
-                  {r.minutes !== null ? `约 ${r.minutes} 分钟` : ""}
-                  {r.timingText
-                    ? `${r.minutes !== null ? " · " : ""}${r.timingText}`
-                    : ""}
-                  {r.minutes === null && !r.timingText ? "时间未记录" : ""}
-                </p>
-              </li>
-            ))}
-          </ul>
-        </section>
-      )}
-      {!!recipe.keyTips.length && (
-        <section className="rounded-xl border p-4">
-          <h3 className="mb-3 font-semibold">做菜前先看</h3>
-          <ul className="list-inside list-disc space-y-2">
-            {recipe.keyTips.map((r, i) => (
-              <li key={i} className="whitespace-pre-wrap">
-                {r.instruction}
-                {r.stepNumber !== null ? `（步骤 ${r.stepNumber}）` : ""}
-              </li>
-            ))}
-          </ul>
-        </section>
-      )}
-      <section>
-        <h3 className="mb-3 text-lg font-semibold">完整步骤</h3>
-        <Button
-          variant="outline"
-          className="mb-4 min-h-11"
-          disabled={completing || !recipe.steps.length || !onGuided}
-          onClick={(e) => onGuided?.(e.currentTarget)}
-        >
-          开始引导烹饪
-        </Button>
-        {recipe.steps.length ? (
-          <ol className="space-y-4">
-            {recipe.steps.map((_, i) => (
-              <li key={i} className="rounded-xl border p-4">
-                <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
-                  <h4 className="font-semibold">{i + 1}.</h4>
-                  {onFocus && (
-                    <Button
-                      variant="ghost"
-                      className="min-h-11"
-                      aria-label={`放大步骤 ${i + 1}`}
-                      disabled={completing}
-                      onClick={(e) => onFocus(i, e.currentTarget)}
-                    >
-                      放大查看
-                    </Button>
-                  )}
-                </div>
-                <RecipeStepContent recipe={recipe} stepIndex={i} />
-              </li>
-            ))}
-          </ol>
-        ) : (
-          <p className="text-muted-foreground">
-            只记菜名也没关系，需要时再补充做法。
-          </p>
-        )}
-      </section>
-      {recipe.notes && (
-        <section>
-          <h3 className="mb-2 font-semibold">个人备注</h3>
-          <p className="whitespace-pre-wrap break-words">{recipe.notes}</p>
-        </section>
-      )}
-      <Button
-        className="min-h-11"
-        disabled={!onComplete || completing}
-        onClick={onComplete}
-      >
-        完成这道菜
-      </Button>
-      <Button
-        variant="ghost"
-        className="min-h-11 text-destructive"
-        disabled={completing}
-        onClick={onDelete}
-      >
-        删除这道菜
-      </Button>
-    </article>
-  );
+    </div>
+    <footer className="v2-bottom-actions v2-glass" ref={controlsRef}>
+      <V2Button variant="text" aria-label="编辑菜谱" disabled={completing} onClick={onEdit}>编辑</V2Button>
+      {recipe.steps.length ? <V2Button aria-label="开始引导烹饪" disabled={completing || !onGuided} onClick={event => onGuided?.(event.currentTarget)}>开始烹饪</V2Button>
+        : <V2Button disabled={completing} onClick={onEdit}>补充做法</V2Button>}
+    </footer>
+    <NativeV2Sheet open={more} onOpenChange={value => { if (!completing) setMore(value); }}
+      title="菜谱操作" description="修改自己的做法，记录下厨，或删除并在五秒内撤销。">
+      <div className="v2-action-list">
+        <V2Button variant="text" disabled={completing} onClick={() => { setMore(false); onEdit(); }}>编辑菜谱</V2Button>
+        <V2Button variant="text" disabled={completing || !onComplete} onClick={() => { setMore(false); onComplete?.(); }}>记录做过</V2Button>
+        {onChanges ? <V2Button variant="text" disabled={completing} onClick={() => { setMore(false); onChanges(); }}>查看修改记录</V2Button> : null}
+        <V2Button variant="danger" disabled={completing} onClick={() => { setMore(false); onDelete(); }}>删除这道菜</V2Button>
+      </div>
+    </NativeV2Sheet>
+    <NativeV2Sheet open={image !== null} onOpenChange={value => { if (!value) setImage(null); }}
+      title={image?.title ?? "本地图片"} description="仅查看当前菜谱实际保存的本地图片。">
+      {image ? <LocalImage path={image.path} alt={image.title} className="v2-large-image" /> : null}
+    </NativeV2Sheet>
+  </article>;
 }

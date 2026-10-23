@@ -22,6 +22,7 @@ export function RecipeEditor({
   beforeFields,
   mediaEnabled=true,
   beforeSubmit,
+  appearance,
 }: {
   initial?: RecipeDetailsInput;
   onSave: (input: RecipeDetailsInput) => Promise<void>;
@@ -31,7 +32,11 @@ export function RecipeEditor({
   beforeFields?:ReactNode;
   mediaEnabled?:boolean;
   beforeSubmit?:(input:RecipeDetailsInput)=>boolean;
+  appearance?: "v2";
 }) {
+  function presentationClass(legacy: string, v2: string) {
+    return appearance === "v2" ? `${v2} ${legacy}` : legacy;
+  }
   const [value, setValue] = useState(() => initial ?? emptyDetails());
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
@@ -139,7 +144,7 @@ export function RecipeEditor({
     label: string,
   ) {
     return (
-      <div className="mt-2 flex flex-wrap gap-2">
+      <div className={presentationClass("mt-2 flex flex-wrap gap-2", "v2-row-actions")}>
         <Button
           type="button"
           size="sm"
@@ -175,7 +180,7 @@ export function RecipeEditor({
   }
   return (
     <form
-      className="space-y-6"
+      className={presentationClass("space-y-6", "v2-production-form")}
       onSubmit={(e) => {
         e.preventDefault();
         if (lock.current) return;
@@ -198,11 +203,11 @@ export function RecipeEditor({
           });
       }}
     >
-      <header className="flex flex-wrap items-center justify-between gap-3">
-        <h2 className="text-2xl font-semibold">
+      <header className={presentationClass("flex flex-wrap items-center justify-between gap-3", "v2-form-header")}>
+        <h2 className={presentationClass("text-2xl font-semibold", "v2-page-title")}>
           {heading??(initial ? "编辑菜谱" : "记下这道菜")}
         </h2>
-        <div className="flex items-center gap-1">
+        <div className={presentationClass("flex items-center gap-1", "v2-form-actions")}>
           <Button
             type="submit"
             disabled={busy || !value.title.trim()}
@@ -220,12 +225,12 @@ export function RecipeEditor({
           </Button>
         </div>
       </header>
-      <p className="text-sm text-muted-foreground">
+      <p className={presentationClass("text-sm text-muted-foreground", "v2-secondary")}>
         只填菜名也能保存，其他内容可以以后慢慢补充。
       </p>
-      <fieldset disabled={busy} className="space-y-6">
+      <fieldset disabled={busy} className={presentationClass("space-y-6", "v2-form-fields")}>
         {beforeFields}
-        <label className="block space-y-2">
+        <label className={presentationClass("block space-y-2", "v2-field-label")}>
           <span>菜名</span>
           <Input
             value={value.title}
@@ -234,14 +239,14 @@ export function RecipeEditor({
             onChange={(e) => patch({ title: e.target.value })}
           />
         </label>
-        {mediaEnabled&&<section className="rounded-2xl border bg-card p-4 space-y-3">
-          <h3 className="font-medium">封面照片</h3>
+        {mediaEnabled&&<section className={presentationClass("rounded-2xl border bg-card p-4 space-y-3", "v2-form-section v2-form-media")}>
+          <h3 className={presentationClass("font-medium", "v2-section-title")}>封面照片</h3>
           <LocalImage
             path={value.coverPath}
             alt="菜谱封面"
             className="h-40 w-full rounded-xl object-cover"
           />
-          <label className="block text-sm">
+          <label className={presentationClass("block text-sm", "v2-field-label")}>
             选择本地封面
             <Input
               type="file"
@@ -269,8 +274,8 @@ export function RecipeEditor({
             图片保存在本机，不上传。大图片会占用更多设备空间。
           </p>
         </section>}
-        <div className="grid gap-4 sm:grid-cols-3">
-          <label className="space-y-2">
+        <div className={presentationClass("grid gap-4 sm:grid-cols-3", "v2-form-metadata")}>
+          <label className={presentationClass("space-y-2", "v2-field-label")}>
             <span>做菜耗时（分钟）</span>
             <Input
               type="number"
@@ -282,7 +287,7 @@ export function RecipeEditor({
               }
             />
           </label>
-          <label className="space-y-2">
+          <label className={presentationClass("space-y-2", "v2-field-label")}>
             <span>约几人份</span>
             <Input
               type="number"
@@ -294,7 +299,7 @@ export function RecipeEditor({
               }
             />
           </label>
-          <label className="space-y-2">
+          <label className={presentationClass("space-y-2", "v2-field-label")}>
             <span>每份参考热量（kcal）</span>
             <Input
               type="number"
@@ -310,10 +315,10 @@ export function RecipeEditor({
         <p className="text-xs text-muted-foreground">
           不知道就留空。耗时由你填写，不自动累加提前准备；用量不会随人数缩放。热量仅供日常参考。
         </p>
-        <section className="space-y-3">
-          <h3 className="text-lg font-semibold">食材与实际用量</h3>
+        <section className={presentationClass("space-y-3", "v2-form-section")}>
+          <h3 className={presentationClass("text-lg font-semibold", "v2-section-title")}>食材与实际用量</h3>
           {value.ingredients.map((r, i) => (
-            <div key={i} className="rounded-xl border p-3">
+            <div key={i} className={presentationClass("rounded-xl border p-3", "v2-form-row")}>
               <div className="grid grid-cols-2 gap-3">
                 <label>
                   <span className="text-sm">食材 {i + 1}</span>
@@ -358,10 +363,10 @@ export function RecipeEditor({
             添加食材
           </Button>
         </section>
-        <section className="space-y-3">
-          <h3 className="text-lg font-semibold">完整步骤</h3>
+        <section className={presentationClass("space-y-3", "v2-form-section")}>
+          <h3 className={presentationClass("text-lg font-semibold", "v2-section-title")}>完整步骤</h3>
           {value.steps.map((r, i) => (
-            <div key={i} className="rounded-xl border p-3 space-y-3">
+            <div key={i} className={presentationClass("rounded-xl border p-3 space-y-3", "v2-form-row")}>
               <label className="block">
                 <span className="text-sm">步骤 {i + 1}</span>
                 <Textarea
@@ -428,10 +433,10 @@ export function RecipeEditor({
             添加步骤
           </Button>
         </section>
-        <section className="space-y-3">
-          <h3 className="text-lg font-semibold">提前准备</h3>
+        <section className={presentationClass("space-y-3", "v2-form-section")}>
+          <h3 className={presentationClass("text-lg font-semibold", "v2-section-title")}>提前准备</h3>
           {value.preparations.map((r, i) => (
-            <div key={i} className="rounded-xl border p-3 space-y-3">
+            <div key={i} className={presentationClass("rounded-xl border p-3 space-y-3", "v2-form-row")}>
               <label className="block">
                 <span>准备事项 {i + 1}</span>
                 <Textarea
@@ -498,10 +503,10 @@ export function RecipeEditor({
             添加准备事项
           </Button>
         </section>
-        <section className="space-y-3">
-          <h3 className="text-lg font-semibold">关键事项</h3>
+        <section className={presentationClass("space-y-3", "v2-form-section")}>
+          <h3 className={presentationClass("text-lg font-semibold", "v2-section-title")}>关键事项</h3>
           {value.keyTips.map((r, i) => (
-            <div key={i} className="rounded-xl border p-3 space-y-3">
+            <div key={i} className={presentationClass("rounded-xl border p-3 space-y-3", "v2-form-row")}>
               <label className="block">
                 <span>关键事项 {i + 1}</span>
                 <Textarea
@@ -551,7 +556,7 @@ export function RecipeEditor({
             添加关键事项
           </Button>
         </section>
-        <label className="block space-y-2">
+        <label className={presentationClass("block space-y-2", "v2-field-label")}>
           <span>个人备注</span>
           <Textarea
             value={value.notes}
@@ -567,7 +572,7 @@ export function RecipeEditor({
           {error}
         </p>
       )}
-      <div className="sticky bottom-0 bg-background/95 py-3">
+      <div className={presentationClass("sticky bottom-0 bg-background/95 py-3", "v2-form-footer")}>
         <Button
           type="submit"
           disabled={busy || !value.title.trim()}
