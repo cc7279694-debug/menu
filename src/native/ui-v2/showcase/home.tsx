@@ -34,9 +34,9 @@ export function HomeScreen({ recipes, library, query, filter, onQuery, onFilter,
       ["all", "全部"], ["short", "30 分钟内"], ["medium", "30–60 分钟"], ["long", "超过 60 分钟"],
     ] as const).map(([value, label]) => <V2Button key={value} variant="select" aria-pressed={filter === value} onClick={() => onFilter(value)}>{label}</V2Button>)}</div> : null}
     {!library && !searching && recipes.length > 0 ? <>
-      <div className="v2-entry-grid">
-        <button className="v2-entry-card" onClick={onAdd}><span className="v2-entry-symbol"><Plus aria-hidden="true" /></span><strong>添加菜谱</strong><span>文字、截图或链接</span></button>
-        <button className="v2-entry-card" onClick={onFind}><span className="v2-entry-symbol v2-entry-symbol--find"><Sparkles aria-hidden="true" /></span><strong>帮我找做法</strong><span>比较有来源的做法</span></button>
+      <div className="v2-entry-grid" role="group" aria-label="菜谱快捷操作">
+        <button className="v2-entry-card v2-entry-card--primary" onClick={onAdd}><span className="v2-entry-symbol"><Plus aria-hidden="true" /></span><span className="v2-entry-copy"><strong>添加菜谱</strong><span>文字、截图或链接</span></span></button>
+        <button className="v2-entry-card v2-entry-card--secondary" onClick={onFind}><span className="v2-entry-symbol v2-entry-symbol--find"><Sparkles aria-hidden="true" /></span><span className="v2-entry-copy"><strong>帮我找做法</strong><span>比较有来源的做法</span></span></button>
       </div>
       <section className="v2-section" aria-labelledby="recent-title">
         <div className="v2-section-heading"><h2 id="recent-title">最近加入</h2><V2Button variant="text" onClick={onLibrary}>全部<ChevronRight aria-hidden="true" /></V2Button></div>

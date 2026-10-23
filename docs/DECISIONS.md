@@ -1,5 +1,30 @@
 # Decisions
 
+## 2026-10-23 — G1 final polish changes weight, not product meaning
+
+### Decision
+
+Apply the approved third-round density/hierarchy changes to the same three G1
+screens and themes. Replace equal large shortcut boxes with compact unequal
+visual weight; soften control chrome, not content. Keep original food bytes and
+4:3 cover framing. Make generic cooking labels secondary to the real instruction.
+
+### Context / Alternatives / Reason
+
+Independent visual feedback approved the direction but withheld G2. Ordinary
+spacing, fine edges and restrained shadow solve the requested weight without
+new styles, stronger blur, new assets/fonts or decorative content cards. Weak
+secondary actions must retain readable contrast on the frozen translucent tints;
+use scoped primary text with restrained weight rather than low-contrast alpha.
+
+### Consequences
+
+Warm Ivory is recommended for preview only. No product-default theme decision,
+new destination, new cooking state, automatic completion, data/Provider change
+or production wiring. Actual paired captures and fresh regression remain the
+evidence; user/ChatGPT final visual confirmation still gates G2. See
+ui-v2/FINAL_POLISH_VERIFICATION.md and FINAL_POLISH_CHECKPOINT.md.
+
 ## 2026-10-23 — G1 theme skins share structure and transient state
 
 ### Decision

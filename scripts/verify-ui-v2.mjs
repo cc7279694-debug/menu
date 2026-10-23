@@ -18,7 +18,8 @@ assert(Object.hasOwn(darkBackgrounds, theme), `Unknown regression theme: ${theme
 const { chromium } = runtime ? require(require.resolve("playwright", { paths: [runtime] })) : require("playwright");
 const root = fileURLToPath(new URL("../", import.meta.url));
 const testedSource = await uiV2EvidenceSource(root);
-const out = path.resolve(root, "output/playwright/ui-v2/theme-refresh", theme, "regression");
+const outputRoot = process.argv.find((value) => value.startsWith("--out="))?.slice(6) ?? "output/playwright/ui-v2/theme-refresh";
+const out = path.resolve(root, outputRoot, theme, "regression");
 const base = "http://127.0.0.1:5182/ui-v2-showcase/";
 await mkdir(out, { recursive: true });
 const browser = await chromium.launch({ headless: true });

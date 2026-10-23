@@ -15,7 +15,8 @@ const runtimePaths = [root, runtime].filter(Boolean);
 const { chromium } = require(require.resolve("playwright", { paths: runtimePaths }));
 const sharp = require(require.resolve("sharp", { paths: [sharpRuntime, ...runtimePaths].filter(Boolean) }));
 const base = "http://127.0.0.1:5182/ui-v2-showcase/";
-const out = path.resolve(root, "output/playwright/ui-v2/theme-refresh");
+const outputRoot = process.argv.find((value) => value.startsWith("--out="))?.slice(6) ?? "output/playwright/ui-v2/theme-refresh";
+const out = path.resolve(root, outputRoot);
 const revision = execFileSync("git", ["rev-parse", "HEAD"], { cwd: root, encoding: "utf8" }).trim();
 const testedSource = await uiV2EvidenceSource(root);
 const themes = {
@@ -336,6 +337,12 @@ try {
       const badge = await page.locator(".v2-state-badge--explicit").evaluate((node) => ({ text: getComputedStyle(node).color, background: getComputedStyle(node).backgroundColor }));
       assert.deepEqual(badge, { text: "rgb(73, 104, 79)", background: "rgb(230, 239, 229)" });
       await screenshot(theme, "components-390");
+    });
+    await check(`${theme} transparent secondary footer text stays readable over both underlay extrema`, async () => {
+      await open(theme, "detail");
+      await localContrast(theme, page.locator(".v2-bottom-actions .v2-button--text"), ".v2-bottom-actions");
+      await open(theme, "cooking", { mode: "focus" });
+      await localContrast(theme, page.locator(".v2-cook-footer .v2-button--text"), ".v2-cook-footer");
     });
     for (const width of [320, 390, 412, 768]) {
       await page.setViewportSize({ width, height: 844 });

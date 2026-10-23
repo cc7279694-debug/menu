@@ -26,7 +26,7 @@ export function DetailScreen({ item, scrollRef, onBack, onMore, onEdit, onGuided
           <dl className="v2-meta">
             <div><Clock3 aria-hidden="true" /><dt>耗时</dt><dd>{recipe.totalMinutes === null ? "耗时未填写" : `${recipe.totalMinutes} 分钟`}</dd></div>
             {recipe.servings !== null ? <div><Utensils aria-hidden="true" /><dt>份量</dt><dd>{recipe.servings} 人份</dd></div> : null}
-            {recipe.caloriesPerServing !== null ? <div><Flame aria-hidden="true" /><dt>每份热量</dt><dd>约 {recipe.caloriesPerServing} kcal／份</dd></div> : null}
+            {recipe.caloriesPerServing !== null ? <div className="v2-meta-calories"><Flame aria-hidden="true" /><dt>每份热量</dt><dd>约 {recipe.caloriesPerServing} kcal／份</dd></div> : null}
           </dl>
         </header>
         <section className="v2-content-section"><h2>食材</h2><IngredientsList ingredients={recipe.ingredients} /></section>
@@ -45,6 +45,6 @@ export function DetailScreen({ item, scrollRef, onBack, onMore, onEdit, onGuided
         {recipe.notes ? <section className="v2-content-section"><h2>自己的备注</h2><p className="v2-notes"><NotebookPen aria-hidden="true" />{recipe.notes}</p></section> : null}
       </div>
     </div>
-    <footer className="v2-bottom-actions v2-glass" ref={controlsRef}><V2Button variant="secondary" onClick={onEdit}>编辑</V2Button><V2Button data-v2-focus="guided" onClick={recipe.steps.length ? onGuided : onEdit}>{recipe.steps.length ? "开始烹饪" : "补充做法"}</V2Button></footer>
+    <footer className="v2-bottom-actions v2-glass" ref={controlsRef}><V2Button variant="text" onClick={onEdit}>编辑</V2Button><V2Button data-v2-focus="guided" onClick={recipe.steps.length ? onGuided : onEdit}>{recipe.steps.length ? "开始烹饪" : "补充做法"}</V2Button></footer>
   </article>;
 }
