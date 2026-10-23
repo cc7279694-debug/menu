@@ -1,0 +1,65 @@
+FINAL SOURCE ad4df5a49c5f5a4e39f11b537f93f0fc1aa92e43
+JS/TS command: npm test -- --pool=threads --maxWorkers=1 --no-file-parallelism --reporter=verbose
+
+ Test Files  198 passed (198)
+      Tests  1079 passed (1079)
+   Start at  21:25:11
+   Duration  490.92s (transform 4.55s, setup 53.79s, import 50.42s, tests 163.94s, environment 190.77s)
+
+Typecheck command: npm run typecheck
+> recipe-app-foundation-auth@0.1.0 typecheck
+> tsc --noEmit
+
+ESLint command: npm run lint
+✖ 5 problems (0 errors, 5 warnings)
+
+Build graph command: node scripts/verify-ui-v2-isolation.mjs
+✓ built in 1.59s
+{"result":"PASS","productionModuleCount":300,"sharedV2Modules":6,"showcaseModules":0,"fixtureAssets":0,"write":false}
+Capacitor: npm run sync:android
+√ Creating capacitor.config.json in android\app\src\main\assets in 1.15ms
+√ copy android in 72.06ms
+√ Updating Android plugins in 12.29ms
+[info] Found 2 Capacitor plugins for android:
+       @capacitor-community/sqlite@8.1.1
+       @capacitor/filesystem@8.1.4
+√ update android in 578.62ms
+[info] Sync finished in 0.892s
+Gradle: testDebugUnitTest --rerun / lintDebug / assembleDebug, versionCode21
+> Task :app:testDebugUnitTest
+> Task :app:lintDebug
+> Task :app:assembleDebug
+BUILD SUCCESSFUL in 1m 37s
+213 actionable tasks: 51 executed, 162 up-to-date
+apksigner: final v21 signature
+Verifies
+Verified using v1 scheme (JAR signing): false
+Verified using v2 scheme (APK Signature Scheme v2): true
+Verified using v3 scheme (APK Signature Scheme v3): false
+Verified using v3.1 scheme (APK Signature Scheme v3.1): false
+Verified using v4 scheme (APK Signature Scheme v4): false
+Verified for SourceStamp: false
+Number of signers: 1
+Signer #1 certificate DN: C=US, O=Android, CN=Android Debug
+Signer #1 certificate SHA-256 digest: 29ded26bea44f1afe4fe383a302e4b507423d16223469d7da3fe578d9a7f83b9
+aapt: final v21 manifest
+package: name='app.recipio.local' versionCode='21' versionName='0.10.0-ui-v2-g2-rc1' platformBuildVersionName='16' platformBuildVersionCode='36' compileSdkVersion='36' compileSdkVersionCodename='16'
+sdkVersion:'24'
+targetSdkVersion:'36'
+Production browser final
+PASS fresh_empty_library_has_no_sample_food
+PASS real_local_home_and_list
+PASS local_search_filter_and_return_position
+PASS full_content_local_image_and_readonly_focus
+PASS short_history_and_editor_restore_detail_position
+PASS guided_sheet_back_and_explicit_completion_only
+PASS responsive_detail_controls_and_content_clearance
+PASS name_only_no_image_and_native_sheet_back
+PASS legacy_g3_entries_return_without_provider_request
+PASS responsive_home_editor_cooking_and_solid_material
+PASS fresh_reload_keeps_local_recipe_and_no_external_request
+PASS 11 production browser checks
+G1 showcase final
+{"status":"PASS","theme":"warm-ivory","checks":41,"browser":"151.0.7922.34","evidence":"workspace:/output\\playwright\\ui-v2\\g2\\v21-showcase\\warm-ivory\\regression"}
+{"status":"PASS","theme":"pure-glass","checks":41,"browser":"151.0.7922.34","evidence":"workspace:/output\\playwright\\ui-v2\\g2\\v21-showcase\\pure-glass\\regression"}
+{"status":"PASS","theme":"soft-sage","checks":41,"browser":"151.0.7922.34","evidence":"workspace:/output\\playwright\\ui-v2\\g2\\v21-showcase\\soft-sage\\regression"}

@@ -2,63 +2,61 @@
 
 ## Current stage
 
-2026-10-23 — UI V2 G1 third-round final targeted polish is the current authorized work, on the independent
-`feat/recipio-ui-v2-glass-minimal` worktree. The base was freshly verified as
-local/remote main `649804a8209413f9d682f1079a4fd19ea84cd064`, tree
-`2d1993bcab8dbb59c540b8225d51259562ad0316`, release `v0.9.1-logo-refresh`.
-This supersedes the old main-promotion-pending documentation; it does not
-turn any historical NOT_RUN phone/OEM test into a Codex PASS.
+2026-10-23 — UI V2 G2 Production Core UI Integration is implemented and handed
+off as **UI_V2_G2_PENDING_ANDROID_TEST** on `feat/recipio-ui-v2-glass-minimal`, linked worktree
+`recipe-step-app-ui-v2`. User approved G1 `9a17b1c` as
+**UI_V2_G1_VISUAL_ACCEPTED — PASS WITH NOTES**. This explicitly supersedes the
+old pending G1 gate; it is not acceptance of the new G2 implementation.
 
-The user-provided `ui-v2/RECIPIO_UI_V2_SPEC.md` and `ui-v2/EXECUTION.md` are the
-current design/execution authority, supplemented by the approved second-round
-`ui-v2/THEME_REFRESH_EXECUTION.md` and current third-round inline brief. Only tokens, component states and the
-Home → Detail → Guided/Focus **DEV-only showcase** are authorized now.
-Production UI/data/Native/Provider remain unchanged. No APK is required at G1.
+Stable main remains `649804a8209413f9d682f1079a4fd19ea84cd064`,
+release `v0.9.1-logo-refresh`. No merge, tag, deployment or video work authorized.
 
-Delivery gate: **UI_V2_G1_FINAL_POLISH_READY_FOR_REVIEW**, not ACCEPTED/FROZEN.
-Three same-layout skins (Warm Ivory / Pure Glass / Soft Sage), themed Portals,
-memory-only theme selection and fixed deep cooking surface remain. The current
-polish makes Home controls137px rather than163px, recent content113.09px earlier,
-Detail hierarchy tighter and floating bars lighter. Generic cooking labels are
-secondary to actual instructions. Cover4:3 framing/bytes and business meanings
-are unchanged; high-contrast Edit/Previous text repairs the final review finding.
-Fresh sample DOM34/34, browser41×3, theme/material74 and paired43 checks PASS.
-Typecheck/lint/local build/production exclusion PASS, retaining5 legacy image
-warnings and the existing chunk warning. Final whole suite196 files/1063 PASS
-in932.71s, exit0. First run's worker-start error is retained as failure history;
-its isolated recheck9 PASS is not a substitute for the final whole run. No browser errors,
-external/API requests, persistence writes or database initialization observed.
+## Implemented / verified delta
 
-See `ui-v2/FINAL_POLISH_PROGRESS.md`, `ui-v2/FINAL_POLISH_VERIFICATION.md`,
-`ui-v2/FINAL_POLISH_CHECKPOINT.md` and `ui-v2/FINAL_POLISH_GALLERY.md`.
-Original G1 and R2 theme-refresh records stay historical; their1049/461/41 and
-1062/474/71 numbers are not this round's verification.
-G2–G4 require explicit user approval of the rendered sample; no further product
-work, main merge, tag, deployment or video experiment continuation is authorized.
+- Core Home/Library/search/Detail/Editor/Focus/Guided/Completion/CookingHistory/
+  ChangeHistory use shared accepted Warm Ivory presentation and real local data.
+- 125 unchanged G1 layout lines are shared; production-only CSS adapts document
+  scrolling/forms and measured floating controls. No shipped fixture/demo UI.
+- Existing local100/offset search/filter/order, media, save/dirty/busy/uncertain,
+  five-second undo and explicit idempotent cooking semantics retained.
+- List and short detail subroute return positions restored; asynchronous local
+  media/summary layout changes handled without a guessed delay. User interaction
+  immediately returns control of scrolling. Mounted sheets consume their own
+  Back without also leaving the parent page.
+- Fresh production browser11 grouped checks PASS; original G1 showcase41 checks
+  per theme PASS. Real desktop browser evidence is not Android/IME evidence.
+- Typecheck PASS; lint0 errors/5 existing legacy Next image warnings. Local
+  build and Capacitor sync PASS. Production graph300 modules/sharedV2=6,
+  showcase=0/fixtures=0. Final whole suite198 files/1079 PASS (491 native TS/JS
+  subset,16 new G2 cases); Java188 rerun PASS. Android lint0 errors/38 warnings
+  in unchanged native/dependency/resource code. Final v21 APK built and signed;
+  all15 packaged public assets match the final web build. Sourcead4df5a,
+  version0.10.0-ui-v2-g2-rc1; see metadata for bytes/hash/certificate.
+
+## Protected boundaries
+
+SQLite4 /Preview7 /Backup2, RecipeLibrary/Repository, Native IME/KeyStore,
+Provider/Finder/SSRF/Share/restore contracts and existing Logo remain unchanged.
+No AI calls, dependency/font/media generation for production, theme persistence
+or second cooking state machine. G3 AI/Link/Finder/Backup/settings retain their
+existing renderers and guarded entry/return. No feature expansion.
+
+## Environment / unverified
+
+A physical phone is connected but untouched. No emulator currently running;
+available RAM is below safe headroom for the existing RECIPIO2GB AVD. Native
+device installation/IME/Back/offline/cover-upgrade are NOT_RUN. Final free RAM
+was about2.7GiB, below the4GiB headroom for a2GB AVD plus host. No other project's
+device/process/data operated and no SDK installed.
 
 ## Delivery / next task
 
-Start `npm run dev:ui-v2` in the UI V2 worktree and open
-`http://127.0.0.1:5182/ui-v2-showcase/?theme=warm-ivory`, `?theme=pure-glass` or
-`?theme=soft-sage`; “样板设置 → 外观主题” also switches the live skin. Nine actual
-new screen captures and their nine same-state before counterparts are in
-`ui-v2/evidence/final-polish/`, together with source/geometry/material records.
-Warm Ivory is recommended for preview only, not an accepted product default.
-Fixtures, image previews,
-search and navigation use memory only. Formal editing/saving/AI/settings are
-intentionally not connected at G1. Existing production entry remains unchanged.
+Stop for ChatGPT/user independent review and safely available dedicated Android
+smoke; do not enter G3/G4. See `ui-v2/G2_EXECUTION.md`, `G2_CHECKPOINT.md`,
+`G2_VERIFICATION.md`, `G2_ACCEPTANCE_MATRIX.md` and `G2_GALLERY.md`.
 
-Wait for the user's visual approval; do not replace default UI or start G2.
-No G1 APK, version/signature change, main promotion or production release.
-
-## Protected state / unverified areas
-
-SQLite4 /Preview7 /Backup2, Repository/Native/Provider/key contracts, existing
-business flows and Logo resources remain unchanged. No private data accessed,
-no real AI/Provider calls and no other project's Android environment operated.
-
-Android/IME/TalkBack/OEM, phone, offline cold start/cover install/data retention,
-real backup transactions and same-device performance comparison are NOT_RUN in
-G1. Historical APK-6/Logo evidence remains in its original checkpoints, notably
-`checkpoints/2026-10-06-logo-integration.md` and `verification/find-recipe-rc2*.md`.
-Its phone/OEM/short-lived splash limitations are not upgraded to PASS here.
+Production preview: http://127.0.0.1:5184/ (fresh origin starts empty).
+G1 remains http://127.0.0.1:5182/ui-v2-showcase/?theme=warm-ivory.
+Pure Glass and Soft Sage are still non-persistent showcase candidates, not
+product settings. Historical G1/APK test counts remain in their checkpoints;
+none are reused as this candidate's final pass count.

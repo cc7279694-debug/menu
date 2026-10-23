@@ -1,0 +1,126 @@
+{
+  "base": "9a17b1c369f5567404540ac249379c3063d6284f",
+  "capture": "Frozen final G2 raw working-tree bytes; final commit may only normalize CRLF. Captured during final verification; no subsequent production edit allowed.",
+  "files": [
+    {
+      "path": "scripts/verify-ui-v2-isolation.mjs",
+      "sha256": "105ae662c774043370d647d83c03268e6f9548b88718f1836b6356d9893c7deb",
+      "bytes": 1326
+    },
+    {
+      "path": "scripts/verify-ui-v2-production.mjs",
+      "sha256": "1ae03b34fc81c605e28c182da23de8c51aefb16fbdf9dba34d17eeccf161e7f0",
+      "bytes": 20403
+    },
+    {
+      "path": "src/native/ai/ai-settings.test.tsx",
+      "sha256": "8f2519912ecfb31c95f68bee8b7a94b9d7c77eff5aac22d46f18d638db8075a5",
+      "bytes": 7635
+    },
+    {
+      "path": "src/native/cooking-completion.tsx",
+      "sha256": "f1e5367adef976e2de318b9a446f4eb13250e834deb52b74810084ff0fab9c89",
+      "bytes": 9094
+    },
+    {
+      "path": "src/native/cooking-history.tsx",
+      "sha256": "98cd4e29bd4eea52aeb8368817d4890015195ed4540027649fec3f0d7af2a375",
+      "bytes": 8921
+    },
+    {
+      "path": "src/native/library-app.test.tsx",
+      "sha256": "aad691767cc83771cedd014c018b230f59dcae791ef7f8b6641e69e1f756563e",
+      "bytes": 13161
+    },
+    {
+      "path": "src/native/library-app.tsx",
+      "sha256": "7fefa3063a8eab219dba84248547eb61f8d52dc182e73001f667a7399c9a247a",
+      "bytes": 34824
+    },
+    {
+      "path": "src/native/main.tsx",
+      "sha256": "fbc711e4c13985ff22815f2095d9624c5368495ed12054e26842559d5f322cbf",
+      "bytes": 213
+    },
+    {
+      "path": "src/native/recipe-change-history.tsx",
+      "sha256": "bc82497603f985377fbc205b2c9a28ed815574d5b8caff3d718a0d4084b6a33b",
+      "bytes": 5133
+    },
+    {
+      "path": "src/native/recipe-detail.test.tsx",
+      "sha256": "30daff0e9a3f86fb9f587429db83feb29ef3f5d305620506b77f121723781620",
+      "bytes": 2723
+    },
+    {
+      "path": "src/native/recipe-detail.tsx",
+      "sha256": "100cb6d4ef95107ac91b3ff5af0d37393a25c08f5530e5d2afacb52501fc6942",
+      "bytes": 7455
+    },
+    {
+      "path": "src/native/recipe-editor.tsx",
+      "sha256": "a4ac50fbdb0c8425ebf82e6737e6bb2b6bbbbd143bcd968860dba64fe2740969",
+      "bytes": 20973
+    },
+    {
+      "path": "src/native/recipe-step-content.tsx",
+      "sha256": "d12e7f21de8ee2c47085496feb1b9bc5ab1710b72004590513caf3d9fa17740a",
+      "bytes": 1605
+    },
+    {
+      "path": "src/native/share-target/library-share.test.tsx",
+      "sha256": "11f594904b87296e7e77d908f27336f1ac88eb879f923f890b78195eda03df29",
+      "bytes": 11279
+    },
+    {
+      "path": "src/native/step-viewer.test.tsx",
+      "sha256": "bee11fe2b99d4936a19d8d28664297d44389f6afac45405201192a61b22323d9",
+      "bytes": 3113
+    },
+    {
+      "path": "src/native/step-viewer.tsx",
+      "sha256": "ad822c26a95416f7700b6dd23e986b6e76c8a60339daf1eb6be03ecc696a6823",
+      "bytes": 4259
+    },
+    {
+      "path": "src/native/ui-v2/appearance.tsx",
+      "sha256": "2f3dd09793afc7207cbb3a24b89ccfec337985dd2ab2ca394890533417e9de8f",
+      "bytes": 1086
+    },
+    {
+      "path": "src/native/ui-v2/core-detail-viewer.test.tsx",
+      "sha256": "d96f8bdfdb163fa4260822d990b38ada4dafd6b944aaf1e13ea23d02af7b109e",
+      "bytes": 3059
+    },
+    {
+      "path": "src/native/ui-v2/layout.css",
+      "sha256": "10f39378c186ffc28a1828c9bb0867ac7c21befcc228072a0993293c06ab9f4a",
+      "bytes": 17830
+    },
+    {
+      "path": "src/native/ui-v2/library-screens.tsx",
+      "sha256": "11f0a7c6ba6c67ec1c4be1421c3a46a3583372ae5bbe1cb2b89ea5530d44fa94",
+      "bytes": 6206
+    },
+    {
+      "path": "src/native/ui-v2/native-sheet.tsx",
+      "sha256": "c5fd16bc31ac150a608872b18827f8b5dd0ff52d1a36833342861ed7d7dd05b1",
+      "bytes": 672
+    },
+    {
+      "path": "src/native/ui-v2/production-core.test.tsx",
+      "sha256": "8fb7f5fc2988866f1695bdbe5e4eab0c9d5948d8347be8dbed96043d0d90f3ed",
+      "bytes": 21650
+    },
+    {
+      "path": "src/native/ui-v2/production.css",
+      "sha256": "5db999f14a84684d30971db00f9b87cc08bde18f1bb0abe54963ff19e8fae75b",
+      "bytes": 9834
+    },
+    {
+      "path": "src/native/ui-v2/showcase/styles.css",
+      "sha256": "f229de06317ebbe87fb54d33a5270f111a9d32d1bb35636be048ab867fd9424c",
+      "bytes": 3843
+    }
+  ]
+}

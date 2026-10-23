@@ -1,5 +1,30 @@
 # Decisions
 
+## 2026-10-23 — G2 reuses accepted visual rules without replacing business owners
+
+### Decision
+
+The user's explicit G1 visual approval supersedes its old pending gate. Integrate
+only the approved G2 core routes using the shared G1 layout/tokens/Base UI.
+Warm Ivory is the integration skin; no persisted theme preference is introduced.
+
+### Context / Alternatives / Reason
+
+The showcase is not an application router or database. Extract its125 common
+layout rules unchanged, keep a production-only integration stylesheet, and use
+the actual RecipeLibrary/services/local media. A build-graph check permits
+shared presentation while excluding demo routes, fixtures and test assets.
+Replacing data/router/confirmation state machines would exceed this UI task.
+
+### Consequences
+
+SQLite4 /Preview7 /Backup2, Native IME, Provider/Share/restore/save/completion
+owners remain frozen. Core RecipeEditor opts in; AI/Link editor keeps its legacy
+default. Existing route glue restores list/detail reading positions and defers
+Back to mounted sheets; no guessed delay or second keyboard state machine.
+Actual Android evidence remains separate from browser route evidence. G3/G4,
+theme-product choice, main merge/tag and deployment require further approval.
+
 ## 2026-10-23 — G1 final polish changes weight, not product meaning
 
 ### Decision

@@ -1,0 +1,233 @@
+diff --git a/src/native/cooking-completion.tsx b/src/native/cooking-completion.tsx
+index 0e819af..e9b1651 100644
+--- a/src/native/cooking-completion.tsx
++++ b/src/native/cooking-completion.tsx
+@@ -102,21 +102,23 @@ export function CookingCompletion({
+-    <section className="space-y-5">
+-      <Button
+-        variant="ghost"
+-        className="min-h-11"
+-        disabled={busy}
+-        onClick={() => leave()}
+-      >
+-        返回菜谱
+-      </Button>
+-      <h2 className="text-2xl font-semibold">已记录做过这道菜</h2>
+-      <p>
+-        做菜时间：
+-        <time dateTime={record.cookedAt}>
+-          {new Date(record.cookedAt).toLocaleString()}
+-        </time>
+-      </p>
+-      <p className="text-sm text-muted-foreground">
+-        已经保存在本机。下面都可跳过，不填写也可以直接返回。
+-      </p>
+-      <div className="rounded-xl border p-4 space-y-3">
+-        <h3 className="font-semibold">成品照片（可选）</h3>
++    <section className="v2-production-form v2-completion space-y-5">
++      <header className="v2-history-header space-y-3">
++        <Button
++          variant="ghost"
++          className="min-h-11"
++          disabled={busy}
++          onClick={() => leave()}
++        >
++          返回菜谱
++        </Button>
++        <h2 className="v2-page-title text-2xl font-semibold">已记录做过这道菜</h2>
++        <p>
++          做菜时间：
++          <time dateTime={record.cookedAt}>
++            {new Date(record.cookedAt).toLocaleString()}
++          </time>
++        </p>
++        <p className="v2-secondary text-sm text-muted-foreground">
++          已经保存在本机。下面都可跳过，不填写也可以直接返回。
++        </p>
++      </header>
++      <div className="v2-form-section v2-form-media rounded-xl border p-4 space-y-3">
++        <h3 className="v2-section-title font-semibold">成品照片（可选）</h3>
+@@ -140 +142 @@ export function CookingCompletion({
+-          <label className="block">
++          <label className="v2-field-label block">
+@@ -157 +159 @@ export function CookingCompletion({
+-          <div className="flex flex-wrap gap-3">
++          <div className="v2-form-actions flex flex-wrap gap-3">
+@@ -185 +187 @@ export function CookingCompletion({
+-      <label className="block" htmlFor={`${id}-evaluation`}>
++      <label className="v2-field-label block" htmlFor={`${id}-evaluation`}>
+@@ -207 +209 @@ export function CookingCompletion({
+-      <label className="block" htmlFor={`${id}-note`}>
++      <label className="v2-field-label block" htmlFor={`${id}-note`}>
+@@ -233 +235 @@ export function CookingCompletion({
+-      <div className="flex flex-wrap gap-3">
++      <div className="v2-form-actions flex flex-wrap gap-3">
+@@ -261 +263 @@ export function CookingCompletion({
+-        <div className="flex flex-wrap gap-3">
++        <div className="v2-form-actions flex flex-wrap gap-3">
+diff --git a/src/native/cooking-history.tsx b/src/native/cooking-history.tsx
+index f532f56..5147a7c 100644
+--- a/src/native/cooking-history.tsx
++++ b/src/native/cooking-history.tsx
+@@ -89,2 +89,2 @@ export function CookingOverview({
+-    <section className="mt-6 space-y-4 rounded-xl border p-4">
+-      <h3 className="text-lg font-semibold">做菜记录</h3>
++    <section className="v2-production-history v2-production-overview mt-6 space-y-4 rounded-xl border p-4">
++      <h3 className="v2-section-title text-lg font-semibold">做菜记录</h3>
+@@ -106 +106 @@ export function CookingOverview({
+-          <ol className="space-y-4">
++          <ol className="v2-history-list space-y-4">
+@@ -111,0 +112 @@ export function CookingOverview({
++                className="v2-history-row"
+@@ -237,11 +238,13 @@ export function CookingHistory({
+-    <section className="space-y-5">
+-      <Button
+-        variant="ghost"
+-        className="min-h-11"
+-        disabled={busy}
+-        onClick={onBack}
+-      >
+-        返回菜谱
+-      </Button>
+-      <h2 className="text-2xl font-semibold">做菜记录</h2>
+-      <Summary summary={summary} />
++    <section className="v2-production-history space-y-5">
++      <header className="v2-history-header space-y-3">
++        <Button
++          variant="ghost"
++          className="min-h-11"
++          disabled={busy}
++          onClick={onBack}
++        >
++          返回菜谱
++        </Button>
++        <h2 className="v2-page-title text-2xl font-semibold">做菜记录</h2>
++        <Summary summary={summary} />
++      </header>
+@@ -266 +269 @@ export function CookingHistory({
+-      <ol className="space-y-4">
++      <ol className="v2-history-list space-y-4">
+@@ -272 +275 @@ export function CookingHistory({
+-            className="rounded-xl border p-4"
++            className="v2-history-row rounded-xl border p-4"
+diff --git a/src/native/recipe-change-history.tsx b/src/native/recipe-change-history.tsx
+index 2064d96..58f0e3b 100644
+--- a/src/native/recipe-change-history.tsx
++++ b/src/native/recipe-change-history.tsx
+@@ -64,8 +64,10 @@ export function RecipeChangeHistory({
+-    <section className="space-y-5">
+-      <Button variant="ghost" className="min-h-11" onClick={onBack}>
+-        返回菜谱
+-      </Button>
+-      <h2 className="text-2xl font-semibold">修改记录</h2>
+-      <p className="text-sm text-muted-foreground">
+-        这里只回看以前改过什么；当前菜谱始终是你的最新做法。
+-      </p>
++    <section className="v2-production-history space-y-5">
++      <header className="v2-history-header space-y-3">
++        <Button variant="ghost" className="min-h-11" onClick={onBack}>
++          返回菜谱
++        </Button>
++        <h2 className="v2-page-title text-2xl font-semibold">修改记录</h2>
++        <p className="v2-secondary text-sm text-muted-foreground">
++          这里只回看以前改过什么；当前菜谱始终是你的最新做法。
++        </p>
++      </header>
+@@ -88 +90 @@ export function RecipeChangeHistory({
+-      <ol className="space-y-4">
++      <ol className="v2-history-list space-y-4">
+@@ -93 +95 @@ export function RecipeChangeHistory({
+-            className="rounded-xl border p-4"
++            className="v2-history-row rounded-xl border p-4"
+diff --git a/src/native/recipe-editor.tsx b/src/native/recipe-editor.tsx
+index ccb5a02..34cec00 100644
+--- a/src/native/recipe-editor.tsx
++++ b/src/native/recipe-editor.tsx
+@@ -24,0 +25 @@ export function RecipeEditor({
++  appearance,
+@@ -33,0 +35 @@ export function RecipeEditor({
++  appearance?: "v2";
+@@ -34,0 +37,3 @@ export function RecipeEditor({
++  function presentationClass(legacy: string, v2: string) {
++    return appearance === "v2" ? `${v2} ${legacy}` : legacy;
++  }
+@@ -142 +147 @@ export function RecipeEditor({
+-      <div className="mt-2 flex flex-wrap gap-2">
++      <div className={presentationClass("mt-2 flex flex-wrap gap-2", "v2-row-actions")}>
+@@ -178 +183 @@ export function RecipeEditor({
+-      className="space-y-6"
++      className={presentationClass("space-y-6", "v2-production-form")}
+@@ -201,2 +206,2 @@ export function RecipeEditor({
+-      <header className="flex flex-wrap items-center justify-between gap-3">
+-        <h2 className="text-2xl font-semibold">
++      <header className={presentationClass("flex flex-wrap items-center justify-between gap-3", "v2-form-header")}>
++        <h2 className={presentationClass("text-2xl font-semibold", "v2-page-title")}>
+@@ -205 +210 @@ export function RecipeEditor({
+-        <div className="flex items-center gap-1">
++        <div className={presentationClass("flex items-center gap-1", "v2-form-actions")}>
+@@ -223 +228 @@ export function RecipeEditor({
+-      <p className="text-sm text-muted-foreground">
++      <p className={presentationClass("text-sm text-muted-foreground", "v2-secondary")}>
+@@ -226 +231 @@ export function RecipeEditor({
+-      <fieldset disabled={busy} className="space-y-6">
++      <fieldset disabled={busy} className={presentationClass("space-y-6", "v2-form-fields")}>
+@@ -228 +233 @@ export function RecipeEditor({
+-        <label className="block space-y-2">
++        <label className={presentationClass("block space-y-2", "v2-field-label")}>
+@@ -237,2 +242,2 @@ export function RecipeEditor({
+-        {mediaEnabled&&<section className="rounded-2xl border bg-card p-4 space-y-3">
+-          <h3 className="font-medium">封面照片</h3>
++        {mediaEnabled&&<section className={presentationClass("rounded-2xl border bg-card p-4 space-y-3", "v2-form-section v2-form-media")}>
++          <h3 className={presentationClass("font-medium", "v2-section-title")}>封面照片</h3>
+@@ -244 +249 @@ export function RecipeEditor({
+-          <label className="block text-sm">
++          <label className={presentationClass("block text-sm", "v2-field-label")}>
+@@ -272,2 +277,2 @@ export function RecipeEditor({
+-        <div className="grid gap-4 sm:grid-cols-3">
+-          <label className="space-y-2">
++        <div className={presentationClass("grid gap-4 sm:grid-cols-3", "v2-form-metadata")}>
++          <label className={presentationClass("space-y-2", "v2-field-label")}>
+@@ -285 +290 @@ export function RecipeEditor({
+-          <label className="space-y-2">
++          <label className={presentationClass("space-y-2", "v2-field-label")}>
+@@ -297 +302 @@ export function RecipeEditor({
+-          <label className="space-y-2">
++          <label className={presentationClass("space-y-2", "v2-field-label")}>
+@@ -313,2 +318,2 @@ export function RecipeEditor({
+-        <section className="space-y-3">
+-          <h3 className="text-lg font-semibold">食材与实际用量</h3>
++        <section className={presentationClass("space-y-3", "v2-form-section")}>
++          <h3 className={presentationClass("text-lg font-semibold", "v2-section-title")}>食材与实际用量</h3>
+@@ -316 +321 @@ export function RecipeEditor({
+-            <div key={i} className="rounded-xl border p-3">
++            <div key={i} className={presentationClass("rounded-xl border p-3", "v2-form-row")}>
+@@ -361,2 +366,2 @@ export function RecipeEditor({
+-        <section className="space-y-3">
+-          <h3 className="text-lg font-semibold">完整步骤</h3>
++        <section className={presentationClass("space-y-3", "v2-form-section")}>
++          <h3 className={presentationClass("text-lg font-semibold", "v2-section-title")}>完整步骤</h3>
+@@ -364 +369 @@ export function RecipeEditor({
+-            <div key={i} className="rounded-xl border p-3 space-y-3">
++            <div key={i} className={presentationClass("rounded-xl border p-3 space-y-3", "v2-form-row")}>
+@@ -431,2 +436,2 @@ export function RecipeEditor({
+-        <section className="space-y-3">
+-          <h3 className="text-lg font-semibold">提前准备</h3>
++        <section className={presentationClass("space-y-3", "v2-form-section")}>
++          <h3 className={presentationClass("text-lg font-semibold", "v2-section-title")}>提前准备</h3>
+@@ -434 +439 @@ export function RecipeEditor({
+-            <div key={i} className="rounded-xl border p-3 space-y-3">
++            <div key={i} className={presentationClass("rounded-xl border p-3 space-y-3", "v2-form-row")}>
+@@ -501,2 +506,2 @@ export function RecipeEditor({
+-        <section className="space-y-3">
+-          <h3 className="text-lg font-semibold">关键事项</h3>
++        <section className={presentationClass("space-y-3", "v2-form-section")}>
++          <h3 className={presentationClass("text-lg font-semibold", "v2-section-title")}>关键事项</h3>
+@@ -504 +509 @@ export function RecipeEditor({
+-            <div key={i} className="rounded-xl border p-3 space-y-3">
++            <div key={i} className={presentationClass("rounded-xl border p-3 space-y-3", "v2-form-row")}>
+@@ -554 +559 @@ export function RecipeEditor({
+-        <label className="block space-y-2">
++        <label className={presentationClass("block space-y-2", "v2-field-label")}>
+@@ -570 +575 @@ export function RecipeEditor({
+-      <div className="sticky bottom-0 bg-background/95 py-3">
++      <div className={presentationClass("sticky bottom-0 bg-background/95 py-3", "v2-form-footer")}>

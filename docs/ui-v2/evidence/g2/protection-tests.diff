@@ -1,0 +1,812 @@
+diff --git a/scripts/verify-ui-v2-isolation.mjs b/scripts/verify-ui-v2-isolation.mjs
+index b8fda7a..5da59ab 100644
+--- a/scripts/verify-ui-v2-isolation.mjs
++++ b/scripts/verify-ui-v2-isolation.mjs
+@@ -5,0 +6 @@ let checked = 0;
++let sharedV2 = 0;
+@@ -10 +11 @@ await build({
+-    name: "verify-ui-v2-is-not-in-production-apk-graph",
++    name: "verify-production-v2-excludes-showcase-and-fixtures",
+@@ -16 +17,3 @@ await build({
+-      assert.deepEqual(modules.filter((id) => /[\\/]ui-v2[\\/]|ui-v2-showcase/.test(id)), []);
++      sharedV2 = modules.filter((id) => /[\\/]ui-v2[\\/]/.test(id)).length;
++      assert(sharedV2 > 0, "G2 production must use the approved shared V2 presentation");
++      assert.deepEqual(modules.filter((id) => /[\\/]showcase[\\/]|ui-v2-showcase|demo-data|\.test\.[cm]?[jt]sx?/.test(id)), []);
+@@ -22 +25 @@ assert(checked > 100, "Production graph inspection did not execute");
+-console.log(JSON.stringify({ result: "PASS", productionModuleCount: checked, uiV2Modules: 0, fixtureAssets: 0, write: false }));
++console.log(JSON.stringify({ result: "PASS", productionModuleCount: checked, sharedV2Modules: sharedV2, showcaseModules: 0, fixtureAssets: 0, write: false }));
+diff --git a/scripts/verify-ui-v2-production.mjs b/scripts/verify-ui-v2-production.mjs
+new file mode 100644
+index 0000000..44d96b1
+--- /dev/null
++++ b/scripts/verify-ui-v2-production.mjs
+@@ -0,0 +1,287 @@
++import assert from "node:assert/strict";
++import { mkdir, writeFile } from "node:fs/promises";
++import { createRequire } from "node:module";
++import { fileURLToPath } from "node:url";
++import path from "node:path";
++
++// Browser-only controlled fixtures in a new ephemeral context/origin. Never
++// import this script from the app, touch an existing profile, or call AI.
++const root = fileURLToPath(new URL("../", import.meta.url));
++const runtime = process.argv.find(value => value.startsWith("--runtime="))?.slice(10);
++const require = createRequire(import.meta.url);
++const { chromium } = require(require.resolve("playwright", { paths: [root, runtime].filter(Boolean) }));
++const base = "http://127.0.0.1:5184/";
++const moduleBase = `/@fs/${root.replaceAll("\\", "/")}src/native/`;
++const out = path.join(root, "output/playwright/ui-v2/g2/browser");
++await mkdir(out, { recursive: true });
++const browser = await chromium.launch({ headless: true });
++const context = await browser.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 1,
++  locale: "zh-CN", timezoneId: "Asia/Shanghai", reducedMotion: "reduce", serviceWorkers: "block" });
++const page = await context.newPage();
++const checks = [], errors = [], external = [], screenshots = [], layouts = [];
++page.on("pageerror", error => errors.push(error.message));
++context.on("request", request => {
++  if (!request.url().startsWith(base) && !/^(blob:|data:)/.test(request.url())) external.push(request.url().split("?")[0]);
++});
++async function check(name, action) { await action(); checks.push(name); console.log(`PASS ${name}`); }
++async function painted() {
++  await page.evaluate(async () => {
++    await document.fonts.ready;
++    await Promise.all([...document.images].map(image => image.decode().catch(() => {})));
++    await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
++  });
++}
++async function shot(name) {
++  await painted(); await page.screenshot({ path: path.join(out, `${name}.png`) }); screenshots.push(name);
++}
++async function layout(name) {
++  await painted();
++  const size = await page.evaluate(() => ({ width: innerWidth, scrollWidth: document.documentElement.scrollWidth,
++    height: innerHeight, scroll: scrollY }));
++  layouts.push({ name, ...size }); assert.ok(size.scrollWidth <= size.width + 1, `${name}: horizontal overflow`);
++  const small = await page.locator('.v2-production button,.v2-production input,.v2-production select,.v2-production textarea,.v2-production-cooking button,.v2-portal button').evaluateAll(elements =>
++    elements.filter(element => { const r=element.getBoundingClientRect(); return r.width>0 && r.height>0 && (r.width<47.9 || r.height<47.9); })
++      .map(element => ({label:element.getAttribute('aria-label') || element.textContent, width:element.getBoundingClientRect().width,height:element.getBoundingClientRect().height})));
++  assert.deepEqual(small, [], `${name}: undersized touch target`);
++}
++async function nativeBack() { await page.evaluate(() => window.dispatchEvent(new Event("recipio:back", { cancelable: true }))); }
++const nav = () => page.getByRole("navigation", { name: "主要导航" });
++const recipeTitle = "G2 测试 · 可乐鸡翅";
++async function openRecipe() {
++  await page.getByRole("button", { name: `打开 ${recipeTitle}`, exact: true }).click();
++  await page.getByRole("heading", { name: recipeTitle, exact: true }).waitFor();
++}
++let seeded;
++try {
++  await page.goto(base);
++  await page.getByRole("heading", { name: "谱序", exact: true }).waitFor();
++  await check("fresh_empty_library_has_no_sample_food", async () => {
++    assert.equal(await page.getByRole("button", { name: /^打开 / }).count(), 0);
++    await page.getByRole("heading", { name: "先记下第一道想做的菜" }).waitFor();
++    await shot("empty-390");
++  });
++  seeded = await page.evaluate(async ({ moduleBase, recipeTitle }) => {
++    const { PreviewRecipeLibrary } = await import(moduleBase + "preview-store.ts");
++    const { emptyDetails } = await import(moduleBase + "recipe-model.ts");
++    const { saveLocalImage } = await import(moduleBase + "media.ts");
++    const store = new PreviewRecipeLibrary();
++    // A visibly marked, non-food test pattern, stored through the real media
++    // service. Not a G1 asset, production fallback, or private photograph.
++    const canvas = document.createElement("canvas"); canvas.width = 1200; canvas.height = 900;
++    const c = canvas.getContext("2d"); c.fillStyle = "#e3ded0"; c.fillRect(0, 0, 1200, 900);
++    c.fillStyle = "#879780"; c.fillRect(60, 60, 1080, 600); c.fillStyle = "#f9f6ef";
++    c.font = "48px sans-serif"; c.fillText("LOCAL IMAGE TEST", 120, 300); c.font = "32px sans-serif";
++    c.fillText("Controlled fixture / no private photo", 120, 390);
++    const blob = await new Promise(resolve => canvas.toBlob(resolve, "image/png"));
++    const coverPath = await saveLocalImage(new File([blob], "controlled-image.png", { type: "image/png" }));
++    for (let i = 0; i < 101; i++) await store.create(`G2 测试 · 本地条目 ${String(i).padStart(3, "0")}`);
++    const nameOnly = await store.create("G2 测试 · 只有菜名也能保存，长标题仍然完整可读，不需要先补齐做法");
++    const recipe = await store.createDetails({ ...emptyDetails(recipeTitle), coverPath,
++      totalMinutes: 30, servings: 3, caloriesPerServing: 328,
++      ingredients: [{ name: "鸡翅", amount: "500 克" }, { name: "可乐", amount: "330 毫升" }, { name: "生抽", amount: "2 勺" }],
++      preparations: [{ instruction: "鸡翅洗净，提前腌一会儿", minutes: null, timingText: "一会儿" }],
++      steps: [{ instruction: "将鸡翅冷水下锅，加入姜片后焯水。", imagePath: coverPath },
++        { instruction: "将鸡翅煎至两面金黄，加入可乐和生抽。", imagePath: null },
++        { instruction: "转小火焖 20 分钟，最后开大火收汁。", imagePath: null }],
++      keyTips: [{ instruction: "最后收汁容易糊，留在锅边观察。", stepNumber: 3 }],
++      notes: "非私人测试菜谱。\n下次糖少放一点。" });
++    await store.recordCooking(recipe.id, crypto.randomUUID());
++    await store.saveDetails(recipe.id, { ...recipe, notes: recipe.notes + "\n补充测试备注。" });
++    return { id: recipe.id, nameOnly: nameOnly.title, moduleBase };
++  }, { moduleBase, recipeTitle });
++  await page.reload(); await page.getByRole("button", { name: `打开 ${recipeTitle}`, exact: true }).waitFor();
++  await check("real_local_home_and_list", async () => {
++    assert.equal(await nav().getByRole("button").count(), 3);
++    assert.equal(await page.getByRole("button", { name: /^打开 / }).count(), 100);
++    await shot("home-390"); await layout("home-390");
++    await nav().getByRole("button", { name: "我的菜谱", exact: true }).click();
++    await page.getByLabel("耗时筛选").waitFor(); await shot("library-390");
++    await page.getByRole("button", { name: "下一页", exact: true }).click();
++    await page.getByRole("button", { name: "上一页", exact: true }).waitFor();
++    await page.waitForFunction(() => document.querySelectorAll('button[aria-label^="打开 "]').length === 3);
++    await page.getByRole("button", { name: "上一页", exact: true }).click();
++    await page.getByRole("button", { name: `打开 ${recipeTitle}`, exact: true }).waitFor();
++  });
++  await check("local_search_filter_and_return_position", async () => {
++    await page.getByLabel("搜索菜名或食材").fill("鸡翅");
++    await page.getByLabel("耗时筛选").selectOption("short");
++    await page.waitForFunction(() => document.querySelectorAll('button[aria-label^="打开 "]').length === 1);
++    await shot("search-390"); await openRecipe();
++    await page.getByRole("button", { name: "返回菜谱库" }).click();
++    assert.equal(await page.getByLabel("搜索菜名或食材").inputValue(), "鸡翅");
++    assert.equal(await page.getByLabel("耗时筛选").inputValue(), "short");
++    await page.getByRole("button", { name: "清空搜索" }).click();
++    await page.getByLabel("耗时筛选").selectOption("all");
++    await page.waitForFunction(() => document.querySelectorAll('button[aria-label^="打开 "]').length === 100);
++    await page.evaluate(() => scrollTo(0, 1200)); const y = await page.evaluate(() => scrollY);
++    // Do not let Playwright auto-scroll the target row before opening it.
++    await page.getByRole("button", { name: "打开 G2 测试 · 本地条目 095", exact: true }).evaluate(button => button.click());
++    await page.getByRole("heading", { name: "G2 测试 · 本地条目 095", exact: true }).waitFor();
++    await page.getByRole("button", { name: "返回菜谱库" }).click();
++    await page.waitForFunction(y => Math.abs(scrollY - y) < 2, y);
++    await page.evaluate(() => scrollTo(0, 0));
++  });
++  await openRecipe(); await shot("detail-390");
++  await check("full_content_local_image_and_readonly_focus", async () => {
++    assert.equal(await nav().count(), 0);
++    await page.locator('.v2-cover-button > img').waitFor();
++    await page.waitForFunction(() => {
++      const image=document.querySelector('.v2-cover-button > img');
++      return image instanceof HTMLImageElement && image.complete && image.naturalWidth>0 && image.src.startsWith('blob:');
++    });
++    await page.getByRole("heading", { name: "完整步骤", exact: true }).waitFor();
++    await page.getByRole("button", { name: "放大步骤 1", exact: true }).click();
++    await page.getByRole("dialog", { name: "单步查看", exact: true }).waitFor();
++    await page.locator('.v2-cook-scroll img').waitFor();
++    await page.waitForFunction(() => {
++      const image=document.querySelector('.v2-cook-scroll img');
++      return image instanceof HTMLImageElement && image.complete && image.naturalWidth>0 && image.src.startsWith('blob:');
++    });
++    await shot("focus-390"); await page.getByRole("button", { name: "返回完整步骤" }).click();
++    await page.getByRole("dialog").waitFor({ state: "hidden" });
++  });
++  await check("short_history_and_editor_restore_detail_position", async () => {
++    for (const [entry, heading, back] of [["查看做菜记录", "做菜记录", "返回菜谱"], ["查看修改记录", "修改记录", "返回菜谱"], ["编辑菜谱", "编辑菜谱", "取消"]]) {
++      await page.evaluate(() => scrollTo(0, document.documentElement.scrollHeight));
++      const y = await page.evaluate(() => scrollY);
++      await page.getByRole("button", { name: entry, exact: true }).first().evaluate(button => button.click());
++      await page.getByRole("heading", { name: heading, exact: true }).waitFor();
++      await shot(`${heading === "编辑菜谱" ? "editor" : heading === "修改记录" ? "changes" : "history"}-390`);
++      await page.getByRole("button", { name: back, exact: true }).click();
++      await page.getByRole("heading", { name: recipeTitle, exact: true }).waitFor();
++      await painted();
++      await page.waitForFunction(y => Math.abs(scrollY - y) < 2, y);
++    }
++    const restoredY=await page.evaluate(()=>scrollY);
++    await page.mouse.move(385,300); await page.mouse.wheel(0,-240);
++    await page.waitForFunction(y=>scrollY<y-100,restoredY);
++    const userY=await page.evaluate(()=>scrollY);
++    await page.evaluate(()=>document.querySelector('.v2-production').style.paddingBottom='64px');
++    await painted(); assert.equal(await page.evaluate(()=>scrollY),userY);
++    await page.evaluate(()=>document.querySelector('.v2-production').style.removeProperty('padding-bottom'));
++  });
++  await check("guided_sheet_back_and_explicit_completion_only", async () => {
++    await page.getByRole("button", { name: "开始引导烹饪" }).click();
++    await page.getByRole("dialog", { name: "引导烹饪", exact: true }).waitFor();
++    await shot("cooking-390"); await layout("cooking-390");
++    await page.getByRole("button", { name: "查看食材" }).click();
++    await page.getByRole("dialog", { name: "食材", exact: true }).waitFor(); await shot("ingredients-sheet-390");
++    assert.equal(await page.getByRole("checkbox").count(), 0); await nativeBack();
++    await page.getByRole("dialog", { name: "食材", exact: true }).waitFor({ state: "hidden" });
++    await page.getByRole("dialog", { name: "引导烹饪", exact: true }).waitFor();
++    await page.getByRole("button", { name: "下一步", exact: true }).click();
++    await page.getByRole("button", { name: "下一步", exact: true }).click();
++    const count = await page.evaluate(async ({ moduleBase, id }) => {
++      const { PreviewRecipeLibrary } = await import(moduleBase + "preview-store.ts");
++      return (await new PreviewRecipeLibrary().getCookingSummary(id)).count;
++    }, seeded); assert.equal(count, 1);
++    await page.getByRole("button", { name: "完成这道菜", exact: true }).click();
++    await page.getByRole("heading", { name: "已记录做过这道菜", exact: true }).waitFor(); await shot("completion-390");
++    const saved=await page.evaluate(async ({moduleBase,id})=>{
++      const {PreviewRecipeLibrary}=await import(moduleBase+'preview-store.ts');
++      const store=new PreviewRecipeLibrary(),rows=await store.listCookingRecords(id);
++      return {count:(await store.getCookingSummary(id)).count,ids:rows.map(row=>row.id)};
++    },seeded);
++    assert.equal(saved.count,2); assert.equal(saved.ids.length,2); assert.equal(new Set(saved.ids).size,2);
++    await page.getByRole("button", { name: "返回菜谱", exact: true }).click();
++  });
++  await check("responsive_detail_controls_and_content_clearance", async () => {
++    for (const width of [320, 390, 412, 768]) for (const font of [16, 32]) {
++      await page.setViewportSize({ width, height: 844 });
++      await page.evaluate(font => document.documentElement.style.fontSize = `${font}px`, font);
++      await painted();
++      await page.mouse.move(width - 4, 300);
++      await page.mouse.wheel(0, 100000);
++      await page.waitForFunction(() => Math.abs(scrollY + innerHeight - document.documentElement.scrollHeight) < 2);
++      await layout(`detail-${width}-${font}`);
++      const clear = await page.evaluate(() => {
++        const last = document.querySelector('.v2-detail-body > section:last-child').getBoundingClientRect();
++        const bar = document.querySelector('.v2-bottom-actions').getBoundingClientRect();
++        return { width:innerWidth, font:getComputedStyle(document.documentElement).fontSize,
++          scroll:scrollY, total:document.documentElement.scrollHeight,
++          padding:getComputedStyle(document.querySelector('.v2-detail-scroll')).paddingBottom,
++          reserved:document.querySelector('.v2-production-detail').style.getPropertyValue('--v2-controls-height'),
++          lastBottom: last.bottom, barTop: bar.top, barBottom: bar.bottom, height: innerHeight };
++      });
++      assert.ok(clear.lastBottom <= clear.barTop + 1, JSON.stringify(clear));
++      assert.ok(clear.barBottom <= clear.height + 1, JSON.stringify(clear));
++      if (font === 32) await shot(`detail-${width}-200`);
++    }
++    await page.setViewportSize({ width: 390, height: 844 }); await page.evaluate(() => { document.documentElement.style.fontSize = "16px"; scrollTo(0, 0); });
++  });
++  await check("name_only_no_image_and_native_sheet_back", async () => {
++    await page.getByRole("button", { name: "返回菜谱库" }).click();
++    await page.getByRole("button", { name: `打开 ${seeded.nameOnly}`, exact: true }).click();
++    await page.getByRole("button", { name: "补充做法", exact: true }).waitFor(); await shot("name-only-390");
++    assert.equal(await page.getByRole("img").count(), 0);
++    await page.getByRole("button", { name: "返回菜谱库" }).click();
++    await page.getByRole("button", { name: "新增菜谱" }).click(); await shot("add-sheet-390");
++    await nativeBack(); await page.getByRole("dialog").waitFor({ state: "hidden" });
++    await page.getByRole("main", { name: "我的菜谱", exact: true }).waitFor();
++  });
++  await check("legacy_g3_entries_return_without_provider_request", async () => {
++    for (const entry of ["AI 整理", "从网页链接导入", "帮我找做法"]) {
++      await page.getByRole("button", { name: "新增菜谱" }).click();
++      await page.getByRole("dialog", { name: "添加菜谱" }).getByRole("button", { name: entry, exact: true }).click();
++      await page.getByRole("button", { name: "返回", exact: true }).waitFor();
++      await page.getByRole("button", { name: "返回", exact: true }).click();
++      if (entry === "AI 整理") await page.getByRole("button", { name: "放弃本轮整理", exact: true }).click();
++      if (entry === "从网页链接导入") await page.getByRole("button", { name: "放弃网页导入", exact: true }).click();
++      await page.getByRole("main", { name: "我的菜谱", exact: true }).waitFor();
++    }
++    await nav().getByRole("button", { name: "设置", exact: true }).click();
++    await page.getByRole("heading", { name: "设置", exact: true }).waitFor();
++    assert.equal(await page.locator('.v2-production-form').count(), 0);
++    await nav().getByRole("button", { name: "首页", exact: true }).click();
++    await page.getByRole("main", { name: "首页", exact: true }).waitFor();
++  });
++  await check("responsive_home_editor_cooking_and_solid_material", async () => {
++    for (const width of [320, 390, 412, 768]) {
++      await page.setViewportSize({ width, height: 844 });
++      await page.evaluate(() => document.documentElement.style.fontSize = "32px");
++      await layout(`home-${width}-200`);
++      await page.mouse.move(width - 4, 300); await page.mouse.wheel(0, 100000);
++      await page.waitForFunction(() => Math.abs(scrollY + innerHeight - document.documentElement.scrollHeight) < 2);
++      const clear = await page.evaluate(() => ({ last:document.querySelector('.v2-recipe-list li:last-child').getBoundingClientRect().bottom,
++        bar:document.querySelector('.v2-production-nav').getBoundingClientRect().top }));
++      assert.ok(clear.last <= clear.bar + 1, JSON.stringify(clear));
++      await page.evaluate(() => scrollTo(0, 0));
++      if (width === 320) await shot("home-320-200");
++      await openRecipe();
++      await page.getByRole("button", { name: "编辑菜谱" }).click(); await page.getByLabel("菜名").waitFor();
++      await layout(`editor-${width}-200`);
++      if (width === 320) await shot("editor-320-200");
++      await page.getByRole("button", { name: "取消", exact: true }).click();
++      await page.getByRole("button", { name: "开始引导烹饪" }).click();
++      await layout(`cooking-${width}-200`);
++      const controls = await page.locator('.v2-cook-footer').boundingBox();
++      assert.ok(controls.y + controls.height <= 845);
++      await page.getByRole("button", { name: "查看食材" }).click();
++      await page.getByRole("dialog", { name: "食材", exact: true }).waitFor();
++      await layout(`ingredients-${width}-200`); await nativeBack();
++      await page.getByRole("dialog", { name: "食材", exact: true }).waitFor({state:"hidden"});
++      if (width === 320) await shot("cooking-320-200");
++      await page.getByRole("button", { name: "退出引导" }).click();
++      await page.getByRole("button", { name: "返回菜谱库" }).click();
++    }
++    await page.setViewportSize({width:390,height:844});
++    await page.evaluate(() => {
++      document.documentElement.style.fontSize = "16px";
++      document.querySelector('.v2-production').setAttribute('data-v2-solid','true');
++      scrollTo(0,0);
++    });
++    const material=await page.locator('.v2-home-controls').evaluate(el => ({blur:getComputedStyle(el).backdropFilter,background:getComputedStyle(el).backgroundColor}));
++    assert.equal(material.blur,"none"); assert.ok(!material.background.startsWith('rgba('));
++    await shot("solid-home-390");
++    await page.evaluate(() => document.querySelector('.v2-production').removeAttribute('data-v2-solid'));
++  });
++  await check("fresh_reload_keeps_local_recipe_and_no_external_request", async () => {
++    await page.reload(); await page.getByRole("button", { name: `打开 ${recipeTitle}`, exact: true }).waitFor();
++    assert.deepEqual(external, []); assert.deepEqual(errors, []);
++  });
++  console.log(`PASS ${checks.length} production browser checks`);
++} finally {
++  await writeFile(path.join(out, "results.json"), JSON.stringify({ checks, errors, external, screenshots, layouts,
++    evidence: "Fresh browser IndexedDB + controlled media only; native Back event routing is not Android IME proof." }, null, 2));
++  await context.close(); await browser.close();
++}
+diff --git a/src/native/ai/ai-settings.test.tsx b/src/native/ai/ai-settings.test.tsx
+index 3b7e7f7..1c77ecc 100644
+--- a/src/native/ai/ai-settings.test.tsx
++++ b/src/native/ai/ai-settings.test.tsx
+@@ -58 +58 @@ it("settings remains navigable to backup and home after key failure", async () =
+-  expect(screen.getByRole("heading",{name:"数据与备份"})).toBeInTheDocument();fireEvent.click(screen.getByRole("button",{name:"首页"}));await screen.findByRole("heading",{name:"今天想做什么？"});
++  expect(screen.getByRole("heading",{name:"数据与备份"})).toBeInTheDocument();fireEvent.click(screen.getByRole("button",{name:"首页"}));await screen.findByRole("main",{name:"首页"});
+diff --git a/src/native/library-app.test.tsx b/src/native/library-app.test.tsx
+index dda869d..3c10fdc 100644
+--- a/src/native/library-app.test.tsx
++++ b/src/native/library-app.test.tsx
+@@ -50 +50,2 @@ it("a delayed completion cannot navigate over an editor or history while its rec
+-      "删除这道菜",
++      "更多菜谱操作",
++      "补充做法",
+@@ -53 +53,0 @@ it("a delayed completion cannot navigate over an editor or history while its rec
+-      "设置",
+@@ -56,0 +57,3 @@ it("a delayed completion cannot navigate over an editor or history while its rec
++    expect(screen.queryByRole("navigation", { name: "主要导航" })).not.toBeInTheDocument();
++    fireEvent.click(screen.getByRole("button", { name: "更多菜谱操作" }));
++    expect(screen.queryByRole("dialog", { name: "菜谱操作" })).not.toBeInTheDocument();
+diff --git a/src/native/recipe-detail.test.tsx b/src/native/recipe-detail.test.tsx
+index a9c83a9..f2b677a 100644
+--- a/src/native/recipe-detail.test.tsx
++++ b/src/native/recipe-detail.test.tsx
+@@ -24 +24 @@ const recipe = {
+-it("keeps full steps as the main path and orders ingredients/time/preps/tips/steps", () => {
++it("keeps full steps as the main path and orders metadata/ingredients/preps/tips/steps", () => {
+@@ -39 +39 @@ it("keeps full steps as the main path and orders ingredients/time/preps/tips/ste
+-      .getAllByRole("heading", { level: 3 })
++      .getAllByRole("heading", { level: 2 })
+@@ -41,2 +41,2 @@ it("keeps full steps as the main path and orders ingredients/time/preps/tips/ste
+-      .slice(0, 5),
+-  ).toEqual(["食材", "总耗时", "提前准备", "做菜前先看", "完整步骤"]);
++  ).toEqual(["食材", "提前准备", "关键事项", "完整步骤"]);
++  expect(screen.getByText("30 分钟").compareDocumentPosition(screen.getByRole("heading", { name: "食材" })) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+@@ -49,0 +50 @@ it("does not force name-only recipes into a guided flow", () => {
++  const edit = vi.fn(), guided = vi.fn();
+@@ -53 +54 @@ it("does not force name-only recipes into a guided flow", () => {
+-      onEdit={() => {}}
++      onEdit={edit}
+@@ -56 +57 @@ it("does not force name-only recipes into a guided flow", () => {
+-      onGuided={() => {}}
++      onGuided={guided}
+@@ -60 +61,5 @@ it("does not force name-only recipes into a guided flow", () => {
+-  expect(screen.getByRole("button", { name: "开始引导烹饪" })).toBeDisabled();
++  expect(screen.queryByRole("button", { name: "开始引导烹饪" })).not.toBeInTheDocument();
++  expect(screen.getByRole("button", { name: "补充做法" })).toBeEnabled();
++  fireEvent.click(screen.getByRole("button", { name: "补充做法" }));
++  expect(edit).toHaveBeenCalledOnce();
++  expect(guided).not.toHaveBeenCalled();
+diff --git a/src/native/share-target/library-share.test.tsx b/src/native/share-target/library-share.test.tsx
+index b82ea35..ac5b8b2 100644
+--- a/src/native/share-target/library-share.test.tsx
++++ b/src/native/share-target/library-share.test.tsx
+@@ -31 +31 @@ it("cold-like late receipt opens idle Link Input exactly once without Read, AI o
+-  const f = setup(), view = render(<LibraryApp {...f} />); await screen.findByText("自己的做法，随时翻开");
++  const f = setup(), view = render(<LibraryApp {...f} />); await screen.findByRole("main", { name: "首页" });
+@@ -37 +37 @@ it("cold-like late receipt opens idle Link Input exactly once without Read, AI o
+-  view.unmount(); render(<LibraryApp {...f} />); await screen.findByText("自己的做法，随时翻开"); expect(screen.queryByLabelText("网页链接")).not.toBeInTheDocument();
++  view.unmount(); render(<LibraryApp {...f} />); await screen.findByRole("main", { name: "首页" }); expect(screen.queryByLabelText("网页链接")).not.toBeInTheDocument();
+diff --git a/src/native/step-viewer.test.tsx b/src/native/step-viewer.test.tsx
+index 4042eac..c346736 100644
+--- a/src/native/step-viewer.test.tsx
++++ b/src/native/step-viewer.test.tsx
+@@ -28 +28,2 @@ it("focuses any requested step with bounds and shared tips, never offers automat
+-  expect(screen.getByText("第 2 步 / 2")).toBeInTheDocument();
++  expect(screen.getByText("第 2 步／共 2 步")).toBeInTheDocument();
++  expect(screen.getByRole("progressbar", { name: "烹饪步骤进度" })).toHaveAttribute("value", "2");
+@@ -51 +52,2 @@ it("guided starts from 1/N and only an explicit final button completes", () => {
+-  expect(screen.getByText("第 1 步 / 2")).toBeInTheDocument();
++  expect(screen.getByText("第 1 步／共 2 步")).toBeInTheDocument();
++  expect(screen.getByRole("progressbar", { name: "烹饪步骤进度" })).toHaveAttribute("value", "1");
+diff --git a/src/native/ui-v2/core-detail-viewer.test.tsx b/src/native/ui-v2/core-detail-viewer.test.tsx
+new file mode 100644
+index 0000000..92ea4fc
+--- /dev/null
++++ b/src/native/ui-v2/core-detail-viewer.test.tsx
+@@ -0,0 +1,52 @@
++import { fireEvent, render, screen, within } from "@testing-library/react";
++import { expect, it, vi } from "vitest";
++import { RecipeDetail } from "../recipe-detail";
++import { StepViewer } from "../step-viewer";
++import { emptyDetails } from "../recipe-model";
++
++const recipe = {
++  ...emptyDetails("只有自己的做法"), id: "local-recipe",
++  createdAt: "2026-10-23T00:00:00.000Z", updatedAt: "2026-10-23T00:00:00.000Z",
++};
++
++it("a name-only production recipe offers the existing editor instead of an unusable cooking action", () => {
++  const edit = vi.fn();
++  render(<RecipeDetail recipe={recipe} onBack={vi.fn()} onEdit={edit} onDelete={vi.fn()} onGuided={vi.fn()} onComplete={vi.fn()} />);
++  expect(screen.getByRole("heading", { name: recipe.title })).toBeVisible();
++  expect(screen.queryByRole("button", { name: "开始引导烹饪" })).not.toBeInTheDocument();
++  fireEvent.click(screen.getByRole("button", { name: "补充做法" }));
++  expect(edit).toHaveBeenCalledOnce();
++  expect(screen.queryByRole("img")).not.toBeInTheDocument();
++});
++
++it("production detail keeps full real content in the approved reading order without inventing duration", () => {
++  const item = { ...recipe,
++    ingredients: [{ name: "鸡翅", amount: "适量" }],
++    preparations: [{ instruction: "提前腌一会儿", minutes: null, timingText: "一会儿" }],
++    keyTips: [{ instruction: "留意收汁", stepNumber: 1 }],
++    steps: [{ instruction: "倒入可乐，烧开后转小火", imagePath: null }], notes: "自己的调整",
++  };
++  render(<RecipeDetail recipe={item} onBack={vi.fn()} onEdit={vi.fn()} onDelete={vi.fn()} onGuided={vi.fn()} />);
++  const ordered = ["食材", "提前准备", "关键事项", "完整步骤", "个人备注"].map(name => screen.getByRole("heading", { name }));
++  for (let index = 1; index < ordered.length; index++) {
++    expect(ordered[index - 1].compareDocumentPosition(ordered[index]) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
++  }
++  expect(screen.getByText("耗时未填写")).toBeVisible();
++  expect(screen.getByText("适量")).toBeVisible();
++  expect(screen.getByText("倒入可乐，烧开后转小火")).toBeVisible();
++});
++
++it("Guided ingredients are read-only and first native Back closes that sheet, not the cooking viewer", () => {
++  const close = vi.fn(), complete = vi.fn();
++  render(<StepViewer recipe={{ ...recipe, ingredients: [{ name: "盐", amount: "适量" }],
++    steps: [{ instruction: "按自己的做法操作", imagePath: null }] }}
++    mode="guided" initialIndex={0} onClose={close} onComplete={complete} />);
++  fireEvent.click(screen.getByRole("button", { name: "查看食材" }));
++  const sheet = screen.getByRole("dialog", { name: "食材" });
++  expect(within(sheet).getByText("盐")).toBeVisible();
++  expect(within(sheet).queryByRole("checkbox")).not.toBeInTheDocument();
++  fireEvent(window, new Event("recipio:back", { cancelable: true }));
++  expect(close).not.toHaveBeenCalled();
++  expect(complete).not.toHaveBeenCalled();
++  expect(screen.getByRole("dialog", { name: "引导烹饪" })).toBeVisible();
++});
+diff --git a/src/native/ui-v2/production-core.test.tsx b/src/native/ui-v2/production-core.test.tsx
+new file mode 100644
+index 0000000..1601467
+--- /dev/null
++++ b/src/native/ui-v2/production-core.test.tsx
+@@ -0,0 +1,365 @@
++import "fake-indexeddb/auto";
++import { act, cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
++import { afterEach, beforeEach, expect, it, vi } from "vitest";
++import { __resetLocalDatabaseForTests, getLocalDatabase } from "@/features/offline/local-db";
++import { AiIntakeService } from "../ai/service";
++import { fakeAi } from "../ai/service.test-support";
++import { FindRecipeService } from "../find-recipe/service";
++import type { FinderPort } from "../find-recipe/contract";
++import { LibraryApp } from "../library-app";
++import { LinkImportService } from "../link-import/service";
++import { PreviewRecipeLibrary } from "../preview-store";
++import { emptyDetails } from "../recipe-model";
++
++let scrollPosition = 0;
++beforeEach(() => {
++  scrollPosition = 0;
++  vi.spyOn(window, "scrollY", "get").mockImplementation(() => scrollPosition);
++  vi.spyOn(window, "scrollTo").mockImplementation((left: number | ScrollToOptions, top?: number) => {
++    scrollPosition = typeof left === "object" ? left.top ?? scrollPosition : top ?? 0;
++  });
++});
++afterEach(async () => {
++  cleanup();
++  vi.useRealTimers();
++  vi.restoreAllMocks();
++  await __resetLocalDatabaseForTests();
++});
++
++function localApp(store: PreviewRecipeLibrary) {
++  const fake = fakeAi();
++  const ai = new AiIntakeService(fake.keys, fake.bridge, { store });
++  const unexpectedNetwork = async (): Promise<never> => { throw new Error("Unexpected external request in a local flow"); };
++  const finderPort = {
++    createSession: vi.fn(unexpectedNetwork), search: vi.fn(unexpectedNetwork), extract: vi.fn(unexpectedNetwork),
++    cancel: vi.fn(async () => {}), discardSession: vi.fn(async () => {}),
++  } satisfies FinderPort;
++  const finder = new FindRecipeService({ port: finderPort, ai });
++  const web = { read: vi.fn(unexpectedNetwork), cancel: vi.fn(async () => {}) };
++  const link = new LinkImportService({ store, ai, port: web });
++  return { fake, finderPort, web, element: <LibraryApp store={store} ai={ai} finder={finder} link={link} /> };
++}
++
++async function showLibrary() {
++  fireEvent.click(within(screen.getByRole("navigation", { name: "主要导航" })).getByRole("button", { name: "我的菜谱" }));
++  await screen.findByRole("heading", { name: "我的菜谱" });
++}
++
++function displayedRecipeOrder() {
++  // Home may expose both its recent strip and the full rows. Compare the first
++  // occurrence of each real recipe rather than relying on one visual layout.
++  return [...new Set(screen.getAllByRole("button", { name: /^打开 / }).map(button => button.getAttribute("aria-label")))];
++}
++
++it("localSearch_doesNotStartNetwork", async () => {
++  const store = new PreviewRecipeLibrary();
++  await store.createDetails({ ...emptyDetails("凉拌黄瓜"), ingredients: [{ name: "黄瓜", amount: "1 根" }] });
++  await store.create("红烧肉");
++  const app = localApp(store), fetch = vi.spyOn(globalThis, "fetch").mockRejectedValue(new Error("Unexpected fetch"));
++  render(app.element);
++  await screen.findByRole("button", { name: "打开 红烧肉" });
++  fireEvent.change(screen.getByLabelText("搜索菜名或食材"), { target: { value: "黄瓜" } });
++  await waitFor(() => expect(screen.queryByRole("button", { name: "打开 红烧肉" })).not.toBeInTheDocument());
++  expect(screen.getAllByRole("button", { name: "打开 凉拌黄瓜" }).length).toBeGreaterThan(0);
++  fireEvent.change(screen.getByLabelText("搜索菜名或食材"), { target: { value: "不存在的菜" } });
++  await screen.findByText("没有符合条件的菜谱");
++  expect(await store.list()).toHaveLength(2);
++  expect(fetch).not.toHaveBeenCalled();
++  expect(app.fake.bridge.organize).not.toHaveBeenCalled();
++  expect(app.finderPort.createSession).not.toHaveBeenCalled();
++  expect(app.finderPort.search).not.toHaveBeenCalled();
++  expect(app.finderPort.extract).not.toHaveBeenCalled();
++  expect(app.web.read).not.toHaveBeenCalled();
++});
++
++it("recentlyAdded_preservesCreationOrder", async () => {
++  let now = Date.parse("2026-10-23T01:00:00.000Z");
++  const store = new PreviewRecipeLibrary(() => new Date(now++));
++  const old = await store.createDetails(emptyDetails("较早加入的汤"));
++  await store.create("刚加入的粥");
++  render(localApp(store).element);
++  await screen.findByRole("button", { name: "打开 刚加入的粥" });
++  expect(displayedRecipeOrder()).toEqual(["打开 刚加入的粥", "打开 较早加入的汤"]);
++  await showLibrary();
++  fireEvent.click(await screen.findByRole("button", { name: "打开 较早加入的汤" }));
++  fireEvent.click(await screen.findByRole("button", { name: "编辑菜谱" }));
++  fireEvent.change(screen.getByLabelText("个人备注"), { target: { value: "今天补充备注" } });
++  fireEvent.click(screen.getByRole("button", { name: "快速保存菜谱" }));
++  await screen.findByRole("heading", { name: "较早加入的汤" });
++  fireEvent.click(screen.getByRole("button", { name: /返回菜谱库/ }));
++  await screen.findByRole("button", { name: "打开 刚加入的粥" });
++  fireEvent.click(within(screen.getByRole("navigation", { name: "主要导航" })).getByRole("button", { name: "首页" }));
++  await screen.findByRole("main", { name: "首页" });
++  await waitFor(() => expect(displayedRecipeOrder()).toEqual(["打开 刚加入的粥", "打开 较早加入的汤"]));
++  expect((await store.getDetails(old.id))?.createdAt).toBe(old.createdAt);
++  expect((await store.getDetails(old.id))?.notes).toBe("今天补充备注");
++  expect((await store.listRecipeChanges(old.id))).toHaveLength(1);
++});
++
++it("recipeTitleOnly_remainsValidRecipe", async () => {
++  const store = new PreviewRecipeLibrary();
++  render(localApp(store).element);
++  fireEvent.click(screen.getByRole("button", { name: "新增菜谱" }));
++  fireEvent.click(await screen.findByRole("button", { name: "手动录入" }));
++  fireEvent.change(screen.getByLabelText("菜名"), { target: { value: "只有名字的绿豆汤" } });
++  fireEvent.click(screen.getByRole("button", { name: "快速保存菜谱" }));
++  await screen.findByRole("heading", { name: "只有名字的绿豆汤" });
++  const [saved] = await store.list();
++  expect(await store.getDetails(saved.id)).toMatchObject({ title: "只有名字的绿豆汤", ingredients: [], steps: [], totalMinutes: null });
++  const supplement = screen.getByRole("button", { name: "补充做法" });
++  expect(supplement).toBeEnabled();
++  fireEvent.click(supplement);
++  expect(await screen.findByLabelText("菜名")).toHaveValue("只有名字的绿豆汤");
++  expect(await store.listCookingRecords(saved.id)).toEqual([]);
++});
++
++it("detailBack_restoresQueryFilterAndScroll", async () => {
++  const store = new PreviewRecipeLibrary();
++  const first = await store.createDetails({ ...emptyDetails("凉拌第一页"), totalMinutes: 10 });
++  const second = await store.createDetails({ ...emptyDetails("凉拌第二页"), totalMinutes: 15 });
++  const actualList = store.list.bind(store);
++  const realRows = await actualList();
++  const firstRow = realRows.find(row => row.id === first.id)!;
++  const secondRow = realRows.find(row => row.id === second.id)!;
++  // Only the list boundary supplies a full page. Detail reads and all data
++  // remain real; this makes page 100 observable without creating 101 records.
++  const fullPage = Array.from({ length: 100 }, (_, index) => index === 0 ? firstRow : { ...firstRow, id: `list-boundary-${index}`, title: `凉拌列表项 ${index}` });
++  const list = vi.spyOn(store, "list").mockImplementation(async (query = "", limit = 100, offset = 0, filter = "all") => {
++    if (query !== "凉拌" || filter !== "short") return actualList(query, limit, offset, filter);
++    if (limit !== 100) throw new Error("The root list must keep bounded pages of 100");
++    if (offset === 0) return fullPage;
++    if (offset === 100) return [secondRow];
++    throw new Error(`Unexpected page offset ${offset}`);
++  });
++  render(localApp(store).element);
++  await showLibrary();
++  fireEvent.change(screen.getByLabelText("搜索菜名或食材"), { target: { value: "凉拌" } });
++  fireEvent.change(screen.getByLabelText("耗时筛选"), { target: { value: "short" } });
++  fireEvent.click(await screen.findByRole("button", { name: "下一页" }));
++  fireEvent.click(await screen.findByRole("button", { name: "打开 凉拌第二页" }));
++  await screen.findByRole("heading", { name: second.title });
++  // Return once, then leave from a scrolled page. Both explicit and native Back
++  // must restore the same root state after Detail resets document scrolling.
++  fireEvent.click(screen.getByRole("button", { name: /返回菜谱库/ }));
++  await screen.findByRole("button", { name: "打开 凉拌第二页" });
++  window.scrollTo(0, 780);
++  fireEvent.click(screen.getByRole("button", { name: "打开 凉拌第二页" }));
++  await screen.findByRole("heading", { name: second.title });
++  expect(window.scrollY).toBe(0);
++  fireEvent.click(screen.getByRole("button", { name: /返回菜谱库/ }));
++  await screen.findByRole("button", { name: "打开 凉拌第二页" });
++  expect(screen.getByLabelText("搜索菜名或食材")).toHaveValue("凉拌");
++  expect(screen.getByLabelText("耗时筛选")).toHaveValue("short");
++  expect(screen.getByRole("button", { name: "上一页" })).toBeInTheDocument();
++  expect(screen.queryByRole("button", { name: "打开 凉拌第一页" })).not.toBeInTheDocument();
++  expect(list).toHaveBeenLastCalledWith("凉拌", 100, 100, "short");
++  await waitFor(() => expect(window.scrollY).toBe(780));
++  window.scrollTo(0, 930);
++  fireEvent.click(screen.getByRole("button", { name: "打开 凉拌第二页" }));
++  await screen.findByRole("heading", { name: second.title });
++  fireEvent(window, new Event("recipio:back", { cancelable: true }));
++  await screen.findByRole("button", { name: "打开 凉拌第二页" });
++  expect(list).toHaveBeenLastCalledWith("凉拌", 100, 100, "short");
++  await waitFor(() => expect(window.scrollY).toBe(930));
++});
++
++it.each([
++  ["history", "查看做菜记录", "做菜记录", "返回菜谱"],
++  ["changes", "查看修改记录", "修改记录", "返回菜谱"],
++  ["edit", "编辑菜谱", "编辑菜谱", "取消"],
++] as const)("detailSubrouteBack_restoresScrollAfterShortPageClamp_%s", async (_route, entry, heading, backLabel) => {
++  const store = new PreviewRecipeLibrary();
++  const recipe = await store.createDetails({ ...emptyDetails("保留详情阅读位置的汤"), steps: [
++    { instruction: "把食材洗净", imagePath: null },
++    { instruction: "按照自己的做法煮熟", imagePath: null },
++  ] });
++  render(localApp(store).element);
++  await showLibrary();
++  fireEvent.click(await screen.findByRole("button", { name: `打开 ${recipe.title}` }));
++  await screen.findByRole("heading", { name: recipe.title });
++  window.scrollTo(0, 780);
++  fireEvent.click(screen.getByRole("button", { name: entry }));
++  await screen.findByRole("heading", { name: heading });
++  const back = screen.getByRole("button", { name: backLabel });
++  await waitFor(() => expect(back).toBeEnabled());
++  // jsdom has no document layout. Model the browser clamping document scroll
++  // when a long detail is replaced by a short history or editor page.
++  scrollPosition = 0;
++  fireEvent.click(back);
++  await screen.findByRole("heading", { name: recipe.title });
++  expect(await store.getDetails(recipe.id)).toEqual(recipe);
++  expect(await store.listCookingRecords(recipe.id)).toEqual([]);
++  expect(await store.listRecipeChanges(recipe.id)).toEqual([]);
++  await waitFor(() => expect(window.scrollY).toBe(780));
++});
++
++it("rootAddSheet_nativeBackClosesBeforeListNavigation", async () => {
++  const store = new PreviewRecipeLibrary();
++  const recipe = await store.createDetails({ ...emptyDetails("凉拌返回保护"), totalMinutes: 15 });
++  const list = vi.spyOn(store, "list");
++  render(localApp(store).element);
++  await showLibrary();
++  fireEvent.change(screen.getByLabelText("搜索菜名或食材"), { target: { value: "凉拌" } });
++  fireEvent.change(screen.getByLabelText("耗时筛选"), { target: { value: "short" } });
++  await screen.findByRole("button", { name: `打开 ${recipe.title}` });
++  await waitFor(() => expect(list).toHaveBeenLastCalledWith("凉拌", 100, 0, "short"));
++  const root = screen.getByRole("main", { name: "我的菜谱" });
++  const listReadsBeforeSheet = list.mock.calls.length;
++  fireEvent.click(screen.getByRole("button", { name: "新增菜谱" }));
++  await screen.findByRole("dialog", { name: "添加菜谱" });
++  const sheetBack = new Event("recipio:back", { cancelable: true });
++  fireEvent(window, sheetBack);
++  await waitFor(() => expect(screen.queryByRole("dialog", { name: "添加菜谱" })).not.toBeInTheDocument());
++  expect(sheetBack.defaultPrevented).toBe(true);
++  expect(screen.getByRole("main", { name: "我的菜谱" })).toBe(root);
++  expect(screen.getByLabelText("搜索菜名或食材")).toHaveValue("凉拌");
++  expect(screen.getByLabelText("耗时筛选")).toHaveValue("short");
++  expect(list).toHaveBeenCalledTimes(listReadsBeforeSheet);
++  expect(await store.getDetails(recipe.id)).toEqual(recipe);
++  const listBack = new Event("recipio:back", { cancelable: true });
++  fireEvent(window, listBack);
++  expect(listBack.defaultPrevented).toBe(true);
++  await screen.findByRole("main", { name: "首页" });
++  expect(screen.getByLabelText("搜索菜名或食材")).toHaveValue("");
++});
++
++it("stepNavigation_doesNotCreateCookingRecord", async () => {
++  const store = new PreviewRecipeLibrary();
++  const recipe = await store.createDetails({ ...emptyDetails("步骤浏览汤"), steps: [{ instruction: "把食材洗净", imagePath: null }, { instruction: "放入锅里煮熟", imagePath: null }] });
++  render(localApp(store).element);
++  await showLibrary();
++  fireEvent.click(await screen.findByRole("button", { name: "打开 步骤浏览汤" }));
++  fireEvent.click(await screen.findByRole("button", { name: "放大步骤 1" }));
++  const focus = await screen.findByRole("dialog", { name: "单步查看" });
++  fireEvent.click(within(focus).getByRole("button", { name: "下一步" }));
++  expect(within(focus).getByText("放入锅里煮熟")).toBeInTheDocument();
++  fireEvent.click(within(focus).getByRole("button", { name: "返回完整步骤" }));
++  await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
++  fireEvent.click(screen.getByRole("button", { name: /开始引导烹饪/ }));
++  const guided = await screen.findByRole("dialog", { name: "引导烹饪" });
++  fireEvent.click(within(guided).getByRole("button", { name: "下一步" }));
++  expect(within(guided).getByRole("button", { name: "完成这道菜" })).toBeEnabled();
++  expect(await store.listCookingRecords(recipe.id)).toEqual([]);
++  fireEvent.click(within(guided).getByRole("button", { name: "上一步" }));
++  fireEvent.click(within(guided).getByRole("button", { name: "退出引导" }));
++  await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
++  expect(await store.getCookingSummary(recipe.id)).toEqual({ count: 0, lastCookedAt: null });
++});
++
++it("guidedIngredientsBack_keepsTheRealRootViewerAndItsStep", async () => {
++  const store = new PreviewRecipeLibrary();
++  const recipe = await store.createDetails({ ...emptyDetails("烹饪面板返回保护"), ingredients: [{ name: "盐", amount: "适量" }],
++    steps: [{ instruction: "先洗净", imagePath: null }, { instruction: "再煮熟", imagePath: null }] });
++  render(localApp(store).element);
++  fireEvent.click(await screen.findByRole("button", { name: `打开 ${recipe.title}` }));
++  fireEvent.click(await screen.findByRole("button", { name: "开始引导烹饪" }));
++  const viewer = screen.getByRole("dialog", { name: "引导烹饪" });
++  fireEvent.click(within(viewer).getByRole("button", { name: "下一步" }));
++  fireEvent.click(within(viewer).getByRole("button", { name: "查看食材" }));
++  await screen.findByRole("dialog", { name: "食材" });
++  fireEvent(window, new Event("recipio:back", { cancelable: true }));
++  await waitFor(() => expect(screen.queryByRole("dialog", { name: "食材" })).not.toBeInTheDocument());
++  expect(screen.getByRole("dialog", { name: "引导烹饪" })).toBe(viewer);
++  expect(within(viewer).getByText("再煮熟")).toBeVisible();
++  expect(await store.listCookingRecords(recipe.id)).toEqual([]);
++  fireEvent(window, new Event("recipio:back", { cancelable: true }));
++  await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
++  expect(screen.getByRole("heading", { name: recipe.title })).toBeVisible();
++});
++
++it("explicitCompletion_createsExactlyOneRecord", async () => {
++  const store = new PreviewRecipeLibrary(), recipe = await store.create("显式完成汤");
++  const recordCooking = store.recordCooking.bind(store);
++  let loseAcknowledgement = true;
++  vi.spyOn(store, "recordCooking").mockImplementation(async (id, operation) => {
++    const record = await recordCooking(id, operation);
++    if (loseAcknowledgement) { loseAcknowledgement = false; throw new Error("完成响应丢失"); }
++    return record;
++  });
++  render(localApp(store).element);
++  await showLibrary();
++  fireEvent.click(await screen.findByRole("button", { name: "打开 显式完成汤" }));
++  const complete = await screen.findByRole("button", { name: "完成这道菜" });
++  fireEvent.click(complete);
++  fireEvent.click(complete);
++  await screen.findByText("完成响应丢失");
++  const [first] = await store.listCookingRecords(recipe.id);
++  expect(first).toMatchObject({ recipeId: recipe.id, evaluation: null, note: null, finishedPhotoPath: null });
++  fireEvent.click(screen.getByRole("button", { name: "完成这道菜" }));
++  await screen.findByRole("heading", { name: "已记录做过这道菜" });
++  expect(await store.listCookingRecords(recipe.id)).toEqual([first]);
++  expect(await store.getCookingSummary(recipe.id)).toEqual({ count: 1, lastCookedAt: first.cookedAt });
++});
++
++it("dirtyEditor_survivesDialogAndNavigationCancel", async () => {
++  const store = new PreviewRecipeLibrary(), recipe = await store.create("草稿保护汤");
++  render(localApp(store).element);
++  await showLibrary();
++  fireEvent.click(await screen.findByRole("button", { name: "打开 草稿保护汤" }));
++  fireEvent.click(await screen.findByRole("button", { name: "编辑菜谱" }));
++  const title = screen.getByLabelText("菜名"), notes = screen.getByLabelText("个人备注");
++  fireEvent.change(title, { target: { value: "未保存的新菜名" } });
++  fireEvent.change(notes, { target: { value: "保留未保存的盐量" } });
++  const confirm = vi.spyOn(window, "confirm").mockReturnValue(false);
++  fireEvent.click(screen.getByRole("button", { name: "取消" }));
++  expect(confirm).toHaveBeenCalledWith("有未保存的修改，确定放弃吗？");
++  expect(screen.getByLabelText("菜名")).toBe(title);
++  expect(notes).toHaveValue("保留未保存的盐量");
++  const back = new Event("recipio:back", { cancelable: true });
++  fireEvent(window, back);
++  expect(back.defaultPrevented).toBe(true);
++  expect(screen.getByLabelText("菜名")).toBe(title);
++  expect(title).toHaveValue("未保存的新菜名");
++  expect(await store.getDetails(recipe.id)).toMatchObject({ title: "草稿保护汤", notes: "" });
++  expect(await store.listRecipeChanges(recipe.id)).toEqual([]);
++});
++
++it("deleteUndo_preservesOriginalFiveSecondWindow", async () => {
++  const store = new PreviewRecipeLibrary();
++  const first = await store.create("先删除的汤"), second = await store.create("后删除的粥");
++  const details = vi.spyOn(store, "getDetails"), remove = vi.spyOn(store, "remove"), undo = vi.spyOn(store, "undo"), purge = vi.spyOn(store, "purgeExpired");
++  render(localApp(store).element);
++  await showLibrary();
++  fireEvent.click(await screen.findByRole("button", { name: "打开 先删除的汤" }));
++  fireEvent.click(await screen.findByRole("button", { name: "更多菜谱操作" }));
++  await screen.findByRole("button", { name: "删除这道菜" });
++  vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout", "Date"] });
++  vi.setSystemTime(new Date("2026-10-23T02:00:00.000Z"));
++  await act(async () => {
++    fireEvent.click(screen.getByRole("button", { name: "删除这道菜" }));
++    await remove.mock.results.at(-1)?.value;
++    await store.list();
++  });
++  expect(await store.getDetails(first.id)).toBeNull();
++  await act(async () => { await vi.advanceTimersByTimeAsync(4000); });
++  await act(async () => {
++    fireEvent.click(screen.getByRole("button", { name: "打开 后删除的粥" }));
++    await details.mock.results.at(-1)?.value;
++  });
++  await act(async () => {
++    fireEvent.click(screen.getByRole("button", { name: "更多菜谱操作" }));
++  });
++  await act(async () => {
++    fireEvent.click(screen.getByRole("button", { name: "删除这道菜" }));
++    await remove.mock.results.at(-1)?.value;
++    await store.list();
++  });
++  expect(screen.getByText("已删除 先删除的汤")).toBeInTheDocument();
++  await act(async () => {
++    await vi.advanceTimersByTimeAsync(1000);
++    await purge.mock.results.at(-1)?.value;
++  });
++  const db = await getLocalDatabase();
++  expect(await db.localRecipes.get(first.id)).toBeUndefined();
++  expect(screen.queryByText("已删除 先删除的汤")).not.toBeInTheDocument();
++  expect(screen.getByText("已删除 后删除的粥")).toBeInTheDocument();
++  await act(async () => { await vi.advanceTimersByTimeAsync(3999); });
++  await act(async () => {
++    fireEvent.click(screen.getByRole("button", { name: "撤销" }));
++    await undo.mock.results.at(-1)?.value;
++    await store.list();
++  });
++  expect((await store.getDetails(second.id))?.title).toBe("后删除的粥");
++  expect(screen.queryByText("已删除 后删除的粥")).not.toBeInTheDocument();
++  expect(await store.getDetails(first.id)).toBeNull();
++});
