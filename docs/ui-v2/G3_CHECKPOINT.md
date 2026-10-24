@@ -47,3 +47,11 @@ Deliver one v23 APK and normal feature push, then wait for ChatGPT independent
 review/user experience. Only explicitly requested safe G3 Android supplement may
 resume; do not enter G4, video, main merge, tags or deployment. Final delivery SHA
 and remote equality are checked after the report's commit, avoiding self-reference.
+
+## Acceptance addendum — user decision,2026-10-24
+
+Delivery2080f86/sourcee182a72/v23 is now **ACCEPTED / FROZEN — PASS WITH NOTES**
+by the user's reported ChatGPT review and six phone core checks/preserving upgrade.
+This supersedes only the acceptance gate above, not delivery-time NOT_RUN evidence.
+See [G3 acceptance](G3_ACCEPTANCE.md). G4 now explicitly authorized and must collect
+fresh evidence; [G4 checkpoint](G4_CHECKPOINT.md) records its separate resource stop.

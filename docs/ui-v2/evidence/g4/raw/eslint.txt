@@ -1,0 +1,28 @@
+
+> recipe-app-foundation-auth@0.1.0 lint
+> eslint .
+
+
+E:\CODEX\VIBE CODING\recipe-step-app-ui-v2\output\playwright\ui-v2\g4\browser\replay-dev-20261024\replay-intake.mjs
+  7:10  warning  'fileURLToPath' is defined but never used  @typescript-eslint/no-unused-vars
+
+E:\CODEX\VIBE CODING\recipe-step-app-ui-v2\output\playwright\ui-v2\g4\browser\replay-dev-20261024\replay-production.mjs
+  4:10  warning  'fileURLToPath' is defined but never used  @typescript-eslint/no-unused-vars
+
+E:\CODEX\VIBE CODING\recipe-step-app-ui-v2\output\playwright\ui-v2\g4\browser\replay-dev-20261024\replay-settings-dialogs.mjs
+  3:10  warning  'fileURLToPath' is defined but never used  @typescript-eslint/no-unused-vars
+
+E:\CODEX\VIBE CODING\recipe-step-app-ui-v2\src\features\cooking-history\components\cooking-photo-picker.tsx
+  81:15  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+E:\CODEX\VIBE CODING\recipe-step-app-ui-v2\src\features\recipes\components\image-picker.tsx
+  33:9  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+E:\CODEX\VIBE CODING\recipe-step-app-ui-v2\src\features\recipes\components\recipe-card.tsx
+  14:9  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+E:\CODEX\VIBE CODING\recipe-step-app-ui-v2\src\features\recipes\components\recipe-detail.tsx
+  53:27  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+  75:37  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+✖ 8 problems (0 errors, 8 warnings)

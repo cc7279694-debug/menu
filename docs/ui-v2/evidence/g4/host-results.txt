@@ -1,0 +1,42 @@
+RECIPIO G4 partial resource-stop evidence — 2026-10-24
+Frozen source=e182a72b2435e1a0a98ddb81e5220d84db8d8276
+G3 delivery=2080f866cd0700fbd431dfdde2ffca7830b4aec7
+G3 acceptance registration=0541107
+Final src/android/package-lock/ViteNative config delta from e182a72=NONE
+G4 non-document tracked delta from2080f86=NONE;G3 QA scripts retained
+
+Typecheck=PASS
+ESLint=PASS exit0,0errors/8warnings
+Warnings=5inherited Next image +3generated replay scratch unused imports
+Whole JS/NativeTS=ABORTED_RESOURCE; no final pass count
+Local build=INTERRUPTED
+Production graph isolation=NOT_RUN
+Capacitor sync=NOT_RUN
+Gradle JVM/lint/debug/testAPK=INTERRUPTED before final results
+Connected/trueIME/TalkBack/Android core/share/backup cancel=NOT_RUN
+Performance baseline/samples/medians/20percentcomparison=NOT_RUN
+Browser production/settings=goto timeout before first product assertion
+Browser intake=interrupted; supplemental/foundation/built-cooking NOT_RUN
+New G4 successful screenshot evidence=NONE
+Real Provider requests=0
+
+Initial free memory=3.753GiB
+2026-10-24T18:54:05+08:00=0.257GiB
+2026-10-24T18:59:21+08:00=0.413GiB (serial512MiBGradle)
+2026-10-24T19:01:21+08:00=1.587GiB <4GiB
+Emulator count=0;unknownADB14196 untouched;no phone/other project operated
+Only owned Vitest/Vite/QA runner/Gradle cancelled; no automatic queue
+
+APK=E:\CODEX\VIBE CODING\recipe-step-app-ui-v2\artifacts\recipio-ui-v2-g3-v23-debug.apk
+Bytes=17255912
+SHA256=522a943fdbc320cace07396a2344b609975c97471724603539257ed64bd96f58
+Package=app.recipio.local
+Code=23
+Name=0.10.0-ui-v2-g3-rc2
+Signature=PASS
+CertificateSHA256=29ded26bea44f1afe4fe383a302e4b507423d16223469d7da3fe578d9a7f83b9
+Public package files=17;namedfixture/showcaseentries=0
+No new APK/build claim; original G3 asset match remains historical
+
+Status=UI_V2_G4_PENDING_DEVICE_TEST
+ValidationVerdict=Blocked by evidence
