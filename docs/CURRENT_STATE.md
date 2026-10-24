@@ -2,15 +2,17 @@
 
 ## Current stage
 
-2026-10-24 — **UI V2 G3-1 / G3-2 / G3-3 implemented; Android pending**, on
+2026-10-24 — **UI V2 G3 accepted/frozen; G4 comprehensive verification in progress**, on
 `feat/recipio-ui-v2-glass-minimal`, linked worktree `recipe-step-app-ui-v2`.
 G3-0 `6cc631af1888270f508e12d0ba69ce76b462a220` is now user/ChatGPT
 **ACCEPTED / FROZEN — PASS WITH NOTES**, on the exact v22 candidate. User phone
 acceptance and retained NOT_RUN notes are recorded in
 `ui-v2/G3_FOUNDATION_ACCEPTANCE.md`. This is not Codex-run phone evidence.
-The approved AI Review, Web Link and Finder/share presentation is now delivered
-as one v23 candidate. Status: **UI_V2_G3_PENDING_ANDROID_TEST**, not accepted or
-frozen. No G3-0 test rerun just for its documentation registration.
+G3 delivery2080f86/sourcee182a72 is user/ChatGPT **ACCEPTED / FROZEN — PASS WITH
+NOTES**, on v23. User reports preserving phone upgrade and six core checks PASS;
+not Codex-run phone evidence and not proof of new-UI true Provider/Parser/Finder.
+See `ui-v2/G3_ACCEPTANCE.md`. G4 is now explicitly authorized, no new design or
+product feature. No historical test rerun just for acceptance registration.
 
 User accepted/froze G2 `9e4bff3596d6efebadf93f6a4778b113efb3272e`
 (v21 layout-fix) as **PASS WITH NOTES**. This user phone acceptance is distinct
@@ -82,9 +84,11 @@ Full connected, performance, TalkBack and destructive restore remain deferred.
 
 ## Next task / stop
 
-Stop for ChatGPT independent review and user v23 experience. Only a separately
-requested G3 Android supplement may resume when the owned-device/memory gate
-is safe. No automatic queue, G4/video/main/tag/deployment. No real AI calls.
+Run the approved G4-A engineering/data, G4-B Android core/IME/share,
+G4-C visual/accessibility/performance and G4-D evidence/handoff. Reuse unchanged
+v23 when possible. Device operation requires owned RECIPIO target and>=4GiB free;
+no other project/phone operation or automatic queue. No real AI, new product,
+video/main/tag/deployment. G4 results cannot inherit old test counts.
 
 This task's local port5184 was stopped after screenshot checks. To preview:
 `npm.cmd run dev:local -- --host 127.0.0.1 --port 5184 --strictPort`.

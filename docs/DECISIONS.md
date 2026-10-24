@@ -1,5 +1,24 @@
 # Decisions
 
+## 2026-10-24 — Register G3 user acceptance; G4 verifies without expanding scope
+
+### Decision / context
+
+The user reports ChatGPT independent acceptance and v23 preserving phone upgrade
+plus six core experience checks PASS. Freeze G3 delivery2080f86/sourcee182a72 as
+ACCEPTED / FROZEN — PASS WITH NOTES, for visual/interaction scope only. Preserve
+all Codex NOT_RUN notes. This supersedes G3's pending acceptance gate, not its
+historical execution record.
+
+### Reason / consequences
+
+G4-A/B/C/D now has explicit authority for fresh engineering, data, Android,
+accessibility and performance evidence. Existing v23 is reused if production
+does not change. No new product/design system or Provider call; no data-model,
+Native safety, key, SSRF or backup contract changes. Device gate>=4GiB and owned
+RECIPIO environment; never operate user phone or another project. G4 remains
+unaccepted until external review and cannot merge/tag/deploy itself.
+
 ## 2026-10-24 — G3 task pages share presentation, not new business owners
 
 ### Decision
