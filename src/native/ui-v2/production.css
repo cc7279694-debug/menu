@@ -1,5 +1,6 @@
 @import "./tokens.css";
 @import "./layout.css";
+@import "./intake.css";
 
 /* Real core routes use the document scroll owner retained by LibraryApp. */
 .recipio-ui-v2.v2-production {

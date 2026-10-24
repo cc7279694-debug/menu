@@ -38,3 +38,29 @@ No real Provider calls, installs/dependencies, private content or new product st
 - G3-0 acceptance registered from user statement, with no new device/test claims.
 - Initial environment read-only:3.394GiB free<4GiB, no emulator running; no ADB
   operations. v23 absent from known artifact/docs inventories; check before build.
+- G3-1: new production consumer7RED→7GREEN, hierarchy1RED→7GREEN; review-location
+  final source-review gap1RED→8GREEN. Existing UI tests now assert disabled saves
+  AND forged-submit/Service rejection, not a click on a disabled button.
+- G3-2: real Screen/Service18RED→99directory tests GREEN (intermediate subset).
+  G3-3 Finder5RED plus cancel-notice1RED→36directory tests GREEN (subset).
+- Integration4RED with old root/banner presentation restored→GREEN in module
+  regression. Initial integration harness incorrectly returned an already consumed
+  receipt forever; corrected to the existing queue/empty SharePort contract. Only
+  the two verified own hanging test processes were stopped; no product fix or
+  other process operation for that harness issue.
+- Combined intermediate regression45files/342:341PASS/1FAIL, obsolete Link test
+  expected focus after disabled-button click. Updated to verify disabled UI and
+  forced-submit focus/write guard (stronger assertion), not weakened validation.
+- Browser first matrix18checks/13screens/106style records PASS; a locator in the
+  QA tool was fixed to handle React textarea textContent after parent rerender.
+  One visual correction puts Review title before privacy text, with RED→GREEN.
+  Fresh final confirmation after Review location repair pending.
+- Local fresh-context whole-source review found one P2 (spec17 field location),
+  repaired with production consumer RED→GREEN; no other identified blocker.
+  This is local source review, not ChatGPT's independent acceptance.
+- Ruling: update only Native instrumentation display selectors for approved task
+  titles/full acknowledgement and disabled-submit guard. No Native production
+  event/security logic changes; compiling tests is not running connected tests.
+- Ruling: retain the same task/Service owners; independent Link/Finder UI files
+  were implemented in parallel, root owned shared Review/CSS/shell and integration.
+  No shared services, protocols, data or provider request logic was changed.

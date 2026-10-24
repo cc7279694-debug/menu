@@ -146,7 +146,7 @@ public class AiImeBackInstrumentedTest {
     }
     @Test public void keyboardClosed_secondBack_leavesIntake()throws Exception {
         openIme();back();awaitIme(false);back();until("!!document.querySelector('[role=dialog]')");click("放弃本轮整理");
-        until("!document.body.innerText.includes('AI 整理菜谱')");assertEquals("1",js("window.__imeTestBackCount"));assertEquals(0,posts.get());
+        until("!document.body.innerText.includes('整理菜谱')");assertEquals("1",js("window.__imeTestBackCount"));assertEquals(0,posts.get());
     }
     @Test public void intakeDraft_survivesImeBack()throws Exception {
         openIme();back();awaitIme(false);assertEquals("APK4 IME GENERATED 中文 🍚",js("document.querySelector('textarea').value"));
@@ -219,15 +219,15 @@ public class AiImeBackInstrumentedTest {
         assertEquals(0,posts.get());assertEquals("0",js("window.__imeTestBackCount"));
     }
     private String titleInput(){return "[...document.querySelectorAll('label')].find(l=>l.querySelector('span')?.textContent==='菜名').querySelector('input')";}
-    private void preview()throws Exception {click("开始 AI 整理");until("document.body.innerText.includes('检查 AI 整理结果')");assertEquals(1,posts.get());}
+    private void preview()throws Exception {click("开始 AI 整理");until("document.body.innerText.includes('检查整理结果')");assertEquals(1,posts.get());}
     @Test public void previewEdits_surviveImeBack()throws Exception {
         preview();js("(()=>{const e="+titleInput()+";Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,'value').set.call(e,'APK4 IME EDITED 🍚');e.dispatchEvent(new Event('input',{bubbles:true}));return true})()");
         openIme(titleInput());back();awaitIme(false);assertEquals("APK4 IME EDITED 🍚",js("("+titleInput()+").value"));assertEquals("0",js("window.__imeTestBackCount"));assertEquals("false",js("!!document.querySelector('[role=dialog]')"));
     }
     @Test public void previewConfirmationGate_survivesImeBack()throws Exception {
         preview();until("!!document.querySelector('input[type=checkbox]')");assertEquals("false",js("document.querySelector('input[type=checkbox]').checked"));
-        openIme(titleInput());back();awaitIme(false);click("快速保存菜谱");until("document.activeElement?.getAttribute('aria-label')==='AI 整理审核'");
-        assertEquals("false",js("document.querySelector('input[type=checkbox]').checked"));assertEquals("true",js("document.body.innerText.includes('检查 AI 整理结果')"));
+        openIme(titleInput());back();awaitIme(false);assertEquals("true",js("Array.from(document.querySelectorAll('button')).find(b=>b.getAttribute('aria-label')==='快速保存菜谱').disabled"));js("document.querySelector('form').dispatchEvent(new Event('submit',{bubbles:true,cancelable:true}))");until("document.activeElement?.getAttribute('aria-label')==='AI 整理审核'");
+        assertEquals("false",js("document.querySelector('input[type=checkbox]').checked"));assertEquals("true",js("document.body.innerText.includes('检查整理结果')"));
         js("document.querySelector('input[type=checkbox]').click()");until("document.querySelector('input[type=checkbox]').checked===true");openIme(titleInput());back();awaitIme(false);assertEquals("true",js("document.querySelector('input[type=checkbox]').checked"));assertEquals("0",js("window.__imeTestBackCount"));
     }
     @Test public void repeatedBack_doesNotDoubleNavigate()throws Exception {
@@ -237,6 +237,6 @@ public class AiImeBackInstrumentedTest {
     @Test public void backDuringBusy_doesNotStartDuplicateAiRequest()throws Exception {
         holdHttp=true;click("开始 AI 整理");assertTrue(httpEntered.await(8,TimeUnit.SECONDS));back();back();until("!!document.querySelector('[role=dialog]')");
         assertEquals(1,posts.get());click("继续整理");assertEquals("true",js("document.body.innerText.includes('正在整理')"));
-        httpRelease.countDown();until("document.body.innerText.includes('检查 AI 整理结果')");assertEquals(1,posts.get());
+        httpRelease.countDown();until("document.body.innerText.includes('检查整理结果')");assertEquals(1,posts.get());
     }
 }

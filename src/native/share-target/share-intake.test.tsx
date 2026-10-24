@@ -29,7 +29,7 @@ it("safe text Share prefill is exact and stays offline until explicit Start",asy
   const f=setup();render(<LibraryApp {...f}/>);await f.emit(plain());
   expect(await screen.findByLabelText("菜谱文字")).toHaveValue(text);
   expect(f.fake.bridge.organize).not.toHaveBeenCalled();expect(f.web.read).not.toHaveBeenCalled();expect(await f.store.list()).toEqual([]);
-  fireEvent.click(screen.getByRole("button",{name:"开始 AI 整理"}));await screen.findByRole("heading",{name:"检查 AI 整理结果"});expect(f.fake.bridge.organize).toHaveBeenCalledTimes(1);
+  fireEvent.click(screen.getByRole("button",{name:"开始 AI 整理"}));await screen.findByRole("heading",{name:"检查整理结果"});expect(f.fake.bridge.organize).toHaveBeenCalledTimes(1);
 });
 it("media with URL description stays image AI and uses existing ordered temporary images",async()=>{
   const f=setup();render(<LibraryApp {...f}/>);const share={...media(),text:"描述 https://generated.example/r"};await f.emit(share);

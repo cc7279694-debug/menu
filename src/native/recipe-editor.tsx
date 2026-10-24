@@ -20,6 +20,8 @@ export function RecipeEditor({
   heading,
   submitLabel,
   beforeFields,
+  beforeSave,
+  submitDisabled = false,
   mediaEnabled=true,
   beforeSubmit,
   appearance,
@@ -30,6 +32,8 @@ export function RecipeEditor({
   heading?:string;
   submitLabel?:string;
   beforeFields?:ReactNode;
+  beforeSave?:ReactNode;
+  submitDisabled?:boolean;
   mediaEnabled?:boolean;
   beforeSubmit?:(input:RecipeDetailsInput)=>boolean;
   appearance?: "v2";
@@ -190,6 +194,7 @@ export function RecipeEditor({
           return;
         }
         if(beforeSubmit&&!beforeSubmit(result.data)){setError("请先完成审核后保存。");return;}
+        if (submitDisabled) return;
         lock.current = true;
         setBusy(true);
         setError("");
@@ -210,7 +215,7 @@ export function RecipeEditor({
         <div className={presentationClass("flex items-center gap-1", "v2-form-actions")}>
           <Button
             type="submit"
-            disabled={busy || !value.title.trim()}
+            disabled={busy || submitDisabled || !value.title.trim()}
             aria-label="快速保存菜谱"
           >
             {submitLabel??"保存"}
@@ -563,6 +568,7 @@ export function RecipeEditor({
             onChange={(e) => patch({ notes: e.target.value })}
           />
         </label>
+        {beforeSave}
       </fieldset>
       {error && (
         <p
@@ -575,7 +581,7 @@ export function RecipeEditor({
       <div className={presentationClass("sticky bottom-0 bg-background/95 py-3", "v2-form-footer")}>
         <Button
           type="submit"
-          disabled={busy || !value.title.trim()}
+          disabled={busy || submitDisabled || !value.title.trim()}
           className="min-h-12 w-full"
         >
           {busy ? "正在保存…" : submitLabel??"保存菜谱"}

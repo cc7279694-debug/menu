@@ -86,7 +86,7 @@ it("AI request and its Preview edits/gate survive share without a second request
   const response = deferred<{ rawJson: string }>(); f.fake.bridge.organize.mockReturnValue(response.promise);
   fireEvent.click(await screen.findByRole("button", { name: "开始 AI 整理" })); await waitFor(() => expect(f.fake.bridge.organize).toHaveBeenCalledOnce()); await f.emit();
   expect(f.ai.snapshot().input.text).toBe("测试输入"); expect(f.fake.bridge.cancel).not.toHaveBeenCalled();
-  await act(async () => { response.resolve({ rawJson: JSON.stringify({ recipe: emptyDetails("AI 测试菜"), fieldChecks: [], warnings: [] }) }); }); await screen.findByRole("heading", { name: "检查 AI 整理结果" });
+  await act(async () => { response.resolve({ rawJson: JSON.stringify({ recipe: emptyDetails("AI 测试菜"), fieldChecks: [], warnings: [] }) }); }); await screen.findByRole("heading", { name: "检查整理结果" });
   fireEvent.change(screen.getByLabelText("菜名"), { target: { value: "Preview 修改" } }); await f.emit(); expect(screen.getByLabelText("菜名")).toHaveValue("Preview 修改"); expect(f.ai.snapshot().confirmed).toBe(false);
   expect(f.fake.bridge.organize).toHaveBeenCalledOnce(); expect(f.fake.bridge.discardSession).not.toHaveBeenCalled(); expect(await f.store.list()).toEqual([]);
 });

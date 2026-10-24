@@ -104,8 +104,7 @@ export function LibraryApp({
   const listReturn = useRef({ scroll: 0, restore: false });
   const detailPageReturn = useRef({ scroll: 0, restore: false });
   const isRoot = ["home", "library", "settings"].includes(view) && !fromAiSettings && !fromLinkSettings && !fromFindSettings;
-  const isCore = ["home", "library", "settings", "detail", "new", "edit", "history", "changes", "completion"].includes(view);
-  useControlClearance(rootRef, navigationRef, isRoot && isCore);
+  useControlClearance(rootRef, navigationRef, isRoot);
   const [viewer, setViewer] = useState<{
     mode: "focus" | "guided";
     index: number;
@@ -486,22 +485,11 @@ export function LibraryApp({
   }, [view, returnView, backToList, backupState, viewer,fromAiSettings,fromLinkSettings,fromFindSettings,intakeState.draft,intakeState.phase]);
   return (
     <V2AppearanceProvider theme={theme} solid={false}>
-    <div ref={rootRef} className={isCore ? "recipio-ui-v2 v2-production" : "mx-auto min-h-dvh max-w-3xl px-4 pb-28 pt-5 sm:px-8"} data-v2-theme={isCore ? theme : undefined} data-v2-root={isRoot || undefined}>
-      {!isCore && <header className="mb-7 flex items-center justify-between gap-4">
-        <div className="flex items-center gap-3">
-          <img src="./icon.png" alt="" className="h-10 w-10 rounded-xl" />
-          <div>
-            <h1 className="text-lg font-semibold">谱序 RECIPIO</h1>
-            <p className="text-xs text-muted-foreground">
-              自己的做法，随时翻开
-            </p>
-          </div>
-        </div>
-      </header>}
-      {shareState.pending && <aside aria-label="待处理分享" role="status" className="mb-5 space-y-3 rounded-xl border p-4">
+    <div ref={rootRef} className="recipio-ui-v2 v2-production" data-v2-theme={theme} data-v2-root={isRoot || undefined}>
+      {shareState.pending && <aside aria-label="待处理分享" role="status" className="v2-share-notice v2-task">
         <p>{shareState.pending.status === "url" ? `收到网页链接：${new URL(shareState.pending.url).hostname}。请先完成当前操作，再打开。` : shareState.pending.status==="text"?"收到一段分享文字。请先完成当前操作，再打开。":shareState.pending.status==="media"?`收到 ${shareState.pending.imageCount} 张${shareState.pending.text?.trim()?"图片和文字":"分享图片"}。请先完成当前操作，再打开。`:shareReasons[shareState.pending.reason]}</p>
         {shareState.replaced && <p className="text-sm text-muted-foreground">较早的待处理分享已被新分享替换；当前编辑内容保持不变。</p>}
-        <div className="flex flex-wrap gap-2">
+        <div className="v2-task-actions">
           {shareState.pending.status !== "invalid" ? <Button className="min-h-11" disabled={busy || !canOpenShare(false, false)} onClick={() => { const item = shares?.snapshot().pending; if (item) void shareOpen.current(item); }}>{shareState.pending.status==="url"?"打开分享的链接":"打开这次分享"}</Button> : <>
             {shareState.pending.reason==="multiple_links"&&shareState.pending.text&&<Button className="min-h-11" disabled={busy||!canOpenShare(false,false)} onClick={()=>{const item=shares?.snapshot().pending;if(item)void shareOpen.current(item);}}>整理这段分享文字</Button>}
             <Button className="min-h-11" disabled={busy || !canOpenShare(false, false)} onClick={() => { const item = shares?.snapshot().pending; if(!item||!shareRoute.current(item))return;shares?.complete(item.id); void navigate("home"); }}>回到首页</Button>
@@ -510,7 +498,7 @@ export function LibraryApp({
           <Button className="min-h-11" variant="outline" onClick={() => { const item = shares?.snapshot().pending; if (item) shares?.complete(item.id); }}>忽略这次分享</Button>
         </div>
       </aside>}
-      {shareState.unavailable && <aside role="status" className="mb-4 rounded-xl border p-3"><p>暂时无法接收分享，本地菜谱仍可正常使用。</p><Button className="min-h-11 mt-2" variant="outline" onClick={() => shares?.retry()}>重试接收分享</Button></aside>}
+      {shareState.unavailable && <aside role="status" className="v2-share-notice v2-task"><p>暂时无法接收分享，本地菜谱仍可正常使用。</p><Button className="min-h-11 mt-2" variant="outline" onClick={() => shares?.retry()}>重试接收分享</Button></aside>}
       <NativeV2Sheet open={addOpen} onOpenChange={setAddOpen} title="添加菜谱" description="手动记录始终可离线使用；AI 整理和网页读取是可选联网能力。"><div className="v2-action-list">
         <V2Button variant="text" disabled={busy} onClick={()=>{setAddOpen(false);setView("new");}}>手动录入</V2Button>
         <V2Button variant="text" disabled={busy} aria-label="AI 整理" onClick={()=>{setAddOpen(false);setView("ai-input");}}>文字／截图 AI 整理</V2Button>
@@ -530,7 +518,7 @@ export function LibraryApp({
           </Button>
         </div>
       )}
-      {intakeState.pendingCleanup&&<aside role="status" className="mb-4 rounded-xl border p-3"><p>临时文件清理待重试；已保存的菜谱不受影响。</p><Button className="min-h-11 mt-2" variant="outline" onClick={()=>void intake.retryCleanup()}>重试临时文件清理</Button></aside>}
+      {intakeState.pendingCleanup&&<aside role="status" className="v2-share-notice v2-task"><p>临时文件清理待重试；已保存的菜谱不受影响。</p><Button className="min-h-11 mt-2" variant="outline" onClick={()=>void intake.retryCleanup()}>重试临时文件清理</Button></aside>}
       {linkService && (view === "link-input" || fromLinkSettings) && <div hidden={view !== "link-input"}><Suspense fallback={<p role="status">正在打开网页导入…</p>}><LinkImportScreen service={linkService} active={view === "link-input"} onSaved={showAiRecipe} onCancel={()=>setView(returnView)} onConfigureKey={()=>{setFromLinkSettings(true);setView("settings");}} onFallback={target=>{setSelected(null);setView(target === "ai" ? "ai-input" : "new");}} /></Suspense></div>}
       {finderService&&(view==="find-input"||fromFindSettings)&&<div hidden={view!=="find-input"}><Suspense fallback={<p role="status">正在打开寻找做法…</p>}><FindRecipeScreen service={finderService} active={view==="find-input"} onSaved={showAiRecipe} onCancel={()=>setView(returnView)} onConfigureKey={()=>{setFromFindSettings(true);setView("settings");}} onFallback={target=>{setSelected(null);if(target==="link")void openLinkImport();else setView(target==="ai"?"ai-input":"new");}}/></Suspense></div>}
       {view === "link-input"||view==="find-input" ? null : (view==="ai-input"||view==="ai-preview")&&intakeState.phase==="uncertain"?<AiSaveRecovery service={intake} onSaved={showAiRecipe} onAbsent={()=>setView("ai-preview")} onLibrary={()=>setView(returnView)}/>:view==="ai-input"?<AiIntakeScreen service={intake} onPreview={()=>setView("ai-preview")} onCancel={()=>setView(returnView)} onManual={()=>{setSelected(null);setView("new");}} onConfigureKey={()=>{setFromAiSettings(true);setView("settings");}}/>:view==="ai-preview"?intakeState.draft?<AiPreview draft={intakeState.draft} confirmed={intakeState.confirmed} onConfirmedChange={value=>intake.setConfirmed(value)} hasExactTitle={title=>store.hasExactTitle(title)} onSave={async input=>{showAiRecipe(await intake.save(input));}} onCancel={()=>setView("ai-input")}/>:<section className="space-y-4"><p>本轮结果已失效，请重新整理。</p><Button className="min-h-11" variant="outline" onClick={()=>setView("ai-input")}>返回本轮输入</Button></section>:view === "new" || view === "edit" ? (
