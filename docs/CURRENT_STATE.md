@@ -2,12 +2,14 @@
 
 ## Current stage
 
-2026-10-24 — **UI_V2_G3_FOUNDATION_PENDING_ANDROID**, on
+2026-10-24 — **UI V2 G3-1 / G3-2 / G3-3 in progress**, on
 `feat/recipio-ui-v2-glass-minimal`, linked worktree `recipe-step-app-ui-v2`.
-G3-0 implementation, fresh full JS/TS regression, browser checks and v22 APK
-are delivered. Android runtime remains **NOT_RUN**: final free memory3.408GiB
-is below the approved4GiB gate. No emulator launched, ADB/device operation,
-phone operation or other project process shutdown in this task.
+G3-0 `6cc631af1888270f508e12d0ba69ce76b462a220` is now user/ChatGPT
+**ACCEPTED / FROZEN — PASS WITH NOTES**, on the exact v22 candidate. User phone
+acceptance and retained NOT_RUN notes are recorded in
+`ui-v2/G3_FOUNDATION_ACCEPTANCE.md`. This is not Codex-run phone evidence.
+The new approved task is AI Review, Web Link, Finder/share presentation only.
+No G3-0 test rerun just for this documentation registration.
 
 User accepted/froze G2 `9e4bff3596d6efebadf93f6a4778b113efb3272e`
 (v21 layout-fix) as **PASS WITH NOTES**. This user phone acceptance is distinct
@@ -59,10 +61,11 @@ not Android/Native evidence. Existing test/build warnings are documented.
 
 ## Next task / stop
 
-Resume only G3-0 Android targeted validation when the approved memory gate and
-RECIPIO device ownership are satisfied; preserve all existing app data and
-images. Then wait for ChatGPT/user acceptance. Do not begin remaining G3 AI/
-web/Finder redesign, G4/video, main integration, tags or deployment.
+Implement G3-1 AI input/review/recovery → G3-2 Web Link → G3-3 Finder/share,
+using existing services and theme scopes. Each module gets targeted tests and
+a focused commit; one fresh full final regression/build and one v23 candidate.
+Only safe owned-device Android smoke; no other project/phone operations or
+automatic queue. Stop for independent review; no G4/video/main/tag/deployment.
 
 This task's local ports5184/5186 were stopped after screenshot checks. To preview:
 `npm.cmd run dev:local -- --host 127.0.0.1 --port 5184 --strictPort`.

@@ -1,6 +1,11 @@
 # UI V2 G3-0 checkpoint — 2026-10-24
 
-Status: **UI_V2_G3_FOUNDATION_PENDING_ANDROID**. Implementation/build/browser
+Acceptance addendum2026-10-24: user phone six-point acceptance and ChatGPT
+decision **ACCEPTED / FROZEN — PASS WITH NOTES** for6cc631a/v22. See
+`G3_FOUNDATION_ACCEPTANCE.md`. The original delivery evidence below is retained,
+including its Android NOT_RUN; it is not rewritten as a Codex phone test.
+
+Original delivery status: **UI_V2_G3_FOUNDATION_PENDING_ANDROID**. Implementation/build/browser
 verification complete; Android runtime NOT_RUN because safe-memory gate failed.
 User accepted/froze G2 9e4bff3596d6efebadf93f6a4778b113efb3272e (v21 layout-fix)
 as PASS WITH NOTES. This is a new G3 commit, not a rewrite of that history.

@@ -535,3 +535,18 @@ display preference. SQLite4/Preview7/Backup2 remain unchanged; no recipe/key/inp
 is stored there or added to backups. Same-root Settings returns preserve current
 local query/filter/page. Native key input and backup transactions are reused;
 confirmation dialogs opt into theme attributes without new action handlers.
+
+## 2026-10-24 — Freeze G3-0; extend presentation only through G3-3
+
+### Decision / context
+
+The user's supplied acceptance records six real-phone checks on6cc631a/v22 as
+PASS, with ChatGPT ACCEPTED/FROZEN — PASS WITH NOTES. Preserve original Codex
+NOT_RUN evidence. G3-1/2/3 are now explicitly authorized on the same feature
+history, without rewriting G2/G3-0 or changing services/data/safety contracts.
+
+### Reason / consequences
+
+Reuse existing AI Review/RecipeEditor and Parser/Finder/share ownership instead
+of a parallel workflow. Targeted tests per module, one final full regression and
+APK; real Provider0, G4/main/tag/deployment/video remain gated.
