@@ -1,0 +1,69 @@
+{
+  "artifact": "artifacts/recipio-ui-v2-g3-v22-debug.apk",
+  "bytes": 17459114,
+  "sha256": "9c477c7322b750099bed70b1c83fff6920d5aadd99416ecf6249011bfc0db84b",
+  "packageId": "app.recipio.local",
+  "versionCode": 22,
+  "versionName": "0.10.0-ui-v2-g3-rc1",
+  "minSdk": 24,
+  "targetSdk": 36,
+  "certificateSha256": "29ded26bea44f1afe4fe383a302e4b507423d16223469d7da3fe578d9a7f83b9",
+  "signatureVerified": true,
+  "certificateMatchesAcceptedV21": true,
+  "packagedWebAssetsByteMatched": 15,
+  "generatedCordovaFilesExcluded": 2,
+  "baselineRevision": "9e4bff3596d6efebadf93f6a4778b113efb3272e",
+  "productionSourceFingerprints": [
+    {
+      "Path": "src/native/library-app.tsx",
+      "Sha256": "45a559be4b802c0cd026883e2a174e9dc4ef5b6857959c9b6594f78ef4e93901",
+      "GitBlob": "e5142208ef62c00a30797e2fa8f33ca302a7d354"
+    },
+    {
+      "Path": "src/native/step-viewer.tsx",
+      "Sha256": "f0cb7070e65a557e620c651438b43423232a33de0f277759e84ecd55d2a7471b",
+      "GitBlob": "e0c4a56e0f51092ead0fa942de1d375b794442d0"
+    },
+    {
+      "Path": "src/native/ui-v2/appearance.tsx",
+      "Sha256": "28324ce64dfd66310b8787cfd2f5a98cf6be953d13bbdeb32df7c44020f74b01",
+      "GitBlob": "eb468f61001435c052dcac808eaa41133600b3cc"
+    },
+    {
+      "Path": "src/native/ui-v2/production.css",
+      "Sha256": "a148707607ae3e4792c2e0ba1b285b56773aae5aabdf3d0e1328584c6b0813f3",
+      "GitBlob": "3878653ffd83e9a589b971b1d90c8f3553d3c817"
+    },
+    {
+      "Path": "src/native/ui-v2/theme-preference.ts",
+      "Sha256": "9a6a1776d905777d8eab0226db5f6e6fa4f48cbf945ee0c6cb4b4c225b1b7eb8",
+      "GitBlob": "1422298500251e591c424907f9999466203b4048"
+    },
+    {
+      "Path": "src/native/ui-v2/settings-screen.tsx",
+      "Sha256": "edf69edbaa24b1d404b3973ffa00588fb8314aa0be6ac521241d58657371b0ef",
+      "GitBlob": "6d4806f56bab5ad2df254ff75a483a260b0c2c58"
+    },
+    {
+      "Path": "src/native/ai/ai-settings.tsx",
+      "Sha256": "855d3be9a6bcf89472920ed2a2b2bd4575ea1bdc448724529f888261805851f6",
+      "GitBlob": "a8dc59e60c8526dff43e5644149d01b645f0d8ab"
+    },
+    {
+      "Path": "src/native/backup/backup-controls.tsx",
+      "Sha256": "c8af5cab5a6c33a82a7475f3ca0ec1d6ca410e9ecca3c6c492ea824f813bdbcd",
+      "GitBlob": "3f00baf5084dc99731e0b8bb57a0ef6950f9c91b"
+    }
+  ],
+  "sqlite": 4,
+  "preview": 7,
+  "backupFormat": 2,
+  "themePreference": {
+    "key": "recipio.ui-v2.theme.v1",
+    "value": "Only warm-ivory / pure-glass / soft-sage enum",
+    "includedInBackup": false
+  },
+  "androidRuntime": "NOT_RUN — safe memory gate failed",
+  "physicalPhone": "UNTOUCHED",
+  "realAiCalls": 0
+}

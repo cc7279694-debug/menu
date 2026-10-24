@@ -1,6 +1,6 @@
 # RECIPIO Android Roadmap
 
-2026-10-23：稳定 main `649804a` / `v0.9.1-logo-refresh` 不变。用户已认可 G1（9a17b1c，PASS WITH NOTES）并明确批准 G2 正式核心页面接入及内部候选 APK；当前收尾验证中，不代表 G2 已验收。G3/G4 仍须另行批准；不合 main、不建 Tag、不部署、不进入视频。
+2026-10-24：稳定 main `649804a` / `v0.9.1-logo-refresh` 不变。用户已验收冻结 G2（9e4bff3，PASS WITH NOTES）。G3-0 主题、根页面/设置与 Finder 边框实现及浏览器/构建验证已完成；Android 内存门禁未满足，状态 PENDING_ANDROID。其余 G3/G4 仍须另行批准；不合 main、不建 Tag、不部署、不进入视频。
 
 | Module | Status | Scope |
 | --- | --- | --- |
@@ -16,8 +16,9 @@
 | APK-6 | Accepted stable baseline | 已接受功能与 Logo 已在稳定 main649804a；历史1029/441/188/105及原失败证据保留，不改写为 UI V2 本轮测试 |
 | Logo integration | Accepted stable baseline | 用户已认可新 Logo 并授权与 APK-6 共同进入稳定 main；既定品牌不在 UI V2 重绘，历史手机/OEM测试不冒称新执行 |
 | UI V2 G0/G1 | Visual accepted by user / PASS WITH NOTES |9a17b1c；原三主题视觉与独立样板保留，历史证据见 ui-v2/FINAL_POLISH_VERIFICATION.md，不复用其数字作为 G2 结果 |
-| UI V2 G2 | Pending Android smoke / independent review | 正式核心页面已接入；最终1079 JS/TS、188 Java、浏览器11组+G1三主题123检查、v21 APK通过。安全内存不足，Android设备NOT_RUN；未获G2独立验收，见 ui-v2/G2_VERIFICATION.md |
-| UI V2 G3/G4 | Gated / not yet authorized | 导入/Finder/设置/分享/备份视觉统一及最终 Android/真机门禁；必须独立批准 |
+| UI V2 G2 | Accepted / Frozen — PASS WITH NOTES | 用户在v21 layout-fix手机上验收，冻结9e4bff3；Codex模拟器补验与用户真机反馈分别保留，历史数字不复用为G3 |
+| UI V2 G3-0 | Implemented / PENDING_ANDROID | 三主题偏好、统一根外壳/设置、Finder边框；最终199files/1095tests及浏览器定向/构建通过，新v22候选；Android补验NOT_RUN，验证与限制见ui-v2/G3_FOUNDATION_CHECKPOINT.md |
+| Remaining UI V2 G3/G4 | Gated / not yet authorized | 不开始AI/网页/Finder具体界面重构或后续模块 |
 
 APK-6历史证据见 verification/find-recipe-rc2*.md 与原checkpoint，441项是1029项的子集，不能重复相加。当前Logo集成证据见checkpoints/2026-10-06-logo-integration.md：纯资源任务未重复全仓/connected/Provider测试，完成构建和窄模拟器视觉/数据保留验证；手机视觉验收独立。用户APK-6确认不是Codex重新调用AI的证据。不恢复收藏、购物、菜单、Timer或云同步；任何后续模块或main收口需另行批准。
 此前浏览器 Dexie Repository 与 `/offline/app` 纵切是可复用资产，不是 Android SQLite 验收证据。

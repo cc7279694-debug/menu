@@ -513,3 +513,25 @@ Separating the core local data path from optional AI prevents an AI outage from 
 ### Consequences
 
 The first local version must show clear AI-unavailable states and allow manual editing/saving without AI results.
+
+## 2026-10-24 — UI-only theme preference outside business backups
+
+### Decision
+
+Persist only a validated G1 theme enum in `recipio.ui-v2.theme.v1`. LibraryApp
+owns the in-memory selection and supplies the existing V2 appearance context;
+nav/portals/cooking explicitly receive it. Storage errors do not block work.
+
+### Context / alternatives
+
+G3-0 enables existing Warm Ivory/Pure Glass/Soft Sage without a new palette.
+No suitable lightweight preference mechanism exists. A Native preferences
+dependency or business-schema/backup migration is unnecessary for this setting.
+
+### Reason / consequences
+
+The user explicitly permits a namespaced localStorage enum for this non-sensitive
+display preference. SQLite4/Preview7/Backup2 remain unchanged; no recipe/key/input
+is stored there or added to backups. Same-root Settings returns preserve current
+local query/filter/page. Native key input and backup transactions are reused;
+confirmation dialogs opt into theme attributes without new action handlers.

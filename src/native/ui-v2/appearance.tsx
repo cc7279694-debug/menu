@@ -21,3 +21,9 @@ export function V2AppearanceProvider({ theme, solid, children }: Appearance & { 
 }
 
 export function useV2Appearance(): Appearance { return useContext(AppearanceContext); }
+
+/** Opt-in attributes for existing portalled controls; no second theme state. */
+export function useV2DialogAppearance(appearance?: "v2") {
+  const { theme, solid } = useV2Appearance();
+  return appearance === "v2" ? { className: "recipio-ui-v2 v2-themed-dialog", "data-v2-theme": theme, "data-v2-solid": solid } : undefined;
+}

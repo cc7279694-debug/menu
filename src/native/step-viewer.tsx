@@ -7,11 +7,13 @@ import { IngredientsList, V2Button } from "./ui-v2/components";
 import { NativeV2Sheet } from "./ui-v2/native-sheet";
 import { useControlClearance } from "./ui-v2/use-control-clearance";
 import { LocalImage } from "./local-image";
+import { useV2Appearance } from "./ui-v2/appearance";
 export type StepViewerProps = {
   recipe: RecipeDetails; mode: "focus" | "guided"; initialIndex: number;
   onClose: () => void; onComplete: () => void; busy?: boolean; error?: string;
 };
 export function StepViewer({ recipe, mode, initialIndex, onClose, onComplete, busy = false, error }: StepViewerProps) {
+  const { theme, solid } = useV2Appearance();
   const [index, setIndex] = useState(() => mode === "guided" ? 0 : Math.max(0, Math.min(recipe.steps.length - 1, initialIndex)));
   const [overlay, setOverlay] = useState<"ingredients" | "image" | null>(null);
   const rootRef = useRef<HTMLElement>(null), controlsRef = useRef<HTMLElement>(null);
@@ -20,8 +22,9 @@ export function StepViewer({ recipe, mode, initialIndex, onClose, onComplete, bu
   return <Dialog open onOpenChange={open => {
     if (!open && !busy && overlay === null) onClose();
   }}>
-    <DialogContent showCloseButton={false} className="v2-production-cooking top-0 left-0 translate-x-0 translate-y-0">
-      <section className="recipio-ui-v2 v2-cooking" data-v2-theme="warm-ivory" data-v2-dark="true" ref={rootRef}>
+    <DialogContent showCloseButton={false} className="recipio-ui-v2 v2-production-cooking top-0 left-0 translate-x-0 translate-y-0"
+      data-v2-theme={theme} data-v2-solid={solid} data-v2-dark="true">
+      <section className="recipio-ui-v2 v2-cooking" data-v2-theme={theme} data-v2-solid={solid} data-v2-dark="true" ref={rootRef}>
         <header className="v2-cook-header">
           <DialogTitle className="sr-only">{mode === "guided" ? "引导烹饪" : "单步查看"}</DialogTitle>
           <DialogDescription className="sr-only">查看当前真实步骤。只有明确完成才记录下厨。</DialogDescription>

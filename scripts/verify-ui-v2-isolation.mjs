@@ -16,7 +16,7 @@ await build({
       assert(checked > 100, "An empty graph is not proof of isolation");
       sharedV2 = modules.filter((id) => /[\\/]ui-v2[\\/]/.test(id)).length;
       assert(sharedV2 > 0, "G2 production must use the approved shared V2 presentation");
-      assert.deepEqual(modules.filter((id) => /[\\/]showcase[\\/]|ui-v2-showcase|demo-data|\.test\.[cm]?[jt]sx?/.test(id)), []);
+      assert.deepEqual(modules.filter((id) => /[\\/]showcase[\\/]|[\\/]scripts[\\/]fixtures[\\/]|ui-v2-showcase|demo-data|\.test\.[cm]?[jt]sx?/.test(id)), []);
       assert.deepEqual(Object.keys(bundle).filter((name) => /cola-wings|cola-step|tomato-egg-soup|broccoli/.test(name)), []);
     },
   }],

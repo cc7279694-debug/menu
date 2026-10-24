@@ -14,9 +14,10 @@ import { CoreLibraryScreen } from "./ui-v2/library-screens";
 import { NativeV2Sheet } from "./ui-v2/native-sheet";
 import { V2Button } from "./ui-v2/components";
 import { V2AppearanceProvider } from "./ui-v2/appearance";
+import { useV2ThemePreference } from "./ui-v2/theme-preference";
+import { SettingsScreen } from "./ui-v2/settings-screen";
 import { useControlClearance } from "./ui-v2/use-control-clearance";
 import {
-  BackupControls,
   backupBusy,
   useBackupState,
   type BackupController,
@@ -26,7 +27,6 @@ import { RecipeChangeHistory } from "./recipe-change-history";
 import { CookingCompletion } from "./cooking-completion";
 import type { CookingRecord, CookingRecordExtras } from "./cooking-model";
 import { CookingHistory, CookingOverview } from "./cooking-history";
-import { AiSettings } from "./ai/ai-settings";
 import type { AiKeyPort } from "./ai/native-bridge";
 import type { AiIntakeService } from "./ai/service";
 import { openAiIntakeRuntime } from "./ai/runtime";
@@ -73,6 +73,7 @@ export function LibraryApp({
   share?: ShareTargetController;
   finder?: FindRecipeService;
 }) {
+  const { theme, changeTheme } = useV2ThemePreference();
   const shares = useMemo(() => share ?? openShareTargetRuntime(), [share]);
   const shareState = useSyncExternalStore(shares?.subscribe ?? noShareSubscribe, shares?.snapshot ?? noShareSnapshot, noShareSnapshot);
   const intake=useMemo(()=>ai??openAiIntakeRuntime(store,backup),[ai,store,backup]);
@@ -87,6 +88,7 @@ export function LibraryApp({
   const restored = useRef<unknown>(null);
   const [view, setView] = useState<View|AiView>("home");
   const [returnView, setReturnView] = useState<"home" | "library">("home");
+  const settingsRoot = useRef<"home" | "library">("home");
   const [records, setRecords] = useState<RecipeListItem[]>([]);
   const [selected, setSelected] = useState<RecipeDetails | null>(null);
   const [search, setSearch] = useState("");
@@ -102,7 +104,7 @@ export function LibraryApp({
   const listReturn = useRef({ scroll: 0, restore: false });
   const detailPageReturn = useRef({ scroll: 0, restore: false });
   const isRoot = ["home", "library", "settings"].includes(view) && !fromAiSettings && !fromLinkSettings && !fromFindSettings;
-  const isCore = ["home", "library", "detail", "new", "edit", "history", "changes", "completion"].includes(view);
+  const isCore = ["home", "library", "settings", "detail", "new", "edit", "history", "changes", "completion"].includes(view);
   useControlClearance(rootRef, navigationRef, isRoot && isCore);
   const [viewer, setViewer] = useState<{
     mode: "focus" | "guided";
@@ -423,9 +425,12 @@ export function LibraryApp({
     )
       return;
     if (backupState.phase === "preview") await backup?.cancel();
+    if (next === "settings" && (view === "home" || view === "library")) settingsRoot.current = view;
     setView(next);
-    setPage(0);
-    setSearch("");
+    if (next !== "settings" && !(view === "settings" && next === settingsRoot.current)) {
+      setPage(0);
+      setSearch("");
+    }
     setError("");
     window.scrollTo(0, 0);
   }
@@ -468,8 +473,10 @@ export function LibraryApp({
       else if (view === "changes") backToDetail();
       else {
         setView("home");
-        setPage(0);
-        setSearch("");
+        if (view !== "settings" || settingsRoot.current !== "home") {
+          setPage(0);
+          setSearch("");
+        }
         setError("");
         window.scrollTo(0, 0);
       }
@@ -478,8 +485,8 @@ export function LibraryApp({
     return () => window.removeEventListener("recipio:back", back);
   }, [view, returnView, backToList, backupState, viewer,fromAiSettings,fromLinkSettings,fromFindSettings,intakeState.draft,intakeState.phase]);
   return (
-    <V2AppearanceProvider theme="warm-ivory" solid={false}>
-    <div ref={rootRef} className={isCore ? "recipio-ui-v2 v2-production" : "mx-auto min-h-dvh max-w-3xl px-4 pb-28 pt-5 sm:px-8"} data-v2-theme={isCore ? "warm-ivory" : undefined}>
+    <V2AppearanceProvider theme={theme} solid={false}>
+    <div ref={rootRef} className={isCore ? "recipio-ui-v2 v2-production" : "mx-auto min-h-dvh max-w-3xl px-4 pb-28 pt-5 sm:px-8"} data-v2-theme={isCore ? theme : undefined} data-v2-root={isRoot || undefined}>
       {!isCore && <header className="mb-7 flex items-center justify-between gap-4">
         <div className="flex items-center gap-3">
           <img src="./icon.png" alt="" className="h-10 w-10 rounded-xl" />
@@ -579,28 +586,11 @@ export function LibraryApp({
           />
         </div>
       ) : view === "settings" ? (
-        <section className="space-y-6">
-          <h2 className="text-2xl font-semibold">设置</h2>
-          {fromAiSettings&&<Button className="min-h-11" variant="outline" onClick={()=>{setFromAiSettings(false);setView("ai-input");}}>返回本轮 AI 整理</Button>}
-          {fromLinkSettings && <Button className="min-h-11" variant="outline" onClick={()=>{setFromLinkSettings(false);setView("link-input");}}>返回本轮网页导入</Button>}
-          {fromFindSettings && <Button className="min-h-11" variant="outline" onClick={()=>{setFromFindSettings(false);setView("find-input");}}>返回本轮寻找做法</Button>}
-          <div className="rounded-2xl border p-5 space-y-3">
-            <h3 className="font-medium">本机数据</h3>
-            <p className="text-sm text-muted-foreground">
-              无需登录，核心操作不上传、不联网。浏览器预览使用
-              IndexedDB，Android 使用 SQLite
-              和私有文件目录，两者数据不会自动同步。
-            </p>
-            <p className="text-sm text-muted-foreground">
-              请定期导出完整备份。请勿清除浏览器数据或卸载应用来排查问题。
-            </p>
-            <p className="text-xs text-muted-foreground">
-              图片读取失败不影响文字菜谱；暂时保留移除图片的本地文件，以保护历史引用。
-            </p>
-          </div>
-          <BackupControls service={backup} />
-          <AiSettings keys={aiKeys??intake.keys} onChanged={() => intake.keyChanged()} />
-        </section>
+        <SettingsScreen theme={theme} onTheme={changeTheme} backup={backup} keys={aiKeys ?? intake.keys}
+          onKeyChanged={() => intake.keyChanged()}
+          returnAction={fromFindSettings ? { label: "返回本轮寻找做法", onClick: () => { setFromFindSettings(false); setView("find-input"); } }
+            : fromLinkSettings ? { label: "返回本轮网页导入", onClick: () => { setFromLinkSettings(false); setView("link-input"); } }
+            : fromAiSettings ? { label: "返回本轮 AI 整理", onClick: () => { setFromAiSettings(false); setView("ai-input"); } } : undefined} />
       ) : (
         <CoreLibraryScreen records={records} library={view === "library"} query={search} filter={filter}
           loading={loading} busy={busy || backupBusy(backupState) || backupState.phase === "uncertain"} page={page}
@@ -649,6 +639,7 @@ export function LibraryApp({
         <nav
           aria-label="主要导航"
           className="recipio-ui-v2 v2-nav-area v2-production-nav"
+          data-v2-theme={theme}
           ref={navigationRef}
         >
           <div className="v2-bottom-nav v2-glass">
