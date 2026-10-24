@@ -43,11 +43,17 @@ existing renderers and guarded entry/return. No feature expansion.
 
 ## Environment / unverified
 
-A physical phone is connected but untouched. No emulator currently running;
-available RAM is below safe headroom for the existing RECIPIO2GB AVD. Native
-device installation/IME/Back/offline/cover-upgrade are NOT_RUN. Final free RAM
-was about2.7GiB, below the4GiB headroom for a2GB AVD plus host. No other project's
-device/process/data operated and no SDK installed.
+2026-10-24 targeted retry:4.645GiB free at launch passed the4GiB gate. Only the
+owned Recipio_Backup_36 booted (Android16/API36), with existing exactv19 installed.
+SystemUI then showed ANR, the v19 baseline CDP connection timed out, and memory
+dropped to1.592GiB. No v21 install, database snapshot or runtime acceptance ran.
+Only this task's emulator was normally closed; no emulator remains from this
+task and free memory recovered to4.858GiB. A physical phone was not operated;
+no other project/process/data touched and no SDK installed. Historical fixture
+provenance is also incomplete: one of two prior recipes remains unclassified;
+require user confirmation that this emulator library is test-only before any
+upgrade/data write. See `ui-v2/G2_ANDROID_SUPPLEMENT.md`. Current supplement
+status is **UI_V2_G2_ANDROID_ENV_BLOCKED**, not a G2 product failure or acceptance.
 
 ## Delivery / next task
 

@@ -1,10 +1,78 @@
-# G2 Android targeted supplement — 2026-10-23
+# G2 Android targeted supplement — updated 2026-10-24
 
 Status: **UI_V2_G2_ANDROID_ENV_BLOCKED**.
 This is an environment-gate result, not a product failure or Android acceptance.
-No runtime scenario was executed. No background polling was created.
+No v21 runtime acceptance scenario was completed. The 2026-10-24 retry booted
+the owned emulator but encountered a SystemUI ANR and a v19 baseline-probe
+timeout before installation. Earlier gate-only audits are retained below.
+No background polling was created.
+
+## Latest retry — 2026-10-24, China Standard Time
+
+### Gate, actual device and candidate
+
+- Entry workspace clean; local/fetched remote feature HEAD
+  `f9dd788c0a5e84873662fd456c6e35f9fd97fe8a`; remote main unchanged at
+  `649804a8209413f9d682f1079a4fd19ea84cd064`.
+- At `2026-10-24T03:36:01.5470183Z`, free memory4.903GiB. Immediately before
+  launch at03:37:01Z,4.645GiB: **4GiB launch gate PASS**.
+- No other emulator was running. Launched existing **Recipio_Backup_36** only,
+  configured2GiB, at port5580, with no snapshot load/save and **no wipe**.
+  Launcher PID20388 and child QEMU PID15244 command lines both explicitly
+  identified `-avd Recipio_Backup_36 -port 5580`; ADB confirmed its AVD name.
+- Boot completed in109225ms. Actual device properties: Android16 / API36,
+  `sys.boot_completed=1`. Actual installed package was **v19 /
+  0.9.1-logo-refresh**, not v21.
+- The pre-install probe passed its installed-v19 APK-byte assertion against
+  `e0a4257ce46bddac8bed015f03ae7e81392f10388b44fee8afc0a3085f98e18d` before
+  attempting the WebView connection. Candidatev21 remained17,249,848 bytes,
+  SHA-256 `c2c770e12e1af995c522da3d1e2b898ad1eca2a6fe3535ea3a065fe524d57090`.
+
+### Environment failure / data guard
+
+- Attempted read-only v19 baseline probe using the existing selected-emulator
+  CDP helper. It failed with **`CDP timeout: Runtime.enable`**, exit1. No SQL
+  query or snapshot comparison completed; no recipe/image data was recorded.
+- At `2026-10-24T03:41:21Z`, native window focus showed **Application Not
+  Responding: com.android.systemui**; free host RAM had fallen to1.592GiB.
+  This is an observed Android system/environment failure, **not a G2 product
+  defect**: v21 was never installed. No cause beyond this evidence is asserted.
+- Historical v19 logo evidence contains2recipes/1image; only1recipe could be
+  traced to the known generated-fixture prefix. The other did not match exact
+  title/ID constants in the narrowly inspected prior verification scripts.
+  **Fixture provenance remains UNKNOWN**; no title, ID, private row, image or
+  credential is included here. Historical preservation equality is not proof
+  that all data is controlled. Current database contents were not obtained.
+- In accordance with the controlled-data/unknown-personal-data boundary, stop
+  **before install or any business-data write**. The user must confirm the
+  existing dedicated emulator library is test-only before an upgrade proceeds.
+  Do not clear data, reinstall a baseline or downgrade to manufacture a fixture.
+
+### Cleanup / acceptance boundary
+
+- Only this task's confirmed emulator received normal `emu kill`; its launcher
+  and QEMU exited. The failed Node probe also exited. At03:41:52Z, none of those
+  three owned processes remained; free RAM recovered to4.858GiB.
+- No other project's process or phone was operated; the existing ADB server was
+  left running. No install,
+  uninstall, app-data clear, SQL write, fixture creation, SDK install or AI call.
+- A: v19 metadata **PASS**; v19→v21 install/data comparison **NOT_RUN**.
+  B–E, including v21 home/search/images/editor, IME/Back, cooking, histories,
+  offline and Backup-cancel acceptance: **NOT_RUN**. No acceptance PASS count.
+- SQLitev4 integrity, IDs/times/order/records/images before-after equality:
+  **NOT_RUN**. No claim that unqueried business data was proven unchanged.
+- Existing frontend/JVM/build results remain historical, not rerun. No tracked
+  production code, Native contract, dependency, test source or APK changed.
+  The failed read-only probe is confined to ignored verification output.
+  Only this supplement and the affected current-state paragraph are updated.
+- Final status: **UI_V2_G2_ANDROID_ENV_BLOCKED**. Requires both a stable owned
+  Android environment and explicit controlled-data provenance confirmation.
+  No automatic retry; no main/tag/deployment/G3/G4/video action.
 
 ## Fixed candidate / repository gate
+
+The following sections preserve the **2026-10-23** gate-only audit and retry;
+the dated 2026-10-24 section above is the latest environment evidence.
 
 | Check | Result | Fresh evidence |
 | --- | --- | --- |
