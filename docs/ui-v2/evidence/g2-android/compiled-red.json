@@ -1,0 +1,41 @@
+{
+  "checks": [],
+  "errors": [],
+  "external": [],
+  "geometry": [
+    {
+      "mode": "focus",
+      "width": 320,
+      "font": 16,
+      "viewport": {
+        "width": 320,
+        "height": 844
+      },
+      "dialog": {
+        "x": -160,
+        "y": -422,
+        "width": 320,
+        "height": 844
+      },
+      "translate": "-50% -50%",
+      "body": {
+        "x": -160,
+        "y": -268.5,
+        "width": 320,
+        "height": 690.5,
+        "right": 160,
+        "bottom": 422
+      },
+      "footer": {
+        "x": -144,
+        "y": 340,
+        "width": 288,
+        "height": 70,
+        "right": 144,
+        "bottom": 410
+      }
+    }
+  ],
+  "failure": "AssertionError [ERR_ASSERTION]: COMPILED_COOKING_OFFSCREEN {\"mode\":\"focus\",\"width\":320,\"font\":16,\"viewport\":{\"width\":320,\"height\":844},\"dialog\":{\"x\":-160,\"y\":-422,\"width\":320,\"height\":844},\"translate\":\"-50% -50%\",\"body\":{\"x\":-160,\"y\":-268.5,\"width\":320,\"height\":690.5,\"right\":160,\"bottom\":422},\"footer\":{\"x\":-144,\"y\":340,\"width\":288,\"height\":70,\"right\":144,\"bottom\":410}}",
+  "scope": "Actual minified production build in a fresh browser context; not Android evidence."
+}

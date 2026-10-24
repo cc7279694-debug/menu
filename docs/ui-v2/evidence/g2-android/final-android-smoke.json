@@ -1,0 +1,364 @@
+{
+  "status": "PASS",
+  "utc": "2026-10-24T04:52:23.790Z",
+  "checks": [
+    "new title-only/no-image recipe persists in actual SQLite and opens without invented content",
+    "actual Android first Back hides IME only; draft preserved, no page Back or discard dialog",
+    "second Android Back uses original leave guard; actual native Cancel preserves draft; actual native OK discards without altering original recipe",
+    "full recipe saved through real editor and native SAF; local image bytes exactly match generated fixture",
+    "cancel actual Android image picker preserves existing cover reference and bytes",
+    "Focus/Guided navigation creates zero records; native Sheet Back stays in Guided; explicit completion creates exactly one; histories readable",
+    "actual SQLite ingredient search / duration filter / query and scroll return / creation-descending recent order",
+    "G3 AI/link/Finder entries open and cancel without online calls; native Backup SAF cancel leaves business counts/restore state unchanged",
+    "actual airplane/WiFi/data-off cold start; saved local image/recipe/Guided readable and explicit record remains one",
+    "all original pre-upgrade rows and old image bytes remain exactly protected after controlled UI writes and cold start"
+  ],
+  "shots": [
+    "detail-local-image",
+    "guided-last-step",
+    "home-controlled-recent"
+  ],
+  "guards": [
+    {
+      "provider": 0,
+      "page": 0,
+      "finder": 0,
+      "writeExport": 0,
+      "chooseExport": 0
+    },
+    {
+      "provider": 0,
+      "page": 0,
+      "finder": 0,
+      "writeExport": 0,
+      "chooseExport": 1
+    },
+    {
+      "provider": 0,
+      "page": 0,
+      "finder": 0,
+      "writeExport": 0,
+      "chooseExport": 0
+    },
+    {
+      "provider": 0,
+      "page": 0,
+      "finder": 0,
+      "writeExport": 0,
+      "chooseExport": 0
+    }
+  ],
+  "previousStageEvidence": "controlled-ui-failure-1792817422780.json",
+  "committedPreviousStageEvidenceAlias": "final-ime-before-picker-timeout.json",
+  "viewerGeometry": [
+    {
+      "viewport": {
+        "width": 360,
+        "height": 734
+      },
+      "dialog": {
+        "x": 0,
+        "y": 0,
+        "width": 360,
+        "height": 734,
+        "right": 360,
+        "bottom": 734
+      },
+      "body": {
+        "x": 0,
+        "y": 132.83334350585938,
+        "width": 360,
+        "height": 601.1666870117188,
+        "right": 360,
+        "bottom": 734.0000305175781
+      },
+      "footer": {
+        "x": 16,
+        "y": 652.6666870117188,
+        "width": 328,
+        "height": 69.33333587646484,
+        "right": 344,
+        "bottom": 722.0000228881836
+      }
+    },
+    {
+      "viewport": {
+        "width": 360,
+        "height": 734
+      },
+      "dialog": {
+        "x": 0,
+        "y": 0,
+        "width": 360,
+        "height": 734,
+        "right": 360,
+        "bottom": 734
+      },
+      "body": {
+        "x": 0,
+        "y": 132.83334350585938,
+        "width": 360,
+        "height": 601.1666870117188,
+        "right": 360,
+        "bottom": 734.0000305175781
+      },
+      "footer": {
+        "x": 16,
+        "y": 652.6666870117188,
+        "width": 328,
+        "height": 69.33333587646484,
+        "right": 344,
+        "bottom": 722.0000228881836
+      }
+    },
+    {
+      "viewport": {
+        "width": 360,
+        "height": 734
+      },
+      "dialog": {
+        "x": 0,
+        "y": 0,
+        "width": 360,
+        "height": 734,
+        "right": 360,
+        "bottom": 734
+      },
+      "body": {
+        "x": 0,
+        "y": 132.83334350585938,
+        "width": 360,
+        "height": 601.1666870117188,
+        "right": 360,
+        "bottom": 734.0000305175781
+      },
+      "footer": {
+        "x": 16,
+        "y": 652.6666870117188,
+        "width": 328,
+        "height": 69.33333587646484,
+        "right": 344,
+        "bottom": 722.0000228881836
+      }
+    },
+    {
+      "viewport": {
+        "width": 360,
+        "height": 734
+      },
+      "dialog": {
+        "x": 0,
+        "y": 0,
+        "width": 360,
+        "height": 734,
+        "right": 360,
+        "bottom": 734
+      },
+      "body": {
+        "x": 0,
+        "y": 132.83334350585938,
+        "width": 360,
+        "height": 601.1666870117188,
+        "right": 360,
+        "bottom": 734.0000305175781
+      },
+      "footer": {
+        "x": 16,
+        "y": 652.6666870117188,
+        "width": 328,
+        "height": 69.33333587646484,
+        "right": 344,
+        "bottom": 722.0000228881836
+      }
+    },
+    {
+      "viewport": {
+        "width": 360,
+        "height": 734
+      },
+      "dialog": {
+        "x": 0,
+        "y": 0,
+        "width": 360,
+        "height": 734,
+        "right": 360,
+        "bottom": 734
+      },
+      "body": {
+        "x": 0,
+        "y": 132.83334350585938,
+        "width": 360,
+        "height": 601.1666870117188,
+        "right": 360,
+        "bottom": 734.0000305175781
+      },
+      "footer": {
+        "x": 16,
+        "y": 652.6666870117188,
+        "width": 328,
+        "height": 69.33333587646484,
+        "right": 344,
+        "bottom": 722.0000228881836
+      }
+    },
+    {
+      "viewport": {
+        "width": 360,
+        "height": 734
+      },
+      "dialog": {
+        "x": 0,
+        "y": 0,
+        "width": 360,
+        "height": 734,
+        "right": 360,
+        "bottom": 734
+      },
+      "body": {
+        "x": 0,
+        "y": 132.83334350585938,
+        "width": 360,
+        "height": 601.1666870117188,
+        "right": 360,
+        "bottom": 734.0000305175781
+      },
+      "footer": {
+        "x": 16,
+        "y": 652.6666870117188,
+        "width": 328,
+        "height": 69.33333587646484,
+        "right": 344,
+        "bottom": 722.0000228881836
+      }
+    },
+    {
+      "viewport": {
+        "width": 360,
+        "height": 734
+      },
+      "dialog": {
+        "x": 0,
+        "y": 0,
+        "width": 360,
+        "height": 734,
+        "right": 360,
+        "bottom": 734
+      },
+      "body": {
+        "x": 0,
+        "y": 132.83334350585938,
+        "width": 360,
+        "height": 601.1666870117188,
+        "right": 360,
+        "bottom": 734.0000305175781
+      },
+      "footer": {
+        "x": 16,
+        "y": 652.6666870117188,
+        "width": 328,
+        "height": 69.33333587646484,
+        "right": 344,
+        "bottom": 722.0000228881836
+      }
+    },
+    {
+      "viewport": {
+        "width": 360,
+        "height": 734
+      },
+      "dialog": {
+        "x": 0,
+        "y": 0,
+        "width": 360,
+        "height": 734,
+        "right": 360,
+        "bottom": 734
+      },
+      "body": {
+        "x": 0,
+        "y": 132.83334350585938,
+        "width": 360,
+        "height": 601.1666870117188,
+        "right": 360,
+        "bottom": 734.0000305175781
+      },
+      "footer": {
+        "x": 16,
+        "y": 652.6666870117188,
+        "width": 328,
+        "height": 69.33333587646484,
+        "right": 344,
+        "bottom": 722.0000228881836
+      }
+    },
+    {
+      "viewport": {
+        "width": 360,
+        "height": 734
+      },
+      "dialog": {
+        "x": 0,
+        "y": 0,
+        "width": 360,
+        "height": 734,
+        "right": 360,
+        "bottom": 734
+      },
+      "body": {
+        "x": 0,
+        "y": 132.83334350585938,
+        "width": 360,
+        "height": 601.1666870117188,
+        "right": 360,
+        "bottom": 734.0000305175781
+      },
+      "footer": {
+        "x": 16,
+        "y": 652.6666870117188,
+        "width": 328,
+        "height": 69.33333587646484,
+        "right": 344,
+        "bottom": 722.0000228881836
+      }
+    },
+    {
+      "viewport": {
+        "width": 360,
+        "height": 734
+      },
+      "dialog": {
+        "x": 0,
+        "y": 0,
+        "width": 360,
+        "height": 734,
+        "right": 360,
+        "bottom": 734
+      },
+      "body": {
+        "x": 0,
+        "y": 132.83334350585938,
+        "width": 360,
+        "height": 601.1666870117188,
+        "right": 360,
+        "bottom": 734.0000305175781
+      },
+      "footer": {
+        "x": 16,
+        "y": 652.6666870117188,
+        "width": 328,
+        "height": 69.33333587646484,
+        "right": 344,
+        "bottom": 722.0000228881836
+      }
+    }
+  ],
+  "android": 16,
+  "api": 36,
+  "avd": "Recipio_Backup_36",
+  "realIme": true,
+  "physicalPhone": "UNTOUCHED",
+  "realAiCalls": 0,
+  "externalWebViewRequests": 0,
+  "oldRowsAndImagesPreserved": true,
+  "onlyNewGeneratedFixturesMutated": true
+}

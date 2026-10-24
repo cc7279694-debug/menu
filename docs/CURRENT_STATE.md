@@ -2,67 +2,65 @@
 
 ## Current stage
 
-2026-10-23 — UI V2 G2 Production Core UI Integration is implemented and handed
-off as **UI_V2_G2_PENDING_ANDROID_TEST** on `feat/recipio-ui-v2-glass-minimal`, linked worktree
-`recipe-step-app-ui-v2`. User approved G1 `9a17b1c` as
-**UI_V2_G1_VISUAL_ACCEPTED — PASS WITH NOTES**. This explicitly supersedes the
-old pending G1 gate; it is not acceptance of the new G2 implementation.
+2026-10-24 — **UI_V2_G2_ANDROID_READY_FOR_REVIEW** on
+`feat/recipio-ui-v2-glass-minimal`, linked worktree `recipe-step-app-ui-v2`.
+The approved targeted Android supplement A–E has passed; independent
+ChatGPT/user G2 acceptance is still pending. No G3/G4 authorization.
 
+G1 `9a17b1c` remains **UI_V2_G1_VISUAL_ACCEPTED — PASS WITH NOTES**.
 Stable main remains `649804a8209413f9d682f1079a4fd19ea84cd064`,
-release `v0.9.1-logo-refresh`. No merge, tag, deployment or video work authorized.
+release `v0.9.1-logo-refresh`; no merge, tag or deployment.
 
-## Implemented / verified delta
+## Verified G2 scope
 
-- Core Home/Library/search/Detail/Editor/Focus/Guided/Completion/CookingHistory/
-  ChangeHistory use shared accepted Warm Ivory presentation and real local data.
-- 125 unchanged G1 layout lines are shared; production-only CSS adapts document
-  scrolling/forms and measured floating controls. No shipped fixture/demo UI.
-- Existing local100/offset search/filter/order, media, save/dirty/busy/uncertain,
-  five-second undo and explicit idempotent cooking semantics retained.
-- List and short detail subroute return positions restored; asynchronous local
-  media/summary layout changes handled without a guessed delay. User interaction
-  immediately returns control of scrolling. Mounted sheets consume their own
-  Back without also leaving the parent page.
-- Fresh production browser11 grouped checks PASS; original G1 showcase41 checks
-  per theme PASS. Real desktop browser evidence is not Android/IME evidence.
-- Typecheck PASS; lint0 errors/5 existing legacy Next image warnings. Local
-  build and Capacitor sync PASS. Production graph300 modules/sharedV2=6,
-  showcase=0/fixtures=0. Final whole suite198 files/1079 PASS (491 native TS/JS
-  subset,16 new G2 cases); Java188 rerun PASS. Android lint0 errors/38 warnings
-  in unchanged native/dependency/resource code. Final v21 APK built and signed;
-  all15 packaged public assets match the final web build. Sourcead4df5a,
-  version0.10.0-ui-v2-g2-rc1; see metadata for bytes/hash/certificate.
+- Real local Home/Library/search/Detail/Editor/Focus/Guided/Completion/
+  CookingHistory/ChangeHistory use accepted shared Warm Ivory presentation.
+  Creation order/search/100-offset pagination, save/dirty/busy/uncertain gates,
+  five-second undo, scroll return and explicit idempotent completion retained.
+- Android supplement uncovered a real minified-CSS cooking displacement.
+  One DialogContent className override removes inherited centering classes.
+  Compiled regression RED→GREEN16 layouts; final APK actual panel(0,0)/360×734
+  and touch-reachable controls verified. No second cooking/IME state machine.
+- Fresh full198files/1079unit tests PASS; production browser11 groups PASS;
+  compiled layouts16PASS; typecheck PASS; lint0errors/5 legacy warnings;
+  local build, Capacitor sync, assembleDebug and APK signature/assets PASS.
+- Dedicated Recipio_Backup_36 Android16/API36: preserving v19→originalv21→fixedv21,
+  SQLite4/integrityOK/FK0, all8table data/IDs/times/order/image bytes retained.
+  Actual IME-first Back, native leave dialog/picker cancel, search/filter/return,
+  cooking/history, airplane cold start and Backup open/cancel PASS.
+- All pre-existing data protected regardless of uncertain provenance; mutations
+  only on new generated G2 fixtures. No uninstall/data clear/downgrade.
+  No real AI/web/Finder request. Network/IME preferences restored.
+- Dedicated emulator normally closed after completion; no other project,
+  physical phone or existing host ADB server operated. No SDK install/polling.
 
-## Protected boundaries
+## Candidate / evidence
 
-SQLite4 /Preview7 /Backup2, RecipeLibrary/Repository, Native IME/KeyStore,
-Provider/Finder/SSRF/Share/restore contracts and existing Logo remain unchanged.
-No AI calls, dependency/font/media generation for production, theme persistence
-or second cooking state machine. G3 AI/Link/Finder/Backup/settings retain their
-existing renderers and guarded entry/return. No feature expansion.
+Final fixed candidate:
+`artifacts/recipio-ui-v2-g2-v21-layout-fix-debug.apk`,17,307,188bytes.
+SHA-256 `ae343d4222c06dcb699fff5158d5f7171e86a26d4b338c967f331a6ec3e815e9`.
+Package `app.recipio.local`,code21/name`0.10.0-ui-v2-g2-rc1`.
+Original c2c770… v21 retained unchanged but superseded as review candidate.
+See `ui-v2/G2_ANDROID_SUPPLEMENT.md` and `ui-v2/evidence/g2-android/`.
 
-## Environment / unverified
+## Protected boundaries / limits
 
-2026-10-24 targeted retry:4.645GiB free at launch passed the4GiB gate. Only the
-owned Recipio_Backup_36 booted (Android16/API36), with existing exactv19 installed.
-SystemUI then showed ANR, the v19 baseline CDP connection timed out, and memory
-dropped to1.592GiB. No v21 install, database snapshot or runtime acceptance ran.
-Only this task's emulator was normally closed; no emulator remains from this
-task and free memory recovered to4.858GiB. A physical phone was not operated;
-no other project/process/data touched and no SDK installed. Historical fixture
-provenance is also incomplete: one of two prior recipes remains unclassified;
-require user confirmation that this emulator library is test-only before any
-upgrade/data write. See `ui-v2/G2_ANDROID_SUPPLEMENT.md`. Current supplement
-status is **UI_V2_G2_ANDROID_ENV_BLOCKED**, not a G2 product failure or acceptance.
+SQLite4 /Preview7 /Backup2, RecipeLibrary/Repository, media references, Native
+IME/KeyStore, Provider/Finder/SSRF/Share/restore contracts and Logo unchanged.
+No dependencies/permissions/fonts/production media/theme persistence/timers added.
+G3 renderers and guarded entry/return unchanged. Raw safety copies ignored.
 
-## Delivery / next task
+JVM188, Android lint0errors/38warnings and G1 themes41×3 are historical, not
+newly rerun in this UI-only supplement. Full connected suite, physical/OEM,
+TalkBack and destructive restore not run this task. Existing build/test warnings
+remain documented. Browser evidence is not Native/device evidence.
 
-Stop for ChatGPT/user independent review and safely available dedicated Android
-smoke; do not enter G3/G4. See `ui-v2/G2_EXECUTION.md`, `G2_CHECKPOINT.md`,
-`G2_VERIFICATION.md`, `G2_ACCEPTANCE_MATRIX.md` and `G2_GALLERY.md`.
+## Next task
 
-Production preview: http://127.0.0.1:5184/ (fresh origin starts empty).
-G1 remains http://127.0.0.1:5182/ui-v2-showcase/?theme=warm-ivory.
-Pure Glass and Soft Sage are still non-persistent showcase candidates, not
-product settings. Historical G1/APK test counts remain in their checkpoints;
-none are reused as this candidate's final pass count.
+Stop for independent G2 review; do not replace this with self-acceptance or
+start G3/G4/video. See `ui-v2/G2_EXECUTION.md`, historical `G2_CHECKPOINT.md`,
+`G2_VERIFICATION.md`, current `G2_ANDROID_SUPPLEMENT.md` and evidence.
+
+Local production preview http://127.0.0.1:5184/; compiled preview5186.
+G1 http://127.0.0.1:5182/ui-v2-showcase/?theme=warm-ivory remains isolated.
+Pure Glass /Soft Sage still non-persistent showcase candidates, not settings.

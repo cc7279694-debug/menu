@@ -1,0 +1,30 @@
+{
+  "artifact": "artifacts/recipio-ui-v2-g2-v21-layout-fix-debug.apk",
+  "bytes": 17307188,
+  "sha256": "ae343d4222c06dcb699fff5158d5f7171e86a26d4b338c967f331a6ec3e815e9",
+  "packageId": "app.recipio.local",
+  "versionCode": 21,
+  "versionName": "0.10.0-ui-v2-g2-rc1",
+  "minSdk": 24,
+  "targetSdk": 36,
+  "certificateSha256": "29ded26bea44f1afe4fe383a302e4b507423d16223469d7da3fe578d9a7f83b9",
+  "signatureVerified": true,
+  "signatureMatchesAcceptedV19": true,
+  "packagedWebBuildAssetsByteMatched": 15,
+  "generatedCapacitorCordovaFilesExcludedFromViteCount": 2,
+  "testedBaseRevision": "155eecaad010305c4c4e27c98e4176d1f1c954b8",
+  "testedProductionChange": "src/native/step-viewer.tsx: four zero-position Tailwind utility overrides on cooking DialogContent",
+  "rawWorkingFileSha256": {
+    "src/native/step-viewer.tsx": "96d0a06a656443e05fcfe7be07116a2f4cd188bf4471b80760b28a3c6f2b773e",
+    "scripts/verify-ui-v2-built-cooking.mjs": "e10319b34ac2549a7fc5c85ea77fac63f4da15e580b69f70c7ea2e1d675af23c"
+  },
+  "evidenceProvenance": "Fresh tests/build/device checks on this exact repaired source; following delivery changes are docs/evidence only. Git final delivery SHA is reported separately to avoid a self-referential commit field.",
+  "installPath": "Accepted v19 -> original v21 -> layout-fixed v21, with full preserved-table/image comparison at both steps; not direct v19-to-fixed-v21.",
+  "androidTargetedSupplement": "PASS",
+  "physicalPhone": "UNTOUCHED",
+  "realAiCalls": 0,
+  "originalCandidateRetained": {
+    "artifact": "artifacts/recipio-ui-v2-g2-v21-debug.apk",
+    "sha256": "c2c770e12e1af995c522da3d1e2b898ad1eca2a6fe3535ea3a065fe524d57090"
+  }
+}

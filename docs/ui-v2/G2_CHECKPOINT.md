@@ -1,5 +1,12 @@
 # G2 checkpoint — 2026-10-23
 
+2026-10-24 addendum: targeted Android supplement is now
+**UI_V2_G2_ANDROID_READY_FOR_REVIEW** after a minimal cooking-layout repair.
+The original candidate/checks below remain historical, not rewritten.
+Use [G2_ANDROID_SUPPLEMENT.md](G2_ANDROID_SUPPLEMENT.md) and its separately
+named layout-fix APK/evidence for the current review. Independent acceptance
+is still pending; no main/tag/G3/G4 action authorized.
+
 Status: **UI_V2_G2_PENDING_ANDROID_TEST**. Not accepted/frozen as a stable product
 release. G1 user approval inherited; G2 independent review still required.
 

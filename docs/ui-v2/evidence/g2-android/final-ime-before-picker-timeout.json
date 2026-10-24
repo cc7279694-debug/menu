@@ -1,0 +1,10 @@
+{
+  "stage": "controlled full recipe / native image",
+  "checks": [
+    "new title-only/no-image recipe persists in actual SQLite and opens without invented content",
+    "actual Android first Back hides IME only; draft preserved, no page Back or discard dialog",
+    "second Android Back uses original leave guard; actual native Cancel preserves draft; actual native OK discards without altering original recipe"
+  ],
+  "error": "Error: Actual native hierarchy did not match current com.google.android.documentsui window",
+  "physicalPhone": "UNTOUCHED"
+}

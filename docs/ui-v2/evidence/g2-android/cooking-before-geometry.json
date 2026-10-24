@@ -1,0 +1,22 @@
+{
+  "viewport": {
+    "width": 360,
+    "height": 734
+  },
+  "dialog": {
+    "x": -180,
+    "y": -367,
+    "width": 360,
+    "height": 734
+  },
+  "translate": "-50% -50%",
+  "transform": "matrix(1, 0, 0, 1, 0, 0)",
+  "left": "0px",
+  "top": "0px",
+  "body": {
+    "x": -180,
+    "y": -234.1666717529297,
+    "width": 360,
+    "height": 601.1666870117188
+  }
+}

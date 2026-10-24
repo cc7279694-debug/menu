@@ -1,5 +1,13 @@
 # G2 verification — current candidate
 
+2026-10-24: the sourcead4df5a/c2c770… candidate and numbers below are the
+original implementation evidence. A real compiled cooking-layout defect was
+subsequently repaired and a separately named v21 APK rebuilt. Current fresh
+1079-unit /11-browser /16-compiled-layout results and actual A–E Android
+supplement are in [G2_ANDROID_SUPPLEMENT.md](G2_ANDROID_SUPPLEMENT.md).
+Do not use this historical NOT_RUN device gate as current state or its old
+logical cooking checks as proof that the repaired APK is visible on Android.
+
 Scope: accepted G1 shared presentation in real production Home/Library/Detail/
 Editor/Focus/Guided/Completion/CookingHistory/RecipeChangeHistory. G3 renderers
 and all storage/Native/Provider contracts remain unchanged.

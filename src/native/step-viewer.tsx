@@ -20,7 +20,7 @@ export function StepViewer({ recipe, mode, initialIndex, onClose, onComplete, bu
   return <Dialog open onOpenChange={open => {
     if (!open && !busy && overlay === null) onClose();
   }}>
-    <DialogContent showCloseButton={false} className="v2-production-cooking">
+    <DialogContent showCloseButton={false} className="v2-production-cooking top-0 left-0 translate-x-0 translate-y-0">
       <section className="recipio-ui-v2 v2-cooking" data-v2-theme="warm-ivory" data-v2-dark="true" ref={rootRef}>
         <header className="v2-cook-header">
           <DialogTitle className="sr-only">{mode === "guided" ? "引导烹饪" : "单步查看"}</DialogTitle>
