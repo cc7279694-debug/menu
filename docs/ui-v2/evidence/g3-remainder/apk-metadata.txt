@@ -1,0 +1,18 @@
+RECIPIO UI V2 G3 final candidate — 2026-10-24
+sourceCommit=e182a72b2435e1a0a98ddb81e5220d84db8d8276
+path=E:\CODEX\VIBE CODING\recipe-step-app-ui-v2\artifacts\recipio-ui-v2-g3-v23-debug.apk
+bytes=17255912
+sha256=522a943fdbc320cace07396a2344b609975c97471724603539257ed64bd96f58
+package=app.recipio.local
+versionCode=23
+versionName=0.10.0-ui-v2-g3-rc2
+minSdk=24
+targetSdk=36
+certificateSha256=29ded26bea44f1afe4fe383a302e4b507423d16223469d7da3fe578d9a7f83b9
+signatureVerification=PASS
+builtWebAssets=15
+packagedAssetSha256Mismatches=0
+showcaseOrFixtureZipEntryNames=0
+installUpgrade=NOT_RUN
+androidRuntime=NOT_RUN
+realAiRequests=0

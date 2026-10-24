@@ -1,0 +1,41 @@
+RECIPIO UI V2 G3 final evidence — 2026-10-24
+Source/source-test freeze: e182a72b2435e1a0a98ddb81e5220d84db8d8276
+Final delivery adds QA/evidence/docs only; no additional production change.
+
+npm.cmd test -- --pool=threads --maxWorkers=1 --no-file-parallelism --reporter=dot
+Exit: 0
+Test Files: 203 passed (203)
+Tests: 1133 passed (1133)
+Start: 16:48:01
+Duration: 715.05s
+transform6.27s/setup79.67s/import67.18s/tests247.38s/environment270.65s
+Targeted 3files/18PASS is a subset, not additive.
+
+typecheck: PASS
+lint: 0errors/5existing legacy Next img warnings
+build:local: PASS, version0.10.0-ui-v2-g3-rc2
+production graph: PASS,304modules/8sharedV2/0showcase/0fixture,write:false
+Capacitor sync: PASS,1.062s; portable tracked plugin paths retained
+Gradle assembleDebug + assembleDebugAndroidTest: PASS,1m31s
+141 actionable tasks:53executed/88up-to-date
+APK signature/version: PASS
+dist-native/APK:15assets,0SHA-256 mismatches
+
+node scripts/verify-ui-v2-intake.mjs --url=http://127.0.0.1:5184/
+PASS19browser groups,13screenshots,119evidence records
+70layout/36portal/13field-location; errors0/external0
+Generated test data/Fake external I/O; production components/Service/PreviewLibrary.
+Three themes320/390/412at100%,320at200%solid; reduced motion checked.
+Solid attribute emulation, not CSS @supports verification; not Android.
+
+Final environment:2026-10-24T17:00:19+08:00
+Free memory2.536GiB<4GiB;0emulator processes; existing unowned ADB left alone.
+Android device/IME/upgrade/offline smoke: NOT_RUN
+JVM/connected/TalkBack/performance/true Provider/destructive restore: NOT_RUN
+Real AI calls0; no device/phone/other project operated.
+
+Known warnings: Fake Provider failures, IndexedDB cleanup, jsdom scrollTo,
+older unawaited assertions, Vite native-config/chunk warning, Gradle inherited
+flatDir/deprecation/unchecked notes. Earlier failed subset/tool runs preserved
+in ignored output and explained in G3_REMAINDER_EXECUTION/G3_VERIFICATION.
+Final status:UI_V2_G3_PENDING_ANDROID_TEST

@@ -64,3 +64,28 @@ No real Provider calls, installs/dependencies, private content or new product st
 - Ruling: retain the same task/Service owners; independent Link/Finder UI files
   were implemented in parallel, root owned shared Review/CSS/shell and integration.
   No shared services, protocols, data or provider request logic was changed.
+
+## Final evidence / stop
+
+- Production/source-test freeze: e182a72. Final whole regression203files/1133PASS,
+  exit0,715.05s; targeted18PASS is a subset, not additional tests.
+- Final browser19groups/13screens/119evidence records PASS (70layout,36portal,
+  13field-location). No external requests or runtime/console errors. A long-page
+  screenshot taken between number-input focus and checkbox click caused a trusted
+  pointerdown/blur/scroll/pointerup target mismatch at320px/200%. Moving only the
+  photography after the real checkbox click removed that automation-only
+  condition across all themes; no forced click, retry, delay, confirmation-state
+  injection or production workaround. Intermediate failure screenshots/logs stay
+  in ignored output. A diagnostic listener's Document/Element type guard was also
+  repaired in the QA tool; final errors0. No production defect reproduced.
+- Typecheck/lint/build/isolation304modules/sync and assembleDebug plus
+  assembleDebugAndroidTest PASS; actual final APK23/name0.10.0-ui-v2-g3-rc2,
+  signature matches accepted22,15packaged build assets match SHA-256.
+- Safe-device gate after final suite and stopping own Vite server:
+  2026-10-24T17:00:19+08:00,2.536GiB<4GiB, no emulator processes. Existing ADB
+  PID14196 identity/ownership unknown and left alone. No device/phone/other
+  project's process operated; no emulator started and no automatic queue.
+- Final status **UI_V2_G3_PENDING_ANDROID_TEST**. User v22 acceptance remains
+  separate; v23 Android smoke/IME/upgrade/phone are NOT_RUN. Real Provider0.
+- See G3_VERIFICATION.md and G3_CHECKPOINT.md. Normal feature push only; stop
+  for ChatGPT independent review/user acceptance. No G4/main/tag/deploy/video.

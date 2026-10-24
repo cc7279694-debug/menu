@@ -1,5 +1,30 @@
 # Decisions
 
+## 2026-10-24 — G3 task pages share presentation, not new business owners
+
+### Decision
+
+Extend the approved V2 theme/root to AI, Link, Finder and pending-share notices.
+Reuse RecipeEditor V2 inside the existing AI Preview, with the full explicit
+acknowledgement next to save. Review items can locate existing inputs; location
+never changes values, source status or acknowledgement. Reduced motion omits
+the transient highlight. Parser preview remains distinct from AI Review.
+
+### Context / Alternatives / Reason
+
+G3-0 was explicitly accepted. The remainder brief authorizes presentation only.
+Preserving the existing mounted-hidden Link/Finder and Service instances avoids
+draft/session loss while visually unifying settings-return and dialogs. A new
+router, AI editor or service state machine would duplicate frozen ownership.
+
+### Consequences
+
+SQLite4/Preview7/Backup2, Native KeyStore/IME, Provider/source/SSRF contracts,
+temporary media lifecycle, UUID recovery and restore transactions are unchanged.
+Only Android instrumentation display selectors/disabled-submit expectations were
+updated and compiled; this does not claim device execution. G3 is an unaccepted
+v23 candidate pending Android supplement and independent review. G4 remains gated.
+
 ## 2026-10-23 — G2 reuses accepted visual rules without replacing business owners
 
 ### Decision

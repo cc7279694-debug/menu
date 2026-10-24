@@ -2,14 +2,15 @@
 
 ## Current stage
 
-2026-10-24 — **UI V2 G3-1 / G3-2 / G3-3 in progress**, on
+2026-10-24 — **UI V2 G3-1 / G3-2 / G3-3 implemented; Android pending**, on
 `feat/recipio-ui-v2-glass-minimal`, linked worktree `recipe-step-app-ui-v2`.
 G3-0 `6cc631af1888270f508e12d0ba69ce76b462a220` is now user/ChatGPT
 **ACCEPTED / FROZEN — PASS WITH NOTES**, on the exact v22 candidate. User phone
 acceptance and retained NOT_RUN notes are recorded in
 `ui-v2/G3_FOUNDATION_ACCEPTANCE.md`. This is not Codex-run phone evidence.
-The new approved task is AI Review, Web Link, Finder/share presentation only.
-No G3-0 test rerun just for this documentation registration.
+The approved AI Review, Web Link and Finder/share presentation is now delivered
+as one v23 candidate. Status: **UI_V2_G3_PENDING_ANDROID_TEST**, not accepted or
+frozen. No G3-0 test rerun just for its documentation registration.
 
 User accepted/froze G2 `9e4bff3596d6efebadf93f6a4778b113efb3272e`
 (v21 layout-fix) as **PASS WITH NOTES**. This user phone acceptance is distinct
@@ -17,7 +18,24 @@ from historical Codex G2 simulator evidence. G2 history remains unchanged.
 Stable main remains `649804a8209413f9d682f1079a4fd19ea84cd064`, release
 `v0.9.1-logo-refresh`. No merge, tag or deployment.
 
-## Verified G3-0 delta
+## Verified G3 remainder delta
+
+- AI input/images, read-only screenshot Sheet, Review/editor, field location,
+  same-name confirmation and uncertain-save recovery share V2 presentation.
+  UI disabled-save and existing Service acknowledgement gate both retained.
+- Web Link retains Parser-first, direct partial completion and explicitly paid
+  AI fallback. Parser previews use V2 without an AI acknowledgement gate.
+- Finder uses solid truthful-source cards and separate explicit Search/Extract;
+  cancel states and shared Review stay within the existing service contract.
+- All task routes and safe pending-share notices use the same current-theme
+  production root; settings-return and mounted-hidden task owners are unchanged.
+- Fresh final **203 files /1133 tests PASS**,715.05s. Targeted runs are subsets.
+  Browser19 groups/13 actual controlled screenshots/119 evidence records PASS;
+  typecheck, lint0errors/5existing warnings, local build, isolation304modules,
+  Capacitor sync and both debug/test-APK compilation PASS. Packaged15 web assets
+  byte-match the build. These are not connected/device results.
+
+## Inherited accepted G3-0 delta
 
 - Existing Warm Ivory/Pure Glass/Soft Sage selectable in V2 Settings and
   immediately propagated to root, nested nav, existing V2 portals and dark
@@ -39,13 +57,13 @@ Stable main remains `649804a8209413f9d682f1079a4fd19ea84cd064`, release
 
 ## Candidate / evidence
 
-`artifacts/recipio-ui-v2-g3-v22-debug.apk`,17,459,114bytes.
-SHA-256 `9c477c7322b750099bed70b1c83fff6920d5aadd99416ecf6249011bfc0db84b`.
-Package `app.recipio.local`,code22/name`0.10.0-ui-v2-g3-rc1`, same debug
-certificate as accepted v21. Build supplies non-secret VITE_RECIPIO_VERSION
+`artifacts/recipio-ui-v2-g3-v23-debug.apk`,17,255,912bytes.
+SHA-256 `522a943fdbc320cace07396a2344b609975c97471724603539257ed64bd96f58`.
+Package `app.recipio.local`,code23/name`0.10.0-ui-v2-g3-rc2`, same debug
+certificate as accepted v22. Build supplies non-secret VITE_RECIPIO_VERSION
 alongside matching Gradle flags; unlabelled dev builds explicitly say 开发预览.
-See `ui-v2/G3_FOUNDATION_VERIFICATION.md`, `G3_FOUNDATION_CHECKPOINT.md` and
-`ui-v2/evidence/g3-foundation/` (seven actual controlled browser screenshots).
+See `ui-v2/G3_VERIFICATION.md`, `G3_CHECKPOINT.md` and
+`ui-v2/evidence/g3-remainder/`. Frozen v22 and its original evidence remain intact.
 
 ## Boundaries / limitations
 
@@ -54,19 +72,20 @@ SSRF/share/restore contracts and Logo unchanged. Theme is not a backup field.
 No dependencies, permissions, private media, real AI or network smoke added.
 G1 showcase/test fixtures excluded from the production graph.
 
-G3 preserving v21→v22 install/data/image verification, Android restart/theme,
-native IME/Back and cooking navigation are **NOT_RUN**. JVM/connected suites
-were not rerun; earlier counts are historical. Browser/fake-port evidence is
-not Android/Native evidence. Existing test/build warnings are documented.
+G3-0 v22 user phone acceptance is retained separately from Codex evidence.
+This new v23 candidate's preserving upgrade/data/images, native IME/Back,
+restart/theme and task navigation are **NOT_RUN**: final safe-memory gate
+2026-10-24 17:00:19+08:00 was2.536GiB<4GiB, no running emulator. No device,
+phone or other project was operated. JVM/connected suites were not rerun;
+earlier counts are historical. Browser/Fake evidence is not Android evidence.
+Full connected, performance, TalkBack and destructive restore remain deferred.
 
 ## Next task / stop
 
-Implement G3-1 AI input/review/recovery → G3-2 Web Link → G3-3 Finder/share,
-using existing services and theme scopes. Each module gets targeted tests and
-a focused commit; one fresh full final regression/build and one v23 candidate.
-Only safe owned-device Android smoke; no other project/phone operations or
-automatic queue. Stop for independent review; no G4/video/main/tag/deployment.
+Stop for ChatGPT independent review and user v23 experience. Only a separately
+requested G3 Android supplement may resume when the owned-device/memory gate
+is safe. No automatic queue, G4/video/main/tag/deployment. No real AI calls.
 
-This task's local ports5184/5186 were stopped after screenshot checks. To preview:
+This task's local port5184 was stopped after screenshot checks. To preview:
 `npm.cmd run dev:local -- --host 127.0.0.1 --port 5184 --strictPort`.
 The separate G1 showcase remains isolated and was not stopped/repurposed.
