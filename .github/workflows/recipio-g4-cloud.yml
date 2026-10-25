@@ -53,8 +53,10 @@ jobs:
         run: node scripts/verify-ui-v2-isolation.mjs
 
   android-cloud-preview:
+    # Build independently to surface Android/SDK problems without waiting for
+    # the long full unit suite. The output remains labeled UNVERIFIED; G4
+    # acceptance requires both this job AND web-checks to pass.
     name: Build isolated Android preview APK
-    needs: web-checks
     runs-on: ubuntu-24.04
     timeout-minutes: 55
     env:
