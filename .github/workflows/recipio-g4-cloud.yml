@@ -1,0 +1,112 @@
+name: RECIPIO G4 cloud preview
+
+on:
+  push:
+    branches:
+      - feat/recipio-ui-v2-glass-minimal
+    paths:
+      - .github/workflows/recipio-g4-cloud.yml
+      - android/**
+      - src/**
+      - scripts/**
+      - native/**
+      - public/**
+      - package.json
+      - package-lock.json
+      - vite.native.config.mts
+      - capacitor.config.ts
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: recipio-g4-cloud-preview
+  cancel-in-progress: true
+
+jobs:
+  web-checks:
+    name: TypeScript, lint, and full unit suite
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Install locked dependencies
+        run: npm ci --no-audit --no-fund
+      - name: Typecheck
+        run: npm run typecheck
+      - name: Lint
+        run: npm run lint
+      - name: Full unit suite (no connected/device claims)
+        run: npm test -- --pool=threads --maxWorkers=1 --no-file-parallelism --reporter=dot
+      - name: Build production WebView
+        env:
+          VITE_RECIPIO_VERSION: 0.10.0-ui-v2-g4-rc2-cloudpreview
+        run: npm run build:local
+      - name: Ensure showcase and test fixtures stay out of production
+        run: node scripts/verify-ui-v2-isolation.mjs
+
+  android-cloud-preview:
+    name: Build isolated Android preview APK
+    needs: web-checks
+    runs-on: ubuntu-24.04
+    timeout-minutes: 55
+    env:
+      VITE_RECIPIO_VERSION: 0.10.0-ui-v2-g4-rc2-cloudpreview
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - uses: android-actions/setup-android@v3
+      - name: Android API 36 and build tools
+        run: sdkmanager "platforms;android-36" "build-tools;36.0.0" "platform-tools"
+      - name: Install locked dependencies
+        run: npm ci --no-audit --no-fund
+      - name: Build and synchronize Capacitor assets
+        run: npm run sync:android
+      - name: Gradle JVM tests and lint (not connected tests)
+        working-directory: android
+        run: |
+          chmod +x ./gradlew
+          ./gradlew :app:testDebugUnitTest :app:lintDebug --no-daemon --max-workers=2 -Dorg.gradle.jvmargs="-Xmx1536m -XX:MaxMetaspaceSize=512m" -PrecipioCloudPreview=true
+      - name: Assemble separate cloud-preview APK
+        working-directory: android
+        run: |
+          ./gradlew :app:assembleDebug :app:assembleDebugAndroidTest --no-daemon --max-workers=2 -Dorg.gradle.jvmargs="-Xmx1536m -XX:MaxMetaspaceSize=512m" -PrecipioCloudPreview=true -PapkVersionCode=25 -PapkVersionName=0.10.0-ui-v2-g4-rc2
+      - name: Check identity, signature, and SHA-256
+        shell: bash
+        run: |
+          set -euo pipefail
+          APK=android/app/build/outputs/apk/debug/app-debug.apk
+          AAPT="$ANDROID_HOME/build-tools/36.0.0/aapt"
+          SIGNER="$ANDROID_HOME/build-tools/36.0.0/apksigner"
+          test -s "$APK"
+          "$SIGNER" verify "$APK"
+          BADGING=$("$AAPT" dump badging "$APK" | head -n 1)
+          printf '%s\n' "$BADGING"
+          if [[ "$BADGING" != *"name='app.recipio.local.cloudpreview'"* ]]; then
+            echo "Unsafe package name: this artifact must NEVER replace the user's existing app"
+            exit 1
+          fi
+          mkdir -p cloud-artifacts
+          cp "$APK" cloud-artifacts/recipio-ui-v2-g4-v25-cloudpreview-debug.apk
+          (cd cloud-artifacts && sha256sum *.apk > SHA256SUMS.txt)
+          printf '%s\n' 'This is a separate app.recipio.local.cloudpreview build with a new GitHub runner debug signature.' > cloud-artifacts/READ_ME_FIRST.txt
+          printf '%s\n' 'It does not contain or overwrite the existing app.recipio.local data. No real AI/Provider, emulator, TalkBack or on-device test was executed.' >> cloud-artifacts/READ_ME_FIRST.txt
+          cat cloud-artifacts/SHA256SUMS.txt
+      - uses: actions/upload-artifact@v4
+        with:
+          name: recipio-g4-v25-cloudpreview-UNVERIFIED-android
+          path: cloud-artifacts/
+          if-no-files-found: error
+          retention-days: 7
