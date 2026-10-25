@@ -69,9 +69,23 @@ jobs:
         with:
           distribution: temurin
           java-version: '21'
-      - uses: android-actions/setup-android@v3
-      - name: Android API 36 and build tools
-        run: sdkmanager "platforms;android-36" "build-tools;36.0.0" "platform-tools"
+      # The hosted ubuntu-24.04 image already has Android command-line tools.
+      # setup-android@v3 tries to install the retired "tools" SDK package
+      # and fails before Gradle runs (observed run 40197296971).
+      - name: Android API 36 and build tools (hosted SDK)
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "ANDROID_HOME=$ANDROID_HOME"
+          SDKMANAGER="$(command -v sdkmanager || true)"
+          if [[ -z "$SDKMANAGER" ]]; then
+            for candidate in "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "$ANDROID_HOME/cmdline-tools/16.0/bin/sdkmanager"; do
+              if [[ -x "$candidate" ]]; then SDKMANAGER="$candidate"; break; fi
+            done
+          fi
+          test -x "$SDKMANAGER"
+          "$SDKMANAGER" --version
+          "$SDKMANAGER" "platforms;android-36" "build-tools;36.0.0" "platform-tools"
       - name: Install locked dependencies
         run: npm ci --no-audit --no-fund
       - name: Build and synchronize Capacitor assets
