@@ -1,5 +1,8 @@
 import React from "react";
-import { DatabaseSync } from "node:sqlite";
+import { createRequire } from "node:module";
+// Require the experimental Node native module at runtime. Vitest/Vite must not
+// try to bundle node:sqlite as a browser dependency in this jsdom test.
+const { DatabaseSync } = createRequire(import.meta.url)("node:sqlite");
 import {
   render,
   screen,
