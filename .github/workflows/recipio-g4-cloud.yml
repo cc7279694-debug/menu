@@ -27,7 +27,9 @@ concurrency:
 jobs:
   web-checks:
     name: TypeScript, lint, and full unit suite
-    runs-on: ubuntu-24.04
+    # Historical SQLite-jsdom and PowerShell packet tests are Windows-only.
+    # Run the complete suite there rather than skip or weaken either test.
+    runs-on: windows-2025
     timeout-minutes: 45
     steps:
       - uses: actions/checkout@v4
