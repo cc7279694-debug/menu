@@ -1,5 +1,28 @@
 # Current State
 
+## Cloud verification update — 2026-10-25
+
+The Windows PC resource-blocked G4 checkpoint below is historical. GitHub Actions
+cloud build at source/workflow commit `00a765600020bb6fe90f667ffa7b3e3413341bd4`
+has now **succeeded** (run 40198321167). It ran 204 test files / **1161 JS/TS
+tests PASS**, typecheck PASS, lint 0 errors / 5 inherited warnings, local Vite
+build and production isolation PASS; Ubuntu runner `:app:testDebugUnitTest`,
+`:app:lintDebug`, `:app:assembleDebug`, and `:app:assembleDebugAndroidTest`
+PASS. The compiled AndroidTest APK was **not** executed.
+
+Cloud-preview APK: `app.recipio.local.cloudpreview`, code25 /
+`0.10.0-ui-v2-g4-rc2-cloudpreview`, 17,256,628 bytes,
+SHA-256 `6af4910aa7932a5b3a172695849b691f03ca2475b5c6719758a3be72fa3aaba4`.
+This GitHub runner-debug-signed, separately installed preview is **not** a
+replacement for the accepted on-phone `app.recipio.local` v23; it contains no
+old personal data. No native emulator run, preserving upgrade, original-package
+signature match, actual immediate-restart theme persistence, cover display,
+IME/Back, TalkBack, realistic performance, real AI call, or user phone test
+has passed. G4 remains **PENDING_DEVICE_TEST**, not accepted/frozen.
+
+[Cloud receipt](ui-v2/G4_CLOUD_PREVIEW_VERIFICATION.md).
+No main merge, tag or deployment.
+
 ## Current stage
 
 2026-10-25 — G3 remains **ACCEPTED / FROZEN — PASS WITH NOTES**.
