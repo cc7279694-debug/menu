@@ -1,0 +1,69 @@
+{
+  "status": "PASS",
+  "at": "2026-10-25T04:06:11.396Z",
+  "schema": 4,
+  "integrity": "ok",
+  "foreignKeyErrors": 0,
+  "tables": {
+    "recipes": {
+      "protectedRows": 28,
+      "retainedRows": 28,
+      "totalAfter": 29,
+      "addedRows": 1,
+      "protectedRowsSha256": "1124096adcfce64cf0dd39829da7d177c27251c6b905784e46fd3d0f18f02b67"
+    },
+    "recipe_ingredients": {
+      "protectedRows": 4,
+      "retainedRows": 4,
+      "totalAfter": 5,
+      "addedRows": 1,
+      "protectedRowsSha256": "7c08e109c967288e8dcee658f3e0a712676c1e86dc524939c5931293d26447cc"
+    },
+    "recipe_steps": {
+      "protectedRows": 6,
+      "retainedRows": 6,
+      "totalAfter": 8,
+      "addedRows": 2,
+      "protectedRowsSha256": "e3afab920f4777fe20a25c67b6af1fe19fd45526efae1cdc0b38e12063d0ab23"
+    },
+    "recipe_preparations": {
+      "protectedRows": 0,
+      "retainedRows": 0,
+      "totalAfter": 0,
+      "addedRows": 0,
+      "protectedRowsSha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    },
+    "recipe_key_tips": {
+      "protectedRows": 0,
+      "retainedRows": 0,
+      "totalAfter": 0,
+      "addedRows": 0,
+      "protectedRowsSha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    },
+    "recipe_changes": {
+      "protectedRows": 2,
+      "retainedRows": 2,
+      "totalAfter": 2,
+      "addedRows": 0,
+      "protectedRowsSha256": "a2a4af4d4ee9632e4d2c71a26c4e958fb9291a9b43d3c0a75781cf85d6be2742"
+    },
+    "cooking_records": {
+      "protectedRows": 2,
+      "retainedRows": 2,
+      "totalAfter": 3,
+      "addedRows": 1,
+      "protectedRowsSha256": "94da19423e415c4a01a64bee52d2a66779b32b12eee82073acf791d8aac78e51"
+    },
+    "backup_restore_state": {
+      "protectedRows": 0,
+      "retainedRows": 0,
+      "totalAfter": 0,
+      "addedRows": 0,
+      "protectedRowsSha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    }
+  },
+  "protectedImageCount": 3,
+  "totalImagesAfter": 4,
+  "allOriginalRowsTimesOrderAndImagesRetained": true,
+  "scope": "Read-only host comparison of actual owned-device private quiescent snapshots. New generated test rows allowed; no original row/image changed. No raw row/ID/media in this receipt."
+}

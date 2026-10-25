@@ -73,7 +73,7 @@ export function LibraryApp({
   share?: ShareTargetController;
   finder?: FindRecipeService;
 }) {
-  const { theme, changeTheme } = useV2ThemePreference();
+  const { theme, changeTheme, warning: themeWarning } = useV2ThemePreference();
   const shares = useMemo(() => share ?? openShareTargetRuntime(), [share]);
   const shareState = useSyncExternalStore(shares?.subscribe ?? noShareSubscribe, shares?.snapshot ?? noShareSnapshot, noShareSnapshot);
   const intake=useMemo(()=>ai??openAiIntakeRuntime(store,backup),[ai,store,backup]);
@@ -574,7 +574,7 @@ export function LibraryApp({
           />
         </div>
       ) : view === "settings" ? (
-        <SettingsScreen theme={theme} onTheme={changeTheme} backup={backup} keys={aiKeys ?? intake.keys}
+        <SettingsScreen theme={theme} onTheme={changeTheme} persistenceWarning={themeWarning} backup={backup} keys={aiKeys ?? intake.keys}
           onKeyChanged={() => intake.keyChanged()}
           returnAction={fromFindSettings ? { label: "返回本轮寻找做法", onClick: () => { setFromFindSettings(false); setView("find-input"); } }
             : fromLinkSettings ? { label: "返回本轮网页导入", onClick: () => { setFromLinkSettings(false); setView("link-input"); } }

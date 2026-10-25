@@ -1,0 +1,4 @@
+{"phase":"changed","state":{"root":"pure-glass","stored":"pure-glass"}}
+{"phase":"leveldb-log-written","elapsed":914,"bytes":162}
+{"phase":"before-stop","elapsed":914,"durable":true,"state":{"root":"pure-glass","stored":"pure-glass"}}
+{"phase":"after-stop","state":{"root":"pure-glass","stored":"pure-glass"}}

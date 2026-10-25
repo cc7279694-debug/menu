@@ -1,0 +1,12 @@
+{
+  "path": "E:\\CODEX\\VIBE CODING\\recipe-step-app-ui-v2\\artifacts\\recipio-ui-v2-g4-v24-debug.apk",
+  "bytes": 17255908,
+  "sha256": "e1a5520a6973bce499c7d52a141f52b90d65229cbf3165b71d4cab147741655e",
+  "package": "app.recipio.local",
+  "versionCode": 24,
+  "versionName": "0.10.0-ui-v2-g4-rc1",
+  "certificateSha256": "29ded26bea44f1afe4fe383a302e4b507423d16223469d7da3fe578d9a7f83b9",
+  "distAssetsVerified": 15,
+  "apkPublicAssets": 17,
+  "signatureVerified": true
+}

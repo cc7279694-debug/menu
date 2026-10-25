@@ -594,3 +594,25 @@ history, without rewriting G2/G3-0 or changing services/data/safety contracts.
 Reuse existing AI Review/RecipeEditor and Parser/Finder/share ownership instead
 of a parallel workflow. Targeted tests per module, one final full regression and
 APK; real Provider0, G4/main/tag/deployment/video remain gated.
+
+## 2026-10-25 — Acknowledged Android appearance persistence (G4 source patch)
+
+### Decision / context
+
+Actual v24 changed/read the enum but immediate force-stop lost Pure/Sage;
+separate observation confirmed delayed LevelDB writing (~914ms). Source now
+reuses existing Filesystem/Data for one fixed validated enum file, applying
+Native theme after write ACK. Web keeps namespaced localStorage.
+
+### Alternatives / reason
+
+No artificial wait/debounce, new Preferences dependency, Native security bridge
+or SQLite/Backup migration. Initial read completion precedes serial writes;
+latest intent wins; latest failure returns to last successful ACK with warning.
+Missing can inherit legal legacy cache; malformed existing value→Warm.
+
+### Consequences / verification limit
+
+Display file is outside backup/media; LibraryApp not remounted. Final focused
+44PASS and source review support patch; full regression/build/new Native proof
+remain pending resource stop. Not G4 acceptance or a stable main change.

@@ -1,0 +1,93 @@
+{
+  "mode": "upgrade",
+  "at": "2026-10-25T03:46:37.019Z",
+  "serial": "emulator-5582",
+  "avd": "Recipio_Backup_36",
+  "sdk": 36,
+  "ownership": "Live QEMU PID/command/port must be verified by the caller before invocation",
+  "packageName": "app.recipio.local",
+  "beforePackage": {
+    "code": 21,
+    "versionName": "0.10.0-ui-v2-g2-rc1",
+    "sha256": "ae343d4222c06dcb699fff5158d5f7171e86a26d4b338c967f331a6ec3e815e9"
+  },
+  "realAiCalls": 0,
+  "appStarted": false,
+  "privateData": "Raw database/media stay in this ignored local safety directory; no rows or credentials in receipts",
+  "before": {
+    "schema": 4,
+    "integrity": "ok",
+    "foreignKeyErrors": 0,
+    "rowHash": "72d33ab479a2c6fef988b5ad42ae10378f30a581f38fb334cf1432cfa573d330",
+    "tableHashes": {
+      "recipes": "ffe519e1991de965e4acece510f3d7f20a094a0f3c16d02dd6106d036ad8cbf8",
+      "recipe_ingredients": "890c8b0df51a17babd55fca1ab35b2636c692fed2cd0ae25becb5ab5a7c7746a",
+      "recipe_steps": "8e35b8e5b0895cbedb6f7457619676d7199d828021708d6e060b1ced76d0f4e3",
+      "recipe_preparations": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "recipe_key_tips": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "recipe_changes": "08c231d55e6c79e70b21d6fbf70e3d6a78070f07a4731a94414d68f296657ccd",
+      "cooking_records": "9c786f5bb853e07904cbe0bc0a27c711844605e54796934766ef2df32ce905be",
+      "backup_restore_state": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    },
+    "idOrderTimeHash": "badffe29e4672c2d1aa52a446c89168eacecec02c7644f619b3638ee93e66220",
+    "imageHash": "2ef409e5d969c2a3e61356cf402eefeec47f313d33b36cd95b3179b8da11b802",
+    "counts": {
+      "recipes": 28,
+      "recipe_ingredients": 4,
+      "recipe_steps": 6,
+      "recipe_preparations": 0,
+      "recipe_key_tips": 0,
+      "recipe_changes": 2,
+      "cooking_records": 2,
+      "backup_restore_state": 0
+    },
+    "imageCount": 3,
+    "archiveBytes": 92672,
+    "archiveSha256": "dd1cd57b8a76f911f5a27d529e6b50ad9617b55a44563d2f55f733b8e3b1ef24"
+  },
+  "candidate": {
+    "path": "E:/CODEX/VIBE CODING/recipe-step-app-ui-v2/artifacts/recipio-ui-v2-g4-v24-debug.apk",
+    "code": 24,
+    "versionName": "0.10.0-ui-v2-g4-rc1",
+    "sha256": "e1a5520a6973bce499c7d52a141f52b90d65229cbf3165b71d4cab147741655e",
+    "bytes": 17255908
+  },
+  "afterPackage": {
+    "code": 24,
+    "versionName": "0.10.0-ui-v2-g4-rc1",
+    "sha256": "e1a5520a6973bce499c7d52a141f52b90d65229cbf3165b71d4cab147741655e"
+  },
+  "after": {
+    "schema": 4,
+    "integrity": "ok",
+    "foreignKeyErrors": 0,
+    "rowHash": "72d33ab479a2c6fef988b5ad42ae10378f30a581f38fb334cf1432cfa573d330",
+    "tableHashes": {
+      "recipes": "ffe519e1991de965e4acece510f3d7f20a094a0f3c16d02dd6106d036ad8cbf8",
+      "recipe_ingredients": "890c8b0df51a17babd55fca1ab35b2636c692fed2cd0ae25becb5ab5a7c7746a",
+      "recipe_steps": "8e35b8e5b0895cbedb6f7457619676d7199d828021708d6e060b1ced76d0f4e3",
+      "recipe_preparations": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "recipe_key_tips": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "recipe_changes": "08c231d55e6c79e70b21d6fbf70e3d6a78070f07a4731a94414d68f296657ccd",
+      "cooking_records": "9c786f5bb853e07904cbe0bc0a27c711844605e54796934766ef2df32ce905be",
+      "backup_restore_state": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    },
+    "idOrderTimeHash": "badffe29e4672c2d1aa52a446c89168eacecec02c7644f619b3638ee93e66220",
+    "imageHash": "2ef409e5d969c2a3e61356cf402eefeec47f313d33b36cd95b3179b8da11b802",
+    "counts": {
+      "recipes": 28,
+      "recipe_ingredients": 4,
+      "recipe_steps": 6,
+      "recipe_preparations": 0,
+      "recipe_key_tips": 0,
+      "recipe_changes": 2,
+      "cooking_records": 2,
+      "backup_restore_state": 0
+    },
+    "imageCount": 3,
+    "archiveBytes": 92672,
+    "archiveSha256": "dd1cd57b8a76f911f5a27d529e6b50ad9617b55a44563d2f55f733b8e3b1ef24"
+  },
+  "status": "PRESERVED",
+  "scope": "Quiescent preserving install only; runtime startup, instrumentation, smoke, TalkBack and performance are NOT_RUN"
+}

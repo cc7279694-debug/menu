@@ -1,5 +1,9 @@
 # G4 comprehensive verification — 2026-10-24
 
+Historical attempt. Current2026-10-25 source/defects/stop are in
+[G4 resume verification](G4_RESUME_VERIFICATION.md) and [checkpoint](G4_CHECKPOINT.md).
+The old source/no-device statements below are not current state.
+
 Status: **UI_V2_G4_PENDING_DEVICE_TEST**.
 Validation verdict: **Blocked by evidence**. G4-A engineering regression/build
 also remains incomplete due host resource pressure; this is not a claim that

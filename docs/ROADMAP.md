@@ -1,6 +1,6 @@
 # RECIPIO Android Roadmap
 
-2026-10-24：稳定 main `649804a` / `v0.9.1-logo-refresh` 不变。G2、G3-0及G3（2080f86/v23）已由用户/ChatGPT验收冻结，PASS WITH NOTES；用户报告v23保留数据覆盖安装和六项体验通过，Codex未操作手机。G3所有历史NOT_RUN与警告保留，见G3_ACCEPTANCE.md。G4-A/B/C/D已授权，当前因资源压力停止在待补验，不能宣布综合通过；不合main、不建Tag、不部署、不进入视频。
+2026-10-25：稳定 main `649804a` / `v0.9.1-logo-refresh` 不变。G2、G3-0及G3（2080f86/v23）已由用户/ChatGPT验收冻结，PASS WITH NOTES；Codex未操作手机。G4修补图片占位对比度及Android主题写盘窗口，最终44项定向通过；修复版全仓因0.457GiB资源压力中止，v25未构建。v21→24数据保护和部分原生核心证据不能外推为最终版本通过。见G4_RESUME_VERIFICATION.md；不合main、不建Tag、不部署、不进入视频。
 
 | Module | Status | Scope |
 | --- | --- | --- |
@@ -19,7 +19,7 @@
 | UI V2 G2 | Accepted / Frozen — PASS WITH NOTES | 用户在v21 layout-fix手机上验收，冻结9e4bff3；Codex模拟器补验与用户真机反馈分别保留，历史数字不复用为G3 |
 | UI V2 G3-0 | Accepted / Frozen — PASS WITH NOTES | 6cc631a/v22；用户真机六项PASS，独立于历史Codex证据；模拟器/connected/TalkBack/真实AI/完整替换恢复仍NOT_RUN，见G3_FOUNDATION_ACCEPTANCE.md |
 | UI V2 G3-1/2/3 | Accepted / Frozen — PASS WITH NOTES | 2080f86/sourcee182a72/v23；用户手机覆盖升级及六项体验PASS，Codex模拟器/connected/TalkBack/真实新版在线端到端/替换恢复/性能仍NOT_RUN，见G3_ACCEPTANCE.md |
-| UI V2 G4 | Pending safe host/device resources / authorized | 新鲜typecheck/签名/静态合同通过；全仓/构建/浏览器因资源压力中断，JVM/connected/IME/TalkBack/性能无最终证据；最终1.587GiB<4GiB；见G4_VERIFICATION.md，不沿用旧绿灯、不自行冻结 |
+| UI V2 G4 | Pending final host/device verification / authorized | 最终44项定向PASS；修复版全仓资源中止，无最终总数/构建/v25APK。较早v24工程/浏览器与保留升级证据独立保留，Native105/IME8/TalkBack/P01待验证；见G4_RESUME_VERIFICATION.md，不复用旧绿灯、不自行冻结 |
 
 APK-6历史证据见 verification/find-recipe-rc2*.md 与原checkpoint，441项是1029项的子集，不能重复相加。当前Logo集成证据见checkpoints/2026-10-06-logo-integration.md：纯资源任务未重复全仓/connected/Provider测试，完成构建和窄模拟器视觉/数据保留验证；手机视觉验收独立。用户APK-6确认不是Codex重新调用AI的证据。不恢复收藏、购物、菜单、Timer或云同步；任何后续模块或main收口需另行批准。
 此前浏览器 Dexie Repository 与 `/offline/app` 纵切是可复用资产，不是 Android SQLite 验收证据。

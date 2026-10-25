@@ -46,7 +46,9 @@ public class ShareTargetInstrumentedTest {
     private void launch(Intent intent) throws Exception {
         scenario = ActivityScenario.launch(intent);
         scenario.onActivity(a -> { activity = a; web = a.getBridge().getWebView(); ime = new AndroidImeProbe(a); });
-        until("document.body.innerText.includes('自己的做法，随时翻开')");
+        // Cold share may route directly to Link/AI rather than Home. Destination
+        // and prefill assertions below remain the readiness/behavior gate.
+        until("!!document.querySelector('.recipio-ui-v2.v2-production')");
     }
     private String js(String expression) throws Exception {
         AtomicReference<String> value = new AtomicReference<>(); CountDownLatch done = new CountDownLatch(1);

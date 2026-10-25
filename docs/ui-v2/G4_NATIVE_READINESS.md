@@ -1,5 +1,10 @@
 # G4 Native readiness and data protection — 2026-10-24
 
+Historical audit. October25 corrected/compiled the test-only selector, performed
+owned v21→v24 preserving install and partial core/data checks, then found a real
+theme issue and stopped after resource loss. Current details/limits are in
+[resume verification](G4_RESUME_VERIFICATION.md); full105/IME8 remain unexecuted.
+
 Readonly source audit; **no Android test/device was run**. Static inventory:
 15product instrumentation classes/104methods plus1scaffold context test =16/105.
 This is not a pass count. Source remains frozen after cancelling unverified work.

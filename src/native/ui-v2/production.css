@@ -64,8 +64,8 @@
 .v2-production .v2-production-filter select { min-height: 48px; max-width: 100%; padding: 8px 12px; border: 1px solid var(--v2-control); border-radius: 16px; background: var(--v2-surface); }
 .v2-production .v2-pagination { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 20px; }
 .v2-production .v2-search-find { margin-top: 20px; }
-.v2-production .v2-recent-card > [role="img"] { width: 100%; height: 114px; border-radius: 18px; background: var(--v2-muted); color: var(--v2-caption); }
-.v2-production .v2-recipe-row > [role="img"] { width: 72px; height: 72px; border-radius: 14px; flex-shrink: 0; background: var(--v2-muted); color: var(--v2-caption); }
+.v2-production .v2-recent-card > [role="img"] { width: 100%; height: 114px; border-radius: 18px; background: var(--v2-muted); color: var(--v2-secondary); }
+.v2-production .v2-recipe-row > [role="img"] { width: 72px; height: 72px; border-radius: 14px; flex-shrink: 0; background: var(--v2-muted); color: var(--v2-secondary); }
 .recipio-ui-v2 .v2-action-list > .v2-button { width: 100%; min-height: 64px; justify-content: flex-start; text-align: left; }
 .v2-production .v2-cover-button > [role="img"] { aspect-ratio: 4/3; width: 100%; }
 .v2-production-cooking .v2-cook-image { max-height: 65dvh; object-fit: contain; }

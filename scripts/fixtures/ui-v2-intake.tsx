@@ -32,7 +32,7 @@ function thumbnail(index: number) {
   return canvas.toDataURL("image/jpeg", .8);
 }
 
-export async function renderFixture(target: HTMLElement, options: { configured?: boolean; duplicate?: boolean } = {}) {
+export async function renderFixture(target: HTMLElement, options: { configured?: boolean; duplicate?: boolean; invalidImage?: boolean } = {}) {
   const calls = { ai: 0, search: 0, extract: 0, read: 0, create: 0, keyWrites: 0,
     picks: 0, removals: 0, recoverIds: [] as string[], createdIds: [] as string[], extractedIds: [] as string[] };
   let loseAcknowledgement = false, failRead = false, configured = options.configured ?? true;
@@ -62,7 +62,7 @@ export async function renderFixture(target: HTMLElement, options: { configured?:
     pickImage: async () => { calls.picks++; return { cancelled: false, image: {
       id: crypto.randomUUID(), mimeType: "image/jpeg", byteSize: 4096, width: 480, height: 320,
       // Generated browser-only media; never reads a local user's image or Native path.
-      previewUri: thumbnail(calls.picks) } }; },
+      previewUri: options.invalidImage ? "data:image/png;base64,AQIDBA==" : thumbnail(calls.picks) } }; },
     removeImage: async () => { calls.removals++; },
   };
   const ai = new AiIntakeService(keys, bridge, { store });

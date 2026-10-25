@@ -11,8 +11,9 @@ const options = [
 ] as const;
 
 /** Presentation only: existing backup and native key controls keep their owners. */
-export function SettingsScreen({ theme, onTheme, backup, keys, onKeyChanged, returnAction }: {
+export function SettingsScreen({ theme, onTheme, persistenceWarning, backup, keys, onKeyChanged, returnAction }: {
   theme: V2Theme; onTheme: (theme: V2Theme) => void; backup?: BackupController;
+  persistenceWarning?: string;
   keys: AiKeyPort; onKeyChanged: () => void;
   returnAction?: { label: string; onClick: () => void };
 }) {
@@ -25,10 +26,12 @@ export function SettingsScreen({ theme, onTheme, backup, keys, onKeyChanged, ret
       <fieldset className="v2-settings-themes"><legend className="sr-only">外观主题</legend>
         {options.map(({ id, label }) => <label className="v2-settings-theme" key={id}>
           <span className="recipio-ui-v2 v2-settings-swatch" data-v2-theme={id} aria-hidden="true"><i /><i /></span>
-          <span>{label}</span><input type="radio" name="recipio-theme" value={id} checked={theme === id} onChange={() => onTheme(id)} />
+          <span>{label}</span><input type="radio" name="recipio-theme" value={id} checked={theme === id}
+            onClick={() => { if (theme === id) onTheme(id); }} onChange={() => onTheme(id)} />
         </label>)}
       </fieldset>
       <p className="v2-secondary">只改变显示外观，不影响菜谱和本轮草稿。</p>
+      {persistenceWarning && <p className="v2-task-status" role="alert">{persistenceWarning}</p>}
     </section>
     <section className="v2-settings-group" aria-labelledby="settings-backup">
       <h2 id="settings-backup">数据与备份</h2>
