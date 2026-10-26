@@ -185,7 +185,7 @@ jobs:
           [[ "$RECIPIO_REQUEST_VERSION_NAME" =~ ^[a-zA-Z0-9][a-zA-Z0-9._-]{0,99}$ ]]
           [[ "$RECIPIO_EXPECTED_APK_SHA256" =~ ^[0-9a-f]{64}$ ]]
           # Downloader digest mismatches are warnings; this byte check must FAIL.
-          mapfile -t FILES < <(find unsigned-artifacts -mindepth 1 -maxdepth 1 -printf '%f\n' | sort)
+          mapfile -t FILES < <(find unsigned-artifacts -mindepth 1 -maxdepth 1 -printf '%f\n' | LC_ALL=C sort)
           [[ "${#FILES[@]}" == 2 && "${FILES[0]}" == SHA256SUMS.txt && "${FILES[1]}" == app-release-unsigned.apk ]]
           for file in unsigned-artifacts/app-release-unsigned.apk unsigned-artifacts/SHA256SUMS.txt; do
             test -f "$file" && test -s "$file" && test ! -L "$file"
