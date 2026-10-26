@@ -24,7 +24,7 @@ function ParserPreview({ service, onSaved, onBack }: { service: LinkImportServic
     if (exists && !await new Promise<boolean>(resolve => { decision.current = resolve; setDuplicate(true); })) return;
     onSaved(await service.saveParser(input));
   }
-  return <section className="v2-task v2-link-intake v2-import-preview">
+  return <section className="v2-task v2-link-intake v2-import-preview v2-parser-preview">
     <div className="v2-task-status"><p>{selected.quality === "partial" ? "网页信息不完整" : "已从网页读取"}</p><p className="v2-task-note">已读取网页自带菜谱结构，未调用 AI。请检查后保存；缺失信息保持空白。网页图片和来源不会保存。</p></div>
     {selected.warnings.map(warning => <p className="v2-task-status" role="status" key={warning}>{warning}</p>)}
     <RecipeEditor appearance="v2" heading="检查网页菜谱" submitLabel="确认保存菜谱" initial={service.snapshot().parserDraft ?? selected.recipe} mediaEnabled={false} onSave={save} onCancel={onBack} />
@@ -67,8 +67,8 @@ export function LinkImportScreen({ service, active, onSaved, onCancel, onConfigu
   if (parserOpen && service.selected()) return <ParserPreview key={service.selected()!.id} service={service} onSaved={onSaved} onBack={backToResults} />;
   return <section className="v2-task v2-link-intake">
     <header className="v2-task-header"><h2 className="v2-page-title">从网页导入</h2><Button variant="outline" disabled={leaving} onClick={() => { destination.current = "back"; setConfirm(true); }}>返回</Button></header>
-    <label className="v2-field-label"><span>网页链接</span><Input type="url" inputMode="url" autoCapitalize="none" autoCorrect="off" placeholder="https://…" aria-describedby={`${descriptionId}${state.error || localError ? ` ${errorId}` : ""}`} aria-invalid={state.phase === "error" && !!state.error} value={state.url} disabled={busy} onChange={event => { setLocalError(""); setParserOpen(false); service.setUrl(event.target.value); }} /></label>
-    <p className="v2-task-note" id={descriptionId}>优先读取网页自带的菜谱信息，不会自动调用 AI。</p>
+    <div className="v2-intake-field"><label className="v2-field-label"><span>网页链接</span><Input type="url" inputMode="url" autoCapitalize="none" autoCorrect="off" placeholder="https://…" aria-describedby={`${descriptionId}${state.error || localError ? ` ${errorId}` : ""}`} aria-invalid={state.phase === "error" && !!state.error} value={state.url} disabled={busy} onChange={event => { setLocalError(""); setParserOpen(false); service.setUrl(event.target.value); }} /></label>
+      <p className="v2-task-note" id={descriptionId}>优先读取网页自带的菜谱信息，不会自动调用 AI。</p></div>
     <div className="v2-task-actions">{state.phase === "reading" ? <><p className="v2-task-status" role="status">正在安全读取网页…</p><Button variant="outline" onClick={() => void service.cancelRead().catch(() => setLocalError("取消读取未完成，请稍后重试。"))}>取消读取</Button></> : <Button disabled={busy || !state.url.trim()} onClick={() => void read()}>{state.phase === "error" ? "重试读取网页" : "读取网页"}</Button>}</div>
     {(state.error || localError) && <p id={errorId} className="v2-task-status" role="alert">{state.error?.message ?? localError}</p>}
     {state.parsed && <section className="v2-task-results" aria-label="网页读取结果">
@@ -82,7 +82,7 @@ export function LinkImportScreen({ service, active, onSaved, onCancel, onConfigu
       {state.error?.message.includes("配置本机 AI 密钥") && <div className="v2-task-actions"><Button variant="outline" disabled={busy} onClick={onConfigureKey}>前往设置 AI 密钥</Button></div>}
     </section>}
     <p className="v2-task-note">仅读取公开普通网页。需要登录、验证码或视频的网站，请改用文字或截图。</p>
-    <div className="v2-task-actions"><Button variant="outline" disabled={busy} onClick={() => { destination.current = "ai"; setConfirm(true); }}>改用文字 / 截图</Button><Button variant="outline" disabled={busy} onClick={() => { destination.current = "manual"; setConfirm(true); }}>改为手动录入</Button></div>
+    <div className="v2-intake-alternatives"><p className="v2-task-note">换一种录入方式</p><div className="v2-task-actions"><Button variant="outline" disabled={busy} onClick={() => { destination.current = "ai"; setConfirm(true); }}>改用文字 / 截图</Button><Button variant="outline" disabled={busy} onClick={() => { destination.current = "manual"; setConfirm(true); }}>改为手动录入</Button></div></div>
     <Dialog open={confirm} onOpenChange={value => { if (!leaving) setConfirm(value); }}><DialogContent {...dialogAppearance} showCloseButton={!leaving}><DialogTitle>放弃本轮网页导入？</DialogTitle><DialogDescription>未保存的网页内容和预览会释放，已有本地菜谱不受影响。</DialogDescription><DialogFooter><Button variant="outline" disabled={leaving} onClick={() => setConfirm(false)}>继续导入</Button><Button disabled={leaving} onClick={() => void leave()}>放弃网页导入</Button></DialogFooter></DialogContent></Dialog>
   </section>;
 }

@@ -53,6 +53,18 @@ it("a genuinely empty first page keeps name-only creation available", () => {
   expect(p.onFind).not.toHaveBeenCalled();
 });
 
+it("a failed library read never claims an empty collection or an empty search result", () => {
+  const p = props({ library: true, readError: true });
+  const { rerender } = render(<CoreLibraryScreen {...p} />);
+  expect(screen.queryByRole("heading", { name: "先记下第一道想做的菜" })).not.toBeInTheDocument();
+  expect(screen.queryByRole("heading", { name: "没有符合条件的菜谱" })).not.toBeInTheDocument();
+  expect(screen.queryByRole("button", { name: "添加第一道菜" })).not.toBeInTheDocument();
+  rerender(<CoreLibraryScreen {...p} query="汤" />);
+  expect(screen.queryByRole("heading", { name: "没有符合条件的菜谱" })).not.toBeInTheDocument();
+  expect(p.onAdd).not.toHaveBeenCalled();
+  expect(p.onFind).not.toHaveBeenCalled();
+});
+
 it("an empty later page points back to existing recipes rather than first-time creation", () => {
   const p = props({ library: true, page: 2 });
   render(<CoreLibraryScreen {...p} />);

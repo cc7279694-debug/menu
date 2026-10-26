@@ -2,7 +2,7 @@ import { useRef, useState, type ReactNode } from "react";
 import { ArrowLeft, ChevronRight, Clock3, Flame, MoreHorizontal, NotebookPen, TriangleAlert, Utensils } from "lucide-react";
 import type { RecipeDetails } from "./recipe-model";
 import { LocalImage } from "./local-image";
-import { RecipeStepContent } from "./recipe-step-content";
+import { RecipePreparations, RecipeStepContent } from "./recipe-step-content";
 import { IngredientsList, V2Button } from "./ui-v2/components";
 import { NativeV2Sheet } from "./ui-v2/native-sheet";
 import { useControlClearance } from "./ui-v2/use-control-clearance";
@@ -23,7 +23,7 @@ export function RecipeDetail({ recipe, onEdit, onBack, onDelete, onFocus, onGuid
     <V2Button variant="icon" aria-label="返回菜谱库" disabled={completing} onClick={onBack}><ArrowLeft aria-hidden="true" /></V2Button>
     <V2Button variant="icon" aria-label="更多菜谱操作" disabled={completing} onClick={() => setMore(true)}><MoreHorizontal aria-hidden="true" /></V2Button>
   </div>;
-  return <article className="v2-detail v2-production-detail" ref={rootRef}>
+  return <article className="v2-detail v2-production-detail v2-g5-detail" ref={rootRef}>
     <div className="v2-detail-scroll">
       {recipe.coverPath ? <div className="v2-detail-hero">
         <button className="v2-cover-button" aria-label="查看菜谱封面大图" disabled={completing}
@@ -38,14 +38,8 @@ export function RecipeDetail({ recipe, onEdit, onBack, onDelete, onFocus, onGuid
           {recipe.caloriesPerServing !== null ? <div className="v2-meta-calories"><Flame aria-hidden="true" /><dt>每份热量</dt><dd>约 {recipe.caloriesPerServing} kcal／份</dd></div> : null}
         </dl></header>
         <section className="v2-content-section"><h2>食材</h2><IngredientsList ingredients={recipe.ingredients} /></section>
-        {recipe.preparations.length ? <section className="v2-content-section"><h2>提前准备</h2><ol className="v2-preparation-list">
-          {recipe.preparations.map((preparation, index) => <li key={index}><span aria-hidden="true">{index + 1}</span><div>
-            <p>{preparation.instruction}</p><p className="v2-secondary">
-              {preparation.minutes !== null ? `约 ${preparation.minutes} 分钟` : ""}
-              {preparation.timingText ? `${preparation.minutes !== null ? " · " : ""}${preparation.timingText}` : ""}
-              {preparation.minutes === null && !preparation.timingText ? "时间未记录" : ""}
-            </p></div></li>)}
-        </ol></section> : null}
+        {recipe.preparations.length ? <section className="v2-content-section"><h2>提前准备</h2>
+          <RecipePreparations preparations={recipe.preparations} /></section> : null}
         {recipe.keyTips.length ? <section className="v2-content-section"><h2>关键事项</h2><div className="v2-callout">
           <TriangleAlert aria-hidden="true" /><div>{recipe.keyTips.map((tip, index) => <p key={index}>
             {tip.instruction}{tip.stepNumber !== null ? `（步骤 ${tip.stepNumber}）` : ""}

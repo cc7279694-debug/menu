@@ -13,26 +13,28 @@ const evaluations = {
   okay: "一般",
   adjust_next_time: "下次调整",
 };
-function RecordContent({ record }: { record: CookingRecord }) {
+function RecordContent({ record, compact = false }: { record: CookingRecord; compact?: boolean }) {
   return (
-    <>
+    <div className={`v2-record-content${compact ? " v2-record-content--compact" : ""}`}>
+      <div className="v2-record-copy">
       <time dateTime={record.cookedAt}>
         {new Date(record.cookedAt).toLocaleString()}
       </time>
+      {record.evaluation && (
+        <p className="v2-record-evaluation">{evaluations[record.evaluation]}</p>
+      )}
+      {record.note && (
+        <p className="v2-record-note">{record.note}</p>
+      )}
+      </div>
       {record.finishedPhotoPath && (
         <LocalImage
           path={record.finishedPhotoPath}
           alt="这次的成品照片"
-          className="mt-3 max-h-64 w-full rounded-lg object-cover"
+          className="v2-record-photo"
         />
       )}
-      {record.evaluation && (
-        <p className="mt-3">{evaluations[record.evaluation]}</p>
-      )}
-      {record.note && (
-        <p className="mt-3 whitespace-pre-wrap break-words">{record.note}</p>
-      )}
-    </>
+    </div>
   );
 }
 function Summary({ summary }: { summary: CookingSummary }) {
@@ -85,8 +87,10 @@ export function CookingOverview({
       alive = false;
     };
   }, [recipeId, store, revision, retry]);
+  const latest = result?.rows[0];
+  const earlier = result?.rows.slice(1) ?? [];
   return (
-    <section className="v2-production-history v2-production-overview mt-6 space-y-4 rounded-xl border p-4">
+    <section className="v2-production-history v2-production-overview v2-g5-cooking-overview mt-6 space-y-4 rounded-xl border p-4">
       <h3 className="v2-section-title text-lg font-semibold">做菜记录</h3>
       {error ? (
         <div>
@@ -103,18 +107,27 @@ export function CookingOverview({
               只有点击完成才会记录；浏览步骤不会自动记为做过。
             </p>
           )}
-          <ol className="v2-history-list space-y-4">
-            {result.rows.map((record) => (
+          {latest ? <>
+            <h4 className="v2-latest-cooking-title">上次下厨</h4>
+            <ol className="v2-history-list">
               <li
-                key={record.id}
                 data-testid="cooking-record"
-                data-record-id={record.id}
+                data-record-id={latest.id}
                 className="v2-history-row"
               >
-                <RecordContent record={record} />
+                <RecordContent record={latest} compact />
               </li>
-            ))}
-          </ol>
+            </ol>
+          </> : null}
+          {earlier.length ? <details className="v2-earlier-cooking">
+            <summary>较早的 {earlier.length} 次记录</summary>
+            <ol className="v2-history-list">
+              {earlier.map(record => <li key={record.id} data-testid="cooking-record"
+                data-record-id={record.id} className="v2-history-row">
+                <RecordContent record={record} compact />
+              </li>)}
+            </ol>
+          </details> : null}
         </>
       ) : (
         <p role="status">读取本地做菜记录…</p>
@@ -235,7 +248,7 @@ export function CookingHistory({
   }
   const last = rows.at(-1);
   return (
-    <section className="v2-production-history space-y-5">
+    <section className="v2-production-history v2-g5-history space-y-5">
       <header className="v2-history-header space-y-3">
         <Button
           variant="ghost"

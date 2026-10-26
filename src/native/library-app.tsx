@@ -1,5 +1,5 @@
-import { lazy, Suspense, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
-import { BookOpen, House, Settings } from "lucide-react";
+import { lazy, Suspense, useCallback, useEffect, useId, useLayoutEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
+import { BookOpen, House, ImagePlus, Link2, Search, Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   type RecipeDetails,
@@ -74,6 +74,7 @@ export function LibraryApp({
   finder?: FindRecipeService;
 }) {
   const { theme, changeTheme, warning: themeWarning } = useV2ThemePreference();
+  const addHelpId = useId();
   const shares = useMemo(() => share ?? openShareTargetRuntime(), [share]);
   const shareState = useSyncExternalStore(shares?.subscribe ?? noShareSubscribe, shares?.snapshot ?? noShareSnapshot, noShareSnapshot);
   const intake=useMemo(()=>ai??openAiIntakeRuntime(store,backup),[ai,store,backup]);
@@ -499,11 +500,11 @@ export function LibraryApp({
         </div>
       </aside>}
       {shareState.unavailable && <aside role="status" className="v2-share-notice v2-task"><p>暂时无法接收分享，本地菜谱仍可正常使用。</p><Button className="min-h-11 mt-2" variant="outline" onClick={() => shares?.retry()}>重试接收分享</Button></aside>}
-      <NativeV2Sheet open={addOpen} onOpenChange={setAddOpen} title="添加菜谱" description="手动记录始终可离线使用；AI 整理和网页读取是可选联网能力。"><div className="v2-action-list">
-        <V2Button variant="text" disabled={busy} onClick={()=>{setAddOpen(false);setView("new");}}>手动录入</V2Button>
-        <V2Button variant="text" disabled={busy} aria-label="AI 整理" onClick={()=>{setAddOpen(false);setView("ai-input");}}>文字／截图 AI 整理</V2Button>
-        <V2Button variant="text" disabled={busy} onClick={()=>void openLinkImport()}>从网页链接导入</V2Button>
-        <V2Button variant="text" disabled={busy} onClick={()=>void openFinder()}>帮我找做法</V2Button>
+      <NativeV2Sheet open={addOpen} onOpenChange={setAddOpen} title="添加菜谱" description="手动记录始终可离线使用；AI 整理和网页读取是可选联网能力。"><div className="v2-action-list v2-g5-add-list">
+        <V2Button variant="text" disabled={busy} aria-label="手动录入" aria-describedby={`${addHelpId}-manual`} onClick={()=>{setAddOpen(false);setView("new");}}><BookOpen aria-hidden="true" /><span><strong>手动录入</strong><span id={`${addHelpId}-manual`}>无需联网，先记菜名即可</span></span></V2Button>
+        <V2Button variant="text" disabled={busy} aria-label="AI 整理" aria-describedby={`${addHelpId}-ai`} onClick={()=>{setAddOpen(false);setView("ai-input");}}><ImagePlus aria-hidden="true" /><span><strong>文字／截图 AI 整理</strong><span id={`${addHelpId}-ai`}>文字或截图，由你确认后开始整理</span></span></V2Button>
+        <V2Button variant="text" disabled={busy} aria-label="从网页链接导入" aria-describedby={`${addHelpId}-link`} onClick={()=>void openLinkImport()}><Link2 aria-hidden="true" /><span><strong>从网页链接导入</strong><span id={`${addHelpId}-link`}>先读取网页，是否使用 AI 由你决定</span></span></V2Button>
+        <V2Button variant="text" disabled={busy} aria-label="帮我找做法" aria-describedby={`${addHelpId}-find`} onClick={()=>void openFinder()}><Search aria-hidden="true" /><span><strong>帮我找做法</strong><span id={`${addHelpId}-find`}>输入菜名，主动开始后才联网寻找</span></span></V2Button>
       </div></NativeV2Sheet>
       {error && (
         <div role="alert" className="mb-5 rounded-xl border p-4">
@@ -580,7 +581,7 @@ export function LibraryApp({
             : fromLinkSettings ? { label: "返回本轮网页导入", onClick: () => { setFromLinkSettings(false); setView("link-input"); } }
             : fromAiSettings ? { label: "返回本轮 AI 整理", onClick: () => { setFromAiSettings(false); setView("ai-input"); } } : undefined} />
       ) : (
-        <CoreLibraryScreen records={records} library={view === "library"} query={search} filter={filter}
+        <CoreLibraryScreen records={records} library={view === "library"} query={search} filter={filter} readError={Boolean(error)}
           loading={loading} busy={busy || backupBusy(backupState) || backupState.phase === "uncertain"} page={page}
           onQuery={value => { setSearch(value); setPage(0); }} onFilter={value => { setFilter(value); setPage(0); }}
           onPage={setPage} onOpen={id => void open(id)} onLibrary={() => void navigate("library")}

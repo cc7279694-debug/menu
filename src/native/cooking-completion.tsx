@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { pickLocalImage, saveLocalImage, usesNativeImagePicker } from "./media";
 import { LocalImage } from "./local-image";
+import { CircleCheck } from "lucide-react";
 export type CookingCompletionProps = {
   record: CookingRecord;
   onUpdate: (extras: CookingRecordExtras) => Promise<CookingRecord>;
@@ -99,7 +100,7 @@ export function CookingCompletion({
     });
   }
   return (
-    <section className="v2-production-form v2-completion space-y-5">
+    <section className="v2-production-form v2-completion v2-g5-completion space-y-5">
       <header className="v2-history-header space-y-3">
         <Button
           variant="ghost"
@@ -109,7 +110,7 @@ export function CookingCompletion({
         >
           返回菜谱
         </Button>
-        <h2 className="v2-page-title text-2xl font-semibold">已记录做过这道菜</h2>
+        <h2 className="v2-page-title text-2xl font-semibold"><CircleCheck aria-hidden="true" />已记录做过这道菜</h2>
         <p>
           做菜时间：
           <time dateTime={record.cookedAt}>
@@ -126,7 +127,7 @@ export function CookingCompletion({
           <LocalImage
             path={value.finishedPhotoPath}
             alt="这次的成品照片"
-            className="max-h-72 w-full rounded-xl object-cover"
+            className="v2-completion-photo max-h-72 w-full rounded-xl object-cover"
           />
         )}
         {usesNativeImagePicker() ? (
@@ -184,6 +185,7 @@ export function CookingCompletion({
           </div>
         )}
       </div>
+      <div className="v2-completion-extras">
       <label className="v2-field-label block" htmlFor={`${id}-evaluation`}>
         这次感觉（可选）
         <select
@@ -220,6 +222,7 @@ export function CookingCompletion({
           }
         />
       </label>
+      </div>
       {error && (
         <div
           role="alert"
@@ -232,7 +235,7 @@ export function CookingCompletion({
         </div>
       )}
       {status && <p role="status">{status}</p>}
-      <div className="v2-form-actions flex flex-wrap gap-3">
+      <div className="v2-form-actions v2-completion-footer flex flex-wrap gap-3">
         <Button
           className="min-h-11"
           disabled={busy}

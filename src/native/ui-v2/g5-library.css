@@ -1,0 +1,41 @@
+/* G5 library presentation only: existing theme tokens, rows and query owners. */
+.recipio-ui-v2 .v2-g5-library .v2-home-controls { padding-block: 10px 12px; }
+.recipio-ui-v2 .v2-g5-library .v2-home-header { margin-bottom: 10px; }
+.recipio-ui-v2 .v2-g5-library .v2-brand h1 { font-size: 1.5rem; letter-spacing: .03em; }
+.recipio-ui-v2 .v2-g5-library .v2-entry-grid { gap: 10px; margin-top: 18px; }
+.recipio-ui-v2 .v2-g5-library .v2-entry-card { padding: 12px; }
+.recipio-ui-v2 .v2-g5-library .v2-entry-copy { gap: 2px; }
+.recipio-ui-v2 .v2-g5-library .v2-section-heading { margin-bottom: 10px; }
+.recipio-ui-v2 .v2-g5-library .v2-section-heading h2 { font-size: 1.125rem; }
+.recipio-ui-v2 .v2-g5-library .v2-recent-strip { align-items: flex-start; padding: 2px 2px 10px; margin-inline: -2px; }
+.recipio-ui-v2 .v2-g5-library .v2-recent-card { gap: 8px; }
+.recipio-ui-v2 .v2-g5-library .v2-recent-title,
+.recipio-ui-v2 .v2-g5-library .v2-row-text strong {
+  display: block;
+  overflow: visible;
+  -webkit-line-clamp: unset;
+  -webkit-box-orient: initial;
+  font-weight: 600;
+  line-height: 1.55;
+  overflow-wrap: anywhere;
+}
+.recipio-ui-v2 .v2-g5-library .v2-recent-meta { display: flex; flex-direction: column; gap: 2px; color: var(--v2-secondary); }
+.recipio-ui-v2 .v2-g5-library .v2-recent-meta time { font-size: .75rem; line-height: 1.6; }
+.recipio-ui-v2 .v2-g5-library .v2-card-duration { display: inline-flex; align-items: center; flex-wrap: wrap; gap: 5px; font-size: .875rem; line-height: 1.6; }
+.recipio-ui-v2 .v2-g5-library .v2-card-duration svg { width: 1em; height: 1em; flex: 0 0 auto; stroke-width: 1.6; }
+.recipio-ui-v2 .v2-g5-library .v2-recipe-row { padding-block: 14px; gap: 12px; }
+.recipio-ui-v2 .v2-g5-library .v2-row-text { gap: 6px; }
+.recipio-ui-v2 .v2-g5-library .v2-row-meta { display: flex; align-items: center; flex-wrap: wrap; gap: 4px 10px; color: var(--v2-secondary); }
+.recipio-ui-v2 .v2-g5-library .v2-row-preparation { font-size: .75rem; line-height: 1.6; }
+.recipio-ui-v2 .v2-g5-library .v2-empty { gap: 12px; padding-block: 28px; }
+.recipio-ui-v2 .v2-g5-library .v2-empty h3 { max-width: 100%; font-size: 1.25rem; font-weight: 600; line-height: 1.5; }
+.recipio-ui-v2 .v2-g5-library .v2-empty p { max-width: 36ch; }
+.recipio-ui-v2 .v2-g5-library .v2-empty-actions { display: flex; flex-wrap: wrap; gap: 8px; max-width: 100%; margin-top: 4px; }
+.recipio-ui-v2 .v2-g5-library .v2-pagination:empty { margin-top: 0; }
+@media (max-width: 359px) {
+  .recipio-ui-v2 .v2-g5-library .v2-entry-grid { gap: 8px; }
+  .recipio-ui-v2 .v2-g5-library .v2-recent-card > :is(img,[role="img"]) { height: 102px; }
+  .recipio-ui-v2 .v2-g5-library .v2-recipe-row { grid-template-columns: 64px minmax(0,1fr) 16px; gap: 10px; }
+  .recipio-ui-v2 .v2-g5-library .v2-recipe-row > :is(img,[role="img"]) { width: 64px; height: 64px; }
+  .recipio-ui-v2 .v2-g5-library .v2-production-filter { gap: 8px; }
+}

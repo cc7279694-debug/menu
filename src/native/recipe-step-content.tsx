@@ -1,5 +1,21 @@
 import type { RecipeDetails } from "./recipe-model";
 import { LocalImage } from "./local-image";
+
+/** The same saved preparation text/time is read in detail and kitchen reference. */
+export function RecipePreparations({ preparations }: { preparations: RecipeDetails["preparations"] }) {
+  return <ol className="v2-preparation-list">
+    {preparations.map((preparation, index) => <li key={index}>
+      <span aria-hidden="true">{index + 1}</span><div>
+        <p>{preparation.instruction}</p><p className="v2-secondary">
+          {preparation.minutes !== null ? `约 ${preparation.minutes} 分钟` : ""}
+          {preparation.timingText ? `${preparation.minutes !== null ? " · " : ""}${preparation.timingText}` : ""}
+          {preparation.minutes === null && !preparation.timingText ? "时间未记录" : ""}
+        </p>
+      </div>
+    </li>)}
+  </ol>;
+}
+
 export function RecipeStepContent({
   recipe,
   stepIndex,
@@ -14,8 +30,8 @@ export function RecipeStepContent({
   const step = recipe.steps[stepIndex];
   if (!step) return null;
   return (
-    <div className="min-w-0 space-y-3">
-      <p className={cooking ? "v2-cook-instruction" : "whitespace-pre-wrap break-words leading-relaxed"}>
+    <div className="v2-reading-step min-w-0 space-y-3">
+      <p className={cooking ? "v2-cook-instruction" : "v2-step-instruction whitespace-pre-wrap break-words leading-relaxed"}>
         {step.instruction}
       </p>
       {step.imagePath && (

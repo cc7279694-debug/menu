@@ -1,5 +1,5 @@
 import type { AiIntakeService } from "./service";
-import { useEffect, useRef, useState, useSyncExternalStore } from "react";
+import { useEffect, useId, useRef, useState, useSyncExternalStore } from "react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogTitle } from "@/components/ui/dialog";
 import { AI_LIMITS } from "./contract";
@@ -14,6 +14,7 @@ export function AiIntakeScreen({ service, onPreview, onCancel, onConfigureKey, o
 }) {
   const state = useSyncExternalStore(service.subscribe, service.snapshot, service.snapshot);
   const dialogAppearance = useV2DialogAppearance("v2");
+  const errorId = useId();
   const [configured, setConfigured] = useState<boolean | null>(null), [localError, setLocalError] = useState("");
   const [confirm, setConfirm] = useState(false), [discarding, setDiscarding] = useState(false), [cancelling, setCancelling] = useState(false);
   const [previewId, setPreviewId] = useState<string | null>(null);
@@ -51,16 +52,21 @@ export function AiIntakeScreen({ service, onPreview, onCancel, onConfigureKey, o
     <header className="v2-task-header"><h2 className="v2-page-title">整理菜谱</h2>
       <Button variant="outline" disabled={discarding || cancelling} onClick={() => { destination.current = "back"; setConfirm(true); }}>返回</Button>
     </header>
-    <label className="v2-field-label"><span>菜谱文字</span>
-      <textarea aria-describedby="ai-text-count" value={state.input.text} disabled={busy} onChange={e => service.updateInput({ ...state.input, text: e.target.value })} />
-    </label>
-    <p id="ai-text-count" className="v2-task-note">{count} / {AI_LIMITS.textCodePoints} 字符；支持口语、换行和 Emoji。</p>
+    <p className="v2-intake-lead">粘贴已有做法，或添加最多 {AI_LIMITS.imageCount} 张截图。整理后先检查，再保存到自己的菜谱。</p>
+    <div className="v2-intake-field">
+      <label className="v2-field-label"><span>菜谱文字</span>
+        <textarea aria-describedby={`ai-text-count${state.error || localError ? ` ${errorId}` : ""}`} aria-invalid={count > AI_LIMITS.textCodePoints || undefined}
+          placeholder="粘贴食材和做法，也可以只添加截图" value={state.input.text} disabled={busy} onChange={e => service.updateInput({ ...state.input, text: e.target.value })} />
+      </label>
+      <p id="ai-text-count" className="v2-task-note">{count} / {AI_LIMITS.textCodePoints} 字符；支持口语、换行和 Emoji。</p>
+    </div>
     <section className="v2-intake-images" aria-label="本轮截图">
       <div className="v2-task-header"><h3>本轮截图（{state.images.length} / {AI_LIMITS.imageCount}）</h3>
         <Button variant="outline" disabled={busy || !state.operationId || state.images.length >= AI_LIMITS.imageCount}
           onClick={() => void service.pickImage().catch(e => setLocalError(safeAiError(e).message))}>添加截图</Button>
       </div>
-      <p className="v2-task-note">可只选截图，也可补充文字。JPG、PNG 或 WebP 会在本机检查、缩小；每张原图不超过 {AI_LIMITS.originalImageBytes / 1048576} MiB / {AI_LIMITS.originalPixels / 10000} 万像素。截图不会成为菜谱图片，也不会进入备份。</p>
+      <p className="v2-task-note">可只选截图，也可补充文字。截图不会成为菜谱图片，也不会进入备份。</p>
+      <details className="v2-intake-technical"><summary>图片格式与大小</summary><p>JPG、PNG 或 WebP 会在本机检查、缩小；每张原图不超过 {AI_LIMITS.originalImageBytes / 1048576} MiB / {AI_LIMITS.originalPixels / 10000} 万像素。</p></details>
       {state.imageBusy && <p role="status" className="v2-task-status">正在选择或处理截图…</p>}
       {state.images.length === 0 && <p className="v2-task-note">还没有添加截图，也可以只用文字整理。</p>}
       <ol className="v2-intake-image-grid">{state.images.map((image, index) => <li key={image.id}>
@@ -77,13 +83,13 @@ export function AiIntakeScreen({ service, onPreview, onCancel, onConfigureKey, o
     </section>
     {state.pendingCleanup && <p role="status" className="v2-task-status">有临时截图尚未清理，下次启动会重试；已有菜谱与备份不受影响。</p>}
     {configured === false && <div className="v2-task-status"><p>尚未配置本机 AI 密钥，当前文字和截图会保留。</p><Button variant="outline" disabled={busy} onClick={onConfigureKey}>前往设置 AI 密钥</Button></div>}
-    {(state.error || localError) && <div className="v2-task-status" role="alert"><p>{state.error?.message ?? localError}</p>
+    {(state.error || localError) && <div id={errorId} className="v2-task-status" role="alert"><p>{state.error?.message ?? localError}</p>
       {onManual && <Button variant="outline" disabled={busy} onClick={() => { destination.current = "manual"; setConfirm(true); }}>改为手动录入</Button>}
     </div>}
-    <p className="v2-task-note v2-online-notice">可选联网功能。仅在点击整理后，将本轮文字与选中的截图按密钥类型发送给千问 AI 平台或北京百炼，可能产生 API 费用。AI 结果需要人工检查，不会自动保存。</p>
-    {state.phase === "requesting" ? <div className="v2-task-actions"><p role="status">{cancelling ? "正在取消本轮请求…" : "正在整理，仍可取消或返回…"}</p>
+    <p className="v2-task-note v2-online-notice">可选联网功能。仅点击整理后，本轮文字与截图才会发给千问 AI 平台或北京百炼，可能产生 API 费用。AI 结果需人工检查，不会自动保存。</p>
+    {state.phase === "requesting" ? <div className="v2-task-actions v2-intake-submit"><p role="status">{cancelling ? "正在取消本轮请求…" : "正在整理，仍可取消或返回…"}</p>
       <Button variant="outline" disabled={cancelling} onClick={() => void cancel()}>{cancelling ? "正在取消…" : "取消请求"}</Button>
-    </div> : <div className="v2-task-actions"><Button disabled={busy || !state.operationId || configured !== true || !state.input.text.trim() && !state.input.imageIds.length || count > AI_LIMITS.textCodePoints} onClick={() => void send()}>{state.phase === "error" ? "重试 AI 整理" : "开始 AI 整理"}</Button>
+    </div> : <div className="v2-task-actions v2-intake-submit"><Button disabled={busy || !state.operationId || configured !== true || !state.input.text.trim() && !state.input.imageIds.length || count > AI_LIMITS.textCodePoints} onClick={() => void send()}>{state.phase === "error" ? "重试 AI 整理" : "开始 AI 整理"}</Button>
       {!state.input.text.trim() && !state.input.imageIds.length && <p className="v2-task-note">输入文字或添加截图后即可整理。</p>}
     </div>}
     <Dialog open={confirm} onOpenChange={value => { if (!discarding && !cancelling) setConfirm(value); }}>

@@ -61,7 +61,7 @@ export function RecipeChangeHistory({
   }, [load]);
   const last = rows.at(-1);
   return (
-    <section className="v2-production-history space-y-5">
+    <section className="v2-production-history v2-g5-change-history space-y-5">
       <header className="v2-history-header space-y-3">
         <Button variant="ghost" className="min-h-11" onClick={onBack}>
           返回菜谱

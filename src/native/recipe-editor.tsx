@@ -44,6 +44,8 @@ export function RecipeEditor({
   const [value, setValue] = useState(() => initial ?? emptyDetails());
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
+  const errorRef = useRef<HTMLParagraphElement>(null);
+  useEffect(() => { if (error) errorRef.current?.focus(); }, [error]);
   const lock = useRef(false);
   const dirty =
     JSON.stringify(value) !== JSON.stringify(initial ?? emptyDetails());
@@ -184,7 +186,7 @@ export function RecipeEditor({
   }
   return (
     <form
-      className={presentationClass("space-y-6", "v2-production-form")}
+      className={presentationClass("space-y-6", "v2-production-form v2-g5-editor")}
       onSubmit={(e) => {
         e.preventDefault();
         if (lock.current) return;
@@ -573,6 +575,8 @@ export function RecipeEditor({
       {error && (
         <p
           role="alert"
+          ref={errorRef}
+          tabIndex={-1}
           className="rounded-xl border border-destructive p-3 text-sm"
         >
           {error}

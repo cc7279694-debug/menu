@@ -1,0 +1,23 @@
+/* Existing form/entry owners; no new flow, theme or persistent state. */
+.recipio-ui-v2 .v2-g5-add-list > .v2-button {
+  gap: 16px;
+  padding: 16px 4px;
+  border: 0;
+  border-bottom: 1px solid var(--v2-border);
+  border-radius: 0;
+  align-items: flex-start;
+}
+.v2-g5-add-list > .v2-button:last-child { border-bottom: 0; }
+.v2-g5-add-list > .v2-button > svg { flex: 0 0 22px; width: 22px; height: 22px; margin-top: 3px; color: var(--v2-action); }
+.v2-g5-add-list > .v2-button > span { min-width: 0; display: grid; gap: 4px; }
+.v2-g5-add-list strong { font-weight: 600; }
+.v2-g5-add-list span > span { color: var(--v2-secondary); font-size: .875rem; line-height: 1.6; }
+.v2-g5-add-list > .v2-button:active { background: var(--v2-muted); }
+.v2-g5-editor .v2-form-header { align-items: start; }
+.v2-g5-editor .v2-form-fields { min-width: 0; }
+.v2-g5-editor .v2-form-row { padding-block: 18px; }
+.v2-g5-editor :is(input, textarea) { font-size: 1rem; }
+.v2-g5-editor [role="alert"] { scroll-margin-block: 24px; line-height: 1.7; }
+.v2-g5-editor [role="alert"]:focus-visible { outline: 2px solid var(--v2-focus); outline-offset: 4px; }
+.v2-g5-editor .v2-form-footer { margin-top: 24px; }
+@media (max-width: 359px) { .v2-g5-editor .v2-form-row > .grid { grid-template-columns: minmax(0, 1fr); } }
