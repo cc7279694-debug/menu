@@ -1,5 +1,29 @@
 # Current State
 
+## R1 independent no-key acceptance — 2026-10-26
+
+**R1_NO_KEY_SCOPE_ACCEPTED — PASS WITH NOTES**, based on direct ChatGPT review
+of GitHub run [40288815966](https://github.com/cc7279694-debug/menu/actions/runs/40288815966)
+and R1 reports. Source at successful run
+`d830733ab1a0dc4d88ea6c06bc325524fcc88a1b`; prior feature HEAD
+`95cc8c5076eac7d62b5c12cf7c3ba7f37602bb9f` only changes docs afterward (verified one-commit diff).
+206 JS/TS files/1168 tests PASS; TS/Lint/WebView/isolation PASS; Android
+JVM/lint/debug/test APK/unsigned separate .next build PASS; owned cloud API36
+native instrumentation **11/11 PASS**, not a physical phone/Saf UI test.
+The source run had three successful CI jobs and used generated data only.
+
+**Overall R1 remains RECIPIO_R1_BLOCKED_OWNER_ACTION**, not accepted/frozen.
+User-managed private key/certificate, two separately verified offline backups,
+five signing Environment Secrets, real same-signer upgrade, final signed APK,
+real SAF UI and personal data migration all **NOT_RUN**.
+The signing Environment's configured limits and Secrets=0 are Codex-reported
+administration readback, not independently re-queried by ChatGPT's connector.
+Original v23, accepted cloud-preview v25 and all personal data untouched.
+Main remains `4a26b88658a309b0b06d24f42a764bdaf72eaaec`.
+No new source change, no cloud build re-run, no main merge, no key generation.
+
+[Independent scoped review](r1/R1_INDEPENDENT_REVIEW.md).
+
 ## R1 milestone — 2026-10-26
 
 R1 is authorized as one continuous milestone. S01-R accepted by ChatGPT and
