@@ -121,7 +121,7 @@ public class LocalBackupArchiveTest {
         assertEquals(1, counts.getInt("keyTips")); assertEquals(2, counts.getInt("changes"));
         assertEquals(1, counts.getInt("cookingRecords")); assertEquals(3, counts.getInt("media"));
         assertEquals(5, entries(archive).size());
-        assertTrue("IDs, times, positions, text and references survive actual ZIP serialization", data.similar(checked.data));
+        assertJsonValueEquals("data", data, checked.data);
         assertEquals(coverId, checked.data.getJSONArray("cookingRecords")
             .getJSONObject(0).getString("finishedPhotoAssetId"));
 
@@ -167,6 +167,33 @@ public class LocalBackupArchiveTest {
             if(defect.equals("version"))manifest.put("formatVersion",3);
             Map<String,byte[]> map=new LinkedHashMap<>(original); map.put("manifest.json",manifest.toString().getBytes("UTF-8")); File file=repack(map);
             assertThrows(IOException.class, () -> LocalBackupArchive.validate(file));
+        }
+    }
+    // Android's JSONObject does not expose the desktop library's similar().
+    // Compare object keys without ordering them; array order remains significant.
+    private static void assertJsonValueEquals(String path, Object expected, Object actual) throws Exception {
+        if (expected instanceof JSONObject) {
+            assertTrue(path, actual instanceof JSONObject);
+            JSONObject left = (JSONObject) expected, right = (JSONObject) actual;
+            assertEquals(path, left.length(), right.length());
+            for (Iterator<String> keys = left.keys(); keys.hasNext();) {
+                String key = keys.next();
+                assertTrue(path + "." + key, right.has(key));
+                assertJsonValueEquals(path + "." + key, left.get(key), right.get(key));
+            }
+        } else if (expected instanceof JSONArray) {
+            assertTrue(path, actual instanceof JSONArray);
+            JSONArray left = (JSONArray) expected, right = (JSONArray) actual;
+            assertEquals(path, left.length(), right.length());
+            for (int i = 0; i < left.length(); i++) {
+                assertJsonValueEquals(path + "[" + i + "]", left.get(i), right.get(i));
+            }
+        } else if (expected instanceof Number) {
+            assertTrue(path, actual instanceof Number);
+            assertEquals(path, 0, new java.math.BigDecimal(expected.toString())
+                .compareTo(new java.math.BigDecimal(actual.toString())));
+        } else {
+            assertEquals(path, expected, actual);
         }
     }
     @Test public void rejectsUnsafeSourceFilesAndDisguisedMime() throws Exception {
