@@ -101,6 +101,19 @@ jobs:
         working-directory: android
         run: |
           ./gradlew :app:assembleDebug :app:assembleDebugAndroidTest --no-daemon --max-workers=2 -Dorg.gradle.jvmargs="-Xmx1536m -XX:MaxMetaspaceSize=512m" -PrecipioCloudPreview=true -PapkVersionCode=25 -PapkVersionName=0.10.0-ui-v2-g4-rc2
+      - name: Compile separate UNSIGNED new-install identity (no private key)
+        working-directory: android
+        shell: bash
+        run: |
+          set -euo pipefail
+          ./gradlew :app:assembleRelease --no-daemon --max-workers=2 -Dorg.gradle.jvmargs="-Xmx1536m -XX:MaxMetaspaceSize=512m" -PrecipioSignedNext=true -PapkVersionCode=26 -PapkVersionName=0.10.0-ui-v2-g4-rc3
+          UNSIGNED=app/build/outputs/apk/release/app-release-unsigned.apk
+          test -s "$UNSIGNED"
+          IDENTITY=$("$ANDROID_HOME/build-tools/36.0.0/aapt" dump badging "$UNSIGNED" | head -n 1)
+          [[ "$IDENTITY" == *"name='app.recipio.local.next'"* ]] || { echo "::error::Unsafe release application ID."; exit 1; }
+          [[ "$IDENTITY" == *"versionCode='26'"* ]] || { echo "::error::Release versionCode unexpected."; exit 1; }
+          [[ "$IDENTITY" == *"versionName='0.10.0-ui-v2-g4-rc3-next'"* ]] || { echo "::error::Release versionName unexpected."; exit 1; }
+          echo "PASS: correct separate new-install package ID; UNSIGNED APK intentionally not uploaded."
       - name: Check identity, signature, and SHA-256
         shell: bash
         run: |
