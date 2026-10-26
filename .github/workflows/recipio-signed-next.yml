@@ -1,6 +1,6 @@
 name: RECIPIO signed new-install candidate (manual only)
 
-# Fail closed without owner-managed signing key and deliberate manual approval.
+# Three fresh hosted runners. Only the final signing step receives key material.
 on:
   workflow_dispatch:
     inputs:
@@ -9,7 +9,7 @@ on:
         type: string
         required: true
       version_code:
-        description: 'New-app increasing versionCode (at least 26)'
+        description: 'Unused, increasing new-app versionCode (at least 26)'
         type: number
         required: true
         default: 26
@@ -28,14 +28,15 @@ concurrency:
 
 jobs:
   web-checks:
-    # The historical packet tests use PowerShell and node:sqlite in jsdom.
-    # Full tests must run on hosted Windows, not the Android/Linux signer.
+    # Historical packet tests need PowerShell and node:sqlite in jsdom.
     if: github.ref == 'refs/heads/feat/recipio-ui-v2-glass-minimal' && inputs.confirmation == 'SIGN_SEPARATE_APP_ONLY'
     runs-on: windows-2025
     timeout-minutes: 45
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version: '22'
           cache: npm
@@ -52,47 +53,35 @@ jobs:
           npm run build:local
           node scripts/verify-ui-v2-isolation.mjs
 
-  signed-next:
+  build-unsigned:
     needs: web-checks
     if: github.ref == 'refs/heads/feat/recipio-ui-v2-glass-minimal' && inputs.confirmation == 'SIGN_SEPARATE_APP_ONLY'
     runs-on: ubuntu-24.04
-    # Owner-controlled protection and signing secrets, never repository-wide.
-    environment:
-      name: recipio-signing
     timeout-minutes: 65
     env:
       VITE_RECIPIO_VERSION: ${{ inputs.version_name }}-next
       RECIPIO_REQUEST_VERSION_CODE: ${{ inputs.version_code }}
       RECIPIO_REQUEST_VERSION_NAME: ${{ inputs.version_name }}
+    outputs:
+      apk_sha256: ${{ steps.unsigned.outputs.apk_sha256 }}
+      artifact_id: ${{ steps.upload.outputs.artifact-id }}
     steps:
-      - uses: actions/checkout@v4
-      - name: Fail closed unless all durable signing secrets are configured
-        env:
-          RECIPIO_NEXT_KEYSTORE_B64: ${{ secrets.RECIPIO_NEXT_KEYSTORE_B64 }}
-          RECIPIO_NEXT_STORE_PASSWORD: ${{ secrets.RECIPIO_NEXT_STORE_PASSWORD }}
-          RECIPIO_NEXT_KEY_ALIAS: ${{ secrets.RECIPIO_NEXT_KEY_ALIAS }}
-          RECIPIO_NEXT_KEY_PASSWORD: ${{ secrets.RECIPIO_NEXT_KEY_PASSWORD }}
-          RECIPIO_NEXT_CERT_SHA256: ${{ secrets.RECIPIO_NEXT_CERT_SHA256 }}
+      - name: Validate version inputs before executing any build
+        id: inputs
         shell: bash
         run: |
           set -euo pipefail
-          for secret in RECIPIO_NEXT_KEYSTORE_B64 RECIPIO_NEXT_STORE_PASSWORD RECIPIO_NEXT_KEY_ALIAS RECIPIO_NEXT_KEY_PASSWORD RECIPIO_NEXT_CERT_SHA256; do
-            if [[ -z "$(printenv "$secret" || true)" ]]; then
-              echo "::error::Required GitHub Actions secret $secret is missing. No APK will be built."
-              exit 1
-            fi
-          done
-          CODE="$RECIPIO_REQUEST_VERSION_CODE"
-          NAME="$RECIPIO_REQUEST_VERSION_NAME"
-          [[ "$CODE" =~ ^[0-9]+$ ]] && (( CODE >= 26 ))
-          [[ "$NAME" =~ ^[a-zA-Z0-9._-]+$ ]]
-          [[ "$RECIPIO_NEXT_CERT_SHA256" =~ ^[0-9a-f]{64}$ ]]
-          echo "Secret names and version inputs validated without printing private values."
-      - uses: actions/setup-node@v4
+          [[ "$RECIPIO_REQUEST_VERSION_CODE" =~ ^[1-9][0-9]{0,9}$ ]]
+          (( RECIPIO_REQUEST_VERSION_CODE >= 26 && RECIPIO_REQUEST_VERSION_CODE <= 2100000000 ))
+          [[ "$RECIPIO_REQUEST_VERSION_NAME" =~ ^[a-zA-Z0-9][a-zA-Z0-9._-]{0,99}$ ]]
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version: '22'
           cache: npm
-      - uses: actions/setup-java@v4
+      - uses: actions/setup-java@cf277c60eb25467037889841efdb72551f06f6c3 # v4
         with:
           distribution: temurin
           java-version: '21'
@@ -115,7 +104,100 @@ jobs:
           set -euo pipefail
           chmod +x ./gradlew
           ./gradlew :app:assembleRelease --no-daemon --max-workers=2 -Dorg.gradle.jvmargs="-Xmx1536m -XX:MaxMetaspaceSize=512m" -PrecipioSignedNext=true -PapkVersionCode="$RECIPIO_REQUEST_VERSION_CODE" -PapkVersionName="$RECIPIO_REQUEST_VERSION_NAME"
+      - name: Validate unsigned identity and freeze APK byte digest
+        id: unsigned
+        shell: bash
+        run: |
+          set -euo pipefail
+          SDK="$ANDROID_HOME/build-tools/36.0.0"
+          UNSIGNED=android/app/build/outputs/apk/release/app-release-unsigned.apk
+          test -f "$UNSIGNED" && test -s "$UNSIGNED" && test ! -L "$UNSIGNED"
+          BADGING=$("$SDK/aapt" dump badging "$UNSIGNED" | sed -n '1p')
+          [[ "$BADGING" == "package: name='app.recipio.local.next' versionCode='$RECIPIO_REQUEST_VERSION_CODE' versionName='$RECIPIO_REQUEST_VERSION_NAME-next' "* ]] || { echo "::error::Unsigned package or version mismatch."; exit 1; }
+          if "$SDK/apksigner" verify "$UNSIGNED" >/dev/null 2>&1; then
+            echo "::error::Build output is already signed; refusing it."
+            exit 1
+          fi
+          mkdir unsigned-artifacts
+          cp "$UNSIGNED" unsigned-artifacts/app-release-unsigned.apk
+          APK_SHA=$(sha256sum unsigned-artifacts/app-release-unsigned.apk | cut -d ' ' -f 1)
+          [[ "$APK_SHA" =~ ^[0-9a-f]{64}$ ]]
+          printf '%s  app-release-unsigned.apk\n' "$APK_SHA" > unsigned-artifacts/SHA256SUMS.txt
+          printf 'apk_sha256=%s\n' "$APK_SHA" >> "$GITHUB_OUTPUT"
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        id: upload
+        with:
+          name: recipio-unsigned-next-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            unsigned-artifacts/app-release-unsigned.apk
+            unsigned-artifacts/SHA256SUMS.txt
+          retention-days: 1
+          if-no-files-found: error
+
+  sign-next:
+    needs: build-unsigned
+    if: github.ref == 'refs/heads/feat/recipio-ui-v2-glass-minimal' && inputs.confirmation == 'SIGN_SEPARATE_APP_ONLY'
+    runs-on: ubuntu-24.04
+    # Approval applies only to this new runner; no source checkout or build here.
+    environment:
+      name: recipio-signing
+    timeout-minutes: 20
+    env:
+      RECIPIO_REQUEST_VERSION_CODE: ${{ inputs.version_code }}
+      RECIPIO_REQUEST_VERSION_NAME: ${{ inputs.version_name }}
+      RECIPIO_EXPECTED_APK_SHA256: ${{ needs.build-unsigned.outputs.apk_sha256 }}
+      RECIPIO_UNSIGNED_ARTIFACT_ID: ${{ needs.build-unsigned.outputs.artifact_id }}
+    steps:
+      - name: Reject missing or ambiguous artifact bindings before download
+        id: binding
+        shell: bash
+        run: |
+          set -euo pipefail
+          [[ "$RECIPIO_UNSIGNED_ARTIFACT_ID" =~ ^[1-9][0-9]*$ ]]
+          [[ "$RECIPIO_EXPECTED_APK_SHA256" =~ ^[0-9a-f]{64}$ ]]
+      - uses: actions/setup-java@cf277c60eb25467037889841efdb72551f06f6c3 # v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - name: Prepare official signing tools without project code
+        shell: bash
+        run: |
+          set -euo pipefail
+          sdkmanager "build-tools;36.0.0"
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          # No github-token/run-id/repository override: current workflow run only.
+          artifact-ids: ${{ needs.build-unsigned.outputs.artifact_id }}
+          merge-multiple: true
+          path: unsigned-artifacts
+      - name: Reject corrupt artifacts and unexpected unsigned identity
+        id: verify
+        shell: bash
+        run: |
+          set -euo pipefail
+          [[ "$RECIPIO_REQUEST_VERSION_CODE" =~ ^[1-9][0-9]{0,9}$ ]]
+          (( RECIPIO_REQUEST_VERSION_CODE >= 26 && RECIPIO_REQUEST_VERSION_CODE <= 2100000000 ))
+          [[ "$RECIPIO_REQUEST_VERSION_NAME" =~ ^[a-zA-Z0-9][a-zA-Z0-9._-]{0,99}$ ]]
+          [[ "$RECIPIO_EXPECTED_APK_SHA256" =~ ^[0-9a-f]{64}$ ]]
+          # Downloader digest mismatches are warnings; this byte check must FAIL.
+          mapfile -t FILES < <(find unsigned-artifacts -mindepth 1 -maxdepth 1 -printf '%f\n' | sort)
+          [[ "${#FILES[@]}" == 2 && "${FILES[0]}" == SHA256SUMS.txt && "${FILES[1]}" == app-release-unsigned.apk ]]
+          for file in unsigned-artifacts/app-release-unsigned.apk unsigned-artifacts/SHA256SUMS.txt; do
+            test -f "$file" && test -s "$file" && test ! -L "$file"
+          done
+          [[ "$(cat unsigned-artifacts/SHA256SUMS.txt)" == "$RECIPIO_EXPECTED_APK_SHA256  app-release-unsigned.apk" ]]
+          printf '%s  unsigned-artifacts/app-release-unsigned.apk\n' "$RECIPIO_EXPECTED_APK_SHA256" | sha256sum --check --status
+          SDK="$ANDROID_HOME/build-tools/36.0.0"
+          UNSIGNED=unsigned-artifacts/app-release-unsigned.apk
+          BADGING=$("$SDK/aapt" dump badging "$UNSIGNED" | sed -n '1p')
+          [[ "$BADGING" == "package: name='app.recipio.local.next' versionCode='$RECIPIO_REQUEST_VERSION_CODE' versionName='$RECIPIO_REQUEST_VERSION_NAME-next' "* ]] || { echo "::error::Downloaded package or version mismatch."; exit 1; }
+          if "$SDK/apksigner" verify "$UNSIGNED" >/dev/null 2>&1; then
+            echo "::error::Expected an unsigned APK."
+            exit 1
+          fi
       - name: Sign and validate exact package, version and trusted certificate
+        id: sign
+        # This is the ONLY step that can read any of the five signing secrets.
         env:
           RECIPIO_NEXT_KEYSTORE_B64: ${{ secrets.RECIPIO_NEXT_KEYSTORE_B64 }}
           RECIPIO_NEXT_STORE_PASSWORD: ${{ secrets.RECIPIO_NEXT_STORE_PASSWORD }}
@@ -125,38 +207,66 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          PRIVATE_KEYSTORE="$RUNNER_TEMP/recipio-private-next-keystore"
-          trap 'rm -f "$PRIVATE_KEYSTORE"' EXIT
+          for secret in RECIPIO_NEXT_KEYSTORE_B64 RECIPIO_NEXT_STORE_PASSWORD RECIPIO_NEXT_KEY_ALIAS RECIPIO_NEXT_KEY_PASSWORD RECIPIO_NEXT_CERT_SHA256; do
+            if [[ -z "${!secret:-}" ]]; then
+              echo "::error::Required signing secret $secret is missing. No signed APK will be produced."
+              exit 1
+            fi
+          done
+          [[ "$RECIPIO_NEXT_CERT_SHA256" =~ ^[0-9a-f]{64}$ ]]
+          [[ "$RECIPIO_REQUEST_VERSION_CODE" =~ ^[1-9][0-9]{0,9}$ ]]
+          (( RECIPIO_REQUEST_VERSION_CODE >= 26 && RECIPIO_REQUEST_VERSION_CODE <= 2100000000 ))
+          [[ "$RECIPIO_REQUEST_VERSION_NAME" =~ ^[a-zA-Z0-9][a-zA-Z0-9._-]{0,99}$ ]]
+          [[ "$RECIPIO_EXPECTED_APK_SHA256" =~ ^[0-9a-f]{64}$ ]]
+          printf '%s  unsigned-artifacts/app-release-unsigned.apk\n' "$RECIPIO_EXPECTED_APK_SHA256" | sha256sum --check --status
           umask 077
+          PRIVATE_DIR=$(mktemp -d "$RUNNER_TEMP/recipio-signing.XXXXXXXX")
+          OUTPUT="signed-artifacts/recipio-ui-v2-next-v$RECIPIO_REQUEST_VERSION_CODE.apk"
+          cleanup() {
+            result=$?
+            rm -rf -- "$PRIVATE_DIR"
+            if (( result != 0 )); then rm -f -- "$OUTPUT"; fi
+            exit "$result"
+          }
+          trap cleanup EXIT
+          PRIVATE_KEYSTORE="$PRIVATE_DIR/keystore"
           printf '%s' "$RECIPIO_NEXT_KEYSTORE_B64" | base64 --decode > "$PRIVATE_KEYSTORE"
+          unset RECIPIO_NEXT_KEYSTORE_B64
           test -s "$PRIVATE_KEYSTORE"
           SDK="$ANDROID_HOME/build-tools/36.0.0"
-          UNSIGNED=android/app/build/outputs/apk/release/app-release-unsigned.apk
-          OUTPUT=signed-artifacts/recipio-ui-v2-next-v$RECIPIO_REQUEST_VERSION_CODE.apk
-          test -s "$UNSIGNED"
-          mkdir -p signed-artifacts
-          # Align before v2/v3 signing; no build-time stage can read the key.
-          ALIGNED="$RUNNER_TEMP/recipio-next-aligned.apk"
+          UNSIGNED=unsigned-artifacts/app-release-unsigned.apk
+          ALIGNED="$PRIVATE_DIR/aligned.apk"
+          mkdir signed-artifacts
+          # Alignment MUST precede signing. Product/build scripts never run here.
           "$SDK/zipalign" -f -p 4 "$UNSIGNED" "$ALIGNED"
           "$SDK/zipalign" -c 4 "$ALIGNED"
-          "$SDK/apksigner" sign --ks "$PRIVATE_KEYSTORE" --ks-key-alias "$RECIPIO_NEXT_KEY_ALIAS" --ks-pass env:RECIPIO_NEXT_STORE_PASSWORD --key-pass env:RECIPIO_NEXT_KEY_PASSWORD --out "$OUTPUT" "$ALIGNED"
+          if ! "$SDK/apksigner" sign --ks "$PRIVATE_KEYSTORE" --ks-key-alias "$RECIPIO_NEXT_KEY_ALIAS" --ks-pass env:RECIPIO_NEXT_STORE_PASSWORD --key-pass env:RECIPIO_NEXT_KEY_PASSWORD --out "$OUTPUT" "$ALIGNED" >"$PRIVATE_DIR/sign.log" 2>&1; then
+            echo "::error::Signing failed. Private diagnostics will be removed."
+            exit 1
+          fi
+          unset RECIPIO_NEXT_STORE_PASSWORD RECIPIO_NEXT_KEY_ALIAS RECIPIO_NEXT_KEY_PASSWORD
           "$SDK/apksigner" verify "$OUTPUT"
-          BADGING=$("$SDK/aapt" dump badging "$OUTPUT" | head -n 1)
-          [[ "$BADGING" == *"name='app.recipio.local.next'"* ]] || { echo "::error::Unexpected application ID."; exit 1; }
-          [[ "$BADGING" == *"versionCode='$RECIPIO_REQUEST_VERSION_CODE'"* ]] || { echo "::error::Incorrect versionCode."; exit 1; }
-          [[ "$BADGING" == *"versionName='$RECIPIO_REQUEST_VERSION_NAME-next'"* ]] || { echo "::error::Incorrect versionName."; exit 1; }
-          "$SDK/apksigner" verify --print-certs "$OUTPUT" > signed-artifacts/PUBLIC_SIGNER_CERTIFICATE.txt
-          ACTUAL=$(sed -n 's/^Signer #1 certificate SHA-256 digest: //p' signed-artifacts/PUBLIC_SIGNER_CERTIFICATE.txt | head -n 1 | tr '[:upper:]' '[:lower:]')
-          [[ -n "$ACTUAL" && "$ACTUAL" == "$RECIPIO_NEXT_CERT_SHA256" ]] || { echo "::error::Signer certificate does not match pinned owner fingerprint."; exit 1; }
+          BADGING=$("$SDK/aapt" dump badging "$OUTPUT" | sed -n '1p')
+          [[ "$BADGING" == "package: name='app.recipio.local.next' versionCode='$RECIPIO_REQUEST_VERSION_CODE' versionName='$RECIPIO_REQUEST_VERSION_NAME-next' "* ]] || { echo "::error::Signed package or version mismatch."; exit 1; }
+          CERT_INFO=$("$SDK/apksigner" verify --print-certs "$OUTPUT")
+          COUNT=$(printf '%s\n' "$CERT_INFO" | grep -Ec '^Signer #[0-9]+ certificate SHA-256 digest: ')
+          [[ "$COUNT" == 1 ]]
+          ACTUAL=$(printf '%s\n' "$CERT_INFO" | sed -n 's/^Signer #1 certificate SHA-256 digest: //p' | tr '[:upper:]' '[:lower:]')
+          [[ "$ACTUAL" == "$RECIPIO_NEXT_CERT_SHA256" ]] || { echo "::error::Signer certificate does not match pinned owner fingerprint."; exit 1; }
+          printf 'Signer certificate SHA-256: %s\n' "$ACTUAL" > signed-artifacts/PUBLIC_SIGNER_CERTIFICATE.txt
           sha256sum "$OUTPUT" > signed-artifacts/SHA256SUMS.txt
-          printf '%s\n' 'NEW, SEPARATE app.recipio.local.next — not compatible with existing app.recipio.local signing/data identity.' > signed-artifacts/READ_ME_FIRST.txt
-          printf '%s\n' 'Portable .recipio import must be explicitly chosen and confirmed on the new install. Keep the old App untouched.' >> signed-artifacts/READ_ME_FIRST.txt
-          printf '%s\n' 'Private signing key is NOT in this APK. Preserve the owner-managed GitHub secrets and encrypted backup.' >> signed-artifacts/READ_ME_FIRST.txt
-          printf '%s\n' 'NOT G4 ACCEPTED: migration, IME/Back, TalkBack and performance retain their separate gates.' >> signed-artifacts/READ_ME_FIRST.txt
+          printf '%s\n' 'NEW, SEPARATE app.recipio.local.next — cannot update app.recipio.local.' > signed-artifacts/READ_ME_FIRST.txt
+          printf '%s\n' 'Keep the old app and its data. Any local backup transfer requires separate user confirmation.' >> signed-artifacts/READ_ME_FIRST.txt
+          printf '%s\n' 'Only install future upgrades signed by this same certificate, with increasing versionCode.' >> signed-artifacts/READ_ME_FIRST.txt
+          printf '%s\n' 'NOT G4 ACCEPTED: migration, IME/Back, TalkBack and performance retain separate gates.' >> signed-artifacts/READ_ME_FIRST.txt
           cat signed-artifacts/SHA256SUMS.txt
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
-          name: recipio-signed-next-NOT-ACCEPTED
-          path: signed-artifacts/
+          name: recipio-signed-next-NOT-ACCEPTED-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            signed-artifacts/recipio-ui-v2-next-v${{ inputs.version_code }}.apk
+            signed-artifacts/PUBLIC_SIGNER_CERTIFICATE.txt
+            signed-artifacts/SHA256SUMS.txt
+            signed-artifacts/READ_ME_FIRST.txt
           retention-days: 14
           if-no-files-found: error
