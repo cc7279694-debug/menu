@@ -1,5 +1,22 @@
 # Current State
 
+## R1 milestone — 2026-10-26
+
+R1 is authorized as one continuous milestone. S01-R accepted by ChatGPT and
+PR2 merged to main `4a26b88658a309b0b06d24f42a764bdaf72eaaec`.
+Main/feature signing workflow blobs match; protected `recipio-signing` has
+zero Secrets. No G4 product merge or overall freeze.
+
+Owner has no two offline backup media and explicitly requested completion of
+the no-key work first. Signing/certificate custody/provisioning remains
+**BLOCKED_OWNER_ACTION_NO_OFFLINE_MEDIA**. Do not generate replacement keys,
+capture private input, sign a formal candidate or touch personal phone data.
+
+Synthetic migration/archive coverage and isolated cloud-native verification
+are being prepared. See [R1 execution](r1/R1_EXECUTION.md) and
+[actual verification](r1/R1_VERIFICATION.md). The older sections below are
+historical stage receipts, not current Environment/main facts.
+
 ## Signing workflow registered — 2026-10-26
 
 **PR #1 merged as explicitly authorized**, squash commit

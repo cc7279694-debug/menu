@@ -69,6 +69,79 @@ public class LocalBackupArchiveTest {
         assertArrayEquals(PNG, Files.readAllBytes(old.toPath()));
         assertThrows(IOException.class, () -> LocalBackupArchive.stage(v,root,generation));
     }
+    @Test public void completeV2ArchiveStagesCurrentHistoricalAndSharedCookingMediaIntoIndependentRoot() throws Exception {
+        // Frozen, generated v1 fixture: two recipes, complete details, two changes
+        // and three distinct PNGs. No user archive or Android app directory is used.
+        File golden = new File(folder.newFolder(), "golden-v1.recipio");
+        try (InputStream in = getClass().getResourceAsStream("/golden-v1.recipio")) {
+            assertNotNull(in); Files.copy(in, golden.toPath());
+        }
+        assertEquals("6553458a80d0bb38dce32ca791a64f30ea27f569df3ffc034ae7789874e3d313", LocalBackupArchive.hash(golden));
+        LocalBackupArchive.Validated legacy = LocalBackupArchive.validate(golden);
+        JSONObject data = new JSONObject(legacy.data.toString());
+        JSONObject recipe = data.getJSONArray("recipes").getJSONObject(1);
+        String coverId = recipe.getString("coverAssetId");
+        String stepId = data.getJSONArray("steps").getJSONObject(1).getString("imageAssetId");
+        String historicalId = data.getJSONArray("changes").getJSONObject(1)
+            .getJSONObject("before").getString("coverAssetId");
+        assertEquals(3, new HashSet<>(Arrays.asList(coverId, stepId, historicalId)).size());
+        data.put("cookingRecords", new JSONArray().put(new JSONObject()
+            .put("id", "00000000-0000-4000-8000-000000000001")
+            .put("recipeId", recipe.getString("id"))
+            .put("cookedAt", "2026-10-26T00:00:00.000Z")
+            .put("finishedPhotoAssetId", coverId)
+            .put("evaluation", "tasty")
+            .put("note", "合成成品记录\n与封面共用图片 🍗")));
+
+        File sourceRoot = folder.newFolder(), destinationRoot = folder.newFolder();
+        assertNotEquals(sourceRoot.getCanonicalPath(), destinationRoot.getCanonicalPath());
+        File sourceImages = new File(sourceRoot, "images"); assertTrue(sourceImages.mkdir());
+        Map<String, byte[]> goldenEntries = entries(golden);
+        Map<String, byte[]> originalBytes = new LinkedHashMap<>();
+        List<String> sourcePaths = new ArrayList<>();
+        String sharedCoverPath = null;
+        for (LocalBackupArchive.Asset asset : legacy.assets) {
+            String sourcePath = "images/" + UUID.randomUUID() + ".png";
+            byte[] bytes = goldenEntries.get(asset.path); assertNotNull(bytes);
+            Files.write(new File(sourceRoot, sourcePath).toPath(), bytes);
+            sourcePaths.add(sourcePath); originalBytes.put(asset.assetId, bytes);
+            if (asset.assetId.equals(coverId)) sharedCoverPath = sourcePath;
+        }
+        // A shared reference must not create another physical media member.
+        assertNotNull(sharedCoverPath); sourcePaths.add(sharedCoverPath);
+        List<LocalBackupArchive.Asset> assets = LocalBackupArchive.inspect(sourceRoot, sourcePaths);
+        assertEquals(3, assets.size());
+        File archive = write(data, assets);
+        LocalBackupArchive.Validated checked = LocalBackupArchive.validate(archive);
+        JSONObject counts = checked.manifest.getJSONObject("counts");
+        assertEquals(2, checked.manifest.getInt("formatVersion"));
+        assertEquals(4, checked.manifest.getInt("databaseSchemaVersion"));
+        assertEquals(2, counts.getInt("recipes")); assertEquals(3, counts.getInt("ingredients"));
+        assertEquals(3, counts.getInt("steps")); assertEquals(1, counts.getInt("preparations"));
+        assertEquals(1, counts.getInt("keyTips")); assertEquals(2, counts.getInt("changes"));
+        assertEquals(1, counts.getInt("cookingRecords")); assertEquals(3, counts.getInt("media"));
+        assertEquals(5, entries(archive).size());
+        assertTrue("IDs, times, positions, text and references survive actual ZIP serialization", data.similar(checked.data));
+        assertEquals(coverId, checked.data.getJSONArray("cookingRecords")
+            .getJSONObject(0).getString("finishedPhotoAssetId"));
+
+        File destinationImages = new File(destinationRoot, "images"); assertTrue(destinationImages.mkdir());
+        File retainedImage = new File(destinationImages, "ffffffff-ffff-ffff-ffff-ffffffffffff.png");
+        byte[] retainedBytes = new byte[] {9, 8, 7}; Files.write(retainedImage.toPath(), retainedBytes);
+        String generation = UUID.randomUUID().toString();
+        Map<String, String> paths = LocalBackupArchive.stage(checked, destinationRoot, generation);
+        assertEquals(new HashSet<>(Arrays.asList(coverId, stepId, historicalId)), paths.keySet());
+        for (LocalBackupArchive.Asset asset : assets) {
+            File staged = new File(destinationRoot, paths.get(asset.assetId));
+            assertTrue(paths.get(asset.assetId).startsWith("images/generation-" + generation + "/"));
+            assertArrayEquals(originalBytes.get(asset.assetId), Files.readAllBytes(staged.toPath()));
+            assertEquals(asset.assetId, LocalBackupArchive.hash(staged));
+            assertEquals(asset.size, staged.length());
+            assertArrayEquals(originalBytes.get(asset.assetId), Files.readAllBytes(asset.source.toPath()));
+        }
+        assertArrayEquals(retainedBytes, Files.readAllBytes(retainedImage.toPath()));
+        assertEquals("6553458a80d0bb38dce32ca791a64f30ea27f569df3ffc034ae7789874e3d313", LocalBackupArchive.hash(golden));
+    }
     @Test public void rejectsTruncatedCentralDirectoryNonZipAndTrailingBytes() throws Exception {
         byte[] valid = Files.readAllBytes(write(empty(), Collections.emptyList()).toPath());
         for (byte[] bad : new byte[][] {new byte[0],{1,2,3},Arrays.copyOf(valid,valid.length-10),Arrays.copyOf(valid,valid.length+1)}) {
