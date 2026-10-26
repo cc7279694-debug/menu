@@ -81,6 +81,15 @@ This assistant's currently available GitHub connector cannot set repository
 secrets or ensure external key custody. The workflow will refuse to build
 without all values and the explicit manual confirmation phrase.
 
+**GitHub registration caveat:** `workflow_dispatch` workflows must first
+exist on the repository's default branch to be manually discoverable. This
+file currently exists **only on the feature branch**, because the accepted
+stable `main` is explicitly frozen. Therefore this workflow is a **prepared
+gate, not yet manually runnable**. Do not merge all G4 code into main merely
+to expose the button. A later explicitly authorized minimal workflow-only
+registration or carefully gated signing branch must be reviewed separately
+before dispatch.
+
 **DO NOT TRIGGER** until the owner accepts the new permanent package ID and
 the key custody arrangement. New packages from a lost signing key cannot
 receive ordinary APK upgrades.
