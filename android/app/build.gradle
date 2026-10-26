@@ -26,6 +26,12 @@ android {
             }
         }
         release {
+            // Opt-in, separately installed signed migration candidate.
+            // Without this flag original release identity is unchanged.
+            if (project.hasProperty('recipioSignedNext')) {
+                applicationIdSuffix ".next"
+                versionNameSuffix "-next"
+            }
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
