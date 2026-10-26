@@ -1,0 +1,32 @@
+name: RECIPIO G5 daily cooking verification
+on:
+  push:
+    branches: [feat/recipio-g5-daily-cooking]
+    paths: ['src/**', 'scripts/**', 'android/**', '.github/workflows/recipio-g5-cloud.yml', 'package*.json', '*config*', 'native/**']
+permissions:
+  contents: read
+concurrency:
+  group: recipio-g5-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  web-checks:
+    name: G5 Windows current-source regression
+    runs-on: windows-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - name: Targeted G5 UX tests (test-first RED before implementation)
+        run: npm test -- src/native/ui-v2/g5-library.test.tsx src/native/ui-v2/g5-intake.test.tsx src/native/ui-v2/g5-cooking.test.tsx src/native/ui-v2/g5-editor.test.tsx --pool=threads --maxWorkers=1 --no-file-parallelism --reporter=dot
+      - run: npm run typecheck
+      - run: npm run lint
+      - name: Full current-source JS and TS suite
+        run: npm test -- --pool=threads --maxWorkers=1 --no-file-parallelism --reporter=dot
+      - run: npm run build:local
+      - run: node scripts/verify-ui-v2-isolation.mjs
