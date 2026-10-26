@@ -12,10 +12,22 @@ the no-key work first. Signing/certificate custody/provisioning remains
 **BLOCKED_OWNER_ACTION_NO_OFFLINE_MEDIA**. Do not generate replacement keys,
 capture private input, sign a formal candidate or touch personal phone data.
 
-Synthetic migration/archive coverage and isolated cloud-native verification
-are being prepared. See [R1 execution](r1/R1_EXECUTION.md) and
-[actual verification](r1/R1_VERIFICATION.md). The older sections below are
-historical stage receipts, not current Environment/main facts.
+No-key verification PASS on source `d830733ab1a0dc4d88ea6c06bc325524fcc88a1b`,
+cloud run [40288815966](https://github.com/cc7279694-debug/menu/actions/runs/40288815966):
+206 files /1168 JS/TS tests; typecheck/lint/build/isolation; Gradle JVM/lint,
+debug/androidTest APKs and separate unsigned `.next` release; fresh API36 cloud
+emulator **11 native fixture tests PASS** (actual evidence read back).
+JVM task completion is verified; no unsupported per-case JVM total is claimed.
+The first cloud run exposed a test-only Android JSONObject compatibility error;
+it was fixed without changing production code, then the complete run passed.
+
+Permanent signing, two real offline backups, Secrets provisioning, same-signer
+`.next` upgrade, SAF restore UI and personal-phone migration are NOT_RUN.
+No signed candidate delivered, main/product/schema/Backup unchanged, no real AI.
+See [R1 execution](r1/R1_EXECUTION.md), [verification](r1/R1_VERIFICATION.md),
+[native receipt](r1/R1_NATIVE_EVIDENCE.txt) and [owner signing plan](r1/R1_OWNER_SIGNING_PLAN.md).
+Overall: **RECIPIO_R1_BLOCKED_OWNER_ACTION**, not G4 frozen/accepted.
+The older sections below are historical stage receipts, not current facts.
 
 ## Signing workflow registered — 2026-10-26
 
