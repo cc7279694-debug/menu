@@ -264,6 +264,48 @@ public class AiImeBackInstrumentedTest {
             +"}catch{window.__imePickDiagnostic={phase:'observer-error'};}}return p;};"
             +"if(c.nativePromise===original)window.__imePickDiagnostic={phase:'observer-unavailable'};return true;})()");
     }
+    private void collectSafePickerControls(AccessibilityNodeInfo node,JSONArray controls,int[] visited,int depth)throws Exception {
+        if(node==null||depth>12||visited[0]++>=128||controls.length()>=16)return;
+        String type=node.getClassName()==null?"":node.getClassName().toString();
+        if(node.isVisibleToUser()&&(node.isClickable()||type.endsWith("Button"))) {
+            String id=node.getViewIdResourceName(),label=positivePickerLabel(node);
+            controls.put(new JSONObject()
+                .put("id",id!=null&&id.length()<=200&&id.matches("[A-Za-z0-9_.]+:id/[A-Za-z0-9_]+")?id:"UNAVAILABLE")
+                .put("class",type.matches("[A-Za-z0-9_.$]{1,160}")?type:"UNAVAILABLE")
+                .put("enabled",node.isEnabled()).put("visible",node.isVisibleToUser()).put("clickable",node.isClickable())
+                .put("label",label.isEmpty()?"OTHER_OR_EMPTY":label));
+        }
+        for(int index=0;index<node.getChildCount()&&visited[0]<128&&controls.length()<16;index++)
+            collectSafePickerControls(node.getChild(index),controls,visited,depth+1);
+    }
+    private void generatedPickerFailureEvidence(JSONObject report,AccessibilityNodeInfo foreground)throws Exception {
+        JSONObject image=new JSONObject().put("status","NOT_REQUESTED");report.put("screenshot",image);
+        // The cloud harness grants this only after checking a fresh, isolated owned AVD.
+        // Normal connected tests and phones never opt in to screen capture diagnostics.
+        if(!"G5_SYNTHETIC_CLOUD_FIXTURE".equals(InstrumentationRegistry.getArguments().getString("g5SyntheticPickerDiagnostics")))return;
+        String pkg=foreground==null||foreground.getPackageName()==null?"":foreground.getPackageName().toString();
+        if(generatedImage==null||!systemPicker(pkg)){image.put("status","NOT_CAPTURED_OUTSIDE_GENERATED_PICKER");return;}
+        JSONArray controls=new JSONArray();collectSafePickerControls(foreground,controls,new int[]{0},0);report.put("pickerControls",controls);
+        Bitmap screen=null;File output=null;boolean created=false,saved=false;
+        try {
+            screen=instrumentation.getUiAutomation().takeScreenshot();
+            if(screen==null){image.put("status","NULL_SCREENSHOT");return;}
+            output=new File(instrumentation.getTargetContext().getCacheDir(),"g5-picker-diagnostic.png");
+            if(!output.createNewFile()){image.put("status","REFUSED_EXISTING_FILE");return;}
+            created=true;
+            try(FileOutputStream stream=new FileOutputStream(output)) {
+                if(!screen.compress(Bitmap.CompressFormat.PNG,100,stream))throw new IOException("Diagnostic encoding failed");
+                stream.getFD().sync();
+            }
+            if(!output.isFile()||output.length()==0)throw new IOException("Diagnostic file empty");
+            saved=true;image.put("status","SAVED").put("bytes",output.length()).put("width",screen.getWidth()).put("height",screen.getHeight());
+        } catch(IOException|RuntimeException ignored) {
+            image.put("status","NOT_SAVED");
+        } finally {
+            if(screen!=null)screen.recycle();
+            if(created&&!saved&&output!=null)output.delete();
+        }
+    }
     private void reportPickerFailureDiagnostic() {
         String output;
         try {
@@ -275,6 +317,7 @@ public class AiImeBackInstrumentedTest {
             String pkg=foreground==null||foreground.getPackageName()==null?"UNAVAILABLE":foreground.getPackageName().toString();
             if(!pkg.matches("[A-Za-z0-9_.]{1,160}"))pkg="UNAVAILABLE";
             report.put("foregroundPackage",pkg).put("targetAppForeground",instrumentation.getTargetContext().getPackageName().equals(pkg));
+            generatedPickerFailureEvidence(report,foreground);
             String ui=js("JSON.stringify((()=>{const a=document.querySelector('.v2-ai-intake');"
                 +"const message=a?.querySelector('[role=alert] > p')?.textContent?.trim()||'';"
                 +"const categories=new Map([['截图无法读取，请选择 JPG、PNG 或 WebP 图片。','image_invalid'],"

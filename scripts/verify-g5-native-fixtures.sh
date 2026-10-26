@@ -82,9 +82,32 @@ for apk in cloud-fixtures/app-fixture.apk cloud-fixtures/test-fixture.apk; do
   printf '%s\n' "$output" | tr -d '\r' | grep -Fxq Success || fail 'fixture install did not report success'
 done
 # The IME class injects Fake HTTP before entering intake; it must never contact AI.
+instrumentation_ok=1
 "$ADB" -s emulator-5554 shell am instrument -w -r \
+  -e g5SyntheticPickerDiagnostics G5_SYNTHETIC_CLOUD_FIXTURE \
   -e class app.recipio.local.LocalBackupPluginTest,app.recipio.local.LocalCookingStorageTest,app.recipio.local.AiImeBackInstrumentedTest,app.recipio.local.G5DailyCookingInstrumentedTest \
-  "$TEST_APP/$RUNNER" > "$EVIDENCE/instrumentation.txt" 2>&1 || fail 'instrumentation command failed'
+  "$TEST_APP/$RUNNER" > "$EVIDENCE/instrumentation.txt" 2>&1 || instrumentation_ok=0
+# Only this test-generated diagnostic, from this verified fresh owned AVD.
+# Never list/read recipe media, keys, databases or other private app files.
+if grep -Fq 'G5_IME_PICK_DIAGNOSTIC=' "$EVIDENCE/instrumentation.txt"; then
+  diagnostic_info=$("$ADB" -s emulator-5554 shell run-as "$APP" stat -c %F:%s cache/g5-picker-diagnostic.png 2>/dev/null | tr -d '\r') || diagnostic_info='UNAVAILABLE'
+  diagnostic_size=0
+  if [[ "$diagnostic_info" =~ ^regular\ file:([0-9]+)$ ]]; then diagnostic_size=${BASH_REMATCH[1]}; fi
+  if [[ "$diagnostic_size" =~ ^[0-9]+$ ]] && (( diagnostic_size > 0 && diagnostic_size <= 4194304 )); then
+    diagnostic_file="$EVIDENCE/generated-picker-diagnostic.png"
+    if "$ADB" -s emulator-5554 exec-out run-as "$APP" cat cache/g5-picker-diagnostic.png > "$diagnostic_file" 2>/dev/null \
+      && [[ "$(stat -c %s "$diagnostic_file")" == "$diagnostic_size" ]] \
+      && [[ "$(od -An -tx1 -N8 "$diagnostic_file" | tr -d ' \n')" == 89504e470d0a1a0a ]]; then
+      printf '%s\n' 'GENERATED_CLOUD_PICKER_DIAGNOSTIC_CAPTURED' > "$EVIDENCE/picker-diagnostic-status.txt"
+    else
+      rm -f -- "$diagnostic_file"
+      printf '%s\n' 'DIAGNOSTIC_UNAVAILABLE' > "$EVIDENCE/picker-diagnostic-status.txt"
+    fi
+  else
+    printf '%s\n' 'DIAGNOSTIC_UNAVAILABLE' > "$EVIDENCE/picker-diagnostic-status.txt"
+  fi
+fi
+[[ "$instrumentation_ok" == 1 ]] || fail 'instrumentation command failed'
 if grep -Eiq 'FAILURES!!!|INSTRUMENTATION_FAILED|INSTRUMENTATION_ABORTED|INSTRUMENTATION_RESULT: shortMsg=|Process crashed|INSTRUMENTATION_STATUS_CODE: -[1-4]' "$EVIDENCE/instrumentation.txt"; then
   fail 'instrumentation reported a failure, skip or crash'
 fi
