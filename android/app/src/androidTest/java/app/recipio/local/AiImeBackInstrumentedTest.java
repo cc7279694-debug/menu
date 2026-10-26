@@ -51,6 +51,8 @@ public class AiImeBackInstrumentedTest {
     private Uri generatedImage;
     private final AtomicInteger posts=new AtomicInteger();
     private JSONObject generatedDocumentSelection;
+    private JSONObject generatedDocumentLayout;
+    private boolean listViewRequested;
     private volatile boolean holdHttp;
     private final CountDownLatch httpEntered=new CountDownLatch(1),httpRelease=new CountDownLatch(1);
     private static void field(Object target,String name,Object value)throws Exception {Field f=target.getClass().getDeclaredField(name);f.setAccessible(true);f.set(target,value);}
@@ -174,7 +176,11 @@ public class AiImeBackInstrumentedTest {
         if(!"com.android.documentsui".equals(pkg)&&!"com.google.android.documentsui".equals(pkg))return false;
         // A thumbnail preview opens ACTION_VIEW in Photos. Select the exact filename's
         // associated document row instead; never tap the accessible tile's image center.
+        boolean generatedFileVisible=false;
         for(AccessibilityNodeInfo label:root.findAccessibilityNodeInfosByText(name)) {
+            String description=label.getContentDescription()==null?"":label.getContentDescription().toString();
+            if(label.isVisibleToUser()&&label.isEnabled()
+                &&(name.contentEquals(label.getText()==null?"":label.getText())||description.startsWith(name+",")))generatedFileVisible=true;
             if(!name.contentEquals(label.getText()==null?"":label.getText())||!label.isVisibleToUser()||!label.isEnabled())continue;
             AccessibilityNodeInfo target=label;
             for(int hop=0;target!=null&&hop<=4;hop++,target=target.getParent()) {
@@ -192,7 +198,34 @@ public class AiImeBackInstrumentedTest {
                 return true;
             }
         }
+        // API36's image grid can expose only thumbnails, whose center opens a viewer.
+        // Use the official menu_list control once, then let the existing condition
+        // polling find the exact filename in list layout. Never guess tap coordinates.
+        if(generatedFileVisible&&!listViewRequested)requestDocumentListLayout(root);
         return false;
+    }
+    private void requestDocumentListLayout(AccessibilityNodeInfo root)throws Exception {
+        for(AccessibilityNodeInfo label:root.findAccessibilityNodeInfosByText("List view")) {
+            if(!"List view".contentEquals(label.getText()==null?"":label.getText())
+                &&!"List view".contentEquals(label.getContentDescription()==null?"":label.getContentDescription()))continue;
+            if(!label.isVisibleToUser()||!label.isEnabled())continue;
+            AccessibilityNodeInfo target=label;
+            for(int hop=0;target!=null&&hop<=2;hop++,target=target.getParent()) {
+                boolean clickAction=false;
+                for(AccessibilityNodeInfo.AccessibilityAction action:target.getActionList())
+                    if(action.getId()==AccessibilityNodeInfo.ACTION_CLICK){clickAction=true;break;}
+                if(!target.isVisibleToUser()||!target.isEnabled()||!target.isClickable()||!clickAction)continue;
+                listViewRequested=true;
+                String id=target.getViewIdResourceName(),type=target.getClassName()==null?"":target.getClassName().toString();
+                generatedDocumentLayout=new JSONObject().put("label","List view")
+                    .put("id",id!=null&&id.matches("[A-Za-z0-9_.]+:id/[A-Za-z0-9_]+")?id:"UNAVAILABLE")
+                    .put("class",type.matches("[A-Za-z0-9_.$]{1,160}")?type:"UNAVAILABLE");
+                boolean dispatched=target.performAction(AccessibilityNodeInfo.ACTION_CLICK);
+                generatedDocumentLayout.put("dispatched",dispatched);
+                assertTrue("Official DocumentsUI List view control must accept ACTION_CLICK",dispatched);
+                return;
+            }
+        }
     }
     private void awaitGeneratedDocument(String name)throws Exception {
         long deadline=android.os.SystemClock.elapsedRealtime()+15000;
@@ -208,7 +241,7 @@ public class AiImeBackInstrumentedTest {
         if(node==null)return "";
         String text=node.getText()==null?"":node.getText().toString().trim();
         String description=node.getContentDescription()==null?"":node.getContentDescription().toString().trim();
-        for(String allowed:new String[]{"Select","Select (1)","Open","Add","Add (1)","Use","Use photo","Use this photo","Done",
+        for(String allowed:new String[]{"List view","Grid view","Select","Select (1)","Open","Add","Add (1)","Use","Use photo","Use this photo","Done",
                 "选择","选择 (1)","选择（1）","打开","添加","添加 (1)","添加（1）","使用","使用照片","使用此照片","完成"}) {
             if(allowed.equalsIgnoreCase(text)||allowed.equalsIgnoreCase(description))return allowed;
         }
@@ -284,7 +317,8 @@ public class AiImeBackInstrumentedTest {
         try {
             JSONObject report=new JSONObject().put("scope","GENERATED_PICK_FAILURE_DIAGNOSTIC_ONLY")
                 .put("privateFiles","NOT_READ").put("providerPosts",posts.get())
-                .put("generatedDocumentSelection",generatedDocumentSelection==null?JSONObject.NULL:generatedDocumentSelection);
+                .put("generatedDocumentSelection",generatedDocumentSelection==null?JSONObject.NULL:generatedDocumentSelection)
+                .put("generatedDocumentLayout",generatedDocumentLayout==null?JSONObject.NULL:generatedDocumentLayout);
             AccessibilityNodeInfo foreground=instrumentation.getUiAutomation().getRootInActiveWindow();
             String pkg=foreground==null||foreground.getPackageName()==null?"UNAVAILABLE":foreground.getPackageName().toString();
             if(!pkg.matches("[A-Za-z0-9_.]{1,160}"))pkg="UNAVAILABLE";
