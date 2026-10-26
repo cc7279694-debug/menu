@@ -336,6 +336,8 @@ async function coreFlows(page, context, directory, data) {
     assert.equal(saved.records.length, 1); assert.equal(saved.records[0].evaluation, "tasty");
     assert.equal(saved.records[0].note, "下次生抽少放一些。G5 合成测试记录。");
     assert(saved.records[0].finishedPhotoPath); assert.equal(saved.details.coverPath, initial.coverPath);
+    await page.getByRole("heading", { name: "上次下厨", exact: true }).evaluate(element =>
+      element.closest("section").scrollIntoView({ block: "start", behavior: "instant" }));
     await capture(page, "after/warm-ivory/latest-record-390");
     await click(page, "查看做菜记录"); await page.getByRole("heading", { name: "做菜记录", exact: true }).waitFor();
     await capture(page, "after/warm-ivory/history-390"); await click(page, "返回菜谱");
@@ -379,6 +381,8 @@ async function fakeProviderFlows() {
       await click(page, "开始 AI 整理"); await page.getByRole("heading", { name: "检查整理结果", exact: true }).waitFor();
       assert.equal(await page.getByRole("button", { name: "快速保存菜谱", exact: true }).isDisabled(), true);
       assert.equal(await page.evaluate(() => window.__g5Fixture.assertServiceReviewGate()), true);
+      await page.getByRole("region", { name: "AI 整理审核", exact: true }).evaluate(element =>
+        element.scrollIntoView({ block: "start", behavior: "instant" }));
       await capture(page, "after/warm-ivory/ai-preview-390", "FAKE_PROVIDER_BROWSER");
       await page.getByLabel("菜名", { exact: true }).fill("番茄炒蛋 · G5 合成检查");
       const gate = page.getByRole("checkbox", { name: "我已检查以上 AI 推断和缺失内容", exact: true }); await gate.check();

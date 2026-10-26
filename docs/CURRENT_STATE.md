@@ -10,16 +10,17 @@ DEFERRED_BY_USER; no new owner custody/signing task or phone installation.
 Presentation refinements implemented for library recovery/cards, add/intake
 guidance/review, detail/reference Sheet, actual last cooking record and optional
 extras. SQLite4 / Preview7 / Backup2 / Repository / Provider / Logo unchanged.
-Cloud run40298292479 at source4dbf2fc:210 JS/TS files /1184 PASS,
-189 JVM PASS (0 skipped), TS/lint/build/isolation PASS. Native20/21: the sole
-failure is screenshot selection before the Back action, still under diagnosis;
-the2 new actual manual-IME/cooking/Activity-restart cases PASS. Browser before3
-and after9 three-theme key screenshots and18 core layout conditions passed;
-the remaining flow stopped at a too-strict QA evaluation-field selector.
+Cloud run40306242741 at sourcef4d1e62:210 JS/TS files /1184 PASS,
+189 JVM PASS (0 skipped), TS/lint/build/isolation PASS. Browser16 grouped checks,
+20 geometry checks and25 actual screenshots PASS, with0 external origins/page
+errors/console errors. Native20/21: the sole failure is still before Back.
+Bounded diagnostics prove the generated image request remains pending in Google
+Photos (0 Provider posts), before Native image results or JS validation. The7
+other IME/Back and2 new manual-IME/cooking/Activity-restart cases PASS.
 This is not complete G5 validation or acceptance. Preserve all failed evidence.
 
-Next: controlled test-only picker diagnostics, QA selector correction and
-visual compact-card refinement, then fresh current-source cloud verification.
+Next: test-only positive system-picker confirmation within the original deadline,
+plus two screenshot framing corrections, then fresh source cloud verification.
 No safety-rule relaxation, unknown-data operation, main merge or release.
 See [G5 execution contract](g5/G5_EXECUTION.md). Older sections below retain
 their historical/module-specific meanings.

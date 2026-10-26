@@ -51,6 +51,9 @@ public class AiImeBackInstrumentedTest {
     private ExecutorService worker;
     private Uri generatedImage;
     private final AtomicInteger posts=new AtomicInteger();
+    private boolean pickerConfirmationAttempted;
+    private JSONObject pickerConfirmation;
+    private String pickerConfirmationLabel="";
     private volatile boolean holdHttp;
     private final CountDownLatch httpEntered=new CountDownLatch(1),httpRelease=new CountDownLatch(1);
     private static void field(Object target,String name,Object value)throws Exception {Field f=target.getClass().getDeclaredField(name);f.setAccessible(true);f.set(target,value);}
@@ -86,9 +89,11 @@ public class AiImeBackInstrumentedTest {
         assertTrue("WebView callback timeout",done.await(15,TimeUnit.SECONDS));
         return new JSONArray("["+reply.get()+"]").optString(0);
     }
-    private void until(String expression)throws Exception {
+    private interface ReadyPickerAction { void run()throws Exception; }
+    private void until(String expression)throws Exception { until(expression,null); }
+    private void until(String expression,ReadyPickerAction pickerAction)throws Exception {
         long deadline=android.os.SystemClock.elapsedRealtime()+15000;
-        do {if("true".equals(js(expression)))return;Thread.sleep(100);}while(android.os.SystemClock.elapsedRealtime()<deadline);
+        do {if("true".equals(js(expression)))return;if(pickerAction!=null)pickerAction.run();Thread.sleep(100);}while(android.os.SystemClock.elapsedRealtime()<deadline);
         fail("UI condition failed: "+expression);
     }
     private void click(String label)throws Exception {
@@ -182,6 +187,60 @@ public class AiImeBackInstrumentedTest {
         } while(android.os.SystemClock.elapsedRealtime()<deadline);
         fail("Real SAF control missing: "+label);
     }
+    private boolean systemPicker(String pkg) {
+        return "com.google.android.apps.photos".equals(pkg)||"com.android.documentsui".equals(pkg)
+            ||"com.google.android.documentsui".equals(pkg)||"com.android.providers.media.module".equals(pkg)
+            ||"com.google.android.providers.media.module".equals(pkg)||"com.google.android.photopicker".equals(pkg);
+    }
+    private String positivePickerLabel(AccessibilityNodeInfo node) {
+        if(node==null)return "";
+        String text=node.getText()==null?"":node.getText().toString().trim();
+        String description=node.getContentDescription()==null?"":node.getContentDescription().toString().trim();
+        for(String allowed:new String[]{"Select","Select (1)","Open","Add","Add (1)","Use","Use photo","Use this photo","Done",
+                "选择","选择 (1)","选择（1）","打开","添加","添加 (1)","添加（1）","使用","使用照片","使用此照片","完成"}) {
+            if(allowed.equalsIgnoreCase(text)||allowed.equalsIgnoreCase(description))return allowed;
+        }
+        return "";
+    }
+    private AccessibilityNodeInfo pickerConfirmation(AccessibilityNodeInfo node) {
+        if(node==null)return null;
+        String label=positivePickerLabel(node);
+        if(node.isVisibleToUser()&&node.isEnabled()&&!label.isEmpty()) {
+            AccessibilityNodeInfo target=node;
+            for(int hop=0;hop<3&&!target.isClickable()&&target.getParent()!=null;hop++)target=target.getParent();
+            String type=target.getClassName()==null?"":target.getClassName().toString();
+            String id=target.getViewIdResourceName()==null?"":target.getViewIdResourceName();
+            boolean button=type.equals("android.widget.Button")||type.equals("android.widget.ImageButton")||type.endsWith(".MaterialButton");
+            boolean identified=id.matches("[A-Za-z0-9_.]+:id/(?:[A-Za-z0-9]+_)*(?:select|confirm|done|open|add|use)(?:_[A-Za-z0-9]+)*");
+            boolean parentHasOtherLabel=target!=node&&positivePickerLabel(target).isEmpty()
+                &&(target.getText()!=null&&target.getText().length()>0||target.getContentDescription()!=null&&target.getContentDescription().length()>0);
+            if(target.isVisibleToUser()&&target.isEnabled()&&target.isClickable()&&(button||identified)&&!parentHasOtherLabel) {
+                pickerConfirmationLabel=label;return target;
+            }
+        }
+        for(int index=0;index<node.getChildCount();index++) {
+            AccessibilityNodeInfo found=pickerConfirmation(node.getChild(index));if(found!=null)return found;
+        }
+        return null;
+    }
+    private void confirmAlreadySelectedGeneratedFixture()throws Exception {
+        if(pickerConfirmationAttempted)return;
+        AccessibilityNodeInfo root=instrumentation.getUiAutomation().getRootInActiveWindow();
+        String pkg=root==null||root.getPackageName()==null?"":root.getPackageName().toString();
+        if(!systemPicker(pkg))return;
+        AccessibilityNodeInfo target=pickerConfirmation(root);if(target==null)return;
+        // This is called only after the exact generated filename was clicked.
+        // Attempt at most one positive system confirmation, never login/permission controls.
+        pickerConfirmationAttempted=true;
+        String id=target.getViewIdResourceName(),type=target.getClassName()==null?"":target.getClassName().toString();
+        pickerConfirmation=new JSONObject().put("scope","AFTER_EXACT_GENERATED_FILE_TAP")
+            .put("package",pkg).put("label",pickerConfirmationLabel)
+            .put("id",id!=null&&id.matches("[A-Za-z0-9_.]+:id/[A-Za-z0-9_]+")?id:"UNAVAILABLE")
+            .put("class",type.matches("[A-Za-z0-9_.$]{1,160}")?type:"UNAVAILABLE");
+        pickerConfirmation.put("dispatched",target.performAction(AccessibilityNodeInfo.ACTION_CLICK));
+        android.os.Bundle status=new android.os.Bundle();
+        status.putString("stream","\nG5_PICKER_CONFIRMATION="+pickerConfirmation+"\n");instrumentation.sendStatus(2,status);
+    }
     private void observePickerForFailureDiagnostics()throws Exception {
         // Observe only this generated pick. Return the exact original Promise and
         // values; no retry, request replacement, response mutation or extra call.
@@ -209,7 +268,9 @@ public class AiImeBackInstrumentedTest {
         String output;
         try {
             JSONObject report=new JSONObject().put("scope","GENERATED_PICK_FAILURE_DIAGNOSTIC_ONLY")
-                .put("privateFiles","NOT_READ").put("providerPosts",posts.get());
+                .put("privateFiles","NOT_READ").put("providerPosts",posts.get())
+                .put("pickerConfirmationAttempted",pickerConfirmationAttempted)
+                .put("pickerConfirmation",pickerConfirmation==null?JSONObject.NULL:pickerConfirmation);
             AccessibilityNodeInfo foreground=instrumentation.getUiAutomation().getRootInActiveWindow();
             String pkg=foreground==null||foreground.getPackageName()==null?"UNAVAILABLE":foreground.getPackageName().toString();
             if(!pkg.matches("[A-Za-z0-9_.]{1,160}"))pkg="UNAVAILABLE";
@@ -270,7 +331,7 @@ public class AiImeBackInstrumentedTest {
             Thread.sleep(100);
         } while(android.os.SystemClock.elapsedRealtime()<pickerDeadline);
         if(!selected){awaitNativeClick("Show roots");awaitNativeClick("Downloads");awaitNativeClick(name);}
-        try { until("!!document.querySelector('img[alt=\"截图 1\"]')"); }
+        try { until("!!document.querySelector('img[alt=\"截图 1\"]')",this::confirmAlreadySelectedGeneratedFixture); }
         catch(AssertionError failure) { reportPickerFailureDiagnostic(); throw failure; }
     }
     @Test public void selectedTempImages_surviveImeBack()throws Exception {
