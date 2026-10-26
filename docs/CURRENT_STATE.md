@@ -1,5 +1,27 @@
 # Current State
 
+## Signing/migration preparation — 2026-10-26
+
+**PREPARATION_ACCEPTED_FOR_CONTINUATION — PASS WITH NOTES**, not G4 accepted.
+Cloud CI run `40259291222` at implementation/test commit
+`0092bed5ad09e667fc802e0c63a6bfe78be49bbd` ended SUCCESS on both
+hosted Windows and Android jobs. New cross-install portable Backup v2 service
+tests are 2 cases in the **205 files / 1163 JS/TS tests PASS**; Typecheck,
+lint 0 errors / 5 historical image warnings, Vite build, production isolation
+PASS (305 modules / 0 showcase / 0 fixtures). Android JVM/lint/build PASS.
+Unsigned opt-in Release code26/name0.10.0-ui-v2-g4-rc3-next compiled with
+`app.recipio.local.next` and package assertion PASS; intentionally not
+uploaded, **not installable as a release**. This is no true Android migration.
+
+A secret-gated signing workflow is prepared on the feature branch but has
+**NOT_RUN** and cannot be manually dispatched via workflow_dispatch until it
+exists on GitHub default branch (which remains unchanged). No signer private
+key, cert fingerprint or GitHub secrets have been provisioned. The new app ID
+is a proposal awaiting explicit permanent-identity and key-custody approval.
+See `ui-v2/G4_SIGNING_MIGRATION_PLAN.md`. The original v23, accepted cloud
+preview v25, user data and G3/G4 historical test statuses remain unchanged.
+No main merge/tag/deploy and no overall G4 freeze.
+
 ## Cloud-preview phone feedback — 2026-10-26
 
 **CLOUD_PREVIEW_PHONE_SMOKE_ACCEPTED — PASS WITH NOTES** (limited to independent

@@ -53,9 +53,15 @@ app files between sandboxed identities.
 - It does **not** exercise Android SAF, native ZIP parsing, actual bytes or
   full-device data readback. Those are still device gates. Existing Java
   archive and connected tests remain separately scoped.
-- The cloud CI workflow performs an opt-in `app.recipio.local.next` unsigned
-  release **identity/build check only**, and never publishes the unsigned
-  APK. Its success must come from a real GitHub run, not this document.
+- GitHub Actions run [40259291222](https://github.com/cc7279694-debug/menu/actions/runs/40259291222)
+  **SUCCESS** at tested source `0092bed5ad09e667fc802e0c63a6bfe78be49bbd`:
+  205 JS/TS files / **1163 tests PASS**, Typecheck PASS, ESLint 0 errors /
+  5 historical warnings, production build/isolation PASS; Android JVM/lint/
+  debug build PASS. The new 2 migration checks are included, not extra.
+- Cloud CI compiled opt-in **UNSIGNED** release with
+  `app.recipio.local.next`, code26/name0.10.0-ui-v2-g4-rc3-next,
+  and verified the identity using aapt; PASS. It does **not** publish the
+  unsigned APK or prove native backup migration.
 
 ## Owner-managed persistent signing
 
