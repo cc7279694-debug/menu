@@ -6,16 +6,16 @@ G4 overall remains pending.
 
 ## The identity problem
 
-The accepted original \`app.recipio.local\` v23 has certificate
-SHA-256 \`29ded26bea44f1afe4fe383a302e4b507423d16223469d7da3fe578d9a7f83b9\`.
+The accepted original `app.recipio.local` v23 has certificate
+SHA-256 `29ded26bea44f1afe4fe383a302e4b507423d16223469d7da3fe578d9a7f83b9`.
 The successful cloud v25 experience APK has independent package
-\`app.recipio.local.cloudpreview\` and a non-persistent runner-generated signer.
+`app.recipio.local.cloudpreview` and a non-persistent runner-generated signer.
 It cannot overwrite or access the original user's data. Future GitHub
 runner-generated debug APK signatures are also not guaranteed to match.
 
 Instead of risking an incompatible reinstall, the proposed *separate*, future
-candidate package is \`app.recipio.local.next\`. Its package identity is only
-opted in with \`-PrecipioSignedNext=true\`. Merely compiling the unsigned
+candidate package is `app.recipio.local.next`. Its package identity is only
+opted in with `-PrecipioSignedNext=true`. Merely compiling the unsigned
 release variant is not enough to deliver a signed upgradeable application.
 
 ## Non-destructive data transfer
@@ -27,7 +27,7 @@ changes and cooking history, not Android app keys or the appearance selection.
 Future user-directed procedure, **not yet performed on a phone**:
 
 1. Keep the original app installed. In its Settings open Data & Backup and
-   export a complete local \`.recipio\` file with the Android system picker.
+   export a complete local `.recipio` file with the Android system picker.
 2. Keep that file privately in local storage. **Backups are not encrypted** and
    can contain personal photos and notes. Do not upload them to ChatGPT,
    GitHub, a CI runner, a public folder or a shared link.
@@ -46,30 +46,30 @@ app files between sandboxed identities.
 
 ## Evidence and its scope
 
-- \`src/native/backup/independent-install-migration.test.mjs\` uses two
+- `src/native/backup/independent-install-migration.test.mjs` uses two
   separately instantiated SQLite repositories, realistic portable v2 assets,
   original recipe + prior modifications + cooking photo/record, explicit
   preview/cancel/confirm semantics and malformed-media rejection.
 - It does **not** exercise Android SAF, native ZIP parsing, actual bytes or
   full-device data readback. Those are still device gates. Existing Java
   archive and connected tests remain separately scoped.
-- The cloud CI workflow performs an opt-in \`app.recipio.local.next\` unsigned
+- The cloud CI workflow performs an opt-in `app.recipio.local.next` unsigned
   release **identity/build check only**, and never publishes the unsigned
   APK. Its success must come from a real GitHub run, not this document.
 
 ## Owner-managed persistent signing
 
 Manual-only workflow:
-\`.github/workflows/recipio-signed-next.yml\`
+`.github/workflows/recipio-signed-next.yml`
 
 Five GitHub **Actions repository secrets** required before any signed build:
 
-- \`RECIPIO_NEXT_KEYSTORE_B64\`: base64 representation of an owner-secured
+- `RECIPIO_NEXT_KEYSTORE_B64`: base64 representation of an owner-secured
   Android JKS/PKCS12 signing keystore
-- \`RECIPIO_NEXT_STORE_PASSWORD\`
-- \`RECIPIO_NEXT_KEY_ALIAS\`
-- \`RECIPIO_NEXT_KEY_PASSWORD\`
-- \`RECIPIO_NEXT_CERT_SHA256\`: lowercase 64-digit digest of the key's public
+- `RECIPIO_NEXT_STORE_PASSWORD`
+- `RECIPIO_NEXT_KEY_ALIAS`
+- `RECIPIO_NEXT_KEY_PASSWORD`
+- `RECIPIO_NEXT_CERT_SHA256`: lowercase 64-digit digest of the key's public
   certificate; pinned for every future signed app build
 
 Never enter private keys, keystore passwords or base64 signing keys into
