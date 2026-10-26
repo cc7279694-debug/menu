@@ -1,0 +1,35 @@
+name: RECIPIO G6 serving adjustment verification
+on:
+  push:
+    branches: [feat/recipio-g6-serving-adjustment]
+    paths: ['src/**', 'scripts/**', 'android/**', '.github/workflows/recipio-g6-cloud.yml', 'package*.json', '*config*', 'native/**']
+permissions:
+  contents: read
+concurrency:
+  group: recipio-g6-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  web-checks:
+    name: G6 test-first targeted behavior
+    runs-on: windows-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - name: Frozen G5 affected behavior baseline
+        run: npm test -- src/native/ui-v2/g5-library.test.tsx src/native/ui-v2/g5-intake.test.tsx src/native/ui-v2/g5-cooking.test.tsx src/native/ui-v2/g5-editor.test.tsx src/native/ai/preview.test.tsx --pool=threads --maxWorkers=1 --no-file-parallelism --reporter=dot
+      - name: G6 pure calculation and actual LibraryApp requirements
+        run: npm test -- src/native/serving-adjustment.test.ts src/native/ui-v2/g6-serving-integration.test.tsx --pool=threads --maxWorkers=1 --no-file-parallelism --reporter=default --reporter=json --outputFile=output/g6-targeted.json
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: recipio-g6-targeted-${{ github.run_id }}-${{ github.run_attempt }}
+          path: output/g6-targeted.json
+          if-no-files-found: warn
+          retention-days: 7
