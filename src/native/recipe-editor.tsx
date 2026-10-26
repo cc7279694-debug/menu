@@ -45,7 +45,12 @@ export function RecipeEditor({
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const errorRef = useRef<HTMLParagraphElement>(null);
-  useEffect(() => { if (error) errorRef.current?.focus(); }, [error]);
+  const ownsErrorFocus = useRef(true);
+  useEffect(() => { if (error && ownsErrorFocus.current) errorRef.current?.focus(); }, [error]);
+  function explainError(message: string, focus = true) {
+    ownsErrorFocus.current = focus;
+    setError(message);
+  }
   const lock = useRef(false);
   const dirty =
     JSON.stringify(value) !== JSON.stringify(initial ?? emptyDetails());
@@ -96,7 +101,7 @@ export function RecipeEditor({
             },
       );
     } catch (e) {
-      setError(e instanceof Error ? e.message : "图片保存失败，请重试");
+      explainError(e instanceof Error ? e.message : "图片保存失败，请重试");
     } finally {
       lock.current = false;
       setBusy(false);
@@ -192,17 +197,18 @@ export function RecipeEditor({
         if (lock.current) return;
         const result = recipeDetailsSchema.safeParse(value);
         if (!result.success) {
-          setError(result.error.issues.map((i) => i.message).join("；"));
+          explainError(result.error.issues.map((i) => i.message).join("；"));
           return;
         }
-        if(beforeSubmit&&!beforeSubmit(result.data)){setError("请先完成审核后保存。");return;}
+        // The review owner may focus its own gate; do not steal that focus.
+        if(beforeSubmit&&!beforeSubmit(result.data)){explainError("请先完成审核后保存。", false);return;}
         if (submitDisabled) return;
         lock.current = true;
         setBusy(true);
         setError("");
         void onSave(result.data)
           .catch((e) =>
-            setError(e instanceof Error ? e.message : "保存失败，请重试"),
+            explainError(e instanceof Error ? e.message : "保存失败，请重试"),
           )
           .finally(() => {
             lock.current = false;

@@ -111,6 +111,7 @@ export function CookingOverview({
             <h4 className="v2-latest-cooking-title">上次下厨</h4>
             <ol className="v2-history-list">
               <li
+                key={latest.id}
                 data-testid="cooking-record"
                 data-record-id={latest.id}
                 className="v2-history-row"
