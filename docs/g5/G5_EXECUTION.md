@@ -58,6 +58,12 @@ may be overwritten, cleared or uninstalled. No permanent signing workflow,
 Environment Secrets or user private backup is accessed.
 Cloud runtime, browser automation and physical/TalkBack/performance evidence
 are separate. Browser text scaling is not Android system-font verification.
+Native fixture identity is the default app.recipio.local, ONLY inside an empty
+owned cloud AVD, because the frozen AI image URI guard rejects suffix package
+names. No URI/security widening, R1 resumption or user APK installation. The
+fixture APK is internal/short-lived, never a durable release. Native targets:
+11 storage/provider cases,8 real IME/Back Fake-HTTP cases,2 generated-data
+manual editor/cooking/cold Activity restart cases; exact21 required, no skips.
 Unexecuted physical devices/TalkBack/real-device performance are NOT_RUN.
 Transient runner-signed fixture APKs are not user-installable durable releases.
 No main merge, tag, formal release, long-term key or restoration of R1 work.

@@ -22,11 +22,202 @@ jobs:
           node-version: '22'
           cache: npm
       - run: npm ci --no-audit --no-fund
-      - name: Targeted G5 UX tests (test-first RED before implementation)
-        run: npm test -- src/native/ui-v2/g5-library.test.tsx src/native/ui-v2/g5-intake.test.tsx src/native/ui-v2/g5-cooking.test.tsx src/native/ui-v2/g5-editor.test.tsx --pool=threads --maxWorkers=1 --no-file-parallelism --reporter=dot
+      - name: Targeted G5 UX and existing review focus gates
+        run: npm test -- src/native/ui-v2/g5-library.test.tsx src/native/ui-v2/g5-intake.test.tsx src/native/ui-v2/g5-cooking.test.tsx src/native/ui-v2/g5-editor.test.tsx src/native/ai/preview.test.tsx --pool=threads --maxWorkers=1 --no-file-parallelism --reporter=dot
       - run: npm run typecheck
       - run: npm run lint
       - name: Full current-source JS and TS suite
         run: npm test -- --pool=threads --maxWorkers=1 --no-file-parallelism --reporter=dot
       - run: npm run build:local
       - run: node scripts/verify-ui-v2-isolation.mjs
+
+  browser:
+    name: G5 real-page before-after browser checks
+    needs: web-checks
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - name: Install pinned browser QA tooling outside product dependencies
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm install --prefix "$RUNNER_TEMP/recipio-g5-browser-tools" --no-save --ignore-scripts playwright@1.62.1
+          "$RUNNER_TEMP/recipio-g5-browser-tools/node_modules/.bin/playwright" install --with-deps chromium
+          sudo apt-get install -y --no-install-recommends fonts-noto-cjk
+      - name: Compare exact baseline and current production source with generated data
+        run: node scripts/verify-g5-browser.mjs --runtime="$RUNNER_TEMP/recipio-g5-browser-tools/node_modules"
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: recipio-g5-browser-${{ github.run_id }}-${{ github.run_attempt }}
+          path: output/playwright/g5/cloud/
+          if-no-files-found: error
+          retention-days: 7
+
+  android-build:
+    name: G5 key-free Android build (cloud fixture only)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 40
+    outputs:
+      fixture_id: ${{ steps.fixture.outputs.artifact-id }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '22'
+          cache: npm
+      - uses: actions/setup-java@cf277c60eb25467037889841efdb72551f06f6c3
+        with:
+          distribution: temurin
+          java-version: '21'
+      - name: Use API36 and tools36
+        shell: bash
+        run: |
+          set -euo pipefail
+          SDKMANAGER="$(command -v sdkmanager || true)"
+          if [[ -z "$SDKMANAGER" ]]; then
+            for candidate in "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "$ANDROID_HOME/cmdline-tools/16.0/bin/sdkmanager"; do
+              if [[ -x "$candidate" ]]; then SDKMANAGER="$candidate"; break; fi
+            done
+          fi
+          test -x "$SDKMANAGER"
+          "$SDKMANAGER" 'platforms;android-36' 'build-tools;36.0.0' 'platform-tools'
+      - run: npm ci --no-audit --no-fund
+      - run: npm run sync:android
+      - name: JVM tests lint debug and instrumentation APKs
+        working-directory: android
+        shell: bash
+        run: |
+          set -euo pipefail
+          chmod +x ./gradlew
+          # Default identity only inside a fresh cloud AVD; NEVER a user upgrade.
+          ./gradlew :app:testDebugUnitTest :app:lintDebug :app:assembleDebug :app:assembleDebugAndroidTest --no-daemon --max-workers=2 -Dorg.gradle.jvmargs="-Xmx1536m -XX:MaxMetaspaceSize=512m" -PapkVersionCode=25 -PapkVersionName=0.10.0-g5-qa
+      - name: Collect exact fixture bytes and JVM results
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir cloud-fixtures g5-build-evidence
+          cp android/app/build/outputs/apk/debug/app-debug.apk cloud-fixtures/app-fixture.apk
+          cp android/app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk cloud-fixtures/test-fixture.apk
+          (cd cloud-fixtures && sha256sum app-fixture.apk test-fixture.apk > SHA256SUMS.txt)
+          "$ANDROID_HOME/build-tools/36.0.0/apksigner" verify cloud-fixtures/app-fixture.apk
+          BADGING=$("$ANDROID_HOME/build-tools/36.0.0/aapt" dump badging cloud-fixtures/app-fixture.apk)
+          FIRST="${BADGING%%$'\n'*}"
+          [[ "$FIRST" == "package: name='app.recipio.local' "* ]] || exit 1
+          printf '%s\n' "$FIRST" 'EPHEMERAL CLOUD TEST FIXTURE ONLY. NEVER INSTALL OVER USER APP.' > g5-build-evidence/apk-identity.txt
+          cp cloud-fixtures/SHA256SUMS.txt g5-build-evidence/SHA256SUMS.txt
+          python3 - <<'PY'
+          import glob, json, os, pathlib, xml.etree.ElementTree as ET
+          files = glob.glob('android/app/build/test-results/testDebugUnitTest/TEST-*.xml')
+          assert files, 'No actual JVM XML reports'
+          rows = []
+          for file in files:
+              suite = ET.parse(file).getroot()
+              rows.append({'class': suite.attrib['name'], **{key: int(suite.attrib.get(key, 0)) for key in ['tests', 'failures', 'errors', 'skipped']}})
+          counts = {key: sum(row[key] for row in rows) for key in ['tests', 'failures', 'errors', 'skipped']}
+          assert counts['tests'] > 0 and counts['failures'] == 0 and counts['errors'] == 0
+          report = {'source': os.environ['GITHUB_SHA'], 'scope': 'JVM_ONLY', **counts, 'suites': rows}
+          pathlib.Path('g5-build-evidence/jvm-results.json').write_text(json.dumps(report, indent=2), encoding='utf-8')
+          print(json.dumps(counts))
+          PY
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        id: fixture
+        with:
+          name: recipio-g5-CLOUD-ONLY-fixtures-${{ github.run_id }}-${{ github.run_attempt }}
+          path: cloud-fixtures/
+          if-no-files-found: error
+          retention-days: 1
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: recipio-g5-build-evidence-${{ github.run_id }}-${{ github.run_attempt }}
+          path: g5-build-evidence/
+          if-no-files-found: error
+          retention-days: 7
+
+  android-runtime:
+    name: G5 fresh synthetic Android WebView IME and storage
+    needs: [web-checks, android-build]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    env:
+      FIXTURE_ID: ${{ needs.android-build.outputs.fixture_id }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - uses: actions/setup-java@cf277c60eb25467037889841efdb72551f06f6c3
+        with:
+          distribution: temurin
+          java-version: '21'
+      - name: Owned hosted VM and safe emulator resources
+        id: ready
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir g5-device-evidence
+          echo 'NOT_RUN: native fixture execution not completed' > g5-device-evidence/status.txt
+          echo 'ready=false' >> "$GITHUB_OUTPUT"
+          [[ "$GITHUB_ACTIONS" == true && "$RUNNER_ENVIRONMENT" == github-hosted ]]
+          [[ "$FIXTURE_ID" =~ ^[1-9][0-9]*$ ]]
+          AVD_ROOT="${ANDROID_AVD_HOME:-$HOME/.android/avd}"
+          if [[ -e "$AVD_ROOT/Recipio_G5_Fixture.avd" ]]; then
+            echo 'NOT_RUN: existing AVD must not be reused' > g5-device-evidence/status.txt; exit 0
+          fi
+          if [[ ! -e /dev/kvm ]] || (( $(awk '/MemAvailable:/ {print $2}' /proc/meminfo) < 4194304 )); then
+            echo 'NOT_RUN: KVM unavailable or less than4GiB free' > g5-device-evidence/status.txt; exit 0
+          fi
+          if [[ ! -w /dev/kvm ]] && ! sudo setfacl -m "u:$(id -un):rw" /dev/kvm; then
+            echo 'NOT_RUN: hosted KVM inaccessible' > g5-device-evidence/status.txt; exit 0
+          fi
+          echo 'ready=true' >> "$GITHUB_OUTPUT"
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        if: steps.ready.outputs.ready == 'true'
+        with:
+          artifact-ids: ${{ needs.android-build.outputs.fixture_id }}
+          merge-multiple: true
+          path: cloud-fixtures
+      - name: Ensure SDK36 inspection tools
+        if: steps.ready.outputs.ready == 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          SDKMANAGER="$(command -v sdkmanager || true)"
+          if [[ -z "$SDKMANAGER" ]]; then
+            for candidate in "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "$ANDROID_HOME/cmdline-tools/16.0/bin/sdkmanager"; do
+              if [[ -x "$candidate" ]]; then SDKMANAGER="$candidate"; break; fi
+            done
+          fi
+          test -x "$SDKMANAGER"
+          "$SDKMANAGER" 'build-tools;36.0.0'
+      - name: Actual Android runtime with Fake HTTP only
+        if: steps.ready.outputs.ready == 'true'
+        uses: ReactiveCircus/android-emulator-runner@a421e43855164a8197daf9d8d40fe71c6996bb0d
+        with:
+          api-level: 36
+          target: google_apis
+          arch: x86_64
+          avd-name: Recipio_G5_Fixture
+          force-avd-creation: false
+          emulator-port: 5554
+          emulator-boot-timeout: 600
+          emulator-options: -no-window -gpu swiftshader -no-snapshot -noaudio -no-boot-anim -memory 2048
+          disable-animations: true
+          script: bash scripts/verify-g5-native-fixtures.sh
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: recipio-g5-native-evidence-${{ github.run_id }}-${{ github.run_attempt }}
+          path: g5-device-evidence/
+          if-no-files-found: error
+          retention-days: 7
