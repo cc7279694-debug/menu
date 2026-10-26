@@ -241,6 +241,7 @@ async function mainFlows(page, data) {
   await check("actual detail 3 to2 uses conservative amounts without rewriting metadata or steps", async () => {
     assert.equal(await serving(detail(page)).inputValue(), "3");
     await expectValues(detail(page), ["600 克", "330 毫升", "2 个", "适量", "1～2 勺"]);
+    await detail(page).getByRole("heading", { name: "食材", exact: true }).evaluate(node => node.scrollIntoView({ block: "start" }));
     await capture(page, "warm-original-390", "warm-ivory");
     await target(detail(page), 2);
     await expectValues(detail(page), ["400 克", "220 毫升", "约 1.33 个", "适量", "1～2 勺"]);
@@ -249,6 +250,7 @@ async function mainFlows(page, data) {
     assert.match(await detail(page).locator(".v2-meta").innerText(), /328 kcal/);
     assert.match(await detail(page).locator(".v2-step-list").innerText(), /焯水 2 分钟/);
     assert.match(await detail(page).locator(".v2-step-list").innerText(), /倒入 330 毫升可乐/);
+    await detail(page).getByRole("heading", { name: "食材", exact: true }).evaluate(node => node.scrollIntoView({ block: "start" }));
     await capture(page, "warm-adjusted-390", "warm-ivory");
   });
   await check("Focus inherits2, preserves current step and existing reference sections", async () => {
