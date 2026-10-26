@@ -1,5 +1,29 @@
 # Current State
 
+## G5 daily cooking experience — IN_PROGRESS — 2026-10-26
+
+Authorized continuous G5-A through G5-E from verified baseline
+`d3846b62b620f5a2a3bce0708473ce6b6bad3c06`, isolated branch
+`feat/recipio-g5-daily-cooking`. R1 signing and personal migration remain
+DEFERRED_BY_USER; no new owner custody/signing task or phone installation.
+
+Presentation refinements implemented for library recovery/cards, add/intake
+guidance/review, detail/reference Sheet, actual last cooking record and optional
+extras. SQLite4 / Preview7 / Backup2 / Repository / Provider / Logo unchanged.
+Cloud run40298292479 at source4dbf2fc:210 JS/TS files /1184 PASS,
+189 JVM PASS (0 skipped), TS/lint/build/isolation PASS. Native20/21: the sole
+failure is screenshot selection before the Back action, still under diagnosis;
+the2 new actual manual-IME/cooking/Activity-restart cases PASS. Browser before3
+and after9 three-theme key screenshots and18 core layout conditions passed;
+the remaining flow stopped at a too-strict QA evaluation-field selector.
+This is not complete G5 validation or acceptance. Preserve all failed evidence.
+
+Next: controlled test-only picker diagnostics, QA selector correction and
+visual compact-card refinement, then fresh current-source cloud verification.
+No safety-rule relaxation, unknown-data operation, main merge or release.
+See [G5 execution contract](g5/G5_EXECUTION.md). Older sections below retain
+their historical/module-specific meanings.
+
 ## R1 formal signing and personal-data migration deferred — 2026-10-26
 
 **RECIPIO_R1_SIGNING_MIGRATION_DEFERRED_BY_USER.** The owner explicitly chose

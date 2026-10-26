@@ -320,8 +320,15 @@ async function coreFlows(page, context, directory, data) {
     assert.equal((await summary(page, directory, data.id)).summary.count, 1);
     await page.getByLabel("选择成品照片", { exact: true }).setInputFiles({ name: "g5-approved-cover.webp", mimeType: "image/webp", buffer: Buffer.from(assets.cover, "base64") });
     await page.locator(".v2-completion-photo").waitFor();
-    await page.getByLabel("这次感觉（可选）", { exact: true }).selectOption("tasty");
-    await page.getByLabel("这次的备注", { exact: true }).fill("下次生抽少放一些。G5 合成测试记录。");
+    // A wrapping label includes its option text in Playwright's label selector.
+    // Use the existing associated field ID and still verify the visible label.
+    const evaluation = page.locator('.v2-completion select[id$="-evaluation"]');
+    assert.equal(await evaluation.count(), 1);
+    assert.equal(await evaluation.evaluate(element => [...element.labels].some(label =>
+      label.htmlFor === element.id && label.textContent.trim().startsWith("这次感觉（可选）"))), true);
+    await evaluation.selectOption("tasty");
+    assert.equal(await evaluation.inputValue(), "tasty");
+    await page.getByRole("textbox", { name: /^这次的备注/ }).fill("下次生抽少放一些。G5 合成测试记录。");
     await capture(page, "after/warm-ivory/completion-390"); await click(page, "完成并返回");
     await page.getByRole("heading", { name: data.title, exact: true }).waitFor();
     await page.getByRole("heading", { name: "上次下厨", exact: true }).waitFor();
@@ -335,7 +342,7 @@ async function coreFlows(page, context, directory, data) {
     assert.equal((await summary(page, directory, data.id)).summary.count, 1);
   });
   await check("explicit recipe adjustment creates real change history", "PRODUCTION_NATIVE_APP_BROWSER", async () => {
-    await click(page, "编辑菜谱"); await page.getByLabel("个人备注", { exact: true }).fill("G5 合成测试：下次收汁时留一点汤汁。");
+    await click(page, "编辑菜谱"); await page.getByRole("textbox", { name: /^个人备注/ }).fill("G5 合成测试：下次收汁时留一点汤汁。");
     await click(page, "快速保存菜谱"); await page.getByRole("heading", { name: data.title, exact: true }).waitFor();
     assert.equal((await summary(page, directory, data.id)).changes.length, 1);
     await click(page, "查看修改记录"); await page.getByRole("heading", { name: "修改记录", exact: true }).waitFor();

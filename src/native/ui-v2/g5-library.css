@@ -19,6 +19,14 @@
   line-height: 1.55;
   overflow-wrap: anywhere;
 }
+/* A compact preview must not let one long name push the whole library away.
+   Its full name remains in the button label, library row and recipe detail. */
+.recipio-ui-v2 .v2-g5-library .v2-recent-title {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  overflow: hidden;
+}
 .recipio-ui-v2 .v2-g5-library .v2-recent-meta { display: flex; flex-direction: column; gap: 2px; color: var(--v2-secondary); }
 .recipio-ui-v2 .v2-g5-library .v2-recent-meta time { font-size: .75rem; line-height: 1.6; }
 .recipio-ui-v2 .v2-g5-library .v2-card-duration { display: inline-flex; align-items: center; flex-wrap: wrap; gap: 5px; font-size: .875rem; line-height: 1.6; }

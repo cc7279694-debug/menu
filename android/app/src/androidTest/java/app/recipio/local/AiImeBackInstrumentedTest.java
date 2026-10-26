@@ -182,6 +182,64 @@ public class AiImeBackInstrumentedTest {
         } while(android.os.SystemClock.elapsedRealtime()<deadline);
         fail("Real SAF control missing: "+label);
     }
+    private void observePickerForFailureDiagnostics()throws Exception {
+        // Observe only this generated pick. Return the exact original Promise and
+        // values; no retry, request replacement, response mutation or extra call.
+        js("(()=>{const c=window.Capacitor;window.__imePickDiagnostic={phase:'not-called'};"
+            +"if(!c||typeof c.nativePromise!=='function'){window.__imePickDiagnostic={phase:'observer-unavailable'};return false;}"
+            +"const original=c.nativePromise;c.nativePromise=function(...args){const p=Reflect.apply(original,this,args);"
+            +"if(args[0]==='LocalAiIntake'&&args[1]==='pickImage'){const operationId=args[2]?.operationId;window.__imePickDiagnostic={phase:'pending'};"
+            +"try{p.then(r=>{try{const i=r?.image;let scheme='unavailable';try{if(typeof i?.previewUri==='string')scheme=new URL(i.previewUri).protocol;}catch{}"
+            +"const uuid=v=>typeof v==='string'&&/^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/.test(v);"
+            +"const names=['id','mimeType','byteSize','width','height','previewUri'];"
+            +"const imageShapeMatches=!!(i&&typeof i==='object'&&!Array.isArray(i)&&Object.keys(i).length===6&&names.every(n=>Object.hasOwn(i,n))&&uuid(i.id)&&i.mimeType==='image/jpeg'&&Number.isInteger(i.byteSize)&&i.byteSize>=1&&i.byteSize<=1048576&&[i.width,i.height].every(n=>Number.isInteger(n)&&n>=11&&n<=2048)&&typeof i.previewUri==='string'&&i.previewUri.length<=512);"
+            +"const matched=typeof i?.previewUri==='string'?i.previewUri.match(/^file:[/][/][/]data[/](?:user[/][0-9]+|data)[/]app[.]recipio[.]local[/]cache[/]ai-import[/]([^/]+)[/]([^/]+)[.]jpg$/):null;"
+            +"const ownedImageMatches=!!(uuid(operationId)&&uuid(i?.id)&&matched&&matched[1]===operationId&&matched[2]===i.id&&Math.max(i.width,i.height)<=Math.min(i.width,i.height)*200);"
+            +"window.__imePickDiagnostic={phase:r?.cancelled?'cancelled':'resolved',hasImage:!!i,"
+            +"imageShapeMatches,ownedImageMatches,"
+            +"mime:i?.mimeType==='image/jpeg'?'image/jpeg':'other',scheme,"
+            +"width:Number.isFinite(i?.width)?i.width:null,height:Number.isFinite(i?.height)?i.height:null,"
+            +"bytes:Number.isFinite(i?.byteSize)?i.byteSize:null};}catch{window.__imePickDiagnostic={phase:'observer-error'};}},"
+            +"e=>{const allowed=['image_invalid','image_too_large','input_invalid','storage_error','busy','stale_session','invalid_output','native_unavailable','cancelled'];"
+            +"window.__imePickDiagnostic={phase:'rejected',code:allowed.includes(e?.code)?e.code:'other'};});"
+            +"}catch{window.__imePickDiagnostic={phase:'observer-error'};}}return p;};"
+            +"if(c.nativePromise===original)window.__imePickDiagnostic={phase:'observer-unavailable'};return true;})()");
+    }
+    private void reportPickerFailureDiagnostic() {
+        String output;
+        try {
+            JSONObject report=new JSONObject().put("scope","GENERATED_PICK_FAILURE_DIAGNOSTIC_ONLY")
+                .put("privateFiles","NOT_READ").put("providerPosts",posts.get());
+            AccessibilityNodeInfo foreground=instrumentation.getUiAutomation().getRootInActiveWindow();
+            String pkg=foreground==null||foreground.getPackageName()==null?"UNAVAILABLE":foreground.getPackageName().toString();
+            if(!pkg.matches("[A-Za-z0-9_.]{1,160}"))pkg="UNAVAILABLE";
+            report.put("foregroundPackage",pkg).put("targetAppForeground",instrumentation.getTargetContext().getPackageName().equals(pkg));
+            String ui=js("JSON.stringify((()=>{const a=document.querySelector('.v2-ai-intake');"
+                +"const message=a?.querySelector('[role=alert] > p')?.textContent?.trim()||'';"
+                +"const categories=new Map([['截图无法读取，请选择 JPG、PNG 或 WebP 图片。','image_invalid'],"
+                +"['AI 返回内容不完整，请重试或手动录入。','invalid_output'],"
+                +"['本机临时存储失败，请检查可用空间。','storage_error'],"
+                +"['本轮整理已结束，请重新进入。','stale_session'],['当前 AI 操作尚未结束，请稍候。','busy'],"
+                +"['AI 整理仅支持 Android；本地菜谱仍可使用。','native_unavailable'],"
+                +"['截图超出数量或大小限制。','image_too_large']]);"
+                +"return {aiInputPresent:!!a,previewButtons:a?.querySelectorAll('button[aria-label^=\"预览截图 \"]').length||0,"
+                +"gridItems:a?.querySelectorAll('.v2-intake-image-grid > li').length||0,"
+                +"unavailablePlaceholders:[...(a?.querySelectorAll('.v2-image-placeholder')||[])].filter(e=>e.textContent.trim()==='图片暂不可用').length,"
+                +"safeAlertCategory:categories.get(message)||(message?'other-safe-alert':'none'),"
+                +"images:[...(a?.querySelectorAll('.v2-intake-image-grid img')||[])].slice(0,6).map(i=>{let scheme='unavailable',ownOrigin=false;"
+                +"try{const u=new URL(i.currentSrc||i.src,location.href);scheme=u.protocol;ownOrigin=u.origin===location.origin;}catch{}"
+                +"return {complete:i.complete,naturalWidth:i.naturalWidth,naturalHeight:i.naturalHeight,scheme,ownOrigin};}),"
+                +"pickPromise:window.__imePickDiagnostic||{phase:'not-installed'}};})())");
+            report.put("ui",new JSONObject(ui));output=report.toString();
+        } catch(Exception ignored) {
+            output="{\"scope\":\"GENERATED_PICK_FAILURE_DIAGNOSTIC_ONLY\",\"diagnostic\":\"UNAVAILABLE\",\"privateFiles\":\"NOT_READ\"}";
+        }
+        try {
+            android.os.Bundle status=new android.os.Bundle();
+            status.putString("stream","\nG5_IME_PICK_DIAGNOSTIC="+output+"\n");
+            instrumentation.sendStatus(2,status);
+        } catch(RuntimeException ignored) { /* Preserve the original failure, even if diagnostic delivery fails. */ }
+    }
     private void pickGeneratedImage()throws Exception {
         Context context=instrumentation.getTargetContext();String name="recipio-ime-"+UUID.randomUUID()+".png";
         ContentValues values=new ContentValues();values.put(MediaStore.Downloads.DISPLAY_NAME,name);values.put(MediaStore.Downloads.MIME_TYPE,"image/png");values.put(MediaStore.Downloads.RELATIVE_PATH,"Download/");values.put(MediaStore.Downloads.IS_PENDING,1);
@@ -200,6 +258,7 @@ public class AiImeBackInstrumentedTest {
             if(indexed)break;Thread.sleep(100);
         } while(android.os.SystemClock.elapsedRealtime()<indexedDeadline);
         assertTrue("Generated fixture must be published and indexed before opening SAF",indexed);
+        observePickerForFailureDiagnostics();
         click("添加截图");
         // OPEN_DOCUMENT starts at Recents or the previously visited directory. A Downloads
         // fixture is not necessarily listed there; navigate the real picker before selecting it.
@@ -211,7 +270,8 @@ public class AiImeBackInstrumentedTest {
             Thread.sleep(100);
         } while(android.os.SystemClock.elapsedRealtime()<pickerDeadline);
         if(!selected){awaitNativeClick("Show roots");awaitNativeClick("Downloads");awaitNativeClick(name);}
-        until("!!document.querySelector('img[alt=\"截图 1\"]')");
+        try { until("!!document.querySelector('img[alt=\"截图 1\"]')"); }
+        catch(AssertionError failure) { reportPickerFailureDiagnostic(); throw failure; }
     }
     @Test public void selectedTempImages_surviveImeBack()throws Exception {
         pickGeneratedImage();String before=js("document.querySelector('img[alt=\"截图 1\"]').src");openIme();back();awaitIme(false);
