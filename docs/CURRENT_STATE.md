@@ -1,5 +1,19 @@
 # Current State
 
+## Signing workflow registered — 2026-10-26
+
+**PR #1 merged as explicitly authorized**, squash commit
+`4e244cd05059d9d700dd46051a2fa55e50722029` on stable `main`.
+The only modified path is newly added
+`.github/workflows/recipio-signed-next.yml`; no G4 product/backup/Native
+code has been integrated into `main`. Signer workflow is manual-only;
+a signed APK has **NOT** been generated, and the `recipio-signing`
+Environment/private owner-managed signing secrets are **not yet configured
+or verified**. No automatic signer run, data migration, or G4 acceptance.
+Next gate: owner-generated, securely backed-up private signing key and protected
+GitHub Environment configuration; never share secrets in chat.
+[Full status](ui-v2/G4_SIGNING_MIGRATION_PLAN.md).
+
 ## Signing/migration preparation — 2026-10-26
 
 **PREPARATION_ACCEPTED_FOR_CONTINUATION — PASS WITH NOTES**, not G4 accepted.

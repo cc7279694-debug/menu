@@ -90,15 +90,18 @@ receive signing key environment variables; the package installation, tests,
 web build, Gradle build and artifact upload never receive them. The workflow will refuse to build
 without all values and the explicit manual confirmation phrase.
 
-**GitHub registration caveat:** `workflow_dispatch` workflows must first
-exist on the repository's default branch to be manually discoverable. This
-file currently exists on the feature branch and a **one-file-only draft PR #1**
-(`ci/recipio-signed-workflow-registration` → `main`) has been prepared:
-https://github.com/cc7279694-debug/menu/pull/1. The PR is deliberately **NOT
-MERGED**. It contains no unfinished G4 business code. The owner must separately
-authorize this narrow default-branch registration before any manual dispatch.
-Even after merge, no action starts automatically and no key exists until the
-owner configures the environment and private signing material.
+**GitHub registration status — merged by explicit user approval:**
+[PR #1](https://github.com/cc7279694-debug/menu/pull/1) was merged
+on 2026-10-26, resulting in the default-branch commit
+`4e244cd05059d9d700dd46051a2fa55e50722029`.
+Independent compare verified **exactly one added file**:
+`.github/workflows/recipio-signed-next.yml`. None of the G4
+product/backup/test source was merged; the feature branch remains independent.
+The workflow is manual-only and the merged commit did not dispatch a signer
+or deliver an APK. Its owner-protected `recipio-signing` Environment and
+secrets have **not been configured or verified in this conversation**.
+No signing job may proceed before the owner privately sets up durable key
+custody, confirms the permanent new-app ID and authorizes first dispatch.
 
 **DO NOT TRIGGER** until the owner accepts the new permanent package ID and
 the key custody arrangement. New packages from a lost signing key cannot
@@ -111,7 +114,7 @@ receive ordinary APK upgrades.
 - Original v23 backup export → new identity native restore: **NOT_RUN**
 - Original data safety on physical phone: **NOT_RUN**
 - Full Android connected / true IME / TalkBack / performance: **NOT_RUN**
-- G4 overall frozen or main merged: **NO**
+- G4 overall frozen or product code merged: **NO**. CI-only registration in `main`: **YES**, one file via PR #1.
 
 The cloud G4 v25 throwaway-preview phone smoke is accepted within its original
 scope and does not count as a signed migration.
