@@ -5,6 +5,7 @@ import {
   adjustIngredientAmount,
   isValidTargetServings,
   parseTargetServings,
+  stepTargetServings,
 } from "./serving-adjustment";
 
 describe("temporary serving input", () => {
@@ -45,6 +46,53 @@ describe("temporary serving input", () => {
     "9".repeat(10000),
   ])("keeps invalid or partial input inactive: %s", (text) => {
     expect(parseTargetServings(text)).toBeNull();
+  });
+});
+
+describe("temporary serving button steps", () => {
+  it.each([
+    [2.3, -1, 1.3],
+    [1.3, 1, 2.3],
+    [0.1, 1, 1.1],
+    [0.1, -1, 0.1],
+    [0.5, -1, 0.1],
+    [1.05, -1, 0.1],
+    [1.125, -1, 0.125],
+    [2.345, -1, 1.345],
+    [1.345, 1, 2.345],
+    [2.123456789012345, -1, 1.123456789012345],
+    [1.123456789012345, 1, 2.123456789012345],
+    [9999.999, 1, 10000],
+    [10000, 1, 10000],
+    [10000, -1, 9999],
+    [2, -1, 1],
+    [2, 1, 3],
+  ] as const)("steps %s by %s to the literal decimal %s", (value, delta, expected) => {
+    expect(stepTargetServings(value, delta)).toBe(expected);
+  });
+
+  it.each([0, -1, 0.09, 10001, Number.NaN, Number.POSITIVE_INFINITY, Number.NEGATIVE_INFINITY])(
+    "does not invent an active target for invalid input %s",
+    (value) => {
+      expect(Object.is(stepTargetServings(value, -1), value)).toBe(true);
+      expect(Object.is(stepTargetServings(value, 1), value)).toBe(true);
+    },
+  );
+
+  it("keeps exact measurement results free from false approximation after stepping", () => {
+    const decreased = stepTargetServings(2.3, -1);
+    expect(adjustIngredientAmount("600 克", 3, decreased)).toEqual({
+      originalAmount: "600 克",
+      displayAmount: "260 克",
+      state: "scaled",
+      approximate: false,
+    });
+    expect(adjustIngredientAmount("600 克", 3, stepTargetServings(decreased, 1))).toEqual({
+      originalAmount: "600 克",
+      displayAmount: "460 克",
+      state: "scaled",
+      approximate: false,
+    });
   });
 });
 

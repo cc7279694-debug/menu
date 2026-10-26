@@ -1,6 +1,6 @@
 import { useEffect, useId, useState } from "react";
 import { Minus, Plus } from "lucide-react";
-import { adjustIngredientAmount, isValidTargetServings, parseTargetServings } from "./serving-adjustment";
+import { adjustIngredientAmount, isValidTargetServings, parseTargetServings, stepTargetServings } from "./serving-adjustment";
 import { V2Button } from "./ui-v2/components";
 
 /** One recipe-view session owns the valid target; input drafts never reach storage. */
@@ -34,7 +34,7 @@ export function ServingControl({ originalServings, targetServings, onTargetServi
       <div className="v2-g6-serving-inputs">
         <V2Button variant="secondary" className="v2-g6-serving-step" aria-label="减少本次份数"
           disabled={disabled || active === null || active <= .1}
-          onClick={() => { if (active !== null) select(Math.max(.1, active - 1)); }}><Minus aria-hidden="true" /></V2Button>
+          onClick={() => { if (active !== null) select(stepTargetServings(active, -1)); }}><Minus aria-hidden="true" /></V2Button>
         <div className="v2-g6-serving-field">
           <input id={inputId} aria-label="本次做几人份" type="text" inputMode="decimal" autoComplete="off" spellCheck={false}
             disabled={disabled} value={draft} aria-invalid={invalid || undefined}
@@ -49,7 +49,7 @@ export function ServingControl({ originalServings, targetServings, onTargetServi
         </div>
         <V2Button variant="secondary" className="v2-g6-serving-step" aria-label="增加本次份数"
           disabled={disabled || active === null || active >= 10000}
-          onClick={() => { if (active !== null) select(Math.min(10000, active + 1)); }}><Plus aria-hidden="true" /></V2Button>
+          onClick={() => { if (active !== null) select(stepTargetServings(active, 1)); }}><Plus aria-hidden="true" /></V2Button>
       </div>
       {invalid ? <p id={errorId} role="alert" className="v2-g6-serving-error">请输入 0.1～10000 之间的完整人数。下方仍显示最近一次有效份量。</p> : null}
       <p role="status" aria-label="本次份量" aria-live="polite" aria-atomic="true" className="v2-g6-serving-status">本次 {active} 人份</p>

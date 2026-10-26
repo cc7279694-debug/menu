@@ -58,6 +58,17 @@ export function parseTargetServings(text: string): number | null {
   return isValidTargetServings(value) ? value : null;
 }
 
+export function stepTargetServings(value: number, delta: -1 | 1): number {
+  if (!isValidTargetServings(value)) return value;
+  // Step the exact integer part, then rebuild the decimal. Direct value +/- 1
+  // can turn 2.3 into 1.2999999999999998 and introduce a false rounding marker.
+  const [whole, fraction] = value.toString().split(".");
+  const nextWhole = Number(whole) + delta;
+  if (nextWhole < 0) return 0.1;
+  const next = Number(fraction === undefined ? String(nextWhole) : `${nextWhole}.${fraction}`);
+  return Math.min(10000, Math.max(0.1, next));
+}
+
 export function adjustIngredientAmount(
   originalAmount: string,
   originalServings: number | null,

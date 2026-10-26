@@ -176,7 +176,9 @@ it("edit cancellation and both related history returns retain the temporary targ
   expect(await screen.findByLabelText("本次做几人份")).toHaveValue("2");
   for (const entry of ["查看做菜记录", "查看修改记录"]) {
     fireEvent.click(screen.getByRole("button", { name: entry }));
-    fireEvent.click(await screen.findByRole("button", { name: "返回菜谱" }));
+    const back = await screen.findByRole("button", { name: "返回菜谱" });
+    await waitFor(() => expect(back).toBeEnabled());
+    fireEvent.click(back);
     expect(await screen.findByLabelText("本次做几人份")).toHaveValue("2");
     expect(ingredient("鸡翅").getByText("400 克")).toBeVisible();
   }

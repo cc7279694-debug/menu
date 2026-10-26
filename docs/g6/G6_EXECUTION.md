@@ -59,3 +59,21 @@ frozen affected G5 gates20/20 PASS. G6 two files172 assertions:112 FAIL,
 failure is the missing actual serving control, not a missing import or fixture.
 Now implementing A and B/C from those literal expectations. Native/browser
 QA is separate verification, not claimed executed by source existence.
+
+## Integrated RED and decimal control repair
+
+Cloud40345842092 at3a75dc46912f5ab7f1bfb937c1c80342f313205b:
+G5 affected20PASS; G6 pure162PASS, integration9PASS/2FAIL (173 total).
+The added decimal button regression reproduced1.2999999999999998 instead
+of1.3. Fix is decimal integer-part stepping preserving the fractional text,
+not rounded binary addition or a new UI precision cap.24 literal helper cases
+added; original162 expectations unchanged. Internal read-only review found
+this one P2; follow-up review requested after fix.
+
+The other failure was test readiness: CookingHistory intentionally disables
+Back during its initial real store read. The test now waits for the existing
+Back button to become enabled before clicking; no production history changes.
+
+Full G6 cloud workflow restored for final current-source JS/type/lint/build,
+real-page browser checks, key-free Android build and fresh owned API36 fixture.
+Earlier G5/cloud numbers are not final G6 evidence. No local heavy tests run.
