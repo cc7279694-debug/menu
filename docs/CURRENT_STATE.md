@@ -1,5 +1,25 @@
 # Current State
 
+## G5 independent acceptance — 2026-10-26
+
+**G5 IMPLEMENTATION ACCEPTED / FROZEN — PASS WITH NOTES**, scoped to daily
+cooking UX A–E at tested source
+`e5fbe1b75c97295b214dea9ed0f0ad202b2b6b60`, CI
+[40313302175](https://github.com/cc7279694-debug/menu/actions/runs/40313302175):
+1184 JS/TS, 189 JVM and 21 fresh cloud API36 native PASS. 16 browser groups,
+20 layout checks and visual screenshots were independently examined. The
+delivery commit only changed documentation and screenshots, not tested
+production logic. Two minor UX notes retained: browser file picker uses
+English system strings, and older-cooking preview counts only displayed
+entries; the full record list is preserved.
+
+**This is not G4 release/freeze**: physical phone/OEM, actual TalkBack,
+Android system font scaling, real-device performance and other device tests
+remain NOT_RUN. R1 durable signing/personal backup migration stays
+**DEFERRED_BY_USER**. Old `app.recipio.local` v23 and independent cloudpreview
+v25 are untouched. No product merge to stable main and no formal release.
+[Full scoped independent acceptance](g5/G5_INDEPENDENT_ACCEPTANCE.md).
+
 ## G5 daily cooking experience — READY_FOR_REVIEW — 2026-10-26
 
 Authorized continuous G5-A through G5-E from verified baseline
