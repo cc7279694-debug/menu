@@ -56,17 +56,23 @@ jobs:
     needs: web-checks
     if: github.ref == 'refs/heads/feat/recipio-ui-v2-glass-minimal' && inputs.confirmation == 'SIGN_SEPARATE_APP_ONLY'
     runs-on: ubuntu-24.04
+    # Owner-controlled protection and signing secrets, never repository-wide.
+    environment:
+      name: recipio-signing
     timeout-minutes: 65
     env:
-      RECIPIO_NEXT_KEYSTORE_B64: ${{ secrets.RECIPIO_NEXT_KEYSTORE_B64 }}
-      RECIPIO_NEXT_STORE_PASSWORD: ${{ secrets.RECIPIO_NEXT_STORE_PASSWORD }}
-      RECIPIO_NEXT_KEY_ALIAS: ${{ secrets.RECIPIO_NEXT_KEY_ALIAS }}
-      RECIPIO_NEXT_KEY_PASSWORD: ${{ secrets.RECIPIO_NEXT_KEY_PASSWORD }}
-      RECIPIO_NEXT_CERT_SHA256: ${{ secrets.RECIPIO_NEXT_CERT_SHA256 }}
       VITE_RECIPIO_VERSION: ${{ inputs.version_name }}-next
+      RECIPIO_REQUEST_VERSION_CODE: ${{ inputs.version_code }}
+      RECIPIO_REQUEST_VERSION_NAME: ${{ inputs.version_name }}
     steps:
       - uses: actions/checkout@v4
       - name: Fail closed unless all durable signing secrets are configured
+        env:
+          RECIPIO_NEXT_KEYSTORE_B64: ${{ secrets.RECIPIO_NEXT_KEYSTORE_B64 }}
+          RECIPIO_NEXT_STORE_PASSWORD: ${{ secrets.RECIPIO_NEXT_STORE_PASSWORD }}
+          RECIPIO_NEXT_KEY_ALIAS: ${{ secrets.RECIPIO_NEXT_KEY_ALIAS }}
+          RECIPIO_NEXT_KEY_PASSWORD: ${{ secrets.RECIPIO_NEXT_KEY_PASSWORD }}
+          RECIPIO_NEXT_CERT_SHA256: ${{ secrets.RECIPIO_NEXT_CERT_SHA256 }}
         shell: bash
         run: |
           set -euo pipefail
@@ -76,8 +82,8 @@ jobs:
               exit 1
             fi
           done
-          CODE="${{ inputs.version_code }}"
-          NAME="${{ inputs.version_name }}"
+          CODE="$RECIPIO_REQUEST_VERSION_CODE"
+          NAME="$RECIPIO_REQUEST_VERSION_NAME"
           [[ "$CODE" =~ ^[0-9]+$ ]] && (( CODE >= 26 ))
           [[ "$NAME" =~ ^[a-zA-Z0-9._-]+$ ]]
           [[ "$RECIPIO_NEXT_CERT_SHA256" =~ ^[0-9a-f]{64}$ ]]
@@ -108,8 +114,14 @@ jobs:
         run: |
           set -euo pipefail
           chmod +x ./gradlew
-          ./gradlew :app:assembleRelease --no-daemon --max-workers=2 -Dorg.gradle.jvmargs="-Xmx1536m -XX:MaxMetaspaceSize=512m" -PrecipioSignedNext=true -PapkVersionCode=${{ inputs.version_code }} -PapkVersionName=${{ inputs.version_name }}
+          ./gradlew :app:assembleRelease --no-daemon --max-workers=2 -Dorg.gradle.jvmargs="-Xmx1536m -XX:MaxMetaspaceSize=512m" -PrecipioSignedNext=true -PapkVersionCode="$RECIPIO_REQUEST_VERSION_CODE" -PapkVersionName="$RECIPIO_REQUEST_VERSION_NAME"
       - name: Sign and validate exact package, version and trusted certificate
+        env:
+          RECIPIO_NEXT_KEYSTORE_B64: ${{ secrets.RECIPIO_NEXT_KEYSTORE_B64 }}
+          RECIPIO_NEXT_STORE_PASSWORD: ${{ secrets.RECIPIO_NEXT_STORE_PASSWORD }}
+          RECIPIO_NEXT_KEY_ALIAS: ${{ secrets.RECIPIO_NEXT_KEY_ALIAS }}
+          RECIPIO_NEXT_KEY_PASSWORD: ${{ secrets.RECIPIO_NEXT_KEY_PASSWORD }}
+          RECIPIO_NEXT_CERT_SHA256: ${{ secrets.RECIPIO_NEXT_CERT_SHA256 }}
         shell: bash
         run: |
           set -euo pipefail
@@ -120,15 +132,19 @@ jobs:
           test -s "$PRIVATE_KEYSTORE"
           SDK="$ANDROID_HOME/build-tools/36.0.0"
           UNSIGNED=android/app/build/outputs/apk/release/app-release-unsigned.apk
-          OUTPUT=signed-artifacts/recipio-ui-v2-next-v${{ inputs.version_code }}.apk
+          OUTPUT=signed-artifacts/recipio-ui-v2-next-v$RECIPIO_REQUEST_VERSION_CODE.apk
           test -s "$UNSIGNED"
           mkdir -p signed-artifacts
-          "$SDK/apksigner" sign --ks "$PRIVATE_KEYSTORE" --ks-key-alias "$RECIPIO_NEXT_KEY_ALIAS" --ks-pass env:RECIPIO_NEXT_STORE_PASSWORD --key-pass env:RECIPIO_NEXT_KEY_PASSWORD --out "$OUTPUT" "$UNSIGNED"
+          # Align before v2/v3 signing; no build-time stage can read the key.
+          ALIGNED="$RUNNER_TEMP/recipio-next-aligned.apk"
+          "$SDK/zipalign" -f -p 4 "$UNSIGNED" "$ALIGNED"
+          "$SDK/zipalign" -c 4 "$ALIGNED"
+          "$SDK/apksigner" sign --ks "$PRIVATE_KEYSTORE" --ks-key-alias "$RECIPIO_NEXT_KEY_ALIAS" --ks-pass env:RECIPIO_NEXT_STORE_PASSWORD --key-pass env:RECIPIO_NEXT_KEY_PASSWORD --out "$OUTPUT" "$ALIGNED"
           "$SDK/apksigner" verify "$OUTPUT"
           BADGING=$("$SDK/aapt" dump badging "$OUTPUT" | head -n 1)
           [[ "$BADGING" == *"name='app.recipio.local.next'"* ]] || { echo "::error::Unexpected application ID."; exit 1; }
-          [[ "$BADGING" == *"versionCode='${{ inputs.version_code }}'"* ]] || { echo "::error::Incorrect versionCode."; exit 1; }
-          [[ "$BADGING" == *"versionName='${{ inputs.version_name }}-next'"* ]] || { echo "::error::Incorrect versionName."; exit 1; }
+          [[ "$BADGING" == *"versionCode='$RECIPIO_REQUEST_VERSION_CODE'"* ]] || { echo "::error::Incorrect versionCode."; exit 1; }
+          [[ "$BADGING" == *"versionName='$RECIPIO_REQUEST_VERSION_NAME-next'"* ]] || { echo "::error::Incorrect versionName."; exit 1; }
           "$SDK/apksigner" verify --print-certs "$OUTPUT" > signed-artifacts/PUBLIC_SIGNER_CERTIFICATE.txt
           ACTUAL=$(sed -n 's/^Signer #1 certificate SHA-256 digest: //p' signed-artifacts/PUBLIC_SIGNER_CERTIFICATE.txt | head -n 1 | tr '[:upper:]' '[:lower:]')
           [[ -n "$ACTUAL" && "$ACTUAL" == "$RECIPIO_NEXT_CERT_SHA256" ]] || { echo "::error::Signer certificate does not match pinned owner fingerprint."; exit 1; }
