@@ -1,6 +1,8 @@
-# R1 verification — no-key work completed; owner gate remains
+# R1 verification — no-key work completed; formal signing/migration deferred by owner
 
-2026-10-26. Overall **RECIPIO_R1_BLOCKED_OWNER_ACTION**.
+2026-10-26. Historical delivery status at verification: **RECIPIO_R1_BLOCKED_OWNER_ACTION**.
+
+**Subsequent owner decision (2026-10-26): `RECIPIO_R1_SIGNING_MIGRATION_DEFERRED_BY_USER`.** The owner chose to pause long-term signing, two offline key backups and real migration indefinitely; no new R1 action is authorized. The previously recorded no-key test evidence remains unchanged and accepted with notes. This report is historical evidence, not an instruction to resume signing.
 Owner explicitly has no two offline media and requested no-key work first.
 No G4 acceptance, formal release or main product merge is claimed.
 

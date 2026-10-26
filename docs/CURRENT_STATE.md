@@ -1,5 +1,30 @@
 # Current State
 
+## R1 formal signing and personal-data migration deferred — 2026-10-26
+
+**RECIPIO_R1_SIGNING_MIGRATION_DEFERRED_BY_USER.** The owner explicitly chose
+not to proceed with two offline physical signing-key backups and the permanent
+release/migration process at this time. This is a **voluntary pause**, not a
+new security failure or a completed R1 acceptance. Do not purchase/request
+storage, generate/reuse private signing keys, upload Secrets, dispatch signed
+builds, import personal backups, uninstall either existing app or merge G4
+product code unless the owner later explicitly resumes and authorizes.
+
+Previously reviewed **no-key R1 engineering scope remains accepted with notes**:
+source `d830733ab1a0dc4d88ea6c06bc325524fcc88a1b`, cloud run 40288815966,
+206 JS/TS files / 1168 PASS and isolated API36 native fixtures 11 PASS.
+Real permanent signing, signer identity, two actual offline backups, same-signer
+upgrade, full real SAF UI, official APK and original-personal-data migration
+remain **NOT_RUN**. G4 overall remains PENDING. The accepted original
+`app.recipio.local` v23 and separate v25 cloudpreview are untouched;
+cloud-preview runner signatures are not durable for future in-place upgrades.
+
+Other RECIPIO product/UI work may proceed only as separately requested,
+with cloud development, synthetic data and protected legacy identity; avoid
+making permanent-update or production-migration claims.
+The historical R1 owner-action blocker below explains the technical reasons,
+but the current task status is **DEFERRED_BY_USER**.
+
 ## R1 independent no-key acceptance — 2026-10-26
 
 **R1_NO_KEY_SCOPE_ACCEPTED — PASS WITH NOTES**, based on direct ChatGPT review
