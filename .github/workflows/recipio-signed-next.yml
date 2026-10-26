@@ -27,7 +27,33 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  web-checks:
+    # The historical packet tests use PowerShell and node:sqlite in jsdom.
+    # Full tests must run on hosted Windows, not the Android/Linux signer.
+    if: github.ref == 'refs/heads/feat/recipio-ui-v2-glass-minimal' && inputs.confirmation == 'SIGN_SEPARATE_APP_ONLY'
+    runs-on: windows-2025
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: TypeScript, lint and complete unchanged test suite
+        run: |
+          npm ci --no-audit --no-fund
+          npm run typecheck
+          npm run lint
+          npm test -- --pool=threads --maxWorkers=1 --no-file-parallelism --reporter=dot
+      - name: Build original source and reject showcase leakage
+        env:
+          VITE_RECIPIO_VERSION: signed-next-ci
+        run: |
+          npm run build:local
+          node scripts/verify-ui-v2-isolation.mjs
+
   signed-next:
+    needs: web-checks
     if: github.ref == 'refs/heads/feat/recipio-ui-v2-glass-minimal' && inputs.confirmation == 'SIGN_SEPARATE_APP_ONLY'
     runs-on: ubuntu-24.04
     timeout-minutes: 65
@@ -69,14 +95,11 @@ jobs:
         run: |
           set -euo pipefail
           sdkmanager "platforms;android-36" "build-tools;36.0.0" "platform-tools"
-      - name: Full source and security regression
+      - name: Build previously tested sources and synchronize Android
         shell: bash
         run: |
           set -euo pipefail
           npm ci --no-audit --no-fund
-          npm run typecheck
-          npm run lint
-          npm test -- --pool=threads --maxWorkers=1 --no-file-parallelism --reporter=dot
           npm run sync:android
           node scripts/verify-ui-v2-isolation.mjs
       - name: Build only opt-in unsigned, separate release package
