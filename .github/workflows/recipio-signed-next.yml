@@ -43,14 +43,19 @@ jobs:
       - name: TypeScript, lint and complete unchanged test suite
         run: |
           npm ci --no-audit --no-fund
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           npm run typecheck
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           npm run lint
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           npm test -- --pool=threads --maxWorkers=1 --no-file-parallelism --reporter=dot
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
       - name: Build original source and reject showcase leakage
         env:
           VITE_RECIPIO_VERSION: signed-next-ci
         run: |
           npm run build:local
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           node scripts/verify-ui-v2-isolation.mjs
 
   build-unsigned:
