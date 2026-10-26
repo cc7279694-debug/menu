@@ -77,3 +77,18 @@ Back button to become enabled before clicking; no production history changes.
 Full G6 cloud workflow restored for final current-source JS/type/lint/build,
 real-page browser checks, key-free Android build and fresh owned API36 fixture.
 Earlier G5/cloud numbers are not final G6 evidence. No local heavy tests run.
+
+## First full-cloud findings at e80ac3e
+
+Run40346467769 browser completed all10 business flows, including actual complete
+Preview rows/media digests, zero adjustment writes and one explicit record.
+Its first geometry gate correctly FAILED: new target input128x44 at Warm320,
+because legacy #root input min-height44 outranked the scoped rule. G6 input
+selector now explicitly covers #root while retaining the Portal selector;
+48px assertion remains unchanged. This is a scoped CSS fix, not relaxed QA.
+
+Android build completed, but hosted emulator SDK extraction failed with
+ZipFile unknown archive before the device/helper could run. Native execution
+is NOT_RUN for this attempt, not a RECIPIO platform failure or PASS. A fresh
+final-source workflow retries the non-destructive hosted setup. No local
+emulator, phone, private data, real AI or signing operation was attempted.

@@ -58,6 +58,7 @@
   outline-offset: 2px;
 }
 .recipio-ui-v2 .v2-g6-serving-field:has([aria-invalid="true"]) { border-color: var(--v2-error); }
+#root .recipio-ui-v2 .v2-g6-serving-field input,
 .recipio-ui-v2 .v2-g6-serving-field input {
   flex: 1 1 3ch;
   width: 3ch;
