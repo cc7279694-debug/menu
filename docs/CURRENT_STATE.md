@@ -1,6 +1,6 @@
 # Current State
 
-## G5 daily cooking experience — IN_PROGRESS — 2026-10-26
+## G5 daily cooking experience — READY_FOR_REVIEW — 2026-10-26
 
 Authorized continuous G5-A through G5-E from verified baseline
 `d3846b62b620f5a2a3bce0708473ce6b6bad3c06`, isolated branch
@@ -10,19 +10,26 @@ DEFERRED_BY_USER; no new owner custody/signing task or phone installation.
 Presentation refinements implemented for library recovery/cards, add/intake
 guidance/review, detail/reference Sheet, actual last cooking record and optional
 extras. SQLite4 / Preview7 / Backup2 / Repository / Provider / Logo unchanged.
-Cloud run40306242741 at sourcef4d1e62:210 JS/TS files /1184 PASS,
-189 JVM PASS (0 skipped), TS/lint/build/isolation PASS. Browser16 grouped checks,
-20 geometry checks and25 actual screenshots PASS, with0 external origins/page
-errors/console errors. Native20/21: the sole failure is still before Back.
-Bounded diagnostics prove the generated image request remains pending in Google
-Photos (0 Provider posts), before Native image results or JS validation. The7
-other IME/Back and2 new manual-IME/cooking/Activity-restart cases PASS.
-This is not complete G5 validation or acceptance. Preserve all failed evidence.
+Final source/tests: e5fbe1b75c97295b214dea9ed0f0ad202b2b6b60, cloud run40313302175:
+all4 jobs PASS.210 JS/TS files /1184 tests,189 JVM,21 actual API36 native
+cases PASS (0 skipped). Typecheck/lint(0 errors,5 existing warnings), web build,
+isolation, sync and both Android APK builds PASS. Browser16 grouped checks,
+20 geometry checks and25 actual screenshots PASS,0 unexpected external origins,
+page or console errors. Native includes all8 real IME/Back cases,11 storage/
+backup cases and2 real G5 draft/cooking/Activity-restart cases. The image test
+was repaired to select the actual DocumentsUI filename row, not its thumbnail
+preview; production image/security logic was not changed. Failed evidence is
+preserved and explained, not relabeled as a product failure or ignored.
 
-Next: test-only positive system-picker confirmation within the original deadline,
-plus two screenshot framing corrections, then fresh source cloud verification.
-No safety-rule relaxation, unknown-data operation, main merge or release.
-See [G5 execution contract](g5/G5_EXECUTION.md). Older sections below retain
+20 selected generated-data screenshots and concise receipts are in
+docs/g5/evidence. No formal/user APK is delivered. Physical phone/OEM,TalkBack,
+Android OS font scaling, device performance, process cold boot in flight mode,
+unselected historical connected classes and deferred signing/migration remain
+NOT_RUN. Local heavy checks were avoided/stopped for low RAM; none inferred PASS.
+
+Next: ChatGPT independent G5 review only. No G4/G5 acceptance/freeze, next module,
+R1 resumption, safety relaxation, personal-data operation, main merge or release.
+See [G5 review/checkpoint](g5/G5_REVIEW.md) and [execution contract](g5/G5_EXECUTION.md). Older sections below retain
 their historical/module-specific meanings.
 
 ## R1 formal signing and personal-data migration deferred — 2026-10-26

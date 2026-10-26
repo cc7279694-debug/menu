@@ -21,31 +21,31 @@ network actions, services, dependencies or automatically invented summaries.
 
 ## Internal tasks and ownership
 
-- [ ] A: library-screens.tsx and scoped g5-library.css. Distinguish a genuinely
+- [x] A: library-screens.tsx and scoped g5-library.css. Distinguish a genuinely
   empty library from no search/filter match; keep sort, pagination and callbacks.
   Surface real duration on cards, readable long names and no-image states.
   Test recovery controls and that local search never starts Finder/network.
-- [ ] B: existing AI/Link/Finder components and scoped g5-intake.css. Clear
+- [x] B: existing AI/Link/Finder components and scoped g5-intake.css. Clear
   input limits, optional image details, source/review/uncertainty and recovery.
   Preserve exact Service calls and explicit save/online gates. Root integrates
   add-sheet choices and shared manual RecipeEditor without a second flow.
   Test invalid input, review confirmation and explicit request boundaries.
-- [ ] C/D: existing detail, step content, Focus/Guided, completion and histories,
+- [x] C/D: existing detail, step content, Focus/Guided, completion and histories,
   scoped g5-cooking.css. Show actual ingredients/preparation/tips together in
   existing cooking Sheet, keep current step dominant, show actual last record
   before older records, optional extras and direct adjustment. No new query
   owner, automatic record, destructive image behavior or generated advice.
   Test overlay Back, read-only browsing, explicit finish and optional extras.
-- [ ] E: integrate shared CSS, accessible editor errors, touch/long-text fixes.
+- [x] E: integrate shared CSS, accessible editor errors, touch/long-text fixes.
   New key interactions use tests first; preserve existing meaningful tests.
-- [ ] Verify current source in cloud: full JS/TS, typecheck, lint, production
+- [x] Verify current source in cloud: full JS/TS, typecheck, lint, production
   build/isolation, native JVM/build and safe fresh synthetic API36 runtime.
-- [ ] Browser checks use ephemeral generated data: real routes, three themes,
+- [x] Browser checks use ephemeral generated data: real routes, three themes,
   widths320/390/412, CSS200% text, reduced motion/solid fallback, canceled
   edit/Picker and explicit AI gates. Capture before/after against the exact
   baseline with the same generated content/viewport. Fake Provider evidence
   is labeled; no paid AI. Reject unexpected external browser requests.
-- [ ] Self-review, concise screenshots/results/checkpoint, commit and normal
+- [x] Self-review, concise screenshots/results/checkpoint, commit and normal
   feature push. Stop at RECIPIO_G5_READY_FOR_REVIEW, not acceptance/freeze.
 
 ## Verification evidence boundaries
@@ -78,3 +78,7 @@ No main merge, tag, formal release, long-term key or restoration of R1 work.
 
 Final delivery: concise differences, actual screenshots, file/Git scope,
 fresh cloud results, all limits/NOT_RUN and original-data impact. No large ZIP.
+
+## Verified stopping point
+
+2026-10-26: RECIPIO_G5_READY_FOR_REVIEW. Final source/test commit e5fbe1b75c97295b214dea9ed0f0ad202b2b6b60; cloud run40313302175 all4 jobs PASS. Exact results, failed-driver repairs and NOT_RUN are in G5_REVIEW.md. Documentation/evidence-only delivery follows without changing tested source. No acceptance/freeze or next module is authorized.
