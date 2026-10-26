@@ -68,7 +68,7 @@ app files between sandboxed identities.
 Manual-only workflow:
 `.github/workflows/recipio-signed-next.yml`
 
-Five GitHub **Actions repository secrets** required before any signed build:
+Five GitHub **Actions Environment secrets** are required in a dedicated `recipio-signing` environment before any signed build. **Do not place signing material in repository-wide secrets**; the protected signer job is the only job that references this environment:
 
 - `RECIPIO_NEXT_KEYSTORE_B64`: base64 representation of an owner-secured
   Android JKS/PKCS12 signing keystore
@@ -81,20 +81,24 @@ Five GitHub **Actions repository secrets** required before any signed build:
 Never enter private keys, keystore passwords or base64 signing keys into
 this chat, public GitHub, workflow_dispatch inputs or CI logs. Create and
 back up the private key securely outside the repo, and only then configure
-the secrets in GitHub repository Settings → Secrets and variables → Actions.
+these **Environment secrets** under GitHub repository **Settings → Environments → `recipio-signing` → Environment secrets**. If suitable, also restrict allowed deployment branches and require owner review before the signer job proceeds.
 
-This assistant's currently available GitHub connector cannot set repository
-secrets or ensure external key custody. The workflow will refuse to build
+This assistant's currently available GitHub connector cannot create GitHub
+Environment secrets, generate a key under your permanent control, or ensure
+external key custody. Only the final signer and secret-availability check steps
+receive signing key environment variables; the package installation, tests,
+web build, Gradle build and artifact upload never receive them. The workflow will refuse to build
 without all values and the explicit manual confirmation phrase.
 
 **GitHub registration caveat:** `workflow_dispatch` workflows must first
 exist on the repository's default branch to be manually discoverable. This
-file currently exists **only on the feature branch**, because the accepted
-stable `main` is explicitly frozen. Therefore this workflow is a **prepared
-gate, not yet manually runnable**. Do not merge all G4 code into main merely
-to expose the button. A later explicitly authorized minimal workflow-only
-registration or carefully gated signing branch must be reviewed separately
-before dispatch.
+file currently exists on the feature branch and a **one-file-only draft PR #1**
+(`ci/recipio-signed-workflow-registration` → `main`) has been prepared:
+https://github.com/cc7279694-debug/menu/pull/1. The PR is deliberately **NOT
+MERGED**. It contains no unfinished G4 business code. The owner must separately
+authorize this narrow default-branch registration before any manual dispatch.
+Even after merge, no action starts automatically and no key exists until the
+owner configures the environment and private signing material.
 
 **DO NOT TRIGGER** until the owner accepts the new permanent package ID and
 the key custody arrangement. New packages from a lost signing key cannot
