@@ -121,7 +121,7 @@ export function CookingOverview({
             </ol>
           </> : null}
           {earlier.length ? <details className="v2-earlier-cooking">
-            <summary>较早的 {earlier.length} 次记录</summary>
+            <summary>展开较早记录（预览 {earlier.length} 条）</summary>
             <ol className="v2-history-list">
               {earlier.map(record => <li key={record.id} data-testid="cooking-record"
                 data-record-id={record.id} className="v2-history-row">

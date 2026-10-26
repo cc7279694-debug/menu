@@ -38,6 +38,7 @@ import type { FindRecipeService } from "./find-recipe/service";
 import { openShareTargetRuntime } from "./share-target/native-bridge";
 import type { ShareTargetController } from "./share-target/controller";
 import { shareReasons, type ShareItem } from "./share-target/contract";
+import { isValidTargetServings } from "./serving-adjustment";
 const LinkImportScreen = lazy(() => import("./link-import/screen").then(module => ({ default: module.LinkImportScreen })));
 const FindRecipeScreen = lazy(() => import("./find-recipe/screen").then(module => ({ default: module.FindRecipeScreen })));
 const noShare = { pending: null, deferred: false, replaced: false, unavailable: false };
@@ -92,6 +93,7 @@ export function LibraryApp({
   const settingsRoot = useRef<"home" | "library">("home");
   const [records, setRecords] = useState<RecipeListItem[]>([]);
   const [selected, setSelected] = useState<RecipeDetails | null>(null);
+  const [targetServings, setTargetServings] = useState<number | null>(null);
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState<DurationFilter>("all");
   const [page, setPage] = useState(0);
@@ -164,6 +166,7 @@ export function LibraryApp({
     ) {
       restored.current = backupState;
       setSelected(null);
+      setTargetServings(null);
       setViewer(null);
       setCookingRecord(null);
       completionAttempt.current = null;
@@ -252,6 +255,10 @@ export function LibraryApp({
       setBusy(false);
     }
   }
+  function beginRecipeSession(recipe: RecipeDetails) {
+    setSelected(recipe);
+    setTargetServings(isValidTargetServings(recipe.servings) ? recipe.servings : null);
+  }
   async function open(id: string) {
     if (lock.current) return;
     listReturn.current.scroll = window.scrollY;
@@ -264,7 +271,7 @@ export function LibraryApp({
     });
     // Never render the destination while its transient read lock still blocks Back.
     if (recipe) {
-      setSelected(recipe);
+      beginRecipeSession(recipe);
       setReturnView(origin);
       setView("detail");
       window.scrollTo(0, 0);
@@ -273,6 +280,7 @@ export function LibraryApp({
   const backToList = useCallback(() => {
     if (lock.current) return;
     listReturn.current.restore = true;
+    setTargetServings(null);
     setView(returnView);
   }, [returnView]);
   function openDetailPage(next: "edit" | "history" | "changes") {
@@ -350,6 +358,7 @@ export function LibraryApp({
         { id: selected.id, title: selected.title, expires },
       ]);
       setSelected(null);
+      setTargetServings(null);
       setView(returnView);
     });
   }
@@ -360,12 +369,12 @@ export function LibraryApp({
         await store.getDetails(selected.id))
       : await store.createDetails(value);
     if (!saved) throw new Error("保存后无法读取菜谱，请重试");
-    setSelected(saved);
+    beginRecipeSession(saved);
     setRevision((n) => n + 1);
     if (selected) backToDetail();
     else { setView("detail"); window.scrollTo(0, 0); }
   }
-  function showAiRecipe(recipe:RecipeDetails){setSelected(recipe);setRevision(n=>n+1);setView("detail");window.scrollTo(0,0);}
+  function showAiRecipe(recipe:RecipeDetails){beginRecipeSession(recipe);setRevision(n=>n+1);setView("detail");window.scrollTo(0,0);}
   async function openSharedInput(item:ShareItem){
     if(item.status==="url"){await openLinkImport(item);return;}
     if(!shares||!shareRoute.current(item)||shares.snapshot().pending?.id!==item.id){shares?.defer(item.id);return;}
@@ -556,6 +565,7 @@ export function LibraryApp({
         <div hidden={!!viewer}>
           <RecipeDetail
             recipe={selected}
+            servingAdjustment={{ targetServings, onTargetServingsChange: setTargetServings }}
             onEdit={() => {
               openDetailPage("edit");
             }}
@@ -591,6 +601,7 @@ export function LibraryApp({
       {viewer && selected && (
         <StepViewer
           recipe={selected}
+          servingAdjustment={{ targetServings, onTargetServingsChange: setTargetServings }}
           mode={viewer.mode}
           initialIndex={viewer.index}
           onClose={closeViewer}

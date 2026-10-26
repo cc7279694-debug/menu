@@ -8,11 +8,13 @@ import { NativeV2Sheet } from "./ui-v2/native-sheet";
 import { useControlClearance } from "./ui-v2/use-control-clearance";
 import { LocalImage } from "./local-image";
 import { useV2Appearance } from "./ui-v2/appearance";
+import { ServingControl, ServingIngredientAmount, type ServingAdjustmentSession } from "./serving-control";
 export type StepViewerProps = {
   recipe: RecipeDetails; mode: "focus" | "guided"; initialIndex: number;
   onClose: () => void; onComplete: () => void; busy?: boolean; error?: string;
+  servingAdjustment?: ServingAdjustmentSession;
 };
-export function StepViewer({ recipe, mode, initialIndex, onClose, onComplete, busy = false, error }: StepViewerProps) {
+export function StepViewer({ recipe, mode, initialIndex, onClose, onComplete, busy = false, error, servingAdjustment }: StepViewerProps) {
   const { theme, solid } = useV2Appearance();
   const [index, setIndex] = useState(() => mode === "guided" ? 0 : Math.max(0, Math.min(recipe.steps.length - 1, initialIndex)));
   const [overlay, setOverlay] = useState<"ingredients" | "image" | null>(null);
@@ -52,7 +54,9 @@ export function StepViewer({ recipe, mode, initialIndex, onClose, onComplete, bu
         description={overlay === "ingredients" ? "查看实际用量、提前准备和关键事项，不记录勾选进度。" : "本地原图，不裁掉做法信息。"} dark>
         {overlay === "ingredients" ? <div className="v2-cook-reference">
           <section className="v2-cook-reference-section" aria-label="食材用量">
-            <IngredientsList ingredients={recipe.ingredients} />
+            {servingAdjustment ? <ServingControl originalServings={recipe.servings} {...servingAdjustment} disabled={busy} /> : null}
+            <IngredientsList ingredients={recipe.ingredients} renderAmount={servingAdjustment ? ingredient => <ServingIngredientAmount
+              amount={ingredient.amount} originalServings={recipe.servings} targetServings={servingAdjustment.targetServings} /> : undefined} />
           </section>
           {recipe.preparations.length ? <section className="v2-cook-reference-section">
             <h3>提前准备</h3><RecipePreparations preparations={recipe.preparations} />

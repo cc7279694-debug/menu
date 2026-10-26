@@ -58,8 +58,11 @@ export function V2Image({ src, alt, className, placeholder = "尚未添加图片
     decoding="async" onError={() => setFailedUrl(src)} className={className} />;
 }
 
-export function IngredientsList({ ingredients }: { ingredients: readonly { name: string; amount: string }[] }) {
+export function IngredientsList({ ingredients, renderAmount }: {
+  ingredients: readonly { name: string; amount: string }[];
+  renderAmount?: (ingredient: { name: string; amount: string }, index: number) => ReactNode;
+}) {
   return ingredients.length ? <dl className="v2-ingredients">{ingredients.map((ingredient, i) =>
-    <div key={i}><dt>{ingredient.name}</dt><dd>{ingredient.amount || "用量未填写"}</dd></div>,
+    <div key={i}><dt>{ingredient.name}</dt><dd>{renderAmount ? renderAmount(ingredient, i) : ingredient.amount || "用量未填写"}</dd></div>,
   )}</dl> : <p className="v2-secondary">还没有食材，可以随时补充。</p>;
 }

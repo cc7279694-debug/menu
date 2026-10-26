@@ -56,7 +56,7 @@ it("reopening a recipe highlights its actual latest cooking note while earlier r
   const previous = screen.getByText("实际保存备注 1").closest("details");
   expect(previous).not.toHaveAttribute("open");
   expect(screen.getByText("实际保存备注 1")).not.toBeVisible();
-  fireEvent.click(screen.getByText("较早的 2 次记录"));
+  fireEvent.click(screen.getByText("展开较早记录（预览 2 条）"));
   expect(previous).toHaveAttribute("open");
   expect(screen.getByText("实际保存备注 1")).toBeVisible();
   expect(screen.getAllByTestId("cooking-record")).toHaveLength(3);

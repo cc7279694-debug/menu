@@ -6,14 +6,16 @@ import { RecipePreparations, RecipeStepContent } from "./recipe-step-content";
 import { IngredientsList, V2Button } from "./ui-v2/components";
 import { NativeV2Sheet } from "./ui-v2/native-sheet";
 import { useControlClearance } from "./ui-v2/use-control-clearance";
+import { ServingControl, ServingIngredientAmount, type ServingAdjustmentSession } from "./serving-control";
 
 export function RecipeDetail({ recipe, onEdit, onBack, onDelete, onFocus, onGuided, onComplete,
-  completing = false, overview, onChanges,
+  completing = false, overview, onChanges, servingAdjustment,
 }: {
   recipe: RecipeDetails; onEdit: () => void; onBack: () => void; onDelete: () => void;
   onFocus?: (index: number, trigger: HTMLElement) => void;
   onGuided?: (trigger: HTMLElement) => void; onComplete?: () => void;
   completing?: boolean; overview?: ReactNode; onChanges?: () => void;
+  servingAdjustment?: ServingAdjustmentSession;
 }) {
   const rootRef = useRef<HTMLElement>(null), controlsRef = useRef<HTMLElement>(null);
   const [more, setMore] = useState(false);
@@ -37,7 +39,11 @@ export function RecipeDetail({ recipe, onEdit, onBack, onDelete, onFocus, onGuid
           {recipe.servings !== null ? <div><Utensils aria-hidden="true" /><dt>份量</dt><dd>{recipe.servings} 人份</dd></div> : null}
           {recipe.caloriesPerServing !== null ? <div className="v2-meta-calories"><Flame aria-hidden="true" /><dt>每份热量</dt><dd>约 {recipe.caloriesPerServing} kcal／份</dd></div> : null}
         </dl></header>
-        <section className="v2-content-section"><h2>食材</h2><IngredientsList ingredients={recipe.ingredients} /></section>
+        <section className="v2-content-section"><h2>食材</h2>
+          {servingAdjustment ? <ServingControl originalServings={recipe.servings} {...servingAdjustment} disabled={completing} /> : null}
+          <IngredientsList ingredients={recipe.ingredients} renderAmount={servingAdjustment ? ingredient => <ServingIngredientAmount
+            amount={ingredient.amount} originalServings={recipe.servings} targetServings={servingAdjustment.targetServings} /> : undefined} />
+        </section>
         {recipe.preparations.length ? <section className="v2-content-section"><h2>提前准备</h2>
           <RecipePreparations preparations={recipe.preparations} /></section> : null}
         {recipe.keyTips.length ? <section className="v2-content-section"><h2>关键事项</h2><div className="v2-callout">

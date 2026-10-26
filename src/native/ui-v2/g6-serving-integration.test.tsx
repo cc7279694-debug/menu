@@ -79,6 +79,17 @@ it("actual detail scales supported amounts, preserves free text and restores the
   expect(screen.getByLabelText("本次做几人份")).toHaveValue("3");
 });
 
+it("decimal serving buttons preserve the exact decimal target and do not invent approximate amounts", async () => {
+  const app = await fixture(); render(app.element); await openRecipe(app.recipe.title);
+  setTarget("2.3");
+  fireEvent.click(screen.getByRole("button", { name: "减少本次份数" }));
+  expect(screen.getByLabelText("本次做几人份")).toHaveValue("1.3");
+  expect(ingredient("鸡翅").getByText("260 克")).toBeVisible();
+  fireEvent.click(screen.getByRole("button", { name: "增加本次份数" }));
+  expect(screen.getByLabelText("本次做几人份")).toHaveValue("2.3");
+  expect(ingredient("鸡翅").getByText("460 克")).toBeVisible();
+});
+
 it.each([
   ["Guided", "开始引导烹饪", "引导烹饪"],
   ["Focus", "放大步骤 2", "单步查看"],

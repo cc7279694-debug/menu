@@ -50,3 +50,12 @@ CSS200% is not Android system font scaling. Activity restart is not cold
 process flight-mode evidence. Cloud debug identity is not durable signing.
 No real AI, private media, personal backups or existing-device data are used.
 Final stop: RECIPIO_G6_READY_FOR_REVIEW, not acceptance/freeze or G7.
+
+## Observed test-first evidence
+
+Commitc27fb730e7a289f14402f714a68cf74951f31675, cloud run40343923995:
+frozen affected G5 gates20/20 PASS. G6 two files172 assertions:112 FAIL,
+60 PASS. Pure failure is the stub returning false for valid servings; UI
+failure is the missing actual serving control, not a missing import or fixture.
+Now implementing A and B/C from those literal expectations. Native/browser
+QA is separate verification, not claimed executed by source existence.
