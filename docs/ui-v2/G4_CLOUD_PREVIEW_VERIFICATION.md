@@ -1,6 +1,6 @@
 # RECIPIO G4 — isolated cloud-preview build receipt
 
-Date: 2026-10-25. Status: **CLOUD_BUILD_PASS / G4_PENDING_DEVICE_TEST**.
+Date: 2026-10-25. Build status: **CLOUD_BUILD_PASS**. Subsequent user phone report on 2026-10-26: **CLOUD_PREVIEW_PHONE_SMOKE_ACCEPTED — PASS WITH NOTES**; [separate acceptance record](G4_CLOUD_PREVIEW_PHONE_ACCEPTANCE.md). **Overall G4 remains pending.**
 
 ## Exact provenance
 

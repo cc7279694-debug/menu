@@ -1,5 +1,23 @@
 # Current State
 
+## Cloud-preview phone feedback — 2026-10-26
+
+**CLOUD_PREVIEW_PHONE_SMOKE_ACCEPTED — PASS WITH NOTES** (limited to independent
+`app.recipio.local.cloudpreview` v25). User reports all three requested phone
+checks PASS: immediate-reopen appearance retention; generated recipe cover on
+list/detail; cooking steps, buttons and return. GitHub Actions 40198321167
+has both jobs SUCCESS (204 files /1161 JS/TS tests, Android JVM/lint/build).
+The old v24 cover presentation symptom did not recur in user experience; its
+root cause is NOT independently established.
+
+**G4 overall remains PENDING**, not ACCEPTED/FROZEN: the independent runner
+debug certificate and package cannot replace original `app.recipio.local`
+v23. Original-data preserving upgrade/migration, connected Android, true IME,
+TalkBack and performance are still NOT_RUN for this delivered preview.
+Do not uninstall existing app, merge main or claim official release.
+
+[Exact phone feedback attribution and open gates](ui-v2/G4_CLOUD_PREVIEW_PHONE_ACCEPTANCE.md).
+
 ## Cloud verification update — 2026-10-25
 
 The Windows PC resource-blocked G4 checkpoint below is historical. GitHub Actions
