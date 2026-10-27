@@ -1,7 +1,7 @@
-name: RECIPIO G7 serving adjustment verification
+name: RECIPIO G7 reliable intake verification
 on:
   push:
-    branches: [feat/recipio-g7-serving-adjustment]
+    branches: [feat/recipio-g7-reliable-intake]
     paths: ['src/**', 'scripts/**', 'android/**', '.github/workflows/recipio-g7-cloud.yml', 'package*.json', '*config*', 'native/**']
 permissions:
   contents: read
@@ -43,7 +43,8 @@ jobs:
           retention-days: 7
 
   browser:
-    name: G7 real-page serving and kitchen browser checks
+    name: G7 real intake and frozen kitchen browser checks
+    needs: web-checks
     runs-on: ubuntu-24.04
     timeout-minutes: 30
     steps:
@@ -79,6 +80,7 @@ jobs:
 
   android-build:
     name: G7 key-free Android build (cloud fixture only)
+    needs: web-checks
     runs-on: ubuntu-24.04
     timeout-minutes: 40
     outputs:
