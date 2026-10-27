@@ -668,3 +668,15 @@ Current schema and existing confirmation/duplicate/uncertain gates remain the
 only save authority. Source references borrow only information already retained
 by the owning service. Finder does not retain or refetch sourceText. Source
 viewing, issue expansion and focus do not confirm review or create writes.
+
+### Runtime finding within the same UI boundary
+
+Real Chromium window-target listeners also follow registration order when
+capture is enabled. Capture-only tests had not proved modal ownership. Editor
+now defers to the existing live, visible, noninert data-open modal, respecting
+defaultPrevented. Editor/NativeV2Sheet register and clean up during layout so a
+committed reopened Sheet already owns Back. No new IME state machine, delay,
+debounce, service authority or Native production change. Fresh source e8c2f948,
+run40460260275 verifies the browser and real API36 WebView/IME paths; see
+g7/G7_REVIEW.md. This shared UI change is explicitly disclosed, not described as
+an untouched G6 UI file. G6 quantity/session semantics remain unchanged.

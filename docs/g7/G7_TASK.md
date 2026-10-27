@@ -951,21 +951,21 @@ explicit Git fallback created E:/CODEX/VIBE CODING/recipe-step-app-g7 on
 feat/recipio-g7-reliable-intake. G6/G5/video worktrees remain untouched.
 Free RAM3.88GiB: no local npm/browser/Gradle/adb/emulator. Cloud-only heavy QA.
 
-[ ] A. field-bindings.ts + quality.ts literal tests/STUB -> observed cloud RED
+[x] A. field-bindings.ts + quality.ts literal tests/STUB -> observed cloud RED
     -> pure implementation. Stable originalRows/currentRows row keys; explicit
     located/removed/unlocatable/unknown mapping. Schema-only canSave/errors,
     current missing advice and original immutable evidence kept separate.
-[ ] B/C. Real AiPreview/Editor tests -> observed RED -> shared editor hooks,
+[x] B/C. Real AiPreview/Editor tests -> observed RED -> shared editor hooks,
     current report/3 priority hints, stable React row keys and correct locate.
     SourcePanel uses existing NativeV2Sheet and source-context snapshot factories.
-[ ] D. Confirm reset only for actual edits; same-name query and confirmation
+[x] D. Confirm reset only for actual edits; same-name query and confirmation
     recheck mounted/current-draft identity after each await. Existing uncertain
     recovery/creation IDs and service gates unchanged. Manual-new advice opt-in;
     ordinary edit remains compatible. No source data in DTO/notes/Backup.
-[ ] E. G7 cloud browser/native QA, three themes/320-412/CSS200/solid/motion;
+[x] E. G7 cloud browser/native QA, three themes/320-412/CSS200/solid/motion;
     affected G5/G6/Preview/Parser/Finder/Back plus full JS/type/lint/build/isolation,
     sync/JVM/lint/Debug/AndroidTest and real API36 IME/source/confirm/save tests.
-[ ] Final read-only whole-branch review, representative actual screenshots,
+[x] Final read-only whole-branch review, representative actual screenshots,
     G7_REVIEW/CURRENT_STATE/ROADMAP, normal G7 commit/push, clean remote equality.
 
 Interface rulings:
@@ -1041,3 +1041,13 @@ and189 JVM/build plus G6 browser33 PASS. These are intermediate evidence only,
 not final numbers. ff0c533 also exposed an old intakeDraft_survivesImeBack
 failure (0 expected/1 page Back); it remains unmodified and must pass fresh final
 native execution. No failure is removed, skipped or counted as final PASS.
+
+### Final execution checkpoint — 2026-10-27
+
+Source e8c2f948544d8650919456bd2421b7a04ea218b4/run40460260275 completed
+all4jobs:1503JS/TS,189JVM,25Native, G7 browser29 and G6 browser33 PASS.
+0failures/0skips; earlier old IME test passes unmodified in the final25.
+Final documentation and9selected synthetic screenshots are delivery-only changes.
+Exact commands, provenance, resolved failures and NOT_RUN: G7_REVIEW.md.
+Status is RECIPIO_G7_READY_FOR_REVIEW; ChatGPT independent acceptance pending.
+No G8/main/release/signing/user-device action is authorized by this checkpoint.
