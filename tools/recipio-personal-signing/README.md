@@ -95,6 +95,12 @@ Raw exception text, paths, native output and private material are excluded. If
 the helper cannot load or the public destination is unsafe/unavailable, it reports
 that no attempt record was saved rather than bypassing the safety checks. Failure
 records never replace `OWNER_RESULT.json`, which remains the only success evidence.
+Toolchain diagnostics use only the fixed six tool labels and
+`ENTRY` / `PIN_FORMAT` / `MISSING` / `READ` / `HASH` reasons, for example
+`R1P_TOOLCHAIN_JAVA_HASH`. Neither paths, expected/actual hashes nor raw read
+exceptions enter the failure category. All six tool pins and the independent
+fixed 7-Zip identity check remain mandatory. This diagnostic refinement does
+not establish or claim to repair the earlier unreplicated toolchain failure.
 The helper retains original identities. It does not regenerate keys, overwrite an existing backup, install
 an app, modify a phone, or import personal recipes. Unexpected files stop
 temporary cleanup instead of triggering recursive deletion. An interrupted
@@ -108,6 +114,7 @@ pwsh -NoProfile -File tools/recipio-personal-signing/Test-PersonalSigning.ps1 -R
 pwsh -NoProfile -File tools/recipio-personal-signing/Test-OwnerLifecycle.ps1
 pwsh -NoProfile -File tools/recipio-personal-signing/Test-SigningSafetyRepairs.ps1
 pwsh -NoProfile -File tools/recipio-personal-signing/Test-OwnerAttempt.ps1
+pwsh -NoProfile -File tools/recipio-personal-signing/Test-ToolchainDiagnostics.ps1
 ```
 
 The first suite includes a real modern7-Zip AES backup of generated ordinary

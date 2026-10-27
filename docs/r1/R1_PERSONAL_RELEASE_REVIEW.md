@@ -125,6 +125,28 @@ unsigned状态及仓库外位置，结果PASS。没有调用真实owner入口；
 
 ### Owner follow-up — 2026-10-27
 
+后续真实重试现已留下公开失败回执：UTC2026-10-27T12:45:24.5435346Z，
+类别 `R1P_TOOLCHAIN_HASH`。没有OWNER_RESULT、签名APK或既定私人根目录。
+根代理重新逐一读取manifest内六个**公共工具**的SHA-256，当前全部与原pin一致；
+运行文件与bundle摘要也一致，直接Get-R1Toolchain通过。未改任何pin或更换工具。
+
+另外分别在捕获环境和新-NoProfile独立Console对实际公开前缀连续复测3次，
+以及局部名字/默认值污染对照，均未复现。工具条目/路径/摘要类型和长度正常；
+非管理员检查进程与Explorer同SID，六文件及27个相关祖先无Deny/reparse/EFS，
+当前该用户可读。以上是本轮只读证据，不证明失败时的窗口状态相同，
+也不能将失败解释为算法污染、权限差异或工具已被改写。
+**真实错误已知，但具体工具、失败分支与根因仍UNKNOWN / NOT_REPRODUCED。**
+因此仅增强固定工具/原因诊断；不跳过校验，不盲目更新摘要，不把诊断增强称为根因修复。
+
+限定诊断增强已完成：Get-R1Toolchain仅拆分为固定六工具名及ENTRY/PIN_FORMAT/
+MISSING/READ/HASH类别，READ丢弃原异常；原SHA算法、六pin及固定7zip身份不变。
+原实现上先观察2PASS/35FAIL，修订后37PASS；原75项工具回归也重新PASS，合计112。
+根代理独立重跑37项、核对实际结果和真实公开六工具通过；限定安全静态复查无新增阻断。
+记录见辅助工具目录TOOLCHAIN_DIAGNOSTICS_TEST_RESULTS.txt，不是产品测试或签名证据。
+新模块摘要为 `c94f0699c1ca47af0fdfc1861eb98b78b9b8c29ba823793e609c2c0289bbe65c`；
+PS1/CMD仍为16eedcf2/47fb555b。已复制到仓库外工具包并验证公开manifest/运行文件摘要，
+所有工具路径及pin保持原值。私人签名、备份、设备等仍NOT_RUN。
+
 用户最初报告私密操作完成，随后明确更正：未看到结果路径，仅按Enter关闭了窗口，
 可能并未成功。实际回读：既定公开delivery中没有OWNER_RESULT或签名APK，
 预定个人副本和备份根目录不存在。未读取原始私钥或私人备份内容，不将关窗记为成功。

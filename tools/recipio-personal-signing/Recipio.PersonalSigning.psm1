@@ -318,10 +318,17 @@ function Remove-R1OwnedTemporaryDirectory([string]$Path,[string]$PrivateRoot,[st
 }
 
 function Get-R1Toolchain($Manifest){
-  $names=@('java','keytool','aapt','zipalign','apksigner','sevenZip')
-  foreach($name in $names){
-    $tool=$Manifest.tools.$name
-    if(-not$tool-or$tool.sha256-notmatch'^[a-f0-9]{64}$'-or-not(Test-Path -LiteralPath $tool.path -PathType Leaf)-or(Get-R1Hash $tool.path)-ne$tool.sha256){Stop-R1 'TOOLCHAIN_HASH'}
+  $labels=[ordered]@{java='JAVA';keytool='KEYTOOL';aapt='AAPT';zipalign='ZIPALIGN';apksigner='APKSIGNER';sevenZip='SEVENZIP'}
+  foreach($name in $labels.Keys){
+    $prefix='TOOLCHAIN_'+$labels[$name]+'_'
+    try{$tool=$Manifest.tools.$name}catch{Stop-R1 ($prefix+'ENTRY')}
+    if(-not$tool-or$tool-isnot[Collections.IDictionary]){Stop-R1 ($prefix+'ENTRY')}
+    if(-not$tool.Contains('sha256')-or$tool.sha256-isnot[string]-or$tool.sha256-notmatch'^[a-f0-9]{64}$'){Stop-R1 ($prefix+'PIN_FORMAT')}
+    if(-not$tool.Contains('path')-or$tool.path-isnot[string]-or[string]::IsNullOrWhiteSpace($tool.path)){Stop-R1 ($prefix+'ENTRY')}
+    try{$exists=Test-Path -LiteralPath $tool.path -PathType Leaf}catch{Stop-R1 ($prefix+'READ')}
+    if(-not$exists){Stop-R1 ($prefix+'MISSING')}
+    try{$actual=Get-R1Hash $tool.path}catch{Stop-R1 ($prefix+'READ')}
+    if($actual-ne$tool.sha256){Stop-R1 ($prefix+'HASH')}
   }
   if($Manifest.tools.sevenZip.sha256-ne'7ddf0a3bc451e166679296be630d6f0573eb386159c04184761c43020c484291'){Stop-R1 'BACKUP_TOOL_IDENTITY'}
   return $Manifest.tools

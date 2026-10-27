@@ -1,0 +1,32 @@
+RECIPIO R1-P fixed tool-and-reason diagnostic enhancement
+
+This is not a reproduced root-cause fix. The earlier real R1P_TOOLCHAIN_HASH
+remains unexplained. No expected hash, hash algorithm or fixed sevenZip pin changed.
+
+Meaningful RED against the original Get-R1Toolchain implementation:
+Test-ToolchainDiagnostics.ps1: 2 PASS / 35 FAIL (output 98eb14).
+The test runner's Name/name scope collision was corrected before this RED.
+An earlier mixed run is not used as the RED evidence.
+
+Same final implementation, PowerShell 7.6.5 -NoLogo -NoProfile -File:
+Test-ToolchainDiagnostics.ps1: 37 PASS / 0 FAIL (output ed77d8).
+Test-PersonalSigning.ps1 -RealArchivePreflight: 36 PASS / 0 FAIL (ad0649).
+Test-SigningSafetyRepairs.ps1: 22 PASS / 0 FAIL (6faa41).
+Test-OwnerLifecycle.ps1: 2 FAKE_OWNER_LIFECYCLE PASS (1c73e0).
+Test-OwnerAttempt.ps1: 15 PASS / 0 FAIL (8267e6).
+Total: 112 passing tooling assertions/flows; not product tests.
+
+Actual public manifest's six tool pins: PASS with the new helper only (4bc37b).
+PowerShell AST and git diff --check: PASS (4bc37b; existing line-ending notices).
+Real owner calls/password/key/private-backup/signature operations: 0 / NOT_RUN.
+No runtime bundle copy, manifest update or Git commit by the child agent.
+
+SHA-256:
+Recipio.PersonalSigning.psm1
+c94f0699c1ca47af0fdfc1861eb98b78b9b8c29ba823793e609c2c0289bbe65c
+Start-RecipioPersonalSigning.ps1 (unchanged)
+16eedcf22eaaa6e2611226f334cc6202adc8a3cfef471aa828b1bc9a095d3631
+Start-RecipioPersonalSigning.cmd (unchanged)
+47fb555bfdb0b57286c6031cd1b8c763e209f9ca2dd5a06c0c3da0de51528b7f
+Test-ToolchainDiagnostics.ps1
+5e6b237c66ac8bb0a56375a2fe01ccd089e998b191dacdbae27bada9dbd15a72

@@ -43,6 +43,16 @@ The reviewed runtime was copied and hash-verified outside Git. Owner input and
 all signed-APK/device gates remain NOT_RUN; next is one owner retry, not a new
 identity. See the owner follow-up in the R1-P review. No production change.
 
+Next retry produced a real public failure: R1P_TOOLCHAIN_HASH. No successful
+receipt or signed artifact exists. All six current public tool digests match;
+repeated direct/public-prefix checks in both captured and independent Console
+contexts pass. Current same-user ACL checks also pass. Original window failure
+remains NOT_REPRODUCED / root cause UNKNOWN. Fixed tool/reason diagnostics are
+now implemented:37 new+75 prior tooling checks PASS, actual public toolchain
+and copied-bundle hash checks PASS. Module c94f0699; runtime updated outside Git.
+No pin update, security bypass or private operation. Await owner retry for an
+actual success receipt or the now-specific failure category; never infer PASS.
+
 ## G7 independent acceptance — ACCEPTED / FROZEN — PASS WITH NOTES — 2026-10-27
 
 **RECIPIO_G7_ACCEPTED / FROZEN — PASS WITH NOTES.** ChatGPT completed the
