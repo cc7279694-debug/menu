@@ -36,12 +36,13 @@ one final ChatGPT review. No intermediate approval gate.
 
 ## Progress
 
-- [ ] A: literal pure-function tests → observed RED → safe arithmetic.
-- [ ] B/C: real LibraryApp lifecycle/zero-write tests → observed RED → UI.
-- [ ] D: scoped three-theme layout/accessibility + history preview wording.
-- [ ] E: current-source full JS/TS/type/lint/build/isolation, JVM/Android build,
+- [x] A: literal pure-function tests → observed RED → safe arithmetic.
+- [x] B/C: real LibraryApp lifecycle/zero-write tests → observed RED → UI.
+- [x] D: scoped three-theme layout/accessibility + history preview wording.
+- [x] E: current-source full JS/TS/type/lint/build/isolation, JVM/Android build,
   real API36 numeric IME/Back, actual browser screenshots and zero-network.
-- [ ] Fresh internal review; final report/current state/roadmap; ordinary push.
+- [x] Fresh internal review; final report/current state/roadmap prepared. Final
+  documentation-only commit/push and remote/clean-tree check precede handoff.
 
 ## Evidence rules
 
@@ -113,3 +114,22 @@ Native tests and workflow are unchanged by this last probe repair.
 
 Fresh normal push validates all final-source gates again. No local browser,
 Gradle, device or real AI invocation; current free RAM3.48GiB remains below4.
+
+## Final fixed-source result — 2026-10-27
+
+d8f2e3afcaffce886d4a08caec7ce99a97a4531d / run40440306979 attempt1:
+all4 jobs PASS.217 targeted included in212 files/1381 JS/TS;189 JVM;
+23 actual fresh owned API36 tests,0 skips. Typecheck/lint(0 errors/5 existing
+warnings)/build/isolation/sync/Android Debug+AndroidTest PASS. Browser33 groups,
+39 geometry,9 computed materials,12 real PNGs; external/page/console0.
+7 representative actual PNGs inspected and archived with concise receipts.
+
+Root/internal source review has no remaining confirmed issue after decimal
+and48px repairs; it is not ChatGPT independent acceptance. Final documentation
+and screenshots only follow the fixed-source CI; no code/test/workflow drift.
+G4 pending, R1 deferred, G5 acceptance inherited. Existing v23/v25, personal
+data, other worktrees/processes/devices and main remain untouched. No local
+heavy execution, real AI, formal/user APK, PR/tag/merge/release or G7.
+Stop after ordinary G6 documentation push/clean remote equality confirmation:
+RECIPIO_G6_READY_FOR_REVIEW. Exact NOT_RUN and next independent review are in
+G6_REVIEW.md; do not infer phone, OS-font/TalkBack or signed-upgrade acceptance.

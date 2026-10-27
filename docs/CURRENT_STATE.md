@@ -1,5 +1,36 @@
 # Current State
 
+## G6 serving adjustment — READY_FOR_REVIEW — 2026-10-27
+
+Authorized G6 A–E implemented on isolated branch
+`feat/recipio-g6-serving-adjustment` from G5 accepted/frozen `cb40a9fb`.
+Tested source `d8f2e3afcaffce886d4a08caec7ce99a97a4531d`, cloud
+[40440306979](https://github.com/cc7279694-debug/menu/actions/runs/40440306979):
+all four jobs PASS.217 targeted (included in full),212 files/1381 JS/TS,
+189 JVM and23 real fresh API36 native tests PASS,0 skips. Typecheck,
+lint(0 errors/5 existing warnings), build/isolation, sync and both Android
+fixture builds PASS. Browser33 groups/39 geometry/9 computed materials,
+12 actual screenshots,0 external/page/console errors.7 selected PNGs archived.
+
+One transient target is shared by detail and existing Focus/Guided reference
+Sheet. Whole-field safe amounts scale conservatively; unknown/unsafe values
+remain original. Invalid drafts retain last valid display. Kitchen/history/
+edit-cancel preserve the target; leaving/reopening/switching/successful save/
+restart reset it. No adjustment persistence/network/automatic cooking record.
+Only explicit completion records once. Earlier-history preview wording fixed.
+SQLite4/Preview7/Backup2, Repository/media/Provider/Logo/dependencies unchanged.
+
+Physical phone/OEM/TalkBack/Android system font scaling/performance/native
+image-pixel presentation/process flight-mode cold boot and deferred signing/
+personal migration remain NOT_RUN. User v23/v25 and personal data untouched;
+internal ephemeral CI APKs are not user update candidates. G5 scoped acceptance
+below remains valid, G4 remains PENDING, R1 remains DEFERRED_BY_USER.
+
+Next: ChatGPT independent G6 review only. Not G6/G4 freeze, G7, main merge,
+release or R1 resumption. [G6 review/checkpoint](g6/G6_REVIEW.md),
+[approved task](g6/G6_TASK.md) and [execution ledger](g6/G6_EXECUTION.md).
+Final documentation/evidence commit does not change the tested source.
+
 ## G5 independent acceptance — 2026-10-26
 
 **G5 IMPLEMENTATION ACCEPTED / FROZEN — PASS WITH NOTES**, scoped to daily
@@ -47,7 +78,8 @@ Android OS font scaling, device performance, process cold boot in flight mode,
 unselected historical connected classes and deferred signing/migration remain
 NOT_RUN. Local heavy checks were avoided/stopped for low RAM; none inferred PASS.
 
-Next: ChatGPT independent G5 review only. No G4/G5 acceptance/freeze, next module,
+G5's subsequent scoped independent acceptance is recorded above. Its former
+review-ready state here is historical; it does not authorize G4 freeze,
 R1 resumption, safety relaxation, personal-data operation, main merge or release.
 See [G5 review/checkpoint](g5/G5_REVIEW.md) and [execution contract](g5/G5_EXECUTION.md). Older sections below retain
 their historical/module-specific meanings.

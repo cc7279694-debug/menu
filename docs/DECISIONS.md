@@ -616,3 +616,27 @@ Missing can inherit legal legacy cache; malformed existing value→Warm.
 Display file is outside backup/media; LibraryApp not remounted. Final focused
 44PASS and source review support patch; full regression/build/new Native proof
 remain pending resource stop. Not G4 acceptance or a stable main change.
+
+## 2026-10-27 — G6 serving adjustment is a transient display projection
+
+### Decision / context
+
+Use RecipeDetails.servings as the sole original denominator; LibraryApp owns
+one memory-only valid target shared with detail and the existing kitchen Sheet.
+Amount text remains free-form. Parse only whole unambiguous quantity/unit fields
+and use bounded decimal rational arithmetic; preserve unsupported/unsafe text.
+
+### Alternatives / reason
+
+Do not persist a scaled recipe, invent a default denominator or add normalized
+amount fields for this milestone. The approved task requires temporary reading
+without changing SQLite4/Preview7/Backup2 or user-owned recipe/history semantics.
+
+### Consequences / verification
+
+Opening/reentering/switching/successful save/restart initializes original target;
+kitchen/history/edit-cancel retain the same session. Steps/time/calories remain
+original. Adjustment never writes data or creates a cooking record. Source
+d8f2e3a/run40440306979 has fresh1381JS/189JVM/23Native and real browser evidence;
+see g6/G6_REVIEW.md for exact scope and NOT_RUN. Not independent G6/G4 freeze,
+R1 resumption or authorization for a later module.

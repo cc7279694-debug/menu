@@ -1,0 +1,703 @@
+{
+  "status": "PASS",
+  "source": "d8f2e3afcaffce886d4a08caec7ce99a97a4531d",
+  "browser": "151.0.7922.34",
+  "checks": [
+    {
+      "name": "actual detail 3 to2 uses conservative amounts without rewriting metadata or steps",
+      "status": "PASS"
+    },
+    {
+      "name": "Focus inherits2, preserves current step and existing reference sections",
+      "status": "PASS"
+    },
+    {
+      "name": "Guided changes1.5 in existing Sheet and returns shared target to detail",
+      "status": "PASS"
+    },
+    {
+      "name": "invalid drafts preserve lastvalid and accessible errors; decimal range stays legal",
+      "status": "PASS"
+    },
+    {
+      "name": "reset restores exact original text",
+      "status": "PASS"
+    },
+    {
+      "name": "recipe switch and reentry discard temporary targets",
+      "status": "PASS"
+    },
+    {
+      "name": "browser reload starts from original3 and has no persisted target",
+      "status": "PASS"
+    },
+    {
+      "name": "missing original denominator keeps600 and prompts recipe editing",
+      "status": "PASS"
+    },
+    {
+      "name": "editor cancel retains target; explicit save resets to latest original4",
+      "status": "PASS"
+    },
+    {
+      "name": "only explicit completion records once after synchronous doubleclick",
+      "status": "PASS"
+    },
+    {
+      "name": "warm-ivory-320-CSS100-detail",
+      "status": "PASS"
+    },
+    {
+      "name": "warm-ivory-320-CSS100-kitchen",
+      "status": "PASS"
+    },
+    {
+      "name": "warm-ivory-320-CSS200-detail",
+      "status": "PASS"
+    },
+    {
+      "name": "warm-ivory-320-CSS200-kitchen",
+      "status": "PASS"
+    },
+    {
+      "name": "warm-ivory-390-CSS100-detail",
+      "status": "PASS"
+    },
+    {
+      "name": "warm-ivory-390-CSS100-kitchen",
+      "status": "PASS"
+    },
+    {
+      "name": "warm-ivory-390-CSS200-detail",
+      "status": "PASS"
+    },
+    {
+      "name": "warm-ivory-390-CSS200-kitchen",
+      "status": "PASS"
+    },
+    {
+      "name": "warm-ivory-412-CSS100-detail",
+      "status": "PASS"
+    },
+    {
+      "name": "warm-ivory-412-CSS100-kitchen",
+      "status": "PASS"
+    },
+    {
+      "name": "warm-ivory-412-CSS200-detail",
+      "status": "PASS"
+    },
+    {
+      "name": "warm-ivory-412-CSS200-kitchen",
+      "status": "PASS"
+    },
+    {
+      "name": "warm-ivory-solid-and-reduced-motion",
+      "status": "PASS"
+    },
+    {
+      "name": "pure-glass-390-CSS100-detail",
+      "status": "PASS"
+    },
+    {
+      "name": "pure-glass-390-CSS100-kitchen",
+      "status": "PASS"
+    },
+    {
+      "name": "pure-glass-390-CSS200-detail",
+      "status": "PASS"
+    },
+    {
+      "name": "pure-glass-390-CSS200-kitchen",
+      "status": "PASS"
+    },
+    {
+      "name": "pure-glass-solid-and-reduced-motion",
+      "status": "PASS"
+    },
+    {
+      "name": "soft-sage-390-CSS100-detail",
+      "status": "PASS"
+    },
+    {
+      "name": "soft-sage-390-CSS100-kitchen",
+      "status": "PASS"
+    },
+    {
+      "name": "soft-sage-390-CSS200-detail",
+      "status": "PASS"
+    },
+    {
+      "name": "soft-sage-390-CSS200-kitchen",
+      "status": "PASS"
+    },
+    {
+      "name": "soft-sage-solid-and-reduced-motion",
+      "status": "PASS"
+    }
+  ],
+  "screenshots": [
+    {
+      "file": "screenshots/warm-original-390.png",
+      "theme": "warm-ivory",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "source": "d8f2e3afcaffce886d4a08caec7ce99a97a4531d"
+    },
+    {
+      "file": "screenshots/warm-adjusted-390.png",
+      "theme": "warm-ivory",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "source": "d8f2e3afcaffce886d4a08caec7ce99a97a4531d"
+    },
+    {
+      "file": "screenshots/warm-kitchen-390.png",
+      "theme": "warm-ivory",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "source": "d8f2e3afcaffce886d4a08caec7ce99a97a4531d"
+    },
+    {
+      "file": "screenshots/warm-320-CSS200-kitchen.png",
+      "theme": "warm-ivory",
+      "viewport": {
+        "width": 320,
+        "height": 844
+      },
+      "source": "d8f2e3afcaffce886d4a08caec7ce99a97a4531d"
+    },
+    {
+      "file": "screenshots/warm-ivory-solid-detail.png",
+      "theme": "warm-ivory",
+      "viewport": {
+        "width": 412,
+        "height": 844
+      },
+      "source": "d8f2e3afcaffce886d4a08caec7ce99a97a4531d"
+    },
+    {
+      "file": "screenshots/warm-ivory-solid-kitchen.png",
+      "theme": "warm-ivory",
+      "viewport": {
+        "width": 412,
+        "height": 844
+      },
+      "source": "d8f2e3afcaffce886d4a08caec7ce99a97a4531d"
+    },
+    {
+      "file": "screenshots/pure-glass-adjusted-390.png",
+      "theme": "pure-glass",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "source": "d8f2e3afcaffce886d4a08caec7ce99a97a4531d"
+    },
+    {
+      "file": "screenshots/pure-glass-solid-detail.png",
+      "theme": "pure-glass",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "source": "d8f2e3afcaffce886d4a08caec7ce99a97a4531d"
+    },
+    {
+      "file": "screenshots/pure-glass-solid-kitchen.png",
+      "theme": "pure-glass",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "source": "d8f2e3afcaffce886d4a08caec7ce99a97a4531d"
+    },
+    {
+      "file": "screenshots/soft-sage-adjusted-390.png",
+      "theme": "soft-sage",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "source": "d8f2e3afcaffce886d4a08caec7ce99a97a4531d"
+    },
+    {
+      "file": "screenshots/soft-sage-solid-detail.png",
+      "theme": "soft-sage",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "source": "d8f2e3afcaffce886d4a08caec7ce99a97a4531d"
+    },
+    {
+      "file": "screenshots/soft-sage-solid-kitchen.png",
+      "theme": "soft-sage",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "source": "d8f2e3afcaffce886d4a08caec7ce99a97a4531d"
+    }
+  ],
+  "geometry": [
+    {
+      "name": "warm-ivory-320-CSS100-detail",
+      "width": 320,
+      "scrollWidth": 320,
+      "rootFont": "16px",
+      "overflows": [],
+      "blockedPrimary": [],
+      "small": []
+    },
+    {
+      "name": "warm-ivory-320-CSS100-kitchen",
+      "width": 320,
+      "scrollWidth": 320,
+      "rootFont": "16px",
+      "overflows": [],
+      "blockedPrimary": [],
+      "small": []
+    },
+    {
+      "name": "warm-ivory-320-CSS100-cooking-main",
+      "width": 320,
+      "scrollWidth": 320,
+      "rootFont": "16px",
+      "overflows": [],
+      "blockedPrimary": [],
+      "small": []
+    },
+    {
+      "name": "warm-ivory-320-CSS200-detail",
+      "width": 320,
+      "scrollWidth": 320,
+      "rootFont": "32px",
+      "overflows": [],
+      "blockedPrimary": [],
+      "small": []
+    },
+    {
+      "name": "warm-ivory-320-CSS200-kitchen",
+      "width": 320,
+      "scrollWidth": 320,
+      "rootFont": "32px",
+      "overflows": [],
+      "blockedPrimary": [],
+      "small": []
+    },
+    {
+      "name": "warm-ivory-320-CSS200-cooking-main",
+      "width": 320,
+      "scrollWidth": 320,
+      "rootFont": "32px",
+      "overflows": [],
+      "blockedPrimary": [],
+      "small": []
+    },
+    {
+      "name": "warm-ivory-390-CSS100-detail",
+      "width": 390,
+      "scrollWidth": 390,
+      "rootFont": "16px",
+      "overflows": [],
+      "blockedPrimary": [],
+      "small": []
+    },
+    {
+      "name": "warm-ivory-390-CSS100-kitchen",
+      "width": 390,
+      "scrollWidth": 390,
+      "rootFont": "16px",
+      "overflows": [],
+      "blockedPrimary": [],
+      "small": []
+    },
+    {
+      "name": "warm-ivory-390-CSS100-cooking-main",
+      "width": 390,
+      "scrollWidth": 390,
+      "rootFont": "16px",
+      "overflows": [],
+      "blockedPrimary": [],
+      "small": []
+    },
+    {
+      "name": "warm-ivory-390-CSS200-detail",
+      "width": 390,
+      "scrollWidth": 390,
+      "rootFont": "32px",
+      "overflows": [],
+      "blockedPrimary": [],
+      "small": []
+    },
+    {
+      "name": "warm-ivory-390-CSS200-kitchen",
+      "width": 390,
+      "scrollWidth": 390,
+      "rootFont": "32px",
+      "overflows": [],
+      "blockedPrimary": [],
+      "small": []
+    },
+    {
+      "name": "warm-ivory-390-CSS200-cooking-main",
+      "width": 390,
+      "scrollWidth": 390,
+      "rootFont": "32px",
+      "overflows": [],
+      "blockedPrimary": [],
+      "small": []
+    },
+    {
+      "name": "warm-ivory-412-CSS100-detail",
+      "width": 412,
+      "scrollWidth": 412,
+      "rootFont": "16px",
+      "overflows": [],
+      "blockedPrimary": [],
+      "small": []
+    },
+    {
+      "name": "warm-ivory-412-CSS100-kitchen",
+      "width": 412,
+      "scrollWidth": 412,
+      "rootFont": "16px",
+      "overflows": [],
+      "blockedPrimary": [],
+      "small": []
+    },
+    {
+      "name": "warm-ivory-412-CSS100-cooking-main",
+      "width": 412,
+      "scrollWidth": 412,
+      "rootFont": "16px",
+      "overflows": [],
+      "blockedPrimary": [],
+      "small": []
+    },
+    {
+      "name": "warm-ivory-412-CSS200-detail",
+      "width": 412,
+      "scrollWidth": 412,
+      "rootFont": "32px",
+      "overflows": [],
+      "blockedPrimary": [],
+      "small": []
+    },
+    {
+      "name": "warm-ivory-412-CSS200-kitchen",
+      "width": 412,
+      "scrollWidth": 412,
+      "rootFont": "32px",
+      "overflows": [],
+      "blockedPrimary": [],
+      "small": []
+    },
+    {
+      "name": "warm-ivory-412-CSS200-cooking-main",
+      "width": 412,
+      "scrollWidth": 412,
+      "rootFont": "32px",
+      "overflows": [],
+      "blockedPrimary": [],
+      "small": []
+    },
+    {
+      "name": "warm-ivory-solid",
+      "width": 412,
+      "scrollWidth": 412,
+      "rootFont": "16px",
+      "overflows": [],
+      "blockedPrimary": [],
+      "small": []
+    },
+    {
+      "name": "warm-ivory-solid-kitchen",
+      "width": 412,
+      "scrollWidth": 412,
+      "rootFont": "16px",
+      "overflows": [],
+      "blockedPrimary": [],
+      "small": []
+    },
+    {
+      "name": "warm-ivory-solid-cooking-main",
+      "width": 412,
+      "scrollWidth": 412,
+      "rootFont": "16px",
+      "overflows": [],
+      "blockedPrimary": [],
+      "small": []
+    },
+    {
+      "name": "pure-glass-390-CSS100-detail",
+      "width": 390,
+      "scrollWidth": 390,
+      "rootFont": "16px",
+      "overflows": [],
+      "blockedPrimary": [],
+      "small": []
+    },
+    {
+      "name": "pure-glass-390-CSS100-kitchen",
+      "width": 390,
+      "scrollWidth": 390,
+      "rootFont": "16px",
+      "overflows": [],
+      "blockedPrimary": [],
+      "small": []
+    },
+    {
+      "name": "pure-glass-390-CSS100-cooking-main",
+      "width": 390,
+      "scrollWidth": 390,
+      "rootFont": "16px",
+      "overflows": [],
+      "blockedPrimary": [],
+      "small": []
+    },
+    {
+      "name": "pure-glass-390-CSS200-detail",
+      "width": 390,
+      "scrollWidth": 390,
+      "rootFont": "32px",
+      "overflows": [],
+      "blockedPrimary": [],
+      "small": []
+    },
+    {
+      "name": "pure-glass-390-CSS200-kitchen",
+      "width": 390,
+      "scrollWidth": 390,
+      "rootFont": "32px",
+      "overflows": [],
+      "blockedPrimary": [],
+      "small": []
+    },
+    {
+      "name": "pure-glass-390-CSS200-cooking-main",
+      "width": 390,
+      "scrollWidth": 390,
+      "rootFont": "32px",
+      "overflows": [],
+      "blockedPrimary": [],
+      "small": []
+    },
+    {
+      "name": "pure-glass-solid",
+      "width": 390,
+      "scrollWidth": 390,
+      "rootFont": "16px",
+      "overflows": [],
+      "blockedPrimary": [],
+      "small": []
+    },
+    {
+      "name": "pure-glass-solid-kitchen",
+      "width": 390,
+      "scrollWidth": 390,
+      "rootFont": "16px",
+      "overflows": [],
+      "blockedPrimary": [],
+      "small": []
+    },
+    {
+      "name": "pure-glass-solid-cooking-main",
+      "width": 390,
+      "scrollWidth": 390,
+      "rootFont": "16px",
+      "overflows": [],
+      "blockedPrimary": [],
+      "small": []
+    },
+    {
+      "name": "soft-sage-390-CSS100-detail",
+      "width": 390,
+      "scrollWidth": 390,
+      "rootFont": "16px",
+      "overflows": [],
+      "blockedPrimary": [],
+      "small": []
+    },
+    {
+      "name": "soft-sage-390-CSS100-kitchen",
+      "width": 390,
+      "scrollWidth": 390,
+      "rootFont": "16px",
+      "overflows": [],
+      "blockedPrimary": [],
+      "small": []
+    },
+    {
+      "name": "soft-sage-390-CSS100-cooking-main",
+      "width": 390,
+      "scrollWidth": 390,
+      "rootFont": "16px",
+      "overflows": [],
+      "blockedPrimary": [],
+      "small": []
+    },
+    {
+      "name": "soft-sage-390-CSS200-detail",
+      "width": 390,
+      "scrollWidth": 390,
+      "rootFont": "32px",
+      "overflows": [],
+      "blockedPrimary": [],
+      "small": []
+    },
+    {
+      "name": "soft-sage-390-CSS200-kitchen",
+      "width": 390,
+      "scrollWidth": 390,
+      "rootFont": "32px",
+      "overflows": [],
+      "blockedPrimary": [],
+      "small": []
+    },
+    {
+      "name": "soft-sage-390-CSS200-cooking-main",
+      "width": 390,
+      "scrollWidth": 390,
+      "rootFont": "32px",
+      "overflows": [],
+      "blockedPrimary": [],
+      "small": []
+    },
+    {
+      "name": "soft-sage-solid",
+      "width": 390,
+      "scrollWidth": 390,
+      "rootFont": "16px",
+      "overflows": [],
+      "blockedPrimary": [],
+      "small": []
+    },
+    {
+      "name": "soft-sage-solid-kitchen",
+      "width": 390,
+      "scrollWidth": 390,
+      "rootFont": "16px",
+      "overflows": [],
+      "blockedPrimary": [],
+      "small": []
+    },
+    {
+      "name": "soft-sage-solid-cooking-main",
+      "width": 390,
+      "scrollWidth": 390,
+      "rootFont": "16px",
+      "overflows": [],
+      "blockedPrimary": [],
+      "small": []
+    }
+  ],
+  "materials": [
+    {
+      "name": "warm-ivory-solid-detail",
+      "root": "recipio-ui-v2 v2-production",
+      "theme": "warm-ivory",
+      "solid": "true",
+      "background": "rgb(251, 250, 247)",
+      "surface": "#fbfaf7",
+      "backdropFilter": "none"
+    },
+    {
+      "name": "warm-ivory-solid-kitchen-portal",
+      "root": "recipio-ui-v2 v2-portal",
+      "theme": "warm-ivory",
+      "solid": "true",
+      "background": "rgb(32, 36, 32)",
+      "surface": "#202420",
+      "backdropFilter": "none"
+    },
+    {
+      "name": "warm-ivory-solid-cooking-toolbar",
+      "root": "recipio-ui-v2 v2-cooking",
+      "theme": "warm-ivory",
+      "solid": "true",
+      "background": "rgb(32, 36, 32)",
+      "surface": "#202420",
+      "backdropFilter": "none"
+    },
+    {
+      "name": "pure-glass-solid-detail",
+      "root": "recipio-ui-v2 v2-production",
+      "theme": "pure-glass",
+      "solid": "true",
+      "background": "rgb(255, 255, 255)",
+      "surface": "#ffffff",
+      "backdropFilter": "none"
+    },
+    {
+      "name": "pure-glass-solid-kitchen-portal",
+      "root": "recipio-ui-v2 v2-portal",
+      "theme": "pure-glass",
+      "solid": "true",
+      "background": "rgb(25, 36, 42)",
+      "surface": "#19242a",
+      "backdropFilter": "none"
+    },
+    {
+      "name": "pure-glass-solid-cooking-toolbar",
+      "root": "recipio-ui-v2 v2-cooking",
+      "theme": "pure-glass",
+      "solid": "true",
+      "background": "rgb(25, 36, 42)",
+      "surface": "#19242a",
+      "backdropFilter": "none"
+    },
+    {
+      "name": "soft-sage-solid-detail",
+      "root": "recipio-ui-v2 v2-production",
+      "theme": "soft-sage",
+      "solid": "true",
+      "background": "rgb(250, 252, 249)",
+      "surface": "#fafcf9",
+      "backdropFilter": "none"
+    },
+    {
+      "name": "soft-sage-solid-kitchen-portal",
+      "root": "recipio-ui-v2 v2-portal",
+      "theme": "soft-sage",
+      "solid": "true",
+      "background": "rgb(29, 43, 34)",
+      "surface": "#1d2b22",
+      "backdropFilter": "none"
+    },
+    {
+      "name": "soft-sage-solid-cooking-toolbar",
+      "root": "recipio-ui-v2 v2-cooking",
+      "theme": "soft-sage",
+      "solid": "true",
+      "background": "rgb(29, 43, 34)",
+      "surface": "#1d2b22",
+      "backdropFilter": "none"
+    }
+  ],
+  "externalOrigins": [],
+  "pageErrors": [],
+  "consoleErrors": [],
+  "scopes": {
+    "application": "Actual NativeApp/LibraryApp with actual PreviewRecipeLibrary/IndexedDB; generated recipes and existing approved non-private image bytes. No Showcase rendering.",
+    "persistence": "Actual complete Preview database rows plus generated-media byte digests before/after; IDBObjectStore and Storage entry counts during adjustment windows.",
+    "display": "Browser CSS root32px is CSS200%, not Android system font scaling; actual reduced-motion emulation. Test-only data-v2-solid on actual application/cooking/Portal scopes exercises existing fallback CSS with computed materials; not CSS @supports coverage."
+  },
+  "notRun": [
+    "Android system IME/Back (separate native job)",
+    "Android OS font scaling",
+    "physical phone",
+    "TalkBack",
+    "real AI/Provider",
+    "personal data",
+    "signed upgrade"
+  ],
+  "passed": 33
+}

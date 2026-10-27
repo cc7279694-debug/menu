@@ -1,0 +1,11 @@
+Source: d8f2e3afcaffce886d4a08caec7ce99a97a4531d
+Cloud run: 40440306979 / attempt1 / all4 jobs PASS
+Windows job: 121978794017
+Targeted: 7 files /217 PASS (186 pure +11 actual LibraryApp +20 G5; included in full).
+Full JS/TS: 212 files /1381 PASS,0 FAIL.
+Typecheck: PASS.
+Lint: 0 errors,5 existing next/no-img-element warnings.
+Local production build: PASS; existing large-chunk warning retained.
+Production isolation: PASS; productionModuleCount317/sharedV2Modules14/showcaseModules0/fixtureAssets0.
+Workflow/runtime tooling retains existing Node-action deprecation warnings; not a product regression or upgraded dependency task.
+All counts are from actual completed final-source job logs.
