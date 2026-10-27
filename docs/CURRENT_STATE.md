@@ -1,5 +1,36 @@
 # Current State
 
+## R1-P personal Release — OWNER_ACTION_REQUIRED — 2026-10-27
+
+User authorized the personal local-signing alternative to the historical two-
+offline-media policy. Main product source is19bb5c9dc5642edb27203e6c5c0b95d7977ff2fe
+(PR4 integration); work is on release/recipio-personal-signing, not main.
+[Policy/plan](r1/R1_PERSONAL_RELEASE_PLAN.md) preserves the old R1 documents and
+explicit same-computer-loss risk. A remains a candidate: original public v23
+certificate matches29ded26b..., but owner password/key usability is NOT_RUN.
+
+Key-free CI40483620703 / workflow81aa1a2 passed all3jobs:347 targetedJS,
+189ReleaseJVM, G6browser33/G7browser29, typecheck/lint(5old warnings),
+production isolation and genuine unsigned Release26/27. Product checkout is
+fixed main19bb; no Debug APK was repurposed. Exact public unsigned bytes/hashes
+and scope: [R1-P review](r1/R1_PERSONAL_RELEASE_REVIEW.md).
+
+Owner-only helper is copied with pinned runtime/tool/APK hashes to
+E:/CODEX/Tools/recipio-signing/R1-P. Public local input verification passed;
+36base+22security tests and2FAKE lifecycle flows passed, with real generated-
+text AES256 recovery only. Logging JSON/registry, persistent-file reparse/ACL
+and encrypted-header reuse gaps were repaired and internally re-reviewed.
+This does not prove real keystore backup or signing. Actual owner input,
+private copy/backup/restore/signature, signed-device installation/upgrades,
+Backup2/device validation and personal-data migration remain NOT_RUN.
+
+Stop at RECIPIO_R1_PERSONAL_OWNER_ACTION_REQUIRED: user double-clicks the copied
+private launcher, enters passwords outside Codex, then reports only completion
+or an error category. No signed final candidate exists yet; source keys and
+user v23/v25/data are untouched. G4 staysPENDING; G5/G6/G7 scoped freezes remain.
+Old cloud-signing/two-offline R1 history is retained, not rewritten. No main
+merge, PR/tag/release, automatic APK sending, phone operation or G8.
+
 ## G7 independent acceptance — ACCEPTED / FROZEN — PASS WITH NOTES — 2026-10-27
 
 **RECIPIO_G7_ACCEPTED / FROZEN — PASS WITH NOTES.** ChatGPT completed the

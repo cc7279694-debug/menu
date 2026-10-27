@@ -1,6 +1,7 @@
 # RECIPIO R1-P — 个人正式版执行证据与审查记录
 
-2026-10-27。当前：**IN_PROGRESS — KEY-FREE PREPARATION**，不代表正式APK已生成。
+2026-10-27。当前：**RECIPIO_R1_PERSONAL_OWNER_ACTION_REQUIRED**。
+无密钥Release及私人辅助工具准备完成；真实私人备份和签名尚未执行，不代表正式APK已生成。
 政策和范围见 [R1_PERSONAL_RELEASE_PLAN.md](R1_PERSONAL_RELEASE_PLAN.md)。
 
 ## 已核对的入口
@@ -11,7 +12,7 @@
 - 初始空闲内存3.10GiB，低于4GiB；本地不启动npm安装/完整测试、浏览器、Gradle或模拟器。
 - 只读取项目证据和已声明位置，不扫描无关项目、全盘或凭据库。
 
-## 进行中 / 未执行
+## 已完成准备 / 私密操作待执行
 
 - 路线A公开身份核对：旧v23 APK SHA-256为
   `522a943fdbc320cace07396a2344b609975c97471724603539257ed64bd96f58`，
@@ -23,8 +24,8 @@
 - 现代7zip26.05可执行文件SHA-256重新核对为
   `7ddf0a3bc451e166679296be630d6f0573eb386159c04184761c43020c484291`；
   真实工具信息包含7zAES/AES256CBC，与历史已核验工具一致。
-- 私人签名辅助工具及非敏感传输/恢复测试：进行中。
-- 固定main源码的云端unsigned Release26/27：工作流与20项非敏感契约测试已准备，待云端构建。
+- 私人签名辅助工具：36项原安全/真实合成归档测试、22项新增安全回归、2个全FAKE生命周期均PASS；根代理在最终实现重新执行并读取结果。
+- 固定main源码的云端unsigned Release26/27：最终CI40483620703三个Job全部SUCCESS，产品SHA19bb不变；详见下文。
 - 真实私人副本/加密密钥备份/真实恢复/个人签名：**NOT_RUN — OWNER PRIVATE ACTION**。
 - 正式签名APK的安装、旧版升级、同身份26→27及备份/功能增量验证：**NOT_RUN**。
 - 实体手机/个人数据/旧版卸载或清理：未操作且未获本轮自动操作授权。
@@ -50,8 +51,8 @@ CI仅由本次无密钥工作流/构建校验脚本变化触发；私人本地�
 首轮CI `40481320300` / 工具提交 `64fb9db8ce5eb3cd77e8fa029a3027b404ca5e81`：
 固定main的17文件/347项定向测试PASS，TypeScript/Lint（5既有警告）/构建隔离PASS；
 G6浏览器33与G7浏览器29组PASS。Android Release26编译成功，但独立ZIP条目校验以
-UNSAFE_ENTRY拒绝继续；不发布该未通过检查的输入。正在加入有界诊断定位具体条目，
-尚未按猜测放宽拒绝规则。正式签名、备份和设备验证仍未运行。
+UNSAFE_ENTRY拒绝继续；未发布该轮未通过检查的输入。后续通过有界诊断定位具体条目，
+没有按猜测跳过检查。正式签名、真实密钥备份和设备验证仍未运行。
 
 诊断轮CI `40482951579` / 工具提交 `6eac3cbf8623c761ef1db24b48aaa51c91d67432`
 明确定位为Release资源 `res/9N.9.png` 与 `res/9n.9.png` 被检查器错误折叠。
@@ -59,6 +60,83 @@ APK ZIP按原始大小写区分路径，且不提取为Windows文件树；新增
 观察RED后，最小修正为按原始路径检测重复。完全相同条目、遍历、非法字符、过长、
 签名/测试项等拒绝仍保留，23项契约测试GREEN。未修改生产APK内容或备份容器白名单。
 
-私人辅助工具预审发现三项待修补：PowerShell JSON日志策略未覆盖、复用已有私人文件
+私人辅助工具预审发现并已修补三项：PowerShell JSON日志策略未覆盖、复用已有私人文件
 的叶子reparse/显式ACL未独立检查、复用已有AES容器未证明头部加密。
-在测试先行修复和复查之前，不复制真实可运行owner交付束，不进入真实密码/私钥阶段。
+新增22项测试先6PASS/16真实RED，修补后22GREEN：使用合成策略JSON、实际生成的
+EveryoneAllow文件/junction及真实mhe=off负例，不修改实际系统策略或接触真实私钥。
+两级JSON与注册表策略在密码输入前失败关闭，语义参照
+[PowerShell官方配置说明](https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_powershell_config?view=powershell-7.5)。
+私有叶检查在修改父目录ACL之前执行，现有备份/新备份/恢复叶均接入；原始旧源不改ACL。
+无密码、错误密码均不能列出备份条目，随后才用正确密码验证恢复。
+限定内部安全复核无新增阻断；这不是ChatGPT独立验收或真实密钥保管证据。
+
+## 最终固定main的云端证据
+
+[Run40483620703](https://github.com/cc7279694-debug/menu/actions/runs/40483620703)，
+工作流/校验工具提交 `81aa1a29353ac87350c07831e46c0fbe75f458db`，三个Job全部SUCCESS。
+产品checkout始终为 `19bb5c9dc5642edb27203e6c5c0b95d7977ff2fe`；后续仅添加本地工具/文档。
+
+| 项目 | 本轮实际结果 |
+|---|---|
+| G5/G6/G7定向JS/TS | 17文件/347 PASS，0失败/跳过；不是重新执行全仓1503 |
+| TypeScript/Lint/Web构建/隔离 | PASS；5项既有Lint警告，正式模块324、Showcase/fixture资源0 |
+| 当前main浏览器 | G6厨房33组、G7收录29组PASS；外部Provider/HTTP均Fake，非签名APK运行 |
+| Release variant JVM | 22 suites/189 PASS，0失败/错误/跳过；JVM_RELEASE_VARIANT_ONLY |
+| 正式Release26/27 | sync、lintRelease、assembleRelease及官方aapt/apksigner/apkanalyzer检查PASS |
+| Release属性 | app.recipio.local，debuggable=false、testOnly=false、allowBackup=false，确实unsigned；无测试定义/夹具或Showcase混入 |
+| 非敏感签名工具验证 | 36原测试+22安全回归+2个FAKE owner流程PASS，与产品测试分开登记 |
+
+历史G7的1503JS/189JVM/25Android是已冻结证据，不冒充本次正式签名APK结果。
+公开输入元数据保留于 [personal-unsigned-manifest.json](evidence/personal-unsigned-manifest.json)。
+下载后重新计算两份文件的实际大小和SHA-256，与云端元数据完全一致：
+
+| 内部构建输入 | 实际bytes | 实际SHA-256 |
+|---|---|---|
+| 26 / 0.11.0-personal.1 | 15145000 | 76332b9f9d48d01c1482d0b200a1b09046f1709f825211fe2e48e83dbfad7973 |
+| 27 / 0.11.0-personal.2 | 15145000 | bd2f8de400bda3714e006f4421eff494516bc8668b048a4a0222b07c77678e17 |
+
+两份文件真实位于工作目录 `output/playwright/r1p/ci/40483620703-unsigned/unsigned/`，
+不是可安装交付物；26仅内部升级种子。最终只输出签名后的27，**目前未生成，故没有最终签名APK大小/哈希**。
+没有从G7 Debug重签包制作Release，没有执行旧的云端真实签名Job，没有使用或上传GitHub签名Secrets。
+
+## 用户独立私密工具交付点
+
+工具包：`E:/CODEX/Tools/recipio-signing/R1-P`。
+入口：`Start-RecipioPersonalSigning.cmd`，由用户本人在文件资源管理器双击。
+密码不得交给Codex/ChatGPT，不能在Codex捕获终端中代输、写入argv/配置/日志或剪贴板。
+不用技术命令；私密窗口会逐项提示旧密码、新副本密码和独立备份密码。
+若不知道旧密码，Ctrl+C取消，只反馈错误类别或不知道旧密码，不猜测、不换身份。
+
+运行文件实际SHA-256（复制后逐一回读一致）：
+
+- 模块：`dd6621bc2884e1d6aa23d378f035e4c39d94cc43ec5f7f5b49789af24d12d55a`。
+- `.ps1`入口：`bf0e7f9f41024deb75a62c05809f9525472a026010a5851f446a49e77cc1ec80`。
+- `.cmd`入口：`8a475fa71114bb6e9886d7ad91174f8fd1947699b06cc295d3a018dbe42babad`。
+
+实际构造公开manifest并验证三运行文件、6个静态工具与两份unsigned APK哈希、包名、版本、
+unsigned状态及仓库外位置，结果PASS。没有调用真实owner入口；个人副本根目录、
+加密备份根目录及OWNER_RESULT均尚不存在。一次本地验证命令因相对模块导入方式失败，
+未当作通过；已改绝对路径、Stop错误策略重新验证成功，不涉及真实密钥。
+
+用户成功操作后，只读取 `delivery/OWNER_RESULT.json` 和公开签名APK做独立回读。
+该工具结果仅为SIGNED_LOCAL_STATIC_VALIDATED_PENDING_DEVICE，不能代替下列签名后门禁。
+
+## T01～T06：剩余门禁与NOT_RUN
+
+| 验收项 | 当前状态 |
+|---|---|
+| T01包名/版本/Release属性 | unsigned输入检查PASS；真实私钥对应证书、签名、恢复验证尚NOT_RUN |
+| T02正式签名版安装与启动 | NOT_RUN，等待owner生成真实签名候选后在归属明确的合成设备执行 |
+| T03旧版同证书合成数据升级 | NOT_RUN；当前手机版本、备份及旧手机实际升级均未确认，不自动安装 |
+| T04同真实个人身份26→27覆盖升级 | NOT_RUN；不能用云端临时签名或纯模型测试替代 |
+| T05正式签名版Backup2合成数据导出/预览/取消/明确恢复 | NOT_RUN；旧R1/原G7相关测试是历史证据，不冒充此项 |
+| T06正式Release增量体验 | 上述main JS/浏览器/构建PASS；真实签名APK设备运行仍NOT_RUN |
+
+实体手机/OEM、TalkBack、Android系统字号、实体性能、飞行模式进程冷启动、
+原生图像像素呈现及真实个人数据迁移均NOT_RUN。真实个人.recipio备份不进入聊天、日志或CI。
+旧v23/v25未被安装、卸载、覆盖或清除；源密钥不改写，未生成新身份、未作真实签名。
+G4继续PENDING；旧R1双离线/云签名方案作为历史延期项保留，本轮R1-P另行授权。
+
+下一次继续：用户本人完成私密工具 → 核对公开签名/恢复结果 → 在安全资源和归属门禁下
+执行合成设备T02～T06 → 只交付唯一正式候选供ChatGPT独立审查。
+没有合并main、创建PR/Tag/Release、公开下载链接或自动向用户发送APK；没有进入G8。

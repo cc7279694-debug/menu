@@ -1,0 +1,36 @@
+{
+  "formatVersion": 1,
+  "sourceSha": "19bb5c9dc5642edb27203e6c5c0b95d7977ff2fe",
+  "route": "A",
+  "packageName": "app.recipio.local",
+  "certificateSha256": "29ded26bea44f1afe4fe383a302e4b507423d16223469d7da3fe578d9a7f83b9",
+  "certificateRole": "EXPECTED_OWNER_IDENTITY_NOT_AN_APK_SIGNATURE",
+  "installable": false,
+  "signing": "NOT_RUN_OWNER_PRIVATE_ACTION_REQUIRED",
+  "apks": [
+    {
+      "versionCode": 26,
+      "versionName": "0.11.0-personal.1",
+      "file": "unsigned/recipio-personal-v26-unsigned.apk",
+      "sha256": "76332b9f9d48d01c1482d0b200a1b09046f1709f825211fe2e48e83dbfad7973",
+      "bytes": 15145000,
+      "unsigned": true,
+      "debuggable": false,
+      "testOnly": false,
+      "packageName": "app.recipio.local",
+      "productionEntries": 483
+    },
+    {
+      "versionCode": 27,
+      "versionName": "0.11.0-personal.2",
+      "file": "unsigned/recipio-personal-v27-unsigned.apk",
+      "sha256": "bd2f8de400bda3714e006f4421eff494516bc8668b048a4a0222b07c77678e17",
+      "bytes": 15145000,
+      "unsigned": true,
+      "debuggable": false,
+      "testOnly": false,
+      "packageName": "app.recipio.local",
+      "productionEntries": 483
+    }
+  ]
+}

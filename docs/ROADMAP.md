@@ -1,6 +1,6 @@
 # RECIPIO Android Roadmap
 
-2026-10-27：ChatGPT 已完成 G7-A～E 集中独立验收，用户授权登记为 ACCEPTED / FROZEN — PASS WITH NOTES；源码 e8c2f948、交付6f1df128、CI40460260275，分支 feat/recipio-g7-reliable-intake。本轮仅三份验收文档修改，不重跑产品测试。G5/G6 冻结及 NOTES 保留，G4 整体 PENDING、R1 DEFERRED_BY_USER 不变；不是整体正式发布验收，不合 main、不建 Tag、不部署、不进入视频/G8。见 CURRENT_STATE.md 和 g7/G7_INDEPENDENT_ACCEPTANCE.md；原 g7/G7_REVIEW.md 保留历史送审记录。
+2026-10-27：G5/G6/G7限定冻结及NOTES保留，当前main19bb5c9已合并G3～G7。用户另授权R1-P个人本地签名政策；固定main的unsigned Release26/27和私人工具已准备，当前OWNER_ACTION_REQUIRED，真实密码/密钥恢复/签名和设备升级门禁尚未执行。原R1双离线/云签名历史延期记录保留；G4整体PENDING，不合main、不建Tag/Release、不自动操作手机或进入G8。见CURRENT_STATE.md、r1/R1_PERSONAL_RELEASE_PLAN.md和r1/R1_PERSONAL_RELEASE_REVIEW.md。
 
 | Module | Status | Scope |
 | --- | --- | --- |
@@ -21,6 +21,7 @@
 | UI V2 G3-1/2/3 | Accepted / Frozen — PASS WITH NOTES | 2080f86/sourcee182a72/v23；用户手机覆盖升级及六项体验PASS，Codex模拟器/connected/TalkBack/真实新版在线端到端/替换恢复/性能仍NOT_RUN，见G3_ACCEPTANCE.md |
 | UI V2 G4 | Not frozen | G4 历史资源中止证据保留于 G4_RESUME_VERIFICATION.md；后续 R1 无密钥工程和 v25 用户体验不等于长期签名/个人迁移或 G4 冻结，见 CURRENT_STATE.md |
 | R1 signing / personal migration | Deferred by user | 无密钥工程已独立审查；长期密钥、安全保管、正式同签名更新和个人数据迁移延期，不是 G5 前置条件 |
+| R1-P personal local signing | Owner action required | 2026-10-27另行授权；旧双离线方案不改写，新政策允许同机两个受限目录并接受非离线灾难恢复风险。main19bb固定源码、CI40483620703 unsigned Release26/27与安全工具准备PASS；需用户独立窗口验证旧身份/备份/恢复/签名，之后再做合成安装升级门禁。没有真实签名APK交付、手机操作或个人迁移；见r1/R1_PERSONAL_RELEASE_REVIEW.md |
 | UI V2 G5 | Accepted / Frozen — PASS WITH NOTES | 独立验收cb40a9fb，测试源码e5fbe1b；限定日常体验，不等于G4冻结/R1完成；见 g5/G5_INDEPENDENT_ACCEPTANCE.md |
 | UI V2 G6 | Accepted / Frozen — PASS WITH NOTES | ChatGPT 独立验收 G6-A～E；源码 d8f2e3a、交付 e295dd2、CI40440306979；1381JS/189JVM/23云端Android/33浏览器组PASS。保留明确数量单位/复杂原文回退、极窄大字观察和全部NOT_RUN；见 g6/G6_INDEPENDENT_ACCEPTANCE.md，不构成G4冻结或R1完成 |
 | UI V2 G7 | Accepted / Frozen — PASS WITH NOTES | ChatGPT 独立验收G7-A～E，用户授权登记；源码e8c2f948、交付6f1df128、CI40460260275：1503JS/189JVM/25云端Android、G7浏览器29及G6厨房回归33组PASS，保留5项Lint警告。当前草稿检查/会话来源/稳定行映射/审核同名恢复保护限定冻结；SQLite4/Preview7/Backup2不变，真实AI0。真机/OEM/TalkBack/系统字号/性能/飞行模式进程冷启动/原生临时图片像素呈现/未执行历史connected项目仍NOT_RUN。G4 PENDING、R1延期，不构成整体发布，不进入G8；见 g7/G7_INDEPENDENT_ACCEPTANCE.md |
