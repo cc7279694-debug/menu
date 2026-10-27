@@ -191,8 +191,13 @@ async function capture(page, name, theme) {
 }
 async function reachable(locator, name) {
   await locator.scrollIntoViewIfNeeded();
-  assert(await locator.evaluate(element => { const box = element.getBoundingClientRect(), x = box.x + box.width / 2, y = box.y + box.height / 2;
-    return x >= 0 && x <= innerWidth && y >= 0 && y <= innerHeight && element.contains(document.elementFromPoint(x, y)); }), `${name} remains reachable`);
+  const hit = await locator.evaluate(element => {
+    const box = element.getBoundingClientRect(), x = box.x + box.width / 2, y = box.y + box.height / 2;
+    const target = document.elementFromPoint(x, y);
+    return { reachable: x >= 0 && x <= innerWidth && y >= 0 && y <= innerHeight && element.contains(target),
+      box: { x: box.x, y: box.y, width: box.width, height: box.height }, hitTag: target?.tagName ?? null, disabled: element.matches(":disabled") };
+  });
+  assert(hit.reachable, `${name} remains reachable: ${JSON.stringify({ box: hit.box, hitTag: hit.hitTag, disabled: hit.disabled })}`);
 }
 async function layout(page, name) {
   await painted(page);
@@ -336,6 +341,12 @@ async function visuals(theme) {
   try {
     await aiPreview(page, true, true); const before = await snapshot(page); await watch(page, true);
     await notes(page).fill("长中文与Emoji合成备注😊".repeat(35));
+    const save = page.getByRole("button", { name: "确认保存菜谱", exact: true });
+    assert(!(await gate(page).isChecked()), `${theme}: editing has not acknowledged review`);
+    assert(await save.isDisabled(), `${theme}: save remains gated before explicit acknowledgement`);
+    await gate(page).check();
+    assert(await gate(page).isChecked(), `${theme}: review is explicitly acknowledged`);
+    assert(await save.isEnabled(), `${theme}: reachability checks use an enabled save control`);
     for (const width of [320, 390, 412]) for (const large of [false, true]) {
       await page.setViewportSize({ width, height: 844 }); await page.evaluate(large => { document.documentElement.style.fontSize = large ? "32px" : "16px"; }, large);
       await check(`T15/T16 ${theme}-${width}-CSS${large ? 200 : 100}`, async () => {
