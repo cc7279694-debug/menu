@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import type { AiFieldCheck } from "../ai/contract";
+import { requiresAiReview, type AiFieldCheck } from "../ai/contract";
 import { emptyDetails, type RecipeDetailsInput } from "../recipe-model";
 import { createFieldBindings, insertFieldBinding, moveFieldBinding, removeFieldBinding } from "./field-bindings";
 import { buildIntakeQualityReport, type IntakeQualityInput } from "./quality";
@@ -117,6 +117,42 @@ describe("G7 T01-T03 current draft checks", () => {
 });
 
 describe("G7 T04 original evidence stays historical", () => {
+  it("empty optional calories, media and notes stay in the complete original review without priority issues or weakening confirmation", () => {
+    const originalRecipe = filledRecipe();
+    const originalFieldChecks = freeze([
+      { path: "caloriesPerServing", status: "missing", label: "每份参考热量", message: "原结果没有热量" },
+      { path: "coverPath", status: "missing", label: "封面照片", message: "原结果没有封面" },
+      { path: "notes", status: "missing", label: "备注", message: "原结果没有备注" },
+      { path: "steps[0].imagePath", status: "missing", label: "步骤图片", message: "原结果没有步骤图片" },
+    ] satisfies AiFieldCheck[]);
+    const report = buildIntakeQualityReport(input(originalRecipe, { originalRecipe, originalFieldChecks, mode: "ai" }));
+    expect(report.issues).toEqual([]);
+    expect(report.originalChecks.map(evidence => evidence.check)).toEqual([
+      { path: "caloriesPerServing", status: "missing", label: "每份参考热量", message: "原结果没有热量" },
+      { path: "coverPath", status: "missing", label: "封面照片", message: "原结果没有封面" },
+      { path: "notes", status: "missing", label: "备注", message: "原结果没有备注" },
+      { path: "steps[0].imagePath", status: "missing", label: "步骤图片", message: "原结果没有步骤图片" },
+    ]);
+    expect(report.originalChecks.map(evidence => evidence.currentState)).toEqual(["unchanged", "unchanged", "unchanged", "unchanged"]);
+    expect(requiresAiReview({ recipe: originalRecipe, review: { fieldChecks: originalFieldChecks, requiresConfirmation: true }, warnings: [] })).toBe(true);
+    expect(report.canSave).toBe(true);
+  });
+
+  it("optional calorie filtering never hides schema errors or promotes the original missing evidence after manual entry", () => {
+    const originalRecipe = filledRecipe();
+    const originalFieldChecks = freeze([{ path: "caloriesPerServing", status: "missing", label: "每份参考热量", message: "原结果没有热量" }] satisfies AiFieldCheck[]);
+    const invalid = buildIntakeQualityReport(input({ ...originalRecipe, caloriesPerServing: -1 }, { originalRecipe, originalFieldChecks, mode: "ai" }));
+    expect(invalid.canSave).toBe(false);
+    expect(invalid.issues.map(issue => [issue.priority, issue.currentPath])).toEqual([["error", "caloriesPerServing"]]);
+    const filled = buildIntakeQualityReport(input({ ...originalRecipe, caloriesPerServing: 280 }, { originalRecipe, originalFieldChecks, mode: "ai" }));
+    expect(filled.canSave).toBe(true);
+    expect(filled.issues.map(issue => [issue.priority, issue.currentPath])).toEqual([["source", "caloriesPerServing"]]);
+    expect(filled.originalChecks[0]).toMatchObject({ currentState: "filled", check: { path: "caloriesPerServing", status: "missing", message: "原结果没有热量" } });
+    expect(filled.originalChecks[0].check).toBe(originalFieldChecks[0]);
+    expect(filled.issues[0].reasons.join(" ")).toContain("尚未重新核对来源");
+    expect(requiresAiReview({ recipe: { ...originalRecipe, caloriesPerServing: 280 }, review: { fieldChecks: originalFieldChecks, requiresConfirmation: true }, warnings: [] })).toBe(true);
+  });
+
   it("filled original missing retains original evidence while current missing disappears", () => {
     const originalRecipe = { ...filledRecipe(), servings: null };
     const originalFieldChecks = [check("servings", "missing", "份数")];

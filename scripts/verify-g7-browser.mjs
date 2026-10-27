@@ -23,7 +23,7 @@ const out = path.join(root, "output/playwright/g7/cloud"), shots = path.join(out
 await mkdir(path.dirname(out), { recursive: true }); await mkdir(out); await mkdir(shots);
 const git = spawnSync("git", ["rev-parse", "HEAD"], { cwd: root, encoding: "utf8" });
 assert.equal(git.status, 0); assert.match(git.stdout.trim(), /^[0-9a-f]{40}$/);
-const result = { status: "RUNNING", source: git.stdout.trim(), browser: null, checks: [], screenshots: [], geometry: [],
+const result = { status: "RUNNING", source: git.stdout.trim(), browser: null, checks: [], screenshots: [], geometry: [], formDiagnostics: [],
   externalOrigins: [], pageErrors: [], consoleErrors: [],
   scope: "Real LibraryApp, AiIntakeService, LinkImportService, FindRecipeService and PreviewRecipeLibrary/IndexedDB; Fake Provider/HTTP, generated images only. Browser media adapter maps exact owned native-format URI metadata to a generated blob; native path loading is verified separately.",
   zeroWriteScope: "IDB/Storage API entries and all actual Preview DB rows during G7 edit/source windows; fixture setup, source selection and explicit save are separate windows.",
@@ -36,6 +36,7 @@ const click = (scope, name) => scope.getByRole("button", { name, exact: true }).
 const report = page => page.getByRole("region", { name: "当前草稿检查", exact: true });
 const gate = page => page.getByRole("checkbox", { name: "我已检查以上 AI 推断和缺失内容", exact: true });
 const sourcePanel = page => page.getByRole("dialog", { name: "本轮来源", exact: true });
+const notes = page => page.getByRole("textbox", { name: "个人备注", exact: true });
 async function check(name, action) {
   await action(); result.checks.push({ name, status: "PASS" }); console.log(`PASS G7/${name}`); await persist();
 }
@@ -125,6 +126,18 @@ async function unchanged(page, before) {
   assert.deepEqual(await watch(page, false), [], "G7 editing/viewing invokes no IDB/Storage write entry");
   assert.deepEqual(await snapshot(page), before, "All real Preview DB rows remain unchanged");
 }
+async function formDiagnostic(page, stage) {
+  // Only generated business-form fields; never source text, source HTML or body.
+  const fields = await page.locator("#root form label").evaluateAll(labels => labels.flatMap(label =>
+    [...label.querySelectorAll("input,textarea")].map(control => ({
+      label: label.querySelector("span")?.textContent ?? "", labelText: label.textContent,
+      tag: control.tagName, name: control.getAttribute("name"), ariaLabel: control.getAttribute("aria-label"),
+      value: control.value, textContent: control.tagName === "TEXTAREA" ? control.textContent : null,
+    }))));
+  result.formDiagnostics.push({ stage, fields, notesExactLabelCount: await page.getByLabel("个人备注", { exact: true }).count(),
+    notesExactTextboxCount: await notes(page).count() });
+  await persist();
+}
 async function painted(page) {
   await page.evaluate(async () => { await document.fonts.ready;
     await Promise.all([...document.images].map(image => image.decode().catch(() => {})));
@@ -173,7 +186,9 @@ async function mainFlows() {
       await report(page).scrollIntoViewIfNeeded(); await capture(page, "warm-initial-review-390", "warm-ivory");
       await page.getByLabel("约几人份", { exact: true }).fill("3"); await page.getByLabel("用量 2", { exact: true }).fill("适量");
       await page.getByLabel("菜名", { exact: true }).fill("G7 人工最终菜名");
-      await page.getByLabel("个人备注", { exact: true }).fill("用户修改后的合成备注😊");
+      await notes(page).fill("用户修改后的合成备注😊");
+      await formDiagnostic(page, "main-edited-before-source");
+      assert.equal(await notes(page).inputValue(), "用户修改后的合成备注😊");
       assert.match(await report(page).innerText(), /原始 3 人份/); await gate(page).check();
       await report(page).scrollIntoViewIfNeeded(); await capture(page, "warm-updated-review-390", "warm-ivory");
       const panel = await openSource(page); const image = panel.getByRole("img", { name: "本轮截图 1", exact: true });
@@ -181,7 +196,8 @@ async function mainFlows() {
       assert(await image.evaluate(image => image.complete && image.naturalWidth === 480));
       await capture(page, "warm-text-and-generated-screenshot-source-390", "warm-ivory"); await closeSource(page);
       assert.equal(await page.getByLabel("菜名", { exact: true }).inputValue(), "G7 人工最终菜名");
-      assert.equal(await page.getByLabel("个人备注", { exact: true }).inputValue(), "用户修改后的合成备注😊"); assert(await gate(page).isChecked());
+      await formDiagnostic(page, "main-after-source-closed");
+      assert.equal(await notes(page).inputValue(), "用户修改后的合成备注😊"); assert(await gate(page).isChecked());
       await openSource(page); await page.evaluate(() => window.dispatchEvent(new Event("recipio:back", { cancelable: true })));
       await sourcePanel(page).waitFor({ state: "hidden" }); assert(await gate(page).isChecked());
       assert.equal(await page.evaluate(() => window.__g7Fixture.calls.ai), 1); await unchanged(page, before);
@@ -270,7 +286,7 @@ async function visuals(theme) {
   const { page, context } = await open(theme);
   try {
     await aiPreview(page, true, true); const before = await snapshot(page); await watch(page, true);
-    await page.getByLabel("个人备注", { exact: true }).fill("长中文与Emoji合成备注😊".repeat(35));
+    await notes(page).fill("长中文与Emoji合成备注😊".repeat(35));
     for (const width of [320, 390, 412]) for (const large of [false, true]) {
       await page.setViewportSize({ width, height: 844 }); await page.evaluate(large => { document.documentElement.style.fontSize = large ? "32px" : "16px"; }, large);
       await check(`T15/T16 ${theme}-${width}-CSS${large ? 200 : 100}`, async () => {

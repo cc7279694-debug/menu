@@ -12,6 +12,8 @@ import android.provider.Settings;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.webkit.WebView;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
 import androidx.test.core.app.ActivityScenario;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 import androidx.test.platform.app.InstrumentationRegistry;
@@ -58,6 +60,8 @@ public class G7IntakeReviewInstrumentedTest {
     private AiNativeRuntime runtime;
     private ExecutorService worker;
     private AiTemporaryImages.Image selectedImage;
+    private int imeProbeCount;
+    private String lastImeProbe = "NOT_CAPTURED";
     private final AtomicInteger fakeHttp = new AtomicInteger();
     private final String token = UUID.randomUUID().toString();
     private final String originalTitle = "G7 GENERATED " + token;
@@ -108,7 +112,61 @@ public class G7IntakeReviewInstrumentedTest {
         long deadline = SystemClock.elapsedRealtime() + 10000;
         do { if (ime.settled(instrumentation, shown)) return; Thread.sleep(100); }
         while (SystemClock.elapsedRealtime() < deadline);
-        fail("Actual G7 editor IME did not settle to " + shown);
+        fail("Actual G7 editor IME did not settle to " + shown + "; " + imeDiagnostic("await-ime-timeout"));
+    }
+    private String imeDiagnostic(String phase) {
+        String output;
+        try {
+            AtomicReference<Boolean> shown = new AtomicReference<>();
+            boolean[] focus = new boolean[2];
+            instrumentation.runOnMainSync(() -> {
+                WindowInsetsCompat insets = ViewCompat.getRootWindowInsets(activity.getWindow().getDecorView());
+                if (insets != null) shown.set(insets.isVisible(WindowInsetsCompat.Type.ime()));
+                focus[0] = activity.hasWindowFocus(); focus[1] = web.hasFocus();
+            });
+            JSONObject report = new JSONObject().put("phase", phase).put("imeVisible", shown.get() == null ? JSONObject.NULL : shown.get())
+                .put("settledHidden", ime.settled(instrumentation, false)).put("settledShown", ime.settled(instrumentation, true))
+                .put("windowFocus", focus[0]).put("webFocus", focus[1]);
+            JSONObject page = new JSONObject(js("JSON.stringify((()=>{const source=" + dialog("本轮来源")
+                + ";return {pageBacks:window.__g7PageBacks,sourceVisible:!!source,focusedTag:document.activeElement?.tagName||null,sourceOwnsFocus:!!source?.contains(document.activeElement)}})())"));
+            report.put("page", page); output = report.toString();
+        } catch (Exception ignored) {
+            output = "{\"phase\":\"" + phase + "\",\"diagnostic\":\"UNAVAILABLE\"}";
+        }
+        lastImeProbe = output;
+        // A bounded platform-only stream survives an assertion failure. Never
+        // include source text, field values, credentials or arbitrary UI content.
+        if (imeProbeCount++ < 12) try {
+            android.os.Bundle status = new android.os.Bundle();
+            status.putString("stream", "\nG7_IME_PROBE=" + output + "\n"); instrumentation.sendStatus(2, status);
+        } catch (RuntimeException ignored) { /* Preserve the original test failure. */ }
+        return output;
+    }
+    private boolean awaitSettledImeState(String phase) throws Exception {
+        long deadline = SystemClock.elapsedRealtime() + 10000;
+        do {
+            if (ime.settled(instrumentation, true)) { imeDiagnostic(phase + "-settled-shown"); return true; }
+            if (ime.settled(instrumentation, false)) { imeDiagnostic(phase + "-settled-hidden"); return false; }
+            Thread.sleep(100);
+        } while (SystemClock.elapsedRealtime() < deadline);
+        fail("Platform IME/animation/window focus did not settle; " + imeDiagnostic(phase + "-settle-timeout"));
+        return false;
+    }
+    private void awaitSourceClosedAfterSingleBack() throws Exception {
+        long deadline = SystemClock.elapsedRealtime() + 15000;
+        do {
+            if ("false".equals(js("!!(" + dialog("本轮来源") + ")"))) return;
+            Thread.sleep(100);
+        } while (SystemClock.elapsedRealtime() < deadline);
+        fail("Source still visible after one Back from a settled hidden IME; " + imeDiagnostic("source-close-timeout"));
+    }
+    private void awaitDirtyProtectionAfterSingleBack() throws Exception {
+        long deadline = SystemClock.elapsedRealtime() + 15000;
+        do {
+            if ("1".equals(js("window.__g7Confirms"))) return;
+            Thread.sleep(100);
+        } while (SystemClock.elapsedRealtime() < deadline);
+        fail("Dirty protection did not open after one Back from a settled hidden IME; " + imeDiagnostic("dirty-back-timeout"));
     }
     private void openIme(String selector) throws Exception {
         JSONArray point = new JSONArray(js("JSON.stringify((()=>{const e=" + selector
@@ -245,13 +303,34 @@ public class G7IntakeReviewInstrumentedTest {
     @Test public void actualImeThenSourceBackThenDirtyProtection_keepOneEditedDraftWithoutWrites() throws Exception {
         preview(false); watch(); fill("菜名", finalTitle); fill("个人备注", "G7 unsaved generated note");
         openIme(editor("菜名")); back(); awaitIme(false);
+        imeDiagnostic("editor-keyboard-back-settled");
         assertEquals("0", js("window.__g7PageBacks")); assertEquals(finalTitle, js("(" + editor("菜名") + ").value"));
         click("查看本轮来源"); until("!!(" + dialog("本轮来源") + ")"); screenshot("g7-ime-source.png");
-        back(); until("!(" + dialog("本轮来源") + ")");
+        if (awaitSettledImeState("source-open")) {
+            // A real visible keyboard owns exactly this Back. It must not close
+            // the source Sheet or emit a page Back while the IME is dismissed.
+            imeDiagnostic("source-before-keyboard-back"); back(); awaitIme(false);
+            imeDiagnostic("source-after-keyboard-back");
+            assertEquals("Visible IME Back must not reach the page; " + lastImeProbe, "0", js("window.__g7PageBacks"));
+            assertEquals("Visible IME Back must retain the source Sheet; " + lastImeProbe, "true", js("!!(" + dialog("本轮来源") + ")"));
+            assertEquals("0", js("window.__g7Confirms"));
+        }
+        awaitIme(false); imeDiagnostic("source-before-page-back");
+        assertEquals("0", js("window.__g7PageBacks"));
+        back(); awaitSourceClosedAfterSingleBack(); imeDiagnostic("source-after-page-back");
         assertEquals("1", js("window.__g7PageBacks")); assertEquals("0", js("window.__g7Confirms"));
         assertEquals("true", js("document.body.innerText.includes('检查整理结果')"));
         assertEquals(finalTitle, js("(" + editor("菜名") + ").value"));
-        back(); until("window.__g7Confirms===1");
+        if (awaitSettledImeState("source-closed-before-dirty")) {
+            // Closing the modal may restore the original text editor and reopen
+            // the real IME. Only an observed visible keyboard earns this Back.
+            imeDiagnostic("editor-restored-before-keyboard-back"); back(); awaitIme(false);
+            imeDiagnostic("editor-restored-after-keyboard-back");
+            assertEquals("Restored IME Back must not reach the page; " + lastImeProbe, "1", js("window.__g7PageBacks"));
+            assertEquals("Restored IME Back must not reopen the source; " + lastImeProbe, "false", js("!!(" + dialog("本轮来源") + ")"));
+            assertEquals("0", js("window.__g7Confirms"));
+        }
+        awaitIme(false); imeDiagnostic("editor-before-dirty-back"); back(); awaitDirtyProtectionAfterSingleBack(); imeDiagnostic("editor-after-dirty-back");
         assertEquals("2", js("window.__g7PageBacks")); assertEquals("G7 unsaved generated note", js("(" + editor("个人备注") + ").value"));
         zeroWrites(); assertEquals(0, byFinalTitle().length());
     }
