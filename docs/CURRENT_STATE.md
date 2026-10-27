@@ -31,6 +31,18 @@ user v23/v25/data are untouched. G4 staysPENDING; G5/G6/G7 scoped freezes remain
 Old cloud-signing/two-offline R1 history is retained, not rewritten. No main
 merge, PR/tag/release, automatic APK sending, phone operation or G8.
 
+Owner follow-up: the user corrected the initial completion report: only Enter
+was pressed to close the window; no successful receipt or signed APK exists.
+The first failure category is UNKNOWN. An independent Console public preflight
+and declared-path metadata-only checks passed, with no private content read or
+private directory creation. Helper-only repair now uses an explicitly separate
+Console and distinct incomplete/success close prompts. Unique public failure
+records contain only format/status/category/UTC and fail closed for unsafe paths.
+15 new checks plus36/22/2 tooling regressions PASS; root independently reran15.
+The reviewed runtime was copied and hash-verified outside Git. Owner input and
+all signed-APK/device gates remain NOT_RUN; next is one owner retry, not a new
+identity. See the owner follow-up in the R1-P review. No production change.
+
 ## G7 independent acceptance — ACCEPTED / FROZEN — PASS WITH NOTES — 2026-10-27
 
 **RECIPIO_G7_ACCEPTED / FROZEN — PASS WITH NOTES.** ChatGPT completed the

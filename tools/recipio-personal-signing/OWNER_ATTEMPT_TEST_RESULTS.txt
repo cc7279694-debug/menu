@@ -1,0 +1,38 @@
+RECIPIO R1-P owner-attempt observability repair
+Only public synthetic text/fake owner modules were used by the new entry tests.
+The actual first owner-window failure remains UNKNOWN. The launcher hardening
+is not evidence that inherited handles caused that first failure.
+
+Observed RED before changing runtime helper files (public test output 55604d):
+FAIL explicit independent console launch is missing
+FAIL failure close prompt does not say signing is incomplete
+FAIL captured fake-module entry has no unique public failure attempt
+FAIL fake exception entry has no unique public failure attempt
+RESULT 0 PASS / 4 FAIL
+New helper API checks were pending during this meaningful behavior-only RED.
+
+Final commands (PowerShell 7.6.5, -NoLogo -NoProfile -File):
+tools/recipio-personal-signing/Test-OwnerAttempt.ps1
+  RESULT 15 PASS / 0 FAIL (output 4572f2)
+tools/recipio-personal-signing/Test-PersonalSigning.ps1 -RealArchivePreflight
+  RESULT 36 PASS / 0 FAIL (output 36761e)
+tools/recipio-personal-signing/Test-SigningSafetyRepairs.ps1
+  RESULT 22 PASS / 0 FAIL (output e7b142)
+tools/recipio-personal-signing/Test-OwnerLifecycle.ps1
+  RESULT 2 FAKE_OWNER_LIFECYCLE PASS (output 7a6241)
+TOTAL 75 passing tooling assertions/flows, not product tests.
+Helper PowerShell AST syntax PASS; git diff --check PASS (output d19f29).
+
+Final runtime SHA-256:
+Recipio.PersonalSigning.psm1
+96ec6de5a57f0c800ba1cea36fec4d3ffe5c4d706c7e11b6e097a31c282388b8
+Start-RecipioPersonalSigning.ps1
+16eedcf22eaaa6e2611226f334cc6202adc8a3cfef471aa828b1bc9a095d3631
+Start-RecipioPersonalSigning.cmd
+47fb555bfdb0b57286c6031cd1b8c763e209f9ca2dd5a06c0c3da0de51528b7f
+Test-OwnerAttempt.ps1
+4cdb6c673150a4ac8e18fee1caf1a382b1ab1eb7418e8fa8be379bf3cffbee73
+
+Real password entry/key/private-backup/signing: NOT_RUN.
+The .cmd was statically checked; no owner launcher/private window was opened.
+No bundle copy, release-manifest update, production change or Git commit by child.

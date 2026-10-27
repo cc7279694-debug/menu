@@ -28,7 +28,9 @@ testOnly, wrong-package or wrong-version inputs fail closed.
 
 ## Private interaction
 
-1. Double-click the copied `.cmd`; no command needs to be pasted.
+1. Double-click the copied **Windows command script `.cmd`**, not the `.ps1`.
+   It selects PowerShell 7 and opens a separate private console with `start /wait`;
+   no command needs to be pasted. All existing capture/logging guards still apply.
 2. Read the same-computer backup limitation. Ctrl+C cancels the operation.
 3. First use asks for the existing source-file password, a new strong personal
    copy password (twice), and an independent encrypted-backup password (twice).
@@ -85,8 +87,15 @@ Success produces `delivery/OWNER_RESULT.json` and exactly one final candidate:
 acceptance. Share only the public result path with Codex. Do not share a
 password, keystore, private temporary files or encrypted key backup.
 
-On failure, the helper prints an error category only and retains original
-identities. It does not regenerate keys, overwrite an existing backup, install
+On failure, the helper clearly says signing is incomplete and asks the owner to
+return to Codex; pressing Enter only closes the window. In a safe, existing,
+local bundle outside Git, it creates a unique `OWNER_ATTEMPT-<GUID>.json` containing
+only `formatVersion`, `status: FAILED`, a fixed sanitized category and UTC time.
+Raw exception text, paths, native output and private material are excluded. If
+the helper cannot load or the public destination is unsafe/unavailable, it reports
+that no attempt record was saved rather than bypassing the safety checks. Failure
+records never replace `OWNER_RESULT.json`, which remains the only success evidence.
+The helper retains original identities. It does not regenerate keys, overwrite an existing backup, install
 an app, modify a phone, or import personal recipes. Unexpected files stop
 temporary cleanup instead of triggering recursive deletion. An interrupted
 process may leave protected temporary data; do not treat absence of a receipt
@@ -98,6 +107,7 @@ as successful signing, and do not manually delete unknown private files.
 pwsh -NoProfile -File tools/recipio-personal-signing/Test-PersonalSigning.ps1 -RealArchivePreflight
 pwsh -NoProfile -File tools/recipio-personal-signing/Test-OwnerLifecycle.ps1
 pwsh -NoProfile -File tools/recipio-personal-signing/Test-SigningSafetyRepairs.ps1
+pwsh -NoProfile -File tools/recipio-personal-signing/Test-OwnerAttempt.ps1
 ```
 
 The first suite includes a real modern7-Zip AES backup of generated ordinary

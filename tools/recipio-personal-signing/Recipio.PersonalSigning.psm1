@@ -447,6 +447,22 @@ function Assert-R1OutsideRepository([string]$Path){
   while($cursor){if(Test-Path -LiteralPath (Join-Path $cursor '.git')){Stop-R1 'TOOL_MUST_BE_OUTSIDE_REPOSITORY'};$parent=[IO.Path]::GetDirectoryName($cursor);if($parent-eq$cursor){break};$cursor=$parent}
 }
 
+function Get-R1FailureCategory([string]$Message){
+  if($Message.Length-le128-and$Message-cmatch'\AR1P_[A-Z_]+\z'){return $Message}
+  return 'UNEXPECTED_FAILURE'
+}
+
+function Write-R1FailedAttempt([string]$BundleRoot,[string]$Message){
+  # Public status only: never persist an exception, native output or private path.
+  Assert-R1SafeLocalPath $BundleRoot
+  Assert-R1OutsideRepository $BundleRoot
+  if(-not(Test-Path -LiteralPath $BundleRoot -PathType Container)){Stop-R1 'PUBLIC_BUNDLE_REQUIRED'}
+  $path=Join-Path ([IO.Path]::GetFullPath($BundleRoot)) ('OWNER_ATTEMPT-'+[guid]::NewGuid().ToString('N')+'.json')
+  $record=@{formatVersion=1;status='FAILED';category=(Get-R1FailureCategory $Message);createdAtUtc=[DateTime]::UtcNow.ToString('o')}
+  Write-R1NewJson $path $record
+  return $path
+}
+
 function Invoke-R1OwnerSigning([string]$BundleRoot){
   Assert-R1PrivateConsole
   Assert-R1OutsideRepository $BundleRoot
@@ -587,4 +603,4 @@ function Invoke-R1OwnerSigning([string]$BundleRoot){
   }
 }
 
-Export-ModuleMember -Function Assert-R1PasswordPolicy,Get-R1ArchiveArguments,Assert-R1ArchiveListing,Assert-R1ReleaseManifest,Assert-R1SafeLocalPath,Assert-R1PublicReceipt,Assert-R1PrivateConsole,Invoke-R1PrivateChild,Test-R1ArchiveTransport,Get-R1IdentityAction,Assert-R1PublishGate,Invoke-R1OwnerSigning,Assert-R1PowerShellConfigPolicies,Assert-R1PowerShellPolicyFiles,Assert-R1ExistingPrivateFile,Assert-R1ArchiveHeaderEncryption
+Export-ModuleMember -Function Assert-R1PasswordPolicy,Get-R1ArchiveArguments,Assert-R1ArchiveListing,Assert-R1ReleaseManifest,Assert-R1SafeLocalPath,Assert-R1PublicReceipt,Assert-R1PrivateConsole,Invoke-R1PrivateChild,Test-R1ArchiveTransport,Get-R1IdentityAction,Assert-R1PublishGate,Invoke-R1OwnerSigning,Assert-R1PowerShellConfigPolicies,Assert-R1PowerShellPolicyFiles,Assert-R1ExistingPrivateFile,Assert-R1ArchiveHeaderEncryption,Get-R1FailureCategory,Write-R1FailedAttempt

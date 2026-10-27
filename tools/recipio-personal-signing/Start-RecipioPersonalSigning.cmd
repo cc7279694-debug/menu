@@ -8,5 +8,5 @@ if not defined RECIPIO_PRIVATE_PWSH (
   pause
   exit /b 1
 )
-"%RECIPIO_PRIVATE_PWSH%" -NoLogo -NoProfile -ExecutionPolicy Bypass -File "%~dp0Start-RecipioPersonalSigning.ps1"
+start "RECIPIO private signing" /wait "%RECIPIO_PRIVATE_PWSH%" -NoLogo -NoProfile -ExecutionPolicy Bypass -File "%~dp0Start-RecipioPersonalSigning.ps1"
 exit /b %ERRORLEVEL%
