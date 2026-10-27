@@ -46,3 +46,13 @@ G4整体PENDING，G5～G7限定冻结不变；本次政策不重写历史R1双�
 实现后根代理重新执行 `node --test scripts/personal-release/*.test.mjs`，20/20 PASS，
 并完成现有actionlint与差异格式检查。未安装本地npm依赖、运行Gradle或调用真实AI。
 CI仅由本次无密钥工作流/构建校验脚本变化触发；私人本地辅助脚本单独变更不重跑相同产品构建。
+
+首轮CI `40481320300` / 工具提交 `64fb9db8ce5eb3cd77e8fa029a3027b404ca5e81`：
+固定main的17文件/347项定向测试PASS，TypeScript/Lint（5既有警告）/构建隔离PASS；
+G6浏览器33与G7浏览器29组PASS。Android Release26编译成功，但独立ZIP条目校验以
+UNSAFE_ENTRY拒绝继续；不发布该未通过检查的输入。正在加入有界诊断定位具体条目，
+尚未按猜测放宽拒绝规则。正式签名、备份和设备验证仍未运行。
+
+私人辅助工具预审发现三项待修补：PowerShell JSON日志策略未覆盖、复用已有私人文件
+的叶子reparse/显式ACL未独立检查、复用已有AES容器未证明头部加密。
+在测试先行修复和复查之前，不复制真实可运行owner交付束，不进入真实密码/私钥阶段。

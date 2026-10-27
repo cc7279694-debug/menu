@@ -3,8 +3,15 @@ export const ORIGINAL_PACKAGE = "app.recipio.local";
 export const EXPECTED_CERTIFICATE = "29ded26bea44f1afe4fe383a302e4b507423d16223469d7da3fe578d9a7f83b9";
 const versions = new Map([[26, "0.11.0-personal.1"], [27, "0.11.0-personal.2"]]);
 
-function requireGate(condition, code) {
-  if (!condition) throw Object.assign(new Error(code), { code });
+function requireGate(condition, code, detail) {
+  if (!condition) throw Object.assign(new Error(detail ? `${code}: ${JSON.stringify(detail)}` : code), { code, ...(detail && { detail }) });
+}
+
+// Only bounded ZIP entry names/categories from a compiled public APK; no bytes,
+// source body, host environment or private signing material enter diagnostics.
+function entryDetail(name, index, reason, previous) {
+  const bounded = value => typeof value === "string" ? JSON.stringify(value.slice(0, 128)).slice(1, -1).slice(0, 160) : "<non-string>";
+  return { reason, index, entry: bounded(name), ...(previous !== undefined && { previous: bounded(previous) }) };
 }
 
 function falseAttributeValues(tree, name, required = false) {
@@ -33,12 +40,16 @@ export function auditUnsignedApk(observation) {
 
   const entries = observation.entries;
   requireGate(Array.isArray(entries) && entries.length > 0 && entries.length <= 20000, "UNSAFE_ENTRY");
-  const seen = new Set();
-  for (const name of entries) {
-    requireGate(typeof name === "string" && name.length <= 512 && !name.startsWith("/") && !/[\\:\x00-\x1f]/.test(name)
-      && !name.split("/").some((part, index, parts) => part === "." || part === ".." || (part === "" && index !== parts.length - 1))
-      && !seen.has(name.toLowerCase()), "UNSAFE_ENTRY");
-    seen.add(name.toLowerCase());
+  const seen = new Map();
+  for (const [index, name] of entries.entries()) {
+    requireGate(typeof name === "string", "UNSAFE_ENTRY", entryDetail(name, index, "ENTRY_TYPE"));
+    requireGate(name.length <= 512, "UNSAFE_ENTRY", entryDetail(name, index, "ENTRY_LENGTH"));
+    requireGate(!name.startsWith("/"), "UNSAFE_ENTRY", entryDetail(name, index, "ABSOLUTE_ENTRY"));
+    requireGate(!/[\\:\x00-\x1f]/.test(name), "UNSAFE_ENTRY", entryDetail(name, index, "ENTRY_CHARACTERS"));
+    requireGate(!name.split("/").some((part, position, parts) => part === "." || part === ".." || (part === "" && position !== parts.length - 1)), "UNSAFE_ENTRY", entryDetail(name, index, "ENTRY_SEGMENTS"));
+    const previous = seen.get(name.toLowerCase());
+    requireGate(previous === undefined, "UNSAFE_ENTRY", entryDetail(name, index, previous === name ? "EXACT_DUPLICATE" : "CASE_FOLDED_COLLISION", previous));
+    seen.set(name.toLowerCase(), name);
     requireGate(!/^META-INF\/(?:MANIFEST\.MF|[^/]+\.(?:RSA|DSA|EC|SF)|SIG-[^/]+)$/i.test(name), "SIGNATURE_ENTRY");
     requireGate(!/(?:^|\/)(?:showcase|ui-v2-showcase|fixtures|androidTest|demo-data)(?:\/|$)|(?:cola-wings|cola-step|tomato-egg-soup|broccoli)/i.test(name), "TEST_OR_SHOWCASE_ENTRY");
   }

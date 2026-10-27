@@ -72,6 +72,26 @@ test("ZIP traversal duplicates missing UI and empty class reports fail closed", 
   rejected({ dexPackages: "" }, "PRODUCTION_DEX_MISSING");
 });
 test("unsigned file names cannot escape the transfer bundle", () => rejected({ file: "../signed-candidate.apk" }, "ARTIFACT_PATH"));
+test("unsafe-entry diagnostics identify exact duplicate category without dumping observations", () => {
+  assert.throws(() => auditUnsignedApk({ ...observation(), entries: [...observation().entries, "classes.dex"] }), error => {
+    assert.equal(error.code, "UNSAFE_ENTRY");
+    assert.equal(error.detail.reason, "EXACT_DUPLICATE");
+    assert.equal(error.detail.entry, "classes.dex");
+    assert.equal(error.detail.index, 5);
+    assert(!("observation" in error.detail));
+    return true;
+  });
+});
+test("unsafe-entry names remain bounded and control characters cannot forge diagnostic lines", () => {
+  assert.throws(() => auditUnsignedApk({ ...observation(), entries: [...observation().entries, "assets/" + "x".repeat(600) + "\n"] }), error => {
+    assert.equal(error.code, "UNSAFE_ENTRY");
+    assert.equal(error.detail.reason, "ENTRY_LENGTH");
+    assert(error.detail.entry.length <= 160);
+    assert(!/[\r\n]/.test(error.message));
+    assert(error.message.length < 512);
+    return true;
+  });
+});
 test("literal manifest binds both approved versions and expected old public identity", () => {
   const manifest = makeReleaseManifest([auditUnsignedApk(observation(27)), auditUnsignedApk(observation(26))]);
   assert.equal(manifest.formatVersion, 1);
