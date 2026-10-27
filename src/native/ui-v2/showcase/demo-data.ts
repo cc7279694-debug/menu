@@ -8,6 +8,11 @@ import cookingStep from "./assets/cola-step.webp";
 export type DemoRecipe = { details: RecipeDetails; image: string | null; stepImages?: Readonly<Record<number, string>> };
 export type DemoScenario = "default" | "no-image" | "title-only" | "long" | "empty" | "broken-image";
 
+/** Vite emits URL strings; Next.js image imports expose { src }. Showcase only. */
+function fixtureImageUrl(image: string | { readonly src: string }): string {
+  return typeof image === "string" ? image : image.src;
+}
+
 const blank: Omit<RecipeDetails, "id" | "title" | "createdAt" | "updatedAt"> = {
   totalMinutes: null, servings: null, caloriesPerServing: null, coverPath: null,
   notes: "", ingredients: [], preparations: [], keyTips: [], steps: [],
@@ -15,8 +20,8 @@ const blank: Omit<RecipeDetails, "id" | "title" | "createdAt" | "updatedAt"> = {
 
 export const demoRecipes: readonly DemoRecipe[] = [
   {
-    image: wings,
-    stepImages: { 2: cookingStep },
+    image: fixtureImageUrl(wings),
+    stepImages: { 2: fixtureImageUrl(cookingStep) },
     details: {
       ...blank, id: "11111111-1111-4111-8111-111111111111", title: "可乐鸡翅",
       createdAt: "2026-10-22T08:00:00.000Z", updatedAt: "2026-10-22T08:00:00.000Z",
@@ -43,7 +48,7 @@ export const demoRecipes: readonly DemoRecipe[] = [
     },
   },
   {
-    image: soup,
+    image: fixtureImageUrl(soup),
     details: { ...blank, id: "22222222-2222-4222-8222-222222222222", title: "番茄鸡蛋汤",
       createdAt: "2026-10-21T08:00:00.000Z", updatedAt: "2026-10-21T08:00:00.000Z",
       totalMinutes: 15, servings: 2, caloriesPerServing: 92,
@@ -52,7 +57,7 @@ export const demoRecipes: readonly DemoRecipe[] = [
     },
   },
   {
-    image: broccoli,
+    image: fixtureImageUrl(broccoli),
     details: { ...blank, id: "33333333-3333-4333-8333-333333333333", title: "蒜蓉西兰花",
       createdAt: "2026-10-20T08:00:00.000Z", updatedAt: "2026-10-20T08:00:00.000Z",
       totalMinutes: 12, servings: 2, caloriesPerServing: 75,
