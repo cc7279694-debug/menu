@@ -47,9 +47,12 @@ export function auditUnsignedApk(observation) {
     requireGate(!name.startsWith("/"), "UNSAFE_ENTRY", entryDetail(name, index, "ABSOLUTE_ENTRY"));
     requireGate(!/[\\:\x00-\x1f]/.test(name), "UNSAFE_ENTRY", entryDetail(name, index, "ENTRY_CHARACTERS"));
     requireGate(!name.split("/").some((part, position, parts) => part === "." || part === ".." || (part === "" && position !== parts.length - 1)), "UNSAFE_ENTRY", entryDetail(name, index, "ENTRY_SEGMENTS"));
-    const previous = seen.get(name.toLowerCase());
-    requireGate(previous === undefined, "UNSAFE_ENTRY", entryDetail(name, index, previous === name ? "EXACT_DUPLICATE" : "CASE_FOLDED_COLLISION", previous));
-    seen.set(name.toLowerCase(), name);
+    // Android resolves ZIP resource names case-sensitively. Release optimization
+    // legitimately emits res/9N.9.png and res/9n.9.png; this inspection never
+    // extracts them to a Windows directory. Exact ZIP duplicates still fail.
+    const previous = seen.get(name);
+    requireGate(previous === undefined, "UNSAFE_ENTRY", entryDetail(name, index, "EXACT_DUPLICATE", previous));
+    seen.set(name, name);
     requireGate(!/^META-INF\/(?:MANIFEST\.MF|[^/]+\.(?:RSA|DSA|EC|SF)|SIG-[^/]+)$/i.test(name), "SIGNATURE_ENTRY");
     requireGate(!/(?:^|\/)(?:showcase|ui-v2-showcase|fixtures|androidTest|demo-data)(?:\/|$)|(?:cola-wings|cola-step|tomato-egg-soup|broccoli)/i.test(name), "TEST_OR_SHOWCASE_ENTRY");
   }

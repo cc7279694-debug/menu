@@ -71,6 +71,17 @@ test("ZIP traversal duplicates missing UI and empty class reports fail closed", 
   rejected({ entries: ["AndroidManifest.xml", "classes.dex"] }, "PRODUCTION_PAYLOAD_MISSING");
   rejected({ dexPackages: "" }, "PRODUCTION_DEX_MISSING");
 });
+test("actual optimized Release res/9N.9.png and res/9n.9.png remain distinct APK ZIP resources", () => {
+  const entries = [...observation().entries, "res/9N.9.png", "res/9n.9.png"];
+  const output = auditUnsignedApk({ ...observation(), entries });
+  assert.equal(output.productionEntries, 7);
+  assert.throws(() => auditUnsignedApk({ ...observation(), entries: [...entries, "res/9N.9.png"] }), error => {
+    assert.equal(error.code, "UNSAFE_ENTRY");
+    assert.equal(error.detail.reason, "EXACT_DUPLICATE");
+    assert.equal(error.detail.entry, "res/9N.9.png");
+    return true;
+  });
+});
 test("unsigned file names cannot escape the transfer bundle", () => rejected({ file: "../signed-candidate.apk" }, "ARTIFACT_PATH"));
 test("unsafe-entry diagnostics identify exact duplicate category without dumping observations", () => {
   assert.throws(() => auditUnsignedApk({ ...observation(), entries: [...observation().entries, "classes.dex"] }), error => {
