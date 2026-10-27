@@ -17,7 +17,21 @@ android {
         }
     }
     buildTypes {
+        // Cloud preview is a separate, non-upgradeable app. The normal debug and
+        // release application IDs/signing contracts are unchanged without this opt-in.
+        debug {
+            if (project.hasProperty('recipioCloudPreview')) {
+                applicationIdSuffix ".cloudpreview"
+                versionNameSuffix "-cloudpreview"
+            }
+        }
         release {
+            // Opt-in, separately installed signed migration candidate.
+            // Without this flag original release identity is unchanged.
+            if (project.hasProperty('recipioSignedNext')) {
+                applicationIdSuffix ".next"
+                versionNameSuffix "-next"
+            }
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }

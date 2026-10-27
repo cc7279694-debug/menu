@@ -27,7 +27,7 @@ it("explicit search shows candidates; explicit choice enters existing Review wit
   const { service, port, ai } = fixture(); mount(service); fireEvent.change(screen.getByLabelText("想做什么菜"), { target: { value: "啤酒鸭" } });
   expect(port.search).not.toHaveBeenCalled(); fireEvent.click(screen.getByRole("button", { name: "开始寻找" }));
   await screen.findByText("家常啤酒鸭"); expect(screen.queryByText(/分钟/)).not.toBeInTheDocument(); expect(port.extract).not.toHaveBeenCalled();
-  fireEvent.click(screen.getByRole("button", { name: "按这个做法整理" })); await screen.findByRole("heading", { name: "检查 AI 整理结果" });
+  fireEvent.click(screen.getByRole("button", { name: "按这个做法整理" })); await screen.findByRole("heading", { name: "检查整理结果" });
   expect(ai.snapshot().confirmed).toBe(false); fireEvent.click(screen.getByRole("button", { name: "确认保存菜谱" })); expect(ai.snapshot().phase).toBe("preview");
 });
 it("results Back preserves query and preference without a Provider retry", async () => {

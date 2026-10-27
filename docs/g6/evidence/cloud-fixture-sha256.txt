@@ -1,0 +1,2 @@
+a5aabca6ec000046745b0f1fc18567d59a629691069dbfdb4e660a6d772b80be  app-fixture.apk
+23ecf959bee81590eabbe7102438eac0cb50e96d6a5e737b8ae7d0dce34ec516  test-fixture.apk

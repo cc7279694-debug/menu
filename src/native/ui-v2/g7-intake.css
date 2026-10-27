@@ -1,0 +1,23 @@
+.recipio-ui-v2 .v2-intake-quality { min-width: 0; padding: 1rem 0; border-block: 1px solid var(--v2-border); }
+.recipio-ui-v2 .v2-intake-quality-header { display: grid; gap: .4rem; }
+.recipio-ui-v2 .v2-intake-quality-header h3 { font-size: 1.05rem; font-weight: 650; line-height: 1.5; }
+.recipio-ui-v2 .v2-intake-quality-header > p { color: var(--v2-text); line-height: 1.75; }
+.recipio-ui-v2 .v2-intake-issues { margin: .65rem 0; padding: 0; list-style: none; }
+.recipio-ui-v2 .v2-intake-issues > li { display: flex; align-items: flex-start; gap: .5rem; padding-block: .7rem; border-bottom: 1px solid var(--v2-border); }
+.recipio-ui-v2 .v2-intake-issues > li > div { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+.recipio-ui-v2 .v2-intake-issues strong { font-weight: 600; line-height: 1.65; }
+.recipio-ui-v2 .v2-intake-issues p { margin-top: .25rem; color: var(--v2-secondary); font-size: .875rem; line-height: 1.75; }
+.recipio-ui-v2 .v2-intake-issue-kind { display: inline; margin-left: .55rem; color: var(--v2-secondary); font-size: .75rem; line-height: 1.6; }
+.recipio-ui-v2 .v2-intake-issues [data-priority="error"] .v2-intake-issue-kind { color: var(--v2-error); }
+.recipio-ui-v2 .v2-intake-locate { flex: 0 0 auto; min-width: 3rem; min-height: 3rem; }
+.recipio-ui-v2 .v2-intake-reference-action { display: flex; flex-wrap: wrap; align-items: center; gap: .6rem; margin-top: .8rem; }
+.recipio-ui-v2 .v2-intake-reference-action button { min-height: 3rem; }
+.recipio-ui-v2 .v2-intake-reference-action > span { flex: 1 1 10rem; }
+.recipio-ui-v2 .v2-intake-source-notes { margin-block: .6rem; line-height: 1.75; overflow-wrap: anywhere; }
+.recipio-ui-v2 .v2-intake-source-notes summary { min-height: 3rem; padding-block: .65rem; cursor: pointer; }
+.recipio-ui-v2 .v2-intake-source-content { display: grid; min-width: 0; gap: 1rem; line-height: 1.8; }
+.recipio-ui-v2 .v2-intake-source-content > section { min-width: 0; display: grid; gap: .55rem; }
+.recipio-ui-v2 .v2-intake-source-content h3 { font-weight: 600; font-size: 1rem; }
+.recipio-ui-v2 .v2-intake-source-text { white-space: pre-wrap; overflow-wrap: anywhere; word-break: break-word; }
+.recipio-ui-v2 .v2-intake-edit-state { color: var(--v2-secondary); font-size: .8125rem; line-height: 1.75; }
+@media (max-width: 350px) { .recipio-ui-v2 .v2-intake-quality { padding-block: .75rem; } }

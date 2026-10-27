@@ -1,0 +1,29 @@
+2026-10-23 RECIPIO UI V2 G1 final polish
+Final showcase/QA source SHA-256 fingerprint:
+531adc7b01d9d96df016072ea6a27db4e652cc26d9b326132429aa70546d3a11
+
+Fresh final whole run:
+npm.cmd test -- --pool=threads --maxWorkers=1 --no-file-parallelism
+Test Files 196 passed (196)
+Tests 1063 passed (1063)
+Start at 19:21:53 Asia/Shanghai
+Duration 932.71s
+Exit 0; no unhandled error
+
+Fresh scoped DOM run: 3 files /34 tests PASS,19.56s, exit0 (subset, not additive).
+Original browser regression: 41 PASS for each of Warm Ivory /Pure Glass /Soft Sage.
+Theme/state/material:74 PASS.
+Paired density/hierarchy/flow/clearance:43 PASS.
+Typecheck:PASS.
+ESLint:PASS,0 errors /5 pre-existing image warnings.
+Local build:PASS, existing large-chunk warning.
+Production graph:281 modules;0 UI V2 modules /0 fixture assets;write:false.
+Showcase production build:expected DEV-only rejection, guard category verified.
+
+Earlier attempt (NOT final PASS): forks pool195 files/1054 tests passed,
+1 worker-start timeout on unchanged shopping-list-security.test.ts;1136.29s,exit1.
+Isolated missed-file recheck:1 file/9 tests PASS,52.66s,exit0.
+No assertion/timeout was relaxed; supported single-thread pool used for final full run.
+
+No Android,APK,real AI,physical device,production rollout or main operation this round.
+User/ChatGPT final visual acceptance is still pending; no G2 authorization.

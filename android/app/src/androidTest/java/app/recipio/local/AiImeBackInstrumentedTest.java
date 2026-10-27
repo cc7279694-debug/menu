@@ -6,7 +6,6 @@ import android.content.Context;
 import android.content.ContextWrapper;
 import android.content.ContentValues;
 import android.graphics.Bitmap;
-import android.graphics.Rect;
 import android.database.Cursor;
 import android.net.Uri;
 import android.provider.MediaStore;
@@ -51,6 +50,9 @@ public class AiImeBackInstrumentedTest {
     private ExecutorService worker;
     private Uri generatedImage;
     private final AtomicInteger posts=new AtomicInteger();
+    private JSONObject generatedDocumentSelection;
+    private JSONObject generatedDocumentLayout;
+    private boolean listViewRequested;
     private volatile boolean holdHttp;
     private final CountDownLatch httpEntered=new CountDownLatch(1),httpRelease=new CountDownLatch(1);
     private static void field(Object target,String name,Object value)throws Exception {Field f=target.getClass().getDeclaredField(name);f.setAccessible(true);f.set(target,value);}
@@ -146,7 +148,7 @@ public class AiImeBackInstrumentedTest {
     }
     @Test public void keyboardClosed_secondBack_leavesIntake()throws Exception {
         openIme();back();awaitIme(false);back();until("!!document.querySelector('[role=dialog]')");click("放弃本轮整理");
-        until("!document.body.innerText.includes('AI 整理菜谱')");assertEquals("1",js("window.__imeTestBackCount"));assertEquals(0,posts.get());
+        until("!document.body.innerText.includes('整理菜谱')");assertEquals("1",js("window.__imeTestBackCount"));assertEquals(0,posts.get());
     }
     @Test public void intakeDraft_survivesImeBack()throws Exception {
         openIme();back();awaitIme(false);assertEquals("APK4 IME GENERATED 中文 🍚",js("document.querySelector('textarea').value"));
@@ -155,20 +157,6 @@ public class AiImeBackInstrumentedTest {
     private boolean nativeClick(AccessibilityNodeInfo node,String label){
         if(node==null)return false;
         String description=node.getContentDescription()==null?"":node.getContentDescription().toString();
-        // DocumentsUI's grid exposes "exact filename, size, date" as its accessible label.
-        // Match the complete UUID filename and delimiter, never an arbitrary substring.
-        if(description.startsWith(label+",")){
-            // File tiles need a real tap; their accessibility label includes formatted
-            // metadata and is not necessarily an ACTION_CLICK-capable text node.
-            if(!node.refresh()||!node.isVisibleToUser())return false;
-            Rect bounds=new Rect();node.getBoundsInScreen(bounds);if(bounds.isEmpty())return false;
-            // Let the platform input command produce current-timestamp DOWN/UP events
-            // for this external window, rather than preconstructing an already-stale UP.
-            try(InputStream command=new android.os.ParcelFileDescriptor.AutoCloseInputStream(
-                instrumentation.getUiAutomation().executeShellCommand("input tap "+bounds.centerX()+" "+bounds.centerY()))){
-                byte[] buffer=new byte[256];while(command.read(buffer)!=-1){}return true;
-            } catch(IOException error){throw new AssertionError("Generated SAF native tap failed",error);}
-        }
         if(label.contentEquals(node.getText()==null?"":node.getText())||label.equals(description)){
             AccessibilityNodeInfo target=node;while(target!=null&&!target.isClickable())target=target.getParent();return target!=null&&target.performAction(AccessibilityNodeInfo.ACTION_CLICK);
         }
@@ -181,6 +169,186 @@ public class AiImeBackInstrumentedTest {
             Thread.sleep(100);
         } while(android.os.SystemClock.elapsedRealtime()<deadline);
         fail("Real SAF control missing: "+label);
+    }
+    private boolean selectGeneratedDocument(String name)throws Exception {
+        AccessibilityNodeInfo root=instrumentation.getUiAutomation().getRootInActiveWindow();
+        String pkg=root==null||root.getPackageName()==null?"":root.getPackageName().toString();
+        if(!"com.android.documentsui".equals(pkg)&&!"com.google.android.documentsui".equals(pkg))return false;
+        // A thumbnail preview opens ACTION_VIEW in Photos. Select the exact filename's
+        // associated document row instead; never tap the accessible tile's image center.
+        boolean generatedFileVisible=false;
+        for(AccessibilityNodeInfo label:root.findAccessibilityNodeInfosByText(name)) {
+            String description=label.getContentDescription()==null?"":label.getContentDescription().toString();
+            if(label.isVisibleToUser()&&label.isEnabled()
+                &&(name.contentEquals(label.getText()==null?"":label.getText())||description.startsWith(name+",")))generatedFileVisible=true;
+            if(!name.contentEquals(label.getText()==null?"":label.getText())||!label.isVisibleToUser()||!label.isEnabled())continue;
+            AccessibilityNodeInfo target=label;
+            for(int hop=0;target!=null&&hop<=4;hop++,target=target.getParent()) {
+                boolean clickAction=false;
+                for(AccessibilityNodeInfo.AccessibilityAction action:target.getActionList())
+                    if(action.getId()==AccessibilityNodeInfo.ACTION_CLICK){clickAction=true;break;}
+                if(!target.isVisibleToUser()||!target.isEnabled()||!clickAction)continue;
+                String id=target.getViewIdResourceName(),type=target.getClassName()==null?"":target.getClassName().toString();
+                generatedDocumentSelection=new JSONObject().put("kind","EXACT_GENERATED_FILENAME_ROW").put("package",pkg)
+                    .put("id",id!=null&&id.matches("[A-Za-z0-9_.]+:id/[A-Za-z0-9_]+")?id:"UNAVAILABLE")
+                    .put("class",type.matches("[A-Za-z0-9_.$]{1,160}")?type:"UNAVAILABLE");
+                boolean dispatched=target.performAction(AccessibilityNodeInfo.ACTION_CLICK);
+                generatedDocumentSelection.put("dispatched",dispatched);
+                assertTrue("Exact generated document row must accept ACTION_CLICK",dispatched);
+                return true;
+            }
+        }
+        // API36's image grid can expose only thumbnails, whose center opens a viewer.
+        // Use the official menu_list control once, then let the existing condition
+        // polling find the exact filename in list layout. Never guess tap coordinates.
+        if(generatedFileVisible&&!listViewRequested)requestDocumentListLayout(root);
+        return false;
+    }
+    private void requestDocumentListLayout(AccessibilityNodeInfo root)throws Exception {
+        for(AccessibilityNodeInfo label:root.findAccessibilityNodeInfosByText("List view")) {
+            if(!"List view".contentEquals(label.getText()==null?"":label.getText())
+                &&!"List view".contentEquals(label.getContentDescription()==null?"":label.getContentDescription()))continue;
+            if(!label.isVisibleToUser()||!label.isEnabled())continue;
+            AccessibilityNodeInfo target=label;
+            for(int hop=0;target!=null&&hop<=2;hop++,target=target.getParent()) {
+                boolean clickAction=false;
+                for(AccessibilityNodeInfo.AccessibilityAction action:target.getActionList())
+                    if(action.getId()==AccessibilityNodeInfo.ACTION_CLICK){clickAction=true;break;}
+                if(!target.isVisibleToUser()||!target.isEnabled()||!target.isClickable()||!clickAction)continue;
+                listViewRequested=true;
+                String id=target.getViewIdResourceName(),type=target.getClassName()==null?"":target.getClassName().toString();
+                generatedDocumentLayout=new JSONObject().put("label","List view")
+                    .put("id",id!=null&&id.matches("[A-Za-z0-9_.]+:id/[A-Za-z0-9_]+")?id:"UNAVAILABLE")
+                    .put("class",type.matches("[A-Za-z0-9_.$]{1,160}")?type:"UNAVAILABLE");
+                boolean dispatched=target.performAction(AccessibilityNodeInfo.ACTION_CLICK);
+                generatedDocumentLayout.put("dispatched",dispatched);
+                assertTrue("Official DocumentsUI List view control must accept ACTION_CLICK",dispatched);
+                return;
+            }
+        }
+    }
+    private void awaitGeneratedDocument(String name)throws Exception {
+        long deadline=android.os.SystemClock.elapsedRealtime()+15000;
+        do {if(selectGeneratedDocument(name))return;Thread.sleep(100);}while(android.os.SystemClock.elapsedRealtime()<deadline);
+        fail("Generated document filename row missing from real DocumentsUI");
+    }
+    private boolean systemPicker(String pkg) {
+        return "com.google.android.apps.photos".equals(pkg)||"com.android.documentsui".equals(pkg)
+            ||"com.google.android.documentsui".equals(pkg)||"com.android.providers.media.module".equals(pkg)
+            ||"com.google.android.providers.media.module".equals(pkg)||"com.google.android.photopicker".equals(pkg);
+    }
+    private String safePickerLabel(AccessibilityNodeInfo node) {
+        if(node==null)return "";
+        String text=node.getText()==null?"":node.getText().toString().trim();
+        String description=node.getContentDescription()==null?"":node.getContentDescription().toString().trim();
+        for(String allowed:new String[]{"List view","Grid view","Select","Select (1)","Open","Add","Add (1)","Use","Use photo","Use this photo","Done",
+                "选择","选择 (1)","选择（1）","打开","添加","添加 (1)","添加（1）","使用","使用照片","使用此照片","完成"}) {
+            if(allowed.equalsIgnoreCase(text)||allowed.equalsIgnoreCase(description))return allowed;
+        }
+        return "";
+    }
+    private void observePickerForFailureDiagnostics()throws Exception {
+        // Observe only this generated pick. Return the exact original Promise and
+        // values; no retry, request replacement, response mutation or extra call.
+        js("(()=>{const c=window.Capacitor;window.__imePickDiagnostic={phase:'not-called'};"
+            +"if(!c||typeof c.nativePromise!=='function'){window.__imePickDiagnostic={phase:'observer-unavailable'};return false;}"
+            +"const original=c.nativePromise;c.nativePromise=function(...args){const p=Reflect.apply(original,this,args);"
+            +"if(args[0]==='LocalAiIntake'&&args[1]==='pickImage'){const operationId=args[2]?.operationId;window.__imePickDiagnostic={phase:'pending'};"
+            +"try{p.then(r=>{try{const i=r?.image;let scheme='unavailable';try{if(typeof i?.previewUri==='string')scheme=new URL(i.previewUri).protocol;}catch{}"
+            +"const uuid=v=>typeof v==='string'&&/^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/.test(v);"
+            +"const names=['id','mimeType','byteSize','width','height','previewUri'];"
+            +"const imageShapeMatches=!!(i&&typeof i==='object'&&!Array.isArray(i)&&Object.keys(i).length===6&&names.every(n=>Object.hasOwn(i,n))&&uuid(i.id)&&i.mimeType==='image/jpeg'&&Number.isInteger(i.byteSize)&&i.byteSize>=1&&i.byteSize<=1048576&&[i.width,i.height].every(n=>Number.isInteger(n)&&n>=11&&n<=2048)&&typeof i.previewUri==='string'&&i.previewUri.length<=512);"
+            +"const matched=typeof i?.previewUri==='string'?i.previewUri.match(/^file:[/][/][/]data[/](?:user[/][0-9]+|data)[/]app[.]recipio[.]local[/]cache[/]ai-import[/]([^/]+)[/]([^/]+)[.]jpg$/):null;"
+            +"const ownedImageMatches=!!(uuid(operationId)&&uuid(i?.id)&&matched&&matched[1]===operationId&&matched[2]===i.id&&Math.max(i.width,i.height)<=Math.min(i.width,i.height)*200);"
+            +"window.__imePickDiagnostic={phase:r?.cancelled?'cancelled':'resolved',hasImage:!!i,"
+            +"imageShapeMatches,ownedImageMatches,"
+            +"mime:i?.mimeType==='image/jpeg'?'image/jpeg':'other',scheme,"
+            +"width:Number.isFinite(i?.width)?i.width:null,height:Number.isFinite(i?.height)?i.height:null,"
+            +"bytes:Number.isFinite(i?.byteSize)?i.byteSize:null};}catch{window.__imePickDiagnostic={phase:'observer-error'};}},"
+            +"e=>{const allowed=['image_invalid','image_too_large','input_invalid','storage_error','busy','stale_session','invalid_output','native_unavailable','cancelled'];"
+            +"window.__imePickDiagnostic={phase:'rejected',code:allowed.includes(e?.code)?e.code:'other'};});"
+            +"}catch{window.__imePickDiagnostic={phase:'observer-error'};}}return p;};"
+            +"if(c.nativePromise===original)window.__imePickDiagnostic={phase:'observer-unavailable'};return true;})()");
+    }
+    private void collectSafePickerControls(AccessibilityNodeInfo node,JSONArray controls,int[] visited,int depth)throws Exception {
+        if(node==null||depth>12||visited[0]++>=128||controls.length()>=16)return;
+        String type=node.getClassName()==null?"":node.getClassName().toString();
+        if(node.isVisibleToUser()&&(node.isClickable()||type.endsWith("Button"))) {
+            String id=node.getViewIdResourceName(),label=safePickerLabel(node);
+            controls.put(new JSONObject()
+                .put("id",id!=null&&id.length()<=200&&id.matches("[A-Za-z0-9_.]+:id/[A-Za-z0-9_]+")?id:"UNAVAILABLE")
+                .put("class",type.matches("[A-Za-z0-9_.$]{1,160}")?type:"UNAVAILABLE")
+                .put("enabled",node.isEnabled()).put("visible",node.isVisibleToUser()).put("clickable",node.isClickable())
+                .put("label",label.isEmpty()?"OTHER_OR_EMPTY":label));
+        }
+        for(int index=0;index<node.getChildCount()&&visited[0]<128&&controls.length()<16;index++)
+            collectSafePickerControls(node.getChild(index),controls,visited,depth+1);
+    }
+    private void generatedPickerFailureEvidence(JSONObject report,AccessibilityNodeInfo foreground)throws Exception {
+        JSONObject image=new JSONObject().put("status","NOT_REQUESTED");report.put("screenshot",image);
+        // The cloud harness grants this only after checking a fresh, isolated owned AVD.
+        // Normal connected tests and phones never opt in to screen capture diagnostics.
+        if(!"G5_SYNTHETIC_CLOUD_FIXTURE".equals(InstrumentationRegistry.getArguments().getString("g5SyntheticPickerDiagnostics")))return;
+        String pkg=foreground==null||foreground.getPackageName()==null?"":foreground.getPackageName().toString();
+        if(generatedImage==null||!systemPicker(pkg)){image.put("status","NOT_CAPTURED_OUTSIDE_GENERATED_PICKER");return;}
+        JSONArray controls=new JSONArray();collectSafePickerControls(foreground,controls,new int[]{0},0);report.put("pickerControls",controls);
+        Bitmap screen=null;File output=null;boolean created=false,saved=false;
+        try {
+            screen=instrumentation.getUiAutomation().takeScreenshot();
+            if(screen==null){image.put("status","NULL_SCREENSHOT");return;}
+            output=new File(instrumentation.getTargetContext().getCacheDir(),"g5-picker-diagnostic.png");
+            if(!output.createNewFile()){image.put("status","REFUSED_EXISTING_FILE");return;}
+            created=true;
+            try(FileOutputStream stream=new FileOutputStream(output)) {
+                if(!screen.compress(Bitmap.CompressFormat.PNG,100,stream))throw new IOException("Diagnostic encoding failed");
+                stream.getFD().sync();
+            }
+            if(!output.isFile()||output.length()==0)throw new IOException("Diagnostic file empty");
+            saved=true;image.put("status","SAVED").put("bytes",output.length()).put("width",screen.getWidth()).put("height",screen.getHeight());
+        } catch(IOException|RuntimeException ignored) {
+            image.put("status","NOT_SAVED");
+        } finally {
+            if(screen!=null)screen.recycle();
+            if(created&&!saved&&output!=null)output.delete();
+        }
+    }
+    private void reportPickerFailureDiagnostic() {
+        String output;
+        try {
+            JSONObject report=new JSONObject().put("scope","GENERATED_PICK_FAILURE_DIAGNOSTIC_ONLY")
+                .put("privateFiles","NOT_READ").put("providerPosts",posts.get())
+                .put("generatedDocumentSelection",generatedDocumentSelection==null?JSONObject.NULL:generatedDocumentSelection)
+                .put("generatedDocumentLayout",generatedDocumentLayout==null?JSONObject.NULL:generatedDocumentLayout);
+            AccessibilityNodeInfo foreground=instrumentation.getUiAutomation().getRootInActiveWindow();
+            String pkg=foreground==null||foreground.getPackageName()==null?"UNAVAILABLE":foreground.getPackageName().toString();
+            if(!pkg.matches("[A-Za-z0-9_.]{1,160}"))pkg="UNAVAILABLE";
+            report.put("foregroundPackage",pkg).put("targetAppForeground",instrumentation.getTargetContext().getPackageName().equals(pkg));
+            generatedPickerFailureEvidence(report,foreground);
+            String ui=js("JSON.stringify((()=>{const a=document.querySelector('.v2-ai-intake');"
+                +"const message=a?.querySelector('[role=alert] > p')?.textContent?.trim()||'';"
+                +"const categories=new Map([['截图无法读取，请选择 JPG、PNG 或 WebP 图片。','image_invalid'],"
+                +"['AI 返回内容不完整，请重试或手动录入。','invalid_output'],"
+                +"['本机临时存储失败，请检查可用空间。','storage_error'],"
+                +"['本轮整理已结束，请重新进入。','stale_session'],['当前 AI 操作尚未结束，请稍候。','busy'],"
+                +"['AI 整理仅支持 Android；本地菜谱仍可使用。','native_unavailable'],"
+                +"['截图超出数量或大小限制。','image_too_large']]);"
+                +"return {aiInputPresent:!!a,previewButtons:a?.querySelectorAll('button[aria-label^=\"预览截图 \"]').length||0,"
+                +"gridItems:a?.querySelectorAll('.v2-intake-image-grid > li').length||0,"
+                +"unavailablePlaceholders:[...(a?.querySelectorAll('.v2-image-placeholder')||[])].filter(e=>e.textContent.trim()==='图片暂不可用').length,"
+                +"safeAlertCategory:categories.get(message)||(message?'other-safe-alert':'none'),"
+                +"images:[...(a?.querySelectorAll('.v2-intake-image-grid img')||[])].slice(0,6).map(i=>{let scheme='unavailable',ownOrigin=false;"
+                +"try{const u=new URL(i.currentSrc||i.src,location.href);scheme=u.protocol;ownOrigin=u.origin===location.origin;}catch{}"
+                +"return {complete:i.complete,naturalWidth:i.naturalWidth,naturalHeight:i.naturalHeight,scheme,ownOrigin};}),"
+                +"pickPromise:window.__imePickDiagnostic||{phase:'not-installed'}};})())");
+            report.put("ui",new JSONObject(ui));output=report.toString();
+        } catch(Exception ignored) {
+            output="{\"scope\":\"GENERATED_PICK_FAILURE_DIAGNOSTIC_ONLY\",\"diagnostic\":\"UNAVAILABLE\",\"privateFiles\":\"NOT_READ\"}";
+        }
+        try {
+            android.os.Bundle status=new android.os.Bundle();
+            status.putString("stream","\nG5_IME_PICK_DIAGNOSTIC="+output+"\n");
+            instrumentation.sendStatus(2,status);
+        } catch(RuntimeException ignored) { /* Preserve the original failure, even if diagnostic delivery fails. */ }
     }
     private void pickGeneratedImage()throws Exception {
         Context context=instrumentation.getTargetContext();String name="recipio-ime-"+UUID.randomUUID()+".png";
@@ -200,18 +368,22 @@ public class AiImeBackInstrumentedTest {
             if(indexed)break;Thread.sleep(100);
         } while(android.os.SystemClock.elapsedRealtime()<indexedDeadline);
         assertTrue("Generated fixture must be published and indexed before opening SAF",indexed);
+        observePickerForFailureDiagnostics();
         click("添加截图");
         // OPEN_DOCUMENT starts at Recents or the previously visited directory. A Downloads
         // fixture is not necessarily listed there; navigate the real picker before selecting it.
         // The picker may already be at Downloads. Do not reopen its animated drawer
         // over a fixture that is already visible and tappable.
-        long pickerDeadline=android.os.SystemClock.elapsedRealtime()+15000;boolean selected=false;
-        do {
-            if(nativeClick(instrumentation.getUiAutomation().getRootInActiveWindow(),name)){selected=true;break;}
-            Thread.sleep(100);
-        } while(android.os.SystemClock.elapsedRealtime()<pickerDeadline);
-        if(!selected){awaitNativeClick("Show roots");awaitNativeClick("Downloads");awaitNativeClick(name);}
-        until("!!document.querySelector('img[alt=\"截图 1\"]')");
+        try {
+            long pickerDeadline=android.os.SystemClock.elapsedRealtime()+15000;boolean selected=false;
+            do {
+                if(selectGeneratedDocument(name)){selected=true;break;}
+                Thread.sleep(100);
+            } while(android.os.SystemClock.elapsedRealtime()<pickerDeadline);
+            if(!selected){awaitNativeClick("Show roots");awaitNativeClick("Downloads");awaitGeneratedDocument(name);}
+            until("!!document.querySelector('img[alt=\"截图 1\"]')");
+        }
+        catch(AssertionError failure) { reportPickerFailureDiagnostic(); throw failure; }
     }
     @Test public void selectedTempImages_surviveImeBack()throws Exception {
         pickGeneratedImage();String before=js("document.querySelector('img[alt=\"截图 1\"]').src");openIme();back();awaitIme(false);
@@ -219,15 +391,15 @@ public class AiImeBackInstrumentedTest {
         assertEquals(0,posts.get());assertEquals("0",js("window.__imeTestBackCount"));
     }
     private String titleInput(){return "[...document.querySelectorAll('label')].find(l=>l.querySelector('span')?.textContent==='菜名').querySelector('input')";}
-    private void preview()throws Exception {click("开始 AI 整理");until("document.body.innerText.includes('检查 AI 整理结果')");assertEquals(1,posts.get());}
+    private void preview()throws Exception {click("开始 AI 整理");until("document.body.innerText.includes('检查整理结果')");assertEquals(1,posts.get());}
     @Test public void previewEdits_surviveImeBack()throws Exception {
         preview();js("(()=>{const e="+titleInput()+";Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,'value').set.call(e,'APK4 IME EDITED 🍚');e.dispatchEvent(new Event('input',{bubbles:true}));return true})()");
         openIme(titleInput());back();awaitIme(false);assertEquals("APK4 IME EDITED 🍚",js("("+titleInput()+").value"));assertEquals("0",js("window.__imeTestBackCount"));assertEquals("false",js("!!document.querySelector('[role=dialog]')"));
     }
     @Test public void previewConfirmationGate_survivesImeBack()throws Exception {
         preview();until("!!document.querySelector('input[type=checkbox]')");assertEquals("false",js("document.querySelector('input[type=checkbox]').checked"));
-        openIme(titleInput());back();awaitIme(false);click("快速保存菜谱");until("document.activeElement?.getAttribute('aria-label')==='AI 整理审核'");
-        assertEquals("false",js("document.querySelector('input[type=checkbox]').checked"));assertEquals("true",js("document.body.innerText.includes('检查 AI 整理结果')"));
+        openIme(titleInput());back();awaitIme(false);assertEquals("true",js("Array.from(document.querySelectorAll('button')).find(b=>b.getAttribute('aria-label')==='快速保存菜谱').disabled"));js("document.querySelector('form').dispatchEvent(new Event('submit',{bubbles:true,cancelable:true}))");until("document.activeElement?.getAttribute('aria-label')==='AI 整理审核'");
+        assertEquals("false",js("document.querySelector('input[type=checkbox]').checked"));assertEquals("true",js("document.body.innerText.includes('检查整理结果')"));
         js("document.querySelector('input[type=checkbox]').click()");until("document.querySelector('input[type=checkbox]').checked===true");openIme(titleInput());back();awaitIme(false);assertEquals("true",js("document.querySelector('input[type=checkbox]').checked"));assertEquals("0",js("window.__imeTestBackCount"));
     }
     @Test public void repeatedBack_doesNotDoubleNavigate()throws Exception {
@@ -237,6 +409,6 @@ public class AiImeBackInstrumentedTest {
     @Test public void backDuringBusy_doesNotStartDuplicateAiRequest()throws Exception {
         holdHttp=true;click("开始 AI 整理");assertTrue(httpEntered.await(8,TimeUnit.SECONDS));back();back();until("!!document.querySelector('[role=dialog]')");
         assertEquals(1,posts.get());click("继续整理");assertEquals("true",js("document.body.innerText.includes('正在整理')"));
-        httpRelease.countDown();until("document.body.innerText.includes('检查 AI 整理结果')");assertEquals(1,posts.get());
+        httpRelease.countDown();until("document.body.innerText.includes('检查整理结果')");assertEquals(1,posts.get());
     }
 }

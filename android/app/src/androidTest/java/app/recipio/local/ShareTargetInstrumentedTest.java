@@ -46,7 +46,9 @@ public class ShareTargetInstrumentedTest {
     private void launch(Intent intent) throws Exception {
         scenario = ActivityScenario.launch(intent);
         scenario.onActivity(a -> { activity = a; web = a.getBridge().getWebView(); ime = new AndroidImeProbe(a); });
-        until("document.body.innerText.includes('自己的做法，随时翻开')");
+        // Cold share may route directly to Link/AI rather than Home. Destination
+        // and prefill assertions below remain the readiness/behavior gate.
+        until("!!document.querySelector('.recipio-ui-v2.v2-production')");
     }
     private String js(String expression) throws Exception {
         AtomicReference<String> value = new AtomicReference<>(); CountDownLatch done = new CountDownLatch(1);
@@ -69,7 +71,7 @@ public class ShareTargetInstrumentedTest {
     private String titleInput() { return "[...document.querySelectorAll('label')].find(l=>l.querySelector('span')?.textContent==='菜名').querySelector('input')"; }
     private void assertPrefill(String url) throws Exception {
         until("document.querySelector('input[type=url]')?.value===" + JSONObject.quote(url));
-        assertEquals("false", js("document.body.innerText.includes('正在安全读取网页')||document.body.innerText.includes('检查网页菜谱')||document.body.innerText.includes('检查 AI 整理结果')"));
+        assertEquals("false", js("document.body.innerText.includes('正在安全读取网页')||document.body.innerText.includes('检查网页菜谱')||document.body.innerText.includes('检查整理结果')"));
         assertEquals("true", js("[...document.querySelectorAll('button')].some(b=>b.textContent.trim()==='读取网页'&&b.disabled===" + (url.isEmpty() ? "true" : "false") + ")"));
     }
     @Before public void setup() throws Exception {
@@ -133,7 +135,7 @@ public class ShareTargetInstrumentedTest {
     @Test public void plainTextWithoutUrl_prefillsAi_withoutOrganizing() throws Exception {
         launch(share("APK5B GENERATED 这是普通文字，没有链接"));
         until("document.querySelector('textarea')?.value==='APK5B GENERATED 这是普通文字，没有链接'");
-        assertEquals("false",js("!!document.querySelector('input[type=url]')||document.body.innerText.includes('正在整理')||document.body.innerText.includes('检查 AI 整理结果')"));
+        assertEquals("false",js("!!document.querySelector('input[type=url]')||document.body.innerText.includes('正在整理')||document.body.innerText.includes('检查整理结果')"));
     }
     @Test public void destroyedBridgeQueuedConsume_cannotStealNextColdShare() throws Exception {
         // Capacitor quitSafely still runs queued plugin calls after onDestroy.

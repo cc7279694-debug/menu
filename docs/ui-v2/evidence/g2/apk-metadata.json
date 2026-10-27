@@ -1,0 +1,19 @@
+{
+  "artifact": "artifacts/recipio-ui-v2-g2-v21-debug.apk",
+  "bytes": 17249848,
+  "sha256": "c2c770e12e1af995c522da3d1e2b898ad1eca2a6fe3535ea3a065fe524d57090",
+  "packageId": "app.recipio.local",
+  "versionCode": 21,
+  "versionName": "0.10.0-ui-v2-g2-rc1",
+  "minSdk": 24,
+  "targetSdk": 36,
+  "certificateSha256": "29ded26bea44f1afe4fe383a302e4b507423d16223469d7da3fe578d9a7f83b9",
+  "signatureScheme": "v2",
+  "signatureMatchesAcceptedV19": true,
+  "productionSourceCommit": "ad4df5a49c5f5a4e39f11b537f93f0fc1aa92e43",
+  "all15EmbeddedPublicAssetsMatchFinalWebBuild": true,
+  "showcaseOrFixtureAssetsInApk": false,
+  "installation": "NOT_RUN",
+  "deviceImeBack": "NOT_RUN",
+  "physicalPhone": "UNTOUCHED"
+}

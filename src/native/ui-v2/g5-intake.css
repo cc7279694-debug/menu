@@ -1,0 +1,131 @@
+/* G5: presentation only. Reuse all three approved token palettes and gates. */
+.recipio-ui-v2 :is(.v2-ai-intake,.v2-link-intake,.v2-finder) {
+  gap: 18px;
+}
+.recipio-ui-v2 .v2-intake-lead {
+  max-width: 42em;
+  color: var(--v2-secondary);
+  font-size: .9375rem;
+  line-height: 1.7;
+}
+.recipio-ui-v2 .v2-intake-field {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+}
+.recipio-ui-v2 .v2-ai-intake textarea {
+  min-height: 10rem;
+}
+.recipio-ui-v2 .v2-intake-field [aria-invalid="true"] {
+  border-color: var(--v2-error);
+}
+.recipio-ui-v2 .v2-intake-field .v2-task-note {
+  font-variant-numeric: tabular-nums;
+}
+.recipio-ui-v2 .v2-intake-technical {
+  border-bottom: 1px solid var(--v2-border);
+  color: var(--v2-secondary);
+  font-size: .875rem;
+  line-height: 1.65;
+}
+.recipio-ui-v2 .v2-intake-technical > summary {
+  min-height: 48px;
+  padding-block: 12px;
+  color: var(--v2-action);
+  cursor: pointer;
+}
+.recipio-ui-v2 .v2-intake-technical > p {
+  padding-bottom: 14px;
+}
+.recipio-ui-v2 .v2-intake-image-grid:empty {
+  display: none;
+}
+.recipio-ui-v2 .v2-intake-submit > [data-slot="button"].bg-primary,
+.recipio-ui-v2 .v2-link-intake > .v2-task-actions > [data-slot="button"].bg-primary {
+  flex: 1 1 100%;
+  width: 100%;
+}
+.recipio-ui-v2 .v2-intake-alternatives {
+  display: grid;
+  gap: 10px;
+  padding-top: 18px;
+  border-top: 1px solid var(--v2-border);
+}
+.recipio-ui-v2 .v2-intake-alternatives > .v2-task-actions {
+  display: grid;
+  grid-template-columns: repeat(auto-fit,minmax(min(100%,8rem),1fr));
+  gap: 8px;
+}
+.recipio-ui-v2 .v2-intake-alternatives [data-slot="button"] {
+  padding-inline: 12px;
+  font-size: .9375rem;
+  background: transparent;
+}
+.recipio-ui-v2 .v2-source-context {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 6px 16px;
+  color: var(--v2-secondary);
+  font-size: .875rem;
+  line-height: 1.65;
+}
+.recipio-ui-v2 .v2-source-context > * {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.recipio-ui-v2 .v2-source-card .v2-source-time {
+  font-variant-numeric: tabular-nums;
+}
+.recipio-ui-v2 .v2-source-card .v2-source-preparation {
+  color: var(--v2-secondary);
+  font-size: .875rem;
+}
+.recipio-ui-v2 .v2-source-decision > [data-slot="button"],
+.recipio-ui-v2 .v2-link-intake .v2-source-card .v2-task-actions > [data-slot="button"] {
+  width: 100%;
+}
+.recipio-ui-v2 .v2-preview-notes {
+  padding-bottom: 4px;
+  gap: 10px;
+}
+.recipio-ui-v2 .v2-review-panel {
+  padding: 18px;
+  border: 1px solid var(--v2-border);
+  background: var(--v2-surface);
+}
+.recipio-ui-v2 .v2-review-header {
+  display: grid;
+  gap: 6px;
+}
+.recipio-ui-v2 .v2-review-header .v2-review-summary {
+  color: var(--v2-secondary);
+  font-size: .875rem;
+}
+.recipio-ui-v2 .v2-review-panel li:has(.v2-review-field-body) {
+  display: grid;
+  grid-template-columns: minmax(0,1fr) auto;
+  align-items: start;
+  gap: 12px;
+}
+.recipio-ui-v2 .v2-review-field-body {
+  min-width: 0;
+}
+.recipio-ui-v2 .v2-import-preview .v2-review-locate {
+  margin-top: 0;
+  padding: 8px;
+}
+.recipio-ui-v2 .v2-review-confirmation {
+  border: 1px solid var(--v2-border);
+}
+.recipio-ui-v2 .v2-parser-preview > .v2-production-form {
+  padding-inline: 0;
+}
+@media (max-width:359px) {
+  .recipio-ui-v2 .v2-review-panel { padding: 14px; }
+  .recipio-ui-v2 .v2-review-panel li:has(.v2-review-field-body) {
+    grid-template-columns: minmax(0,1fr);
+    gap: 4px;
+  }
+  .recipio-ui-v2 .v2-import-preview .v2-review-locate { justify-self: start; }
+}

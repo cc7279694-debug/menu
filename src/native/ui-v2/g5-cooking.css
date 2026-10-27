@@ -1,0 +1,230 @@
+/* G5 reading and kitchen refinements. Storage, record ownership and theme
+   definitions stay with their existing owners. */
+.recipio-ui-v2 .v2-production-detail.v2-g5-detail .v2-detail-body > header {
+  padding-bottom: 4px;
+}
+.recipio-ui-v2 .v2-production-detail.v2-g5-detail .v2-detail-title {
+  font-size: clamp(1.75rem, 6.8vw, 2.25rem);
+  line-height: 1.25;
+  letter-spacing: -.025em;
+  text-wrap: pretty;
+}
+.recipio-ui-v2 .v2-production-detail.v2-g5-detail .v2-meta {
+  margin-top: 16px;
+  gap: 10px 20px;
+}
+.recipio-ui-v2 .v2-production-detail.v2-g5-detail .v2-meta > div {
+  flex-basis: auto;
+  min-width: 0;
+  padding: 0;
+  border: 0;
+}
+.recipio-ui-v2 .v2-production-detail.v2-g5-detail .v2-meta-calories {
+  opacity: 1;
+  color: var(--v2-secondary);
+}
+.recipio-ui-v2 .v2-production-detail.v2-g5-detail .v2-content-section {
+  margin-top: 32px;
+}
+.recipio-ui-v2 .v2-production-detail.v2-g5-detail .v2-ingredients {
+  padding-top: 2px;
+}
+.recipio-ui-v2 .v2-production-detail.v2-g5-detail .v2-ingredients > div {
+  padding-block: 13px;
+  gap: 16px;
+}
+.recipio-ui-v2 .v2-production-detail.v2-g5-detail .v2-ingredients dt {
+  font-weight: 500;
+}
+.recipio-ui-v2 .v2-production-detail.v2-g5-detail .v2-preparation-list > li {
+  align-items: flex-start;
+  gap: 12px;
+}
+.recipio-ui-v2 .v2-production-detail.v2-g5-detail .v2-preparation-list > li > span {
+  margin-top: 3px;
+}
+.recipio-ui-v2 .v2-production-detail.v2-g5-detail .v2-callout > div {
+  display: grid;
+  gap: 10px;
+}
+.recipio-ui-v2 .v2-production-detail.v2-g5-detail .v2-step-list > li {
+  gap: 10px;
+  margin-bottom: 32px;
+}
+.recipio-ui-v2 .v2-production-detail.v2-g5-detail .v2-step-heading h3 {
+  font-size: .875rem;
+  font-weight: 500;
+  color: var(--v2-secondary);
+}
+.recipio-ui-v2 .v2-production-detail.v2-g5-detail .v2-reading-step > .v2-step-instruction {
+  font-size: 1.0625rem;
+  line-height: 1.85;
+}
+.recipio-ui-v2 .v2-production-detail.v2-g5-detail .v2-bottom-actions {
+  padding: 6px;
+  gap: 8px;
+}
+.recipio-ui-v2 .v2-production-detail.v2-g5-detail .v2-production-overview {
+  padding-top: 20px;
+  border-top: 1px solid var(--v2-border);
+}
+.recipio-ui-v2 .v2-production-detail.v2-g5-detail .v2-production-overview .v2-production-overview {
+  border: 0;
+  padding-top: 0;
+}
+
+.recipio-ui-v2.v2-production-cooking.v2-g5-cooking .v2-cook-scroll {
+  padding-top: 28px;
+}
+.recipio-ui-v2.v2-production-cooking.v2-g5-cooking .v2-cook-step-label {
+  font-size: .875rem;
+  margin-bottom: 16px;
+  letter-spacing: .03em;
+}
+.recipio-ui-v2.v2-production-cooking.v2-g5-cooking .v2-cook-instruction {
+  max-width: 30ch;
+  font-size: 1.375rem;
+  line-height: 1.8;
+}
+.recipio-ui-v2.v2-production-cooking.v2-g5-cooking .v2-cook-image-button {
+  margin-top: 28px;
+  margin-bottom: 24px;
+}
+.recipio-ui-v2.v2-production-cooking.v2-g5-cooking .v2-cook-image {
+  min-height: 0;
+  max-height: 52dvh;
+  border-radius: 20px;
+  object-fit: contain;
+}
+.recipio-ui-v2.v2-production-cooking.v2-g5-cooking .v2-cook-footer {
+  padding: 6px;
+  gap: 8px;
+}
+.recipio-ui-v2.v2-production-cooking.v2-g5-cooking .v2-cook-footer .v2-button--text {
+  color: var(--v2-cook-secondary);
+  font-weight: 400;
+}
+.recipio-ui-v2 .v2-cook-reference-section + .v2-cook-reference-section {
+  margin-top: 28px;
+  padding-top: 24px;
+  border-top: 1px solid var(--v2-border);
+}
+.recipio-ui-v2 .v2-cook-reference-section h3 {
+  margin-bottom: 12px;
+  font-size: 1.0625rem;
+  font-weight: 600;
+}
+.recipio-ui-v2 .v2-cook-reference-section .v2-preparation-list > li > span {
+  background: var(--v2-cook-tip);
+  color: var(--v2-cook-focus);
+}
+.recipio-ui-v2 .v2-cook-reference-tips {
+  display: grid;
+  gap: 14px;
+  padding-left: 20px;
+  overflow-wrap: anywhere;
+}
+.recipio-ui-v2 .v2-cook-reference-tips p { white-space: pre-wrap; }
+
+.recipio-ui-v2 .v2-g5-cooking-overview .v2-latest-cooking-title {
+  font-size: .875rem;
+  font-weight: 500;
+  color: var(--v2-secondary);
+  margin-top: 20px;
+}
+.recipio-ui-v2 .v2-record-content {
+  display: grid;
+  gap: 16px;
+  min-width: 0;
+}
+.recipio-ui-v2 .v2-record-copy {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+}
+.recipio-ui-v2 .v2-record-copy p { white-space: pre-wrap; overflow-wrap: anywhere; }
+.recipio-ui-v2 .v2-record-evaluation { font-weight: 500; color: var(--v2-action); }
+.recipio-ui-v2 .v2-record-note { line-height: 1.8; }
+.recipio-ui-v2 .v2-record-photo {
+  width: 100%;
+  max-height: 280px;
+  object-fit: contain;
+  border-radius: 16px;
+  background: var(--v2-muted);
+}
+.recipio-ui-v2 .v2-record-content--compact:has(.v2-record-photo) {
+  grid-template-columns: minmax(0,1fr) 88px;
+  align-items: start;
+}
+.recipio-ui-v2 .v2-record-content--compact .v2-record-photo { max-height: 100px; }
+.recipio-ui-v2 .v2-earlier-cooking > summary,
+.recipio-ui-v2 .v2-g5-change-history details > summary {
+  min-height: 48px;
+  padding-block: 12px;
+  cursor: pointer;
+  color: var(--v2-action);
+  font-size: .875rem;
+  line-height: 1.7;
+  overflow-wrap: anywhere;
+}
+.recipio-ui-v2 .v2-earlier-cooking > summary:active { color: var(--v2-action-pressed); }
+.recipio-ui-v2 .v2-g5-history .v2-history-header,
+.recipio-ui-v2 .v2-g5-change-history .v2-history-header {
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--v2-border);
+}
+.recipio-ui-v2 .v2-g5-history .v2-history-list,
+.recipio-ui-v2 .v2-g5-change-history .v2-history-list { margin-top: 8px; }
+.recipio-ui-v2 .v2-g5-change-history .v2-history-row > ul { line-height: 1.8; }
+.recipio-ui-v2 .v2-g5-change-history details img { object-fit: contain; }
+
+.recipio-ui-v2 .v2-completion.v2-g5-completion .v2-history-header {
+  padding-bottom: 24px;
+  border-bottom: 1px solid var(--v2-border);
+}
+.recipio-ui-v2 .v2-completion.v2-g5-completion .v2-page-title {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  font-size: 1.5rem;
+}
+.recipio-ui-v2 .v2-completion.v2-g5-completion .v2-page-title svg {
+  flex: 0 0 24px;
+  width: 24px;
+  height: 24px;
+  margin-top: 3px;
+  color: var(--v2-action);
+}
+.recipio-ui-v2 .v2-completion.v2-g5-completion .v2-form-media { margin-top: 24px; }
+.recipio-ui-v2 .v2-completion.v2-g5-completion .v2-completion-photo {
+  display: block;
+  width: 100%;
+  max-height: 240px;
+  object-fit: contain;
+  border-radius: 18px;
+}
+.recipio-ui-v2 .v2-completion.v2-g5-completion .v2-completion-extras {
+  display: grid;
+  gap: 24px;
+  margin-block: 28px;
+}
+.recipio-ui-v2 .v2-completion.v2-g5-completion .v2-completion-footer {
+  padding-top: 20px;
+  border-top: 1px solid var(--v2-border);
+}
+.recipio-ui-v2 .v2-completion.v2-g5-completion .v2-completion-footer > button:first-child {
+  flex: 1 1 180px;
+}
+
+@media (max-width:359px) {
+  .recipio-ui-v2 .v2-record-content--compact:has(.v2-record-photo) {
+    grid-template-columns: minmax(0,1fr);
+  }
+  .recipio-ui-v2 .v2-record-content--compact .v2-record-photo {
+    width: 88px;
+    max-width: 100%;
+  }
+  .recipio-ui-v2 .v2-production-detail.v2-g5-detail .v2-meta {
+    gap: 12px 16px;
+  }
+}

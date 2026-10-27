@@ -1,0 +1,82 @@
+/* Production G3 presentation only: existing services and three token palettes. */
+.recipio-ui-v2 :is(.v2-task,.v2-import-preview) {
+  --background: var(--v2-canvas); --foreground: var(--v2-text);
+  --muted: var(--v2-muted); --muted-foreground: var(--v2-secondary);
+  --primary: var(--v2-action); --primary-foreground: #fff;
+  --secondary: var(--v2-soft); --secondary-foreground: var(--v2-action);
+  --border: var(--v2-border); --input: var(--v2-control); --ring: var(--v2-focus);
+  color: var(--v2-text); min-width: 0; overflow-wrap: anywhere;
+  caret-color: var(--v2-action); accent-color: var(--v2-action);
+}
+.recipio-ui-v2 .v2-task {
+  width: 100%; max-width: 680px; margin-inline: auto;
+  padding: 24px 20px max(32px,env(safe-area-inset-bottom));
+  display: flex; flex-direction: column; gap: 20px;
+}
+.recipio-ui-v2 .v2-task-header { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; }
+.recipio-ui-v2 .v2-task-header > h2 { flex: 1 1 180px; }
+.recipio-ui-v2 :is(.v2-task h3,.v2-review-panel h3) { font-size: 1.25rem; line-height: 1.4; font-weight: 600; }
+.recipio-ui-v2 .v2-task :is(input,textarea) { width: 100%; min-width: 0; min-height: 52px; padding: 12px 16px; border: 1px solid var(--v2-control); border-radius: 18px; background: var(--v2-surface); color: var(--v2-text); font: inherit; line-height: 1.625; }
+.recipio-ui-v2 .v2-task textarea { min-height: 144px; resize: vertical; }
+.recipio-ui-v2 .v2-ai-intake textarea { min-height: 192px; }
+.recipio-ui-v2 .v2-task :is(label,.v2-field-label) { display: flex; flex-direction: column; gap: 8px; min-width: 0; font-size: 1rem; line-height: 1.625; }
+.recipio-ui-v2 .v2-task :is(input,textarea)::placeholder { color: var(--v2-caption); opacity: 1; }
+.recipio-ui-v2 :is(.v2-task,.v2-import-preview) ::selection { background: var(--v2-soft); color: var(--v2-text); }
+.recipio-ui-v2 .v2-task :is(input,textarea):focus-visible { outline: 2px solid var(--v2-focus); outline-offset: 2px; box-shadow: none; }
+.recipio-ui-v2 .v2-task :is(input,textarea):disabled { background: var(--v2-muted); color: var(--v2-secondary); opacity: 1; }
+.recipio-ui-v2 :is(.v2-task-note,.v2-source-host,.v2-preview-notes) { color: var(--v2-secondary); font-size: .875rem; line-height: 1.625; }
+.recipio-ui-v2 .v2-task-note > summary { min-height: 48px; padding-block: 12px; color: var(--v2-action); cursor: pointer; }
+.recipio-ui-v2 .v2-task-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; min-width: 0; }
+.recipio-ui-v2 .v2-task-actions > p { flex-basis: 100%; }
+.recipio-ui-v2 .v2-task [data-slot="button"] {
+  min-width: 48px; min-height: 48px; height: auto; max-width: 100%; padding: 12px 16px;
+  border-radius: 18px; border-color: var(--v2-control); background: var(--v2-surface);
+  color: var(--v2-text); font-size: 1rem; line-height: 1.5; white-space: normal;
+  overflow-wrap: anywhere; box-shadow: none;
+}
+.recipio-ui-v2 .v2-task [data-slot="button"].bg-primary { min-height: 52px; background: var(--v2-action); border-color: transparent; color: #fff; }
+.recipio-ui-v2 .v2-task [data-slot="button"]:active:not(:disabled) { background: var(--v2-muted); color: var(--v2-text); transform: none; }
+.recipio-ui-v2 .v2-task [data-slot="button"].bg-primary:active:not(:disabled) { background: var(--v2-action-pressed); color: #fff; }
+.recipio-ui-v2 .v2-task [data-slot="button"]:disabled { background: var(--v2-muted); color: var(--v2-caption); opacity: 1; }
+.recipio-ui-v2 .v2-task-status { padding: 16px; border-radius: 18px; background: var(--v2-muted); font-size: 1rem; line-height: 1.625; }
+.recipio-ui-v2 .v2-task-status[role="alert"] { color: var(--v2-error); background: var(--v2-error-surface); }
+.recipio-ui-v2 .v2-task-status > * + * { margin-top: 12px; }
+.recipio-ui-v2 .v2-task-results { display: flex; flex-direction: column; gap: 16px; padding-top: 8px; }
+.recipio-ui-v2 .v2-source-card { padding: 20px; border: 1px solid var(--v2-border); border-radius: 20px; background: var(--v2-surface); display: flex; flex-direction: column; gap: 12px; }
+.recipio-ui-v2 .v2-source-card h4 { font-size: 1.125rem; font-weight: 600; line-height: 1.45; }
+.recipio-ui-v2 .v2-source-card[aria-busy="true"] { border-color: var(--v2-action); }
+.recipio-ui-v2 .v2-source-card > ul { padding-inline-start: 20px; list-style: disc; }
+.recipio-ui-v2 .v2-source-card > ul li + li { margin-top: 6px; }
+.recipio-ui-v2 .v2-intake-images { display: flex; flex-direction: column; gap: 16px; }
+.recipio-ui-v2 .v2-intake-image-grid { list-style: none; padding: 0; display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 20px 16px; }
+.recipio-ui-v2 .v2-intake-image-grid > li { min-width: 0; display: flex; flex-direction: column; gap: 10px; }
+.recipio-ui-v2 .v2-intake-image-preview { width: 100%; aspect-ratio: 4/3; padding: 0; border: 1px solid var(--v2-border); border-radius: 14px; background: var(--v2-muted); overflow: hidden; cursor: zoom-in; }
+.recipio-ui-v2 .v2-intake-image-preview > :is(img,div) { width: 100%; height: 100%; object-fit: contain; }
+.recipio-ui-v2 .v2-image-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.recipio-ui-v2 .v2-image-actions [data-slot="button"] { flex: 1 1 48px; padding: 8px; font-size: .875rem; }
+.recipio-ui-v2 .v2-source-image-full { display: block; width: 100%; max-height: 65dvh; object-fit: contain; }
+.recipio-ui-v2 .v2-import-preview { width: 100%; max-width: 680px; margin-inline: auto; }
+.recipio-ui-v2 .v2-preview-notes { display: grid; gap: 8px; }
+.recipio-ui-v2 .v2-review-panel { display: flex; flex-direction: column; gap: 12px; padding: 20px; border-radius: 20px; background: var(--v2-surface); outline-offset: 3px; }
+.recipio-ui-v2 .v2-review-summary { line-height: 1.7; font-variant-numeric: tabular-nums; }
+.recipio-ui-v2 .v2-review-panel details { border-top: 1px solid var(--v2-border); }
+.recipio-ui-v2 .v2-review-panel summary { min-height: 48px; padding-block: 12px; cursor: pointer; }
+.recipio-ui-v2 .v2-review-panel summary .v2-state-badge { display: inline-flex; }
+.recipio-ui-v2 .v2-review-panel ul { list-style: none; padding: 0; }
+.recipio-ui-v2 .v2-review-panel li { padding-block: 10px; line-height: 1.625; font-size: .875rem; overflow-wrap: anywhere; }
+.recipio-ui-v2 .v2-review-panel li strong { font-weight: 600; }
+.recipio-ui-v2 .v2-review-panel li p { margin-top: 4px; color: var(--v2-secondary); }
+.recipio-ui-v2 .v2-import-preview .v2-review-locate { min-width: 48px; min-height: 48px; height: auto; margin-top: 4px; padding: 8px 0; color: var(--v2-action); font-size: .875rem; white-space: normal; }
+.recipio-ui-v2 .v2-import-preview :is(input,textarea,button):focus { outline: 2px solid var(--v2-focus); outline-offset: 2px; }
+.recipio-ui-v2 .v2-review-warnings { padding: 12px 16px; border-radius: 14px; background: var(--v2-warning-surface); color: var(--v2-warning); }
+.recipio-ui-v2 .v2-review-confirmation { padding: 16px; border-radius: 18px; background: var(--v2-soft); color: var(--v2-text); }
+.recipio-ui-v2 .v2-review-confirmation label { display: flex; align-items: flex-start; gap: 12px; min-height: 48px; cursor: pointer; line-height: 1.625; }
+.recipio-ui-v2 .v2-review-confirmation input { flex: 0 0 24px; width: 24px; height: 24px; margin-top: 2px; accent-color: var(--v2-action); }
+.recipio-ui-v2 .v2-review-confirmation p { margin-top: 8px; color: var(--v2-secondary); font-size: .875rem; }
+.recipio-ui-v2.v2-themed-dialog { --popover: var(--v2-surface); --popover-foreground: var(--v2-text); font-size: 1rem; line-height: 1.625; }
+.v2-themed-dialog [data-slot="dialog-title"] { font-size: 1.25rem; line-height: 1.4; }
+.v2-themed-dialog [data-slot="dialog-description"] { font-size: .875rem; line-height: 1.625; color: var(--v2-secondary); }
+.recipio-ui-v2 .v2-share-notice.v2-task { width: calc(100% - 40px); padding: 16px; margin: 16px auto; gap: 12px; border: 1px solid var(--v2-border); border-radius: 18px; background: var(--v2-surface); font-size: .875rem; }
+.v2-share-notice p { overflow-wrap: anywhere; }
+@media (max-width:359px) { .recipio-ui-v2 .v2-task { padding-inline: 16px; } .recipio-ui-v2 .v2-intake-image-grid { grid-template-columns: minmax(0,1fr); } .recipio-ui-v2 .v2-share-notice.v2-task { width: calc(100% - 32px); } }
+@media (min-width:600px) { .recipio-ui-v2 .v2-task { padding-inline: 24px; } }

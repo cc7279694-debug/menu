@@ -1,0 +1,487 @@
+{
+  "status": "PASS",
+  "source": "e5fbe1b75c97295b214dea9ed0f0ad202b2b6b60",
+  "baseline": "d3846b62b620f5a2a3bce0708473ce6b6bad3c06",
+  "browser": "151.0.7922.34",
+  "viewport": {
+    "width": 390,
+    "height": 844
+  },
+  "checks": [
+    {
+      "name": "before/warm-ivory/real-three-screens",
+      "scope": "PRODUCTION_NATIVE_APP_BROWSER",
+      "status": "PASS"
+    },
+    {
+      "name": "after/warm-ivory/real-three-screens",
+      "scope": "PRODUCTION_NATIVE_APP_BROWSER",
+      "status": "PASS"
+    },
+    {
+      "name": "after/pure-glass/real-three-screens",
+      "scope": "PRODUCTION_NATIVE_APP_BROWSER",
+      "status": "PASS"
+    },
+    {
+      "name": "after/soft-sage/real-three-screens",
+      "scope": "PRODUCTION_NATIVE_APP_BROWSER",
+      "status": "PASS"
+    },
+    {
+      "name": "Focus and Guided navigation preserve zero cooked records",
+      "scope": "PRODUCTION_NATIVE_APP_BROWSER",
+      "status": "PASS"
+    },
+    {
+      "name": "cancel edited title and cancelled file selection retain actual recipe",
+      "scope": "PRODUCTION_NATIVE_APP_BROWSER",
+      "status": "PASS"
+    },
+    {
+      "name": "search duration and return retain current inputs without network",
+      "scope": "PRODUCTION_NATIVE_APP_BROWSER",
+      "status": "PASS"
+    },
+    {
+      "name": "three themes persist from actual Settings without clearing a query",
+      "scope": "PRODUCTION_NATIVE_APP_BROWSER",
+      "status": "PASS"
+    },
+    {
+      "name": "320 390 412 widths and browser CSS200 percent keep home detail and cooking reachable",
+      "scope": "PRODUCTION_NATIVE_APP_BROWSER",
+      "status": "PASS"
+    },
+    {
+      "name": "solid glass fallback and reduced motion preserve readable controls",
+      "scope": "PRODUCTION_NATIVE_APP_BROWSER",
+      "status": "PASS"
+    },
+    {
+      "name": "only explicit completion creates one record and optional extras persist",
+      "scope": "PRODUCTION_NATIVE_APP_BROWSER",
+      "status": "PASS"
+    },
+    {
+      "name": "explicit recipe adjustment creates real change history",
+      "scope": "PRODUCTION_NATIVE_APP_BROWSER",
+      "status": "PASS"
+    },
+    {
+      "name": "loaded core opens local recipe images and Focus with browser offline",
+      "scope": "PRODUCTION_NATIVE_APP_BROWSER",
+      "status": "PASS"
+    },
+    {
+      "name": "AI input preview edit confirmation and explicit save",
+      "scope": "FAKE_PROVIDER_BROWSER",
+      "status": "PASS"
+    },
+    {
+      "name": "Finder waits for explicit search and exposes distinct source candidates",
+      "scope": "FAKE_PROVIDER_BROWSER",
+      "status": "PASS"
+    },
+    {
+      "name": "Link parser preview never automatically invokes AI",
+      "scope": "FAKE_PROVIDER_BROWSER",
+      "status": "PASS"
+    }
+  ],
+  "screenshots": [
+    {
+      "file": "screenshots/before/warm-ivory/home-390.png",
+      "scope": "PRODUCTION_NATIVE_APP_BROWSER",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      }
+    },
+    {
+      "file": "screenshots/before/warm-ivory/detail-390.png",
+      "scope": "PRODUCTION_NATIVE_APP_BROWSER",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      }
+    },
+    {
+      "file": "screenshots/before/warm-ivory/cooking-390.png",
+      "scope": "PRODUCTION_NATIVE_APP_BROWSER",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      }
+    },
+    {
+      "file": "screenshots/after/warm-ivory/home-390.png",
+      "scope": "PRODUCTION_NATIVE_APP_BROWSER",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      }
+    },
+    {
+      "file": "screenshots/after/warm-ivory/detail-390.png",
+      "scope": "PRODUCTION_NATIVE_APP_BROWSER",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      }
+    },
+    {
+      "file": "screenshots/after/warm-ivory/cooking-390.png",
+      "scope": "PRODUCTION_NATIVE_APP_BROWSER",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      }
+    },
+    {
+      "file": "screenshots/after/pure-glass/home-390.png",
+      "scope": "PRODUCTION_NATIVE_APP_BROWSER",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      }
+    },
+    {
+      "file": "screenshots/after/pure-glass/detail-390.png",
+      "scope": "PRODUCTION_NATIVE_APP_BROWSER",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      }
+    },
+    {
+      "file": "screenshots/after/pure-glass/cooking-390.png",
+      "scope": "PRODUCTION_NATIVE_APP_BROWSER",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      }
+    },
+    {
+      "file": "screenshots/after/soft-sage/home-390.png",
+      "scope": "PRODUCTION_NATIVE_APP_BROWSER",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      }
+    },
+    {
+      "file": "screenshots/after/soft-sage/detail-390.png",
+      "scope": "PRODUCTION_NATIVE_APP_BROWSER",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      }
+    },
+    {
+      "file": "screenshots/after/soft-sage/cooking-390.png",
+      "scope": "PRODUCTION_NATIVE_APP_BROWSER",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      }
+    },
+    {
+      "file": "screenshots/after/warm-ivory/editor-390.png",
+      "scope": "PRODUCTION_NATIVE_APP_BROWSER",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      }
+    },
+    {
+      "file": "screenshots/after/warm-ivory/detail-320-css200.png",
+      "scope": "PRODUCTION_NATIVE_APP_BROWSER",
+      "viewport": {
+        "width": 320,
+        "height": 844
+      }
+    },
+    {
+      "file": "screenshots/after/warm-ivory/cooking-solid-390.png",
+      "scope": "PRODUCTION_NATIVE_APP_BROWSER",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      }
+    },
+    {
+      "file": "screenshots/after/warm-ivory/completion-390.png",
+      "scope": "PRODUCTION_NATIVE_APP_BROWSER",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      }
+    },
+    {
+      "file": "screenshots/after/warm-ivory/latest-record-390.png",
+      "scope": "PRODUCTION_NATIVE_APP_BROWSER",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      }
+    },
+    {
+      "file": "screenshots/after/warm-ivory/history-390.png",
+      "scope": "PRODUCTION_NATIVE_APP_BROWSER",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      }
+    },
+    {
+      "file": "screenshots/after/warm-ivory/change-history-390.png",
+      "scope": "PRODUCTION_NATIVE_APP_BROWSER",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      }
+    },
+    {
+      "file": "screenshots/after/warm-ivory/ai-input-390.png",
+      "scope": "FAKE_PROVIDER_BROWSER",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      }
+    },
+    {
+      "file": "screenshots/after/warm-ivory/ai-preview-390.png",
+      "scope": "FAKE_PROVIDER_BROWSER",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      }
+    },
+    {
+      "file": "screenshots/after/warm-ivory/ai-confirmation-390.png",
+      "scope": "FAKE_PROVIDER_BROWSER",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      }
+    },
+    {
+      "file": "screenshots/after/warm-ivory/finder-input-390.png",
+      "scope": "FAKE_PROVIDER_BROWSER",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      }
+    },
+    {
+      "file": "screenshots/after/warm-ivory/finder-results-390.png",
+      "scope": "FAKE_PROVIDER_BROWSER",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      }
+    },
+    {
+      "file": "screenshots/after/warm-ivory/link-preview-390.png",
+      "scope": "FAKE_PROVIDER_BROWSER",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      }
+    }
+  ],
+  "geometry": [
+    {
+      "name": "home/320/16",
+      "width": 320,
+      "scrollWidth": 320,
+      "font": "16px",
+      "controls": 17,
+      "small": []
+    },
+    {
+      "name": "detail/320/16",
+      "width": 320,
+      "scrollWidth": 320,
+      "font": "16px",
+      "controls": 13,
+      "small": []
+    },
+    {
+      "name": "cooking/320/16",
+      "width": 320,
+      "scrollWidth": 320,
+      "font": "16px",
+      "controls": 5,
+      "small": []
+    },
+    {
+      "name": "home/320/32",
+      "width": 320,
+      "scrollWidth": 320,
+      "font": "32px",
+      "controls": 17,
+      "small": []
+    },
+    {
+      "name": "detail/320/32",
+      "width": 320,
+      "scrollWidth": 320,
+      "font": "32px",
+      "controls": 13,
+      "small": []
+    },
+    {
+      "name": "cooking/320/32",
+      "width": 320,
+      "scrollWidth": 320,
+      "font": "32px",
+      "controls": 5,
+      "small": []
+    },
+    {
+      "name": "home/390/16",
+      "width": 390,
+      "scrollWidth": 390,
+      "font": "16px",
+      "controls": 17,
+      "small": []
+    },
+    {
+      "name": "detail/390/16",
+      "width": 390,
+      "scrollWidth": 390,
+      "font": "16px",
+      "controls": 13,
+      "small": []
+    },
+    {
+      "name": "cooking/390/16",
+      "width": 390,
+      "scrollWidth": 390,
+      "font": "16px",
+      "controls": 5,
+      "small": []
+    },
+    {
+      "name": "home/390/32",
+      "width": 390,
+      "scrollWidth": 390,
+      "font": "32px",
+      "controls": 17,
+      "small": []
+    },
+    {
+      "name": "detail/390/32",
+      "width": 390,
+      "scrollWidth": 390,
+      "font": "32px",
+      "controls": 13,
+      "small": []
+    },
+    {
+      "name": "cooking/390/32",
+      "width": 390,
+      "scrollWidth": 390,
+      "font": "32px",
+      "controls": 5,
+      "small": []
+    },
+    {
+      "name": "home/412/16",
+      "width": 412,
+      "scrollWidth": 412,
+      "font": "16px",
+      "controls": 17,
+      "small": []
+    },
+    {
+      "name": "detail/412/16",
+      "width": 412,
+      "scrollWidth": 412,
+      "font": "16px",
+      "controls": 13,
+      "small": []
+    },
+    {
+      "name": "cooking/412/16",
+      "width": 412,
+      "scrollWidth": 412,
+      "font": "16px",
+      "controls": 5,
+      "small": []
+    },
+    {
+      "name": "home/412/32",
+      "width": 412,
+      "scrollWidth": 412,
+      "font": "32px",
+      "controls": 17,
+      "small": []
+    },
+    {
+      "name": "detail/412/32",
+      "width": 412,
+      "scrollWidth": 412,
+      "font": "32px",
+      "controls": 13,
+      "small": []
+    },
+    {
+      "name": "cooking/412/32",
+      "width": 412,
+      "scrollWidth": 412,
+      "font": "32px",
+      "controls": 5,
+      "small": []
+    },
+    {
+      "name": "cooking/solid/reduced",
+      "width": 390,
+      "scrollWidth": 390,
+      "font": "16px",
+      "controls": 5,
+      "small": []
+    },
+    {
+      "name": "finder/results",
+      "width": 390,
+      "scrollWidth": 390,
+      "font": "16px",
+      "controls": 8,
+      "small": []
+    }
+  ],
+  "pageErrors": [],
+  "consoleErrors": [],
+  "externalOrigins": [],
+  "observations": [],
+  "scopes": {
+    "production": "PRODUCTION_NATIVE_APP_BROWSER: real NativeApp/LibraryApp, PreviewRecipeLibrary and local media; generated records and previously approved non-private G1 image bytes",
+    "provider": "FAKE_PROVIDER_BROWSER: existing QA fixture injects fake external ports into real LibraryApp/services; no real Provider or credentials",
+    "offline": "Loaded browser core with network disabled; not an APK cold-start test",
+    "display": "CSS root32px emulates browser200%; solid data attribute tests the existing CSS contract, not an unsupported WebView; reduced-motion uses actual media emulation"
+  },
+  "notRun": [
+    "Android system IME/Back",
+    "Android OS font scaling",
+    "TalkBack",
+    "physical phone",
+    "device performance certification",
+    "real AI/Provider",
+    "signed upgrade",
+    "personal-data migration"
+  ],
+  "baselineRed": {
+    "status": "BASELINE_RED",
+    "source": "d3846b62b620f5a2a3bce0708473ce6b6bad3c06",
+    "test": "a failed library read never claims an empty collection or an empty search result",
+    "total": 7,
+    "failed": 5,
+    "passed": 2,
+    "scope": "Copied current tests against unchanged baseline UI; expected assertion failure, not current-product failure",
+    "report": "baseline-vitest-red.json"
+  },
+  "finishedAt": "2026-10-26T11:17:15.558Z"
+}

@@ -1,0 +1,32 @@
+RECIPIO UI V2 G3-0 — final source verification, 2026-10-24
+Base: 9e4bff3596d6efebadf93f6a4778b113efb3272e
+Branch: feat/recipio-ui-v2-glass-minimal
+
+Full JS/TS: 199 files / 1095 tests PASS, 0 failures/skips, 920.80s, exit0
+Targeted: 5 files / 48 PASS, 24.38s (subset, not additive)
+Typecheck: PASS
+Lint: 0 errors / 5 existing legacy Next img warnings
+Local build: PASS, existing >500kB chunk warning
+Production isolation: 302 modules /8shared V2 /0showcase /0fixtures PASS
+Compiled foundation: 8groups /18settings layouts PASS,0runtime errors,0external
+Compiled cooking: 16layouts PASS,0runtime errors,0external
+Rendered key/backup confirmation dialogs:9PASS at320/200%,fake ports,0operations
+Capacitor sync: PASS, no tracked Android source/config changes
+Gradle assembleDebug: PASS,1m29s /113tasks,21executed/92up-to-date
+APK signature/version/15packaged Web assets hash comparison: PASS
+
+Consumer RED before implementation:12FAIL/1PASS
+Finder border RED: transparent
+Missing-image surface RED: actual legacy warm RGB
+Confirmation portal RED:2FAIL (theme missing)
+Library page100→Settings→Home RED:1FAIL
+All corresponding final tests GREEN; stopped superseded full runs not counted.
+
+Android runtime/IME/Back/preserving upgrade/data/image/cold start:NOT_RUN
+Final memory gate:2026-10-24T07:39:39Z,3.408GiB free<4GiB,0running emulators
+JVM/native/connected tests:NOT_RUN this task, no historical total relabelled
+Physical phone:UNTOUCHED
+Real AI:0
+No pre-existing device data/images read/cleared/modified; no other project processes operated
+
+Final status:UI_V2_G3_FOUNDATION_PENDING_ANDROID

@@ -1,0 +1,108 @@
+
+> recipe-app-foundation-auth@0.1.0 test
+> vitest run --pool=threads --maxWorkers=1 --no-file-parallelism --reporter=dot
+
+(!) Your Vite config uses features that are unsupported by `configLoader: 'native'`, which is planned to become the default in a future major version of Vite:
+  - ESM syntax in a file loaded as CommonJS (vitest.config.ts:1:1). Use a `.mjs` extension or set `"type": "module"` in the closest package.json
+Set `VITE_CONFIG_NATIVE_IGNORE_WARNING=true` to suppress this warning.
+
+ RUN  v4.1.11 E:/CODEX/VIBE CODING/recipe-step-app-ui-v2
+
+stderr | src/native/ui-v2/theme-foundation.test.tsx > theme changes update the existing shell/navigation immediately and persist only an enum
+Another connection wants to delete database 'recipio-local-v2'. Closing db now to resume the delete request.
+
+stderr | src/native/ui-v2/theme-foundation.test.tsx > cold mount uses persisted pure-glass before first paint
+Another connection wants to delete database 'recipio-local-v2'. Closing db now to resume the delete request.
+
+stderr | src/native/ui-v2/theme-foundation.test.tsx > cold mount uses persisted soft-sage before first paint
+Another connection wants to delete database 'recipio-local-v2'. Closing db now to resume the delete request.
+
+stderr | src/native/ui-v2/theme-foundation.test.tsx > invalid preference bad-theme falls back safely
+Another connection wants to delete database 'recipio-local-v2'. Closing db now to resume the delete request.
+
+stderr | src/native/ui-v2/theme-foundation.test.tsx > invalid preference {"recipe":"not a preference"} falls back safely
+Another connection wants to delete database 'recipio-local-v2'. Closing db now to resume the delete request.
+
+stderr | src/native/ui-v2/theme-foundation.test.tsx > unavailable preference reads/writes do not block startup or in-memory switching
+Another connection wants to delete database 'recipio-local-v2'. Closing db now to resume the delete request.
+
+Not implemented: Window's scrollTo() method
+stderr | src/native/native-initialization.test.tsx > shows Android initialization failure rather than rendering a fallback empty library, and permits retry
+Another connection wants to delete database 'recipio-local-v2'. Closing db now to resume the delete request.
+
+stderr | src/features/recipe-imports/gemini-extractor.test.ts > Gemini recipe draft extractor > maps provider failures to stable user-facing errors
+[recipe-import] Gemini request failed {
+  status: 401,
+  model: 'gemini-3.7-flash',
+  providerCode: undefined,
+  providerMessage: undefined
+}
+
+stderr | src/features/recipe-imports/gemini-extractor.test.ts > Gemini recipe draft extractor > maps provider failures to stable user-facing errors
+[recipe-import] Gemini request failed {
+  status: 429,
+  model: 'gemini-3.7-flash',
+  providerCode: undefined,
+  providerMessage: undefined
+}
+
+stderr | src/features/recipe-imports/gemini-extractor.test.ts > Gemini recipe draft extractor > maps provider failures to stable user-facing errors
+[recipe-import] Gemini request failed {
+  status: 503,
+  model: 'gemini-3.7-flash',
+  providerCode: undefined,
+  providerMessage: undefined
+}
+
+stderr | src/features/recipe-imports/qianwen-extractor.test.ts > QianWen recipe draft extractor > maps provider failures to stable user-facing errors
+[recipe-import] QianWen request failed {
+  status: 401,
+  model: 'qwen3.7-flash',
+  providerCode: undefined,
+  providerMessage: undefined
+}
+
+stderr | src/features/recipe-imports/qianwen-extractor.test.ts > QianWen recipe draft extractor > maps provider failures to stable user-facing errors
+[recipe-import] QianWen request failed {
+  status: 429,
+  model: 'qwen3.7-flash',
+  providerCode: undefined,
+  providerMessage: undefined
+}
+
+stderr | src/features/recipe-imports/qianwen-extractor.test.ts > QianWen recipe draft extractor > maps provider failures to stable user-facing errors
+[recipe-import] QianWen request failed {
+  status: 503,
+  model: 'qwen3.7-flash',
+  providerCode: undefined,
+  providerMessage: undefined
+}
+
+stderr | src/features/recipe-imports/qianwen-extractor.test.ts > QianWen recipe draft extractor > identifies an unavailable model without exposing provider details
+[recipe-import] QianWen request failed {
+  status: 400,
+  model: 'qwen3.8-flash',
+  providerCode: 'ModelNotFound',
+  providerMessage: 'The model qwen3.8-flash does not exist or you do not have access to it'
+}
+
+stderr | src/features/recipe-imports/qianwen-extractor.test.ts > QianWen recipe draft extractor > rejects malformed or schema-invalid model output without exposing the response
+[recipe-import] QianWen output parse failed {
+  error: 'ZodError',
+  issues: [ { path: 'ingredients', code: 'too_small' } ]
+}
+
+stderr | src/features/shopping/queries.test.ts > shopping queries > returns stable Chinese messages for raw query failures
+[recipes] search RPC failed {
+  code: undefined,
+  message: 'search_recipe_summaries exploded',
+  details: undefined,
+  hint: undefined
+}
+
+stderr | src/features/cooking-history/queries.test.ts > cooking history queries > resolves only an owned menu entry for the requested recipe
+Promise returned by `expect(actual).resolves.toBeNull()` was not awaited. Vitest currently auto-awaits hanging assertions at the end of the test, but this will cause the test to fail in the next Vitest major. Please remember to await the assertion.
+    at E:/CODEX/VIBE CODING/recipe-step-app-ui-v2/src/features/cooking-history/queries.test.ts:34:66
+
+stderr | src/features/cooking-history/actions.test.ts > completeCookingRecordAction > returns a stable error when the RPC fails
+[cooking-history] save record failed { code: '23505', message: 'duplicate', hint: null }

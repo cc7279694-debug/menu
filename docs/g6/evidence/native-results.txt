@@ -1,0 +1,11 @@
+Source: d8f2e3afcaffce886d4a08caec7ce99a97a4531d
+Run: 40440306979 / attempt1
+Job: 121979936009
+Fresh owned Recipio_G6_Fixture / API36 / default app.recipio.local cloud-only identity.
+Actual instrumentation: OK (23 tests), Time72.227s, 0 skipped.
+11 storage/backup +8 old IME/Back +2 G5 +2 G6.
+G6: realNumericImeBack_preservesSheetStepAndLastValidWithoutWrites
+G6: realSqliteOriginalAndMediaSurviveAdjustmentCompletionAndActivityRestart
+Real numeric IME/system Back, SQLite recipe/related history snapshots, generated PNG SHA-256, zero adjustment writes/online calls; explicit double-complete gives one record; Activity relaunch resets target3.
+No existing installation, personal data, real AI, durable signing or upgrade.
+NOT_RUN: physical phone/OEM/TalkBack/OS font scaling/performance/process cold boot-flight mode/native image pixel presentation/personal migration.

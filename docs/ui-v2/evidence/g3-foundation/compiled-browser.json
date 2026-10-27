@@ -1,0 +1,161 @@
+{
+  "checks": [
+    "finder_complete_boundary_is_visible_before_theme_changes",
+    "warm-ivory_root_settings_nav_real_computed_styles",
+    "warm-ivory_settings_clearance_responsive_and_solid",
+    "pure-glass_root_settings_nav_real_computed_styles",
+    "pure-glass_settings_clearance_responsive_and_solid",
+    "soft-sage_root_settings_nav_real_computed_styles",
+    "soft-sage_settings_clearance_responsive_and_solid",
+    "finder_entry_stays_explicit_no_automatic_request"
+  ],
+  "geometry": [
+    {
+      "theme": "warm-ivory",
+      "width": 320,
+      "font": 16,
+      "scrollWidth": 320,
+      "end": 734.921875,
+      "navTop": 763
+    },
+    {
+      "theme": "warm-ivory",
+      "width": 320,
+      "font": 32,
+      "scrollWidth": 320,
+      "end": 716.71875,
+      "navTop": 745
+    },
+    {
+      "theme": "warm-ivory",
+      "width": 390,
+      "font": 16,
+      "scrollWidth": 390,
+      "end": 735.203125,
+      "navTop": 763
+    },
+    {
+      "theme": "warm-ivory",
+      "width": 390,
+      "font": 32,
+      "scrollWidth": 390,
+      "end": 716.5625,
+      "navTop": 745
+    },
+    {
+      "theme": "warm-ivory",
+      "width": 412,
+      "font": 16,
+      "scrollWidth": 412,
+      "end": 734.796875,
+      "navTop": 763
+    },
+    {
+      "theme": "warm-ivory",
+      "width": 412,
+      "font": 32,
+      "scrollWidth": 412,
+      "end": 716.5625,
+      "navTop": 745
+    },
+    {
+      "theme": "pure-glass",
+      "width": 320,
+      "font": 16,
+      "scrollWidth": 320,
+      "end": 734.921875,
+      "navTop": 763
+    },
+    {
+      "theme": "pure-glass",
+      "width": 320,
+      "font": 32,
+      "scrollWidth": 320,
+      "end": 716.71875,
+      "navTop": 745
+    },
+    {
+      "theme": "pure-glass",
+      "width": 390,
+      "font": 16,
+      "scrollWidth": 390,
+      "end": 735.203125,
+      "navTop": 763
+    },
+    {
+      "theme": "pure-glass",
+      "width": 390,
+      "font": 32,
+      "scrollWidth": 390,
+      "end": 716.5625,
+      "navTop": 745
+    },
+    {
+      "theme": "pure-glass",
+      "width": 412,
+      "font": 16,
+      "scrollWidth": 412,
+      "end": 734.796875,
+      "navTop": 763
+    },
+    {
+      "theme": "pure-glass",
+      "width": 412,
+      "font": 32,
+      "scrollWidth": 412,
+      "end": 716.5625,
+      "navTop": 745
+    },
+    {
+      "theme": "soft-sage",
+      "width": 320,
+      "font": 16,
+      "scrollWidth": 320,
+      "end": 734.921875,
+      "navTop": 763
+    },
+    {
+      "theme": "soft-sage",
+      "width": 320,
+      "font": 32,
+      "scrollWidth": 320,
+      "end": 716.71875,
+      "navTop": 745
+    },
+    {
+      "theme": "soft-sage",
+      "width": 390,
+      "font": 16,
+      "scrollWidth": 390,
+      "end": 735.203125,
+      "navTop": 763
+    },
+    {
+      "theme": "soft-sage",
+      "width": 390,
+      "font": 32,
+      "scrollWidth": 390,
+      "end": 716.5625,
+      "navTop": 745
+    },
+    {
+      "theme": "soft-sage",
+      "width": 412,
+      "font": 16,
+      "scrollWidth": 412,
+      "end": 734.796875,
+      "navTop": 763
+    },
+    {
+      "theme": "soft-sage",
+      "width": 412,
+      "font": 32,
+      "scrollWidth": 412,
+      "end": 716.5625,
+      "navTop": 745
+    }
+  ],
+  "errors": [],
+  "external": [],
+  "scope": "Fresh compiled browser context, not Android evidence"
+}

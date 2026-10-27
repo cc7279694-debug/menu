@@ -1,0 +1,31 @@
+Source: e5fbe1b75c97295b214dea9ed0f0ad202b2b6b60
+Cloud run: 40313302175
+Device: fresh owned Recipio_G5_Fixture / Android API36
+Scope: synthetic data; actual WebView, system Picker, IME and Back; Fake HTTP
+PASS: 21; FAIL: 0; SKIP: 0
+11 native backup/storage + 8 IME/Back + 2 G5 editor/cooking cases
+Activity restart only, not process cold boot or signed upgrade.
+Real AI: 0. Personal data/device operations: 0.
+
+Executed cases:
+actualDocumentStreamsRoundTripAndVerifyHash
+actualStagingSpaceFailureKeepsOldMedia
+backDuringBusy_doesNotStartDuplicateAiRequest
+constraintsAndCascadeAreRealNativeSqlite
+failedMigrationRollsBackSchemaVersionAndData
+intakeDraft_survivesImeBack
+keyboardClosed_secondBack_leavesIntake
+keyboardOpen_firstBack_onlyHidesIme
+manualDraft_realImeBackThenCanceledLeave_preservesInputs
+nativeReferenceAuditIncludesCurrentStepHistoryAndSharedCookingPhoto
+previewConfirmationGate_survivesImeBack
+previewEdits_surviveImeBack
+providerReadWriteAndCorruptionFailuresDoNotRemovePrivateBackup
+publishedCommitProtectsMediaDespiteStaleJournal
+realAndroidPrivateDirectoryCanReopenItsOwnOperation
+realLocalCooking_onlyExplicitCompletionRecordsOnce_andSurvivesActivityRestart
+realProviderDeletionFailureWarnsAndVerifiedDocumentIsRetained
+realSqliteIncrementalMigrationRetainsAllOldFieldsAndMetadata
+repeatedBack_doesNotDoubleNavigate
+selectedTempImages_surviveImeBack
+startupCleanupPreservesCookingOnlyGenerationDuringRecipeUndo

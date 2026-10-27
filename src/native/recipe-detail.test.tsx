@@ -21,7 +21,7 @@ const recipe = {
   ],
   keyTips: [{ instruction: "别煮干", stepNumber: 2 }],
 };
-it("keeps full steps as the main path and orders ingredients/time/preps/tips/steps", () => {
+it("keeps full steps as the main path and orders metadata/ingredients/preps/tips/steps", () => {
   const focus = vi.fn();
   render(
     <RecipeDetail
@@ -36,10 +36,10 @@ it("keeps full steps as the main path and orders ingredients/time/preps/tips/ste
   );
   expect(
     screen
-      .getAllByRole("heading", { level: 3 })
+      .getAllByRole("heading", { level: 2 })
       .map((h) => h.textContent)
-      .slice(0, 5),
-  ).toEqual(["食材", "总耗时", "提前准备", "做菜前先看", "完整步骤"]);
+  ).toEqual(["食材", "提前准备", "关键事项", "完整步骤"]);
+  expect(screen.getByText("30 分钟").compareDocumentPosition(screen.getByRole("heading", { name: "食材" })) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
   expect(screen.getByText("洗净")).toBeInTheDocument();
   expect(screen.getByText("焖煮")).toBeInTheDocument();
   expect(LocalImage).not.toHaveBeenCalled();
@@ -47,17 +47,22 @@ it("keeps full steps as the main path and orders ingredients/time/preps/tips/ste
   expect(focus.mock.calls[0][0]).toBe(1);
 });
 it("does not force name-only recipes into a guided flow", () => {
+  const edit = vi.fn(), guided = vi.fn();
   render(
     <RecipeDetail
       recipe={{ ...recipe, steps: [], keyTips: [] }}
-      onEdit={() => {}}
+      onEdit={edit}
       onBack={() => {}}
       onDelete={() => {}}
-      onGuided={() => {}}
+      onGuided={guided}
       onComplete={() => {}}
     />,
   );
-  expect(screen.getByRole("button", { name: "开始引导烹饪" })).toBeDisabled();
+  expect(screen.queryByRole("button", { name: "开始引导烹饪" })).not.toBeInTheDocument();
+  expect(screen.getByRole("button", { name: "补充做法" })).toBeEnabled();
+  fireEvent.click(screen.getByRole("button", { name: "补充做法" }));
+  expect(edit).toHaveBeenCalledOnce();
+  expect(guided).not.toHaveBeenCalled();
   expect(screen.getByRole("button", { name: "完成这道菜" })).toBeEnabled();
   expect(
     screen.queryByRole("button", { name: /放大步骤/ }),

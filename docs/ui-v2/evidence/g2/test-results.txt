@@ -1,0 +1,63 @@
+G2 final implementation evidence — 2026-10-23
+Production source commit ad4df5a49c5f5a4e39f11b537f93f0fc1aa92e43
+Later delivery edits: docs/evidence only.
+No production source changed after the fresh final checks.
+
+npm test -- --pool=threads --maxWorkers=1 --no-file-parallelism --reporter=verbose
+EXIT 0 / 198 files /1079 tests PASS /490.92 seconds
+Includes491 src/native TS/JS tests (not Android device execution).
+Includes16 new G2 cases. Subsets not added to1079.
+
+npm run typecheck
+EXIT 0
+npm run lint
+EXIT 0 /0 errors /5 unchanged legacy Next img warnings
+npm run build:local
+EXIT 0 / existing500kB chunk warning retained
+node scripts/verify-ui-v2-isolation.mjs
+EXIT 0 /300 production modules /6 sharedV2 /0 showcase /0 fixture assets
+npm run sync:android
+EXIT 0 / installed Capacitor SQLite8.1.1 and Filesystem8.1.4
+Generated linked-worktree paths restored to original portable paths; no diff.
+
+node scripts/verify-ui-v2.mjs --theme=<warm-ivory|pure-glass|soft-sage> --out=<G2 output>
+EXIT 0 each /41 browser checks each /123 total
+No persistence, external request or console/runtime error in G1 showcase checks.
+node scripts/verify-ui-v2-production.mjs --runtime=<installed runtime>
+EXIT 0 /11 grouped browser checks /0 errors /0 external requests
+Controlled IndexedDB/media; not native SQLite or Android IME evidence.
+
+Java21 / Gradle8.14.3 / AGP8.13.0 / installed API36
+gradlew -p android :app:testDebugUnitTest --rerun :app:lintDebug :app:assembleDebug
+  --no-daemon --max-workers=1 --console=plain
+  -Dorg.gradle.jvmargs=-Xmx1024m -XX:MaxMetaspaceSize=384m
+  -PapkVersionCode=21 -PapkVersionName=0.10.0-ui-v2-g2-rc1
+EXIT 0 / BUILD SUCCESSFUL /1m37s /51 tasks executed,162 up-to-date
+The app JVM test task explicitly reran; it was not an up-to-date historical result.
+JVM:22 test suites /188 tests /0 failures /0 errors
+Android lint:0 errors /38 warnings in unchanged Android/dependency/resource code.
+Not claiming a newly rerun baseline warning-count comparison.
+Warnings include dependency updates/Exif/ObsoleteSdkInt/StaticFieldLeak/
+UnusedResources/UsableSpace/launcher icon recommendations. No unrelated fixes.
+Build also reports pre-existing flatDir/SDK metadata/unchecked/SQLCipher strip notes.
+apksigner verify --verbose --print-certs: EXIT 0, v2 signature verified.
+aapt dump badging: EXIT 0, expected package/version/min/target.
+All15 packaged public assets SHA-256 match final dist-native bytes.
+No demo/food fixture assets found in APK.
+
+Android emulator install/UI/IME/Back/offline/upgrade: NOT_RUN, unsafe RAM headroom.
+Physical phone: NOT_RUN, no device commands/installation/data operations.
+Connected full G4 matrix: NOT_RUN, not required by approved G2 scope.
+Real AI calls:0. External browser requests:0.
+Main merge/tag/deploy: NOT_RUN / not authorized.
+
+Failure history preserved, not counted as final passing evidence:
+- Original list-scroll protection RED; original Detail/viewer3 RED.
+- Detail subroute3 RED; browser async-layout clamp and Sheet/Root Back RED.
+- Initial whole run stopped for2 obsolete Home-copy selectors; final whole
+  rerun passed all1079, not merely isolated replacements.
+- Browser harness adapted to original G3 discard confirmations and actual end scroll.
+- Intermediate v20 passed1079/JVM188/build, but two Home touch targets later
+  measured47px. Fixed to48px and repeated final complete validation for v21.
+
+Local source review is not ChatGPT independent review or user visual acceptance.

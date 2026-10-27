@@ -1,0 +1,62 @@
+// Local-only QA receipt; reads owned safety copies, never touches a device.
+import assert from "node:assert/strict";
+import { DatabaseSync } from "node:sqlite";
+import { createHash } from "node:crypto";
+import { existsSync, lstatSync, readFileSync, readdirSync, realpathSync, writeFileSync } from "node:fs";
+import { dirname, isAbsolute, join, relative, resolve, sep } from "node:path";
+import { fileURLToPath } from "node:url";
+
+const root = realpathSync(dirname(fileURLToPath(import.meta.url)));
+const [beforeArg, afterArg, receiptArg] = process.argv.slice(2);
+const within = path => { const rel = relative(root, path); assert(rel && !isAbsolute(rel) && rel !== ".." && !rel.startsWith(`..${sep}`), "QA path must remain within this run"); return path; };
+const before = within(realpathSync(beforeArg)), after = within(realpathSync(afterArg));
+const output = within(resolve(receiptArg));
+assert(!existsSync(output), "Never overwrite an evidence receipt");
+const tables = ["recipes", "recipe_ingredients", "recipe_steps", "recipe_preparations", "recipe_key_tips", "recipe_changes", "cooking_records", "backup_restore_state"];
+const sha = value => createHash("sha256").update(value).digest("hex");
+function read(directory) {
+  const database = new DatabaseSync(join(directory, "databases/recipioSQLite.db"), { readOnly: true });
+  try {
+    assert.equal(database.prepare("PRAGMA user_version").get().user_version, 4);
+    assert.equal(database.prepare("PRAGMA integrity_check").get().integrity_check, "ok");
+    assert.equal(database.prepare("PRAGMA foreign_key_check").all().length, 0);
+    return Object.fromEntries(tables.map(table => [table, database.prepare(`SELECT * FROM ${table} ORDER BY rowid`).all()]));
+  } finally { database.close(); }
+}
+function images(directory) {
+  const result = {};
+  function walk(base, prefix = "") {
+    if (!existsSync(base)) return;
+    for (const name of readdirSync(base).sort()) {
+      const path = join(base, name), stat = lstatSync(path);
+      assert(!stat.isSymbolicLink(), "No links in private image snapshots");
+      if (stat.isDirectory()) walk(path, `${prefix}${name}/`);
+      else { assert(stat.isFile()); result[`${prefix}${name}`] = sha(readFileSync(path)); }
+    }
+  }
+  walk(join(directory, "files/images")); return result;
+}
+let stage = "protected rows";
+try {
+  const oldRows = read(before), currentRows = read(after), report = {};
+  for (const table of tables) {
+    const serialized = oldRows[table].map(row => JSON.stringify(row));
+    const originals = new Set(serialized);
+    const retained = currentRows[table].map(row => JSON.stringify(row)).filter(row => originals.has(row));
+    assert(JSON.stringify(retained) === JSON.stringify(serialized), `Original rows/order changed: ${table}`);
+    report[table] = { protectedRows: serialized.length, retainedRows: retained.length, totalAfter: currentRows[table].length,
+      addedRows: currentRows[table].length - serialized.length, protectedRowsSha256: sha(JSON.stringify(serialized)) };
+  }
+  stage = "protected images";
+  const oldImages = images(before), currentImages = images(after);
+  for (const [path, checksum] of Object.entries(oldImages)) assert(currentImages[path] === checksum, "Original image missing or changed");
+  const receipt = { status: "PASS", at: new Date().toISOString(), schema: 4, integrity: "ok", foreignKeyErrors: 0,
+    tables: report, protectedImageCount: Object.keys(oldImages).length, totalImagesAfter: Object.keys(currentImages).length,
+    allOriginalRowsTimesOrderAndImagesRetained: true,
+    scope: "Read-only host comparison of actual owned-device private quiescent snapshots. New generated test rows allowed; no original row/image changed. No raw row/ID/media in this receipt." };
+  writeFileSync(output, JSON.stringify(receipt, null, 2) + "\n", { flag: "wx" });
+  console.log(JSON.stringify({ status: "PASS", receipt: output }));
+} catch {
+  writeFileSync(output, JSON.stringify({ status: "FAIL", stage, error: "Protected snapshot differs; inspect private local copies only. No data repaired or deleted." }, null, 2) + "\n", { flag: "wx" });
+  console.error(JSON.stringify({ status: "FAIL", stage, receipt: output })); process.exitCode = 1;
+}

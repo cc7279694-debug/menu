@@ -1,0 +1,537 @@
+{
+  "checks": [
+    "focus-320-100",
+    "focus-320-200",
+    "focus-390-100",
+    "focus-390-200",
+    "focus-412-100",
+    "focus-412-200",
+    "focus-768-100",
+    "focus-768-200",
+    "guided-320-100",
+    "guided-320-200",
+    "guided-390-100",
+    "guided-390-200",
+    "guided-412-100",
+    "guided-412-200",
+    "guided-768-100",
+    "guided-768-200"
+  ],
+  "errors": [],
+  "external": [],
+  "geometry": [
+    {
+      "mode": "focus",
+      "width": 320,
+      "font": 16,
+      "viewport": {
+        "width": 320,
+        "height": 844
+      },
+      "dialog": {
+        "x": 0,
+        "y": 0,
+        "width": 320,
+        "height": 844
+      },
+      "translate": "0px",
+      "body": {
+        "x": 0,
+        "y": 153.5,
+        "width": 320,
+        "height": 690.5,
+        "right": 320,
+        "bottom": 844
+      },
+      "footer": {
+        "x": 16,
+        "y": 762,
+        "width": 288,
+        "height": 70,
+        "right": 304,
+        "bottom": 832
+      }
+    },
+    {
+      "mode": "focus",
+      "width": 320,
+      "font": 32,
+      "viewport": {
+        "width": 320,
+        "height": 844
+      },
+      "dialog": {
+        "x": 0,
+        "y": 0,
+        "width": 320,
+        "height": 844
+      },
+      "translate": "0px",
+      "body": {
+        "x": 0,
+        "y": 225,
+        "width": 320,
+        "height": 619,
+        "right": 320,
+        "bottom": 844
+      },
+      "footer": {
+        "x": 16,
+        "y": 656,
+        "width": 288,
+        "height": 176,
+        "right": 304,
+        "bottom": 832
+      }
+    },
+    {
+      "mode": "focus",
+      "width": 390,
+      "font": 16,
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "dialog": {
+        "x": 0,
+        "y": 0,
+        "width": 390,
+        "height": 844
+      },
+      "translate": "0px",
+      "body": {
+        "x": 0,
+        "y": 133.5,
+        "width": 390,
+        "height": 710.5,
+        "right": 390,
+        "bottom": 844
+      },
+      "footer": {
+        "x": 16,
+        "y": 762,
+        "width": 358,
+        "height": 70,
+        "right": 374,
+        "bottom": 832
+      }
+    },
+    {
+      "mode": "focus",
+      "width": 390,
+      "font": 32,
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "dialog": {
+        "x": 0,
+        "y": 0,
+        "width": 390,
+        "height": 844
+      },
+      "translate": "0px",
+      "body": {
+        "x": 0,
+        "y": 205,
+        "width": 390,
+        "height": 639,
+        "right": 390,
+        "bottom": 844
+      },
+      "footer": {
+        "x": 16,
+        "y": 740,
+        "width": 358,
+        "height": 92,
+        "right": 374,
+        "bottom": 832
+      }
+    },
+    {
+      "mode": "focus",
+      "width": 412,
+      "font": 16,
+      "viewport": {
+        "width": 412,
+        "height": 844
+      },
+      "dialog": {
+        "x": 0,
+        "y": 0,
+        "width": 412,
+        "height": 844
+      },
+      "translate": "0px",
+      "body": {
+        "x": 0,
+        "y": 129.5,
+        "width": 412,
+        "height": 714.5,
+        "right": 412,
+        "bottom": 844
+      },
+      "footer": {
+        "x": 16,
+        "y": 762,
+        "width": 380,
+        "height": 70,
+        "right": 396,
+        "bottom": 832
+      }
+    },
+    {
+      "mode": "focus",
+      "width": 412,
+      "font": 32,
+      "viewport": {
+        "width": 412,
+        "height": 844
+      },
+      "dialog": {
+        "x": 0,
+        "y": 0,
+        "width": 412,
+        "height": 844
+      },
+      "translate": "0px",
+      "body": {
+        "x": 0,
+        "y": 205,
+        "width": 412,
+        "height": 639,
+        "right": 412,
+        "bottom": 844
+      },
+      "footer": {
+        "x": 16,
+        "y": 740,
+        "width": 380,
+        "height": 92,
+        "right": 396,
+        "bottom": 832
+      }
+    },
+    {
+      "mode": "focus",
+      "width": 768,
+      "font": 16,
+      "viewport": {
+        "width": 768,
+        "height": 844
+      },
+      "dialog": {
+        "x": 0,
+        "y": 0,
+        "width": 768,
+        "height": 844
+      },
+      "translate": "0px",
+      "body": {
+        "x": 44,
+        "y": 129.5,
+        "width": 680,
+        "height": 714.5,
+        "right": 724,
+        "bottom": 844
+      },
+      "footer": {
+        "x": 60,
+        "y": 762,
+        "width": 648,
+        "height": 70,
+        "right": 708,
+        "bottom": 832
+      }
+    },
+    {
+      "mode": "focus",
+      "width": 768,
+      "font": 32,
+      "viewport": {
+        "width": 768,
+        "height": 844
+      },
+      "dialog": {
+        "x": 0,
+        "y": 0,
+        "width": 768,
+        "height": 844
+      },
+      "translate": "0px",
+      "body": {
+        "x": 44,
+        "y": 153,
+        "width": 680,
+        "height": 691,
+        "right": 724,
+        "bottom": 844
+      },
+      "footer": {
+        "x": 60,
+        "y": 740,
+        "width": 648,
+        "height": 92,
+        "right": 708,
+        "bottom": 832
+      }
+    },
+    {
+      "mode": "guided",
+      "width": 320,
+      "font": 16,
+      "viewport": {
+        "width": 320,
+        "height": 844
+      },
+      "dialog": {
+        "x": 0,
+        "y": 0,
+        "width": 320,
+        "height": 844
+      },
+      "translate": "0px",
+      "body": {
+        "x": 0,
+        "y": 153.5,
+        "width": 320,
+        "height": 690.5,
+        "right": 320,
+        "bottom": 844
+      },
+      "footer": {
+        "x": 16,
+        "y": 762,
+        "width": 288,
+        "height": 70,
+        "right": 304,
+        "bottom": 832
+      }
+    },
+    {
+      "mode": "guided",
+      "width": 320,
+      "font": 32,
+      "viewport": {
+        "width": 320,
+        "height": 844
+      },
+      "dialog": {
+        "x": 0,
+        "y": 0,
+        "width": 320,
+        "height": 844
+      },
+      "translate": "0px",
+      "body": {
+        "x": 0,
+        "y": 225,
+        "width": 320,
+        "height": 619,
+        "right": 320,
+        "bottom": 844
+      },
+      "footer": {
+        "x": 16,
+        "y": 656,
+        "width": 288,
+        "height": 176,
+        "right": 304,
+        "bottom": 832
+      }
+    },
+    {
+      "mode": "guided",
+      "width": 390,
+      "font": 16,
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "dialog": {
+        "x": 0,
+        "y": 0,
+        "width": 390,
+        "height": 844
+      },
+      "translate": "0px",
+      "body": {
+        "x": 0,
+        "y": 133.5,
+        "width": 390,
+        "height": 710.5,
+        "right": 390,
+        "bottom": 844
+      },
+      "footer": {
+        "x": 16,
+        "y": 762,
+        "width": 358,
+        "height": 70,
+        "right": 374,
+        "bottom": 832
+      }
+    },
+    {
+      "mode": "guided",
+      "width": 390,
+      "font": 32,
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "dialog": {
+        "x": 0,
+        "y": 0,
+        "width": 390,
+        "height": 844
+      },
+      "translate": "0px",
+      "body": {
+        "x": 0,
+        "y": 205,
+        "width": 390,
+        "height": 639,
+        "right": 390,
+        "bottom": 844
+      },
+      "footer": {
+        "x": 16,
+        "y": 740,
+        "width": 358,
+        "height": 92,
+        "right": 374,
+        "bottom": 832
+      }
+    },
+    {
+      "mode": "guided",
+      "width": 412,
+      "font": 16,
+      "viewport": {
+        "width": 412,
+        "height": 844
+      },
+      "dialog": {
+        "x": 0,
+        "y": 0,
+        "width": 412,
+        "height": 844
+      },
+      "translate": "0px",
+      "body": {
+        "x": 0,
+        "y": 129.5,
+        "width": 412,
+        "height": 714.5,
+        "right": 412,
+        "bottom": 844
+      },
+      "footer": {
+        "x": 16,
+        "y": 762,
+        "width": 380,
+        "height": 70,
+        "right": 396,
+        "bottom": 832
+      }
+    },
+    {
+      "mode": "guided",
+      "width": 412,
+      "font": 32,
+      "viewport": {
+        "width": 412,
+        "height": 844
+      },
+      "dialog": {
+        "x": 0,
+        "y": 0,
+        "width": 412,
+        "height": 844
+      },
+      "translate": "0px",
+      "body": {
+        "x": 0,
+        "y": 205,
+        "width": 412,
+        "height": 639,
+        "right": 412,
+        "bottom": 844
+      },
+      "footer": {
+        "x": 16,
+        "y": 740,
+        "width": 380,
+        "height": 92,
+        "right": 396,
+        "bottom": 832
+      }
+    },
+    {
+      "mode": "guided",
+      "width": 768,
+      "font": 16,
+      "viewport": {
+        "width": 768,
+        "height": 844
+      },
+      "dialog": {
+        "x": 0,
+        "y": 0,
+        "width": 768,
+        "height": 844
+      },
+      "translate": "0px",
+      "body": {
+        "x": 44,
+        "y": 129.5,
+        "width": 680,
+        "height": 714.5,
+        "right": 724,
+        "bottom": 844
+      },
+      "footer": {
+        "x": 60,
+        "y": 762,
+        "width": 648,
+        "height": 70,
+        "right": 708,
+        "bottom": 832
+      }
+    },
+    {
+      "mode": "guided",
+      "width": 768,
+      "font": 32,
+      "viewport": {
+        "width": 768,
+        "height": 844
+      },
+      "dialog": {
+        "x": 0,
+        "y": 0,
+        "width": 768,
+        "height": 844
+      },
+      "translate": "0px",
+      "body": {
+        "x": 44,
+        "y": 153,
+        "width": 680,
+        "height": 691,
+        "right": 724,
+        "bottom": 844
+      },
+      "footer": {
+        "x": 60,
+        "y": 740,
+        "width": 648,
+        "height": 92,
+        "right": 708,
+        "bottom": 832
+      }
+    }
+  ],
+  "scope": "Actual minified production build in a fresh browser context; not Android evidence."
+}

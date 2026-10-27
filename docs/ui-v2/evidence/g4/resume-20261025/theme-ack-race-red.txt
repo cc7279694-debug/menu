@@ -1,0 +1,62 @@
+(!) Your Vite config uses features that are unsupported by `configLoader: 'native'`, which is planned to become the default in a future major version of Vite:
+  - ESM syntax in a file loaded as CommonJS (vitest.config.ts:1:1). Use a `.mjs` extension or set `"type": "module"` in the closest package.json
+Set `VITE_CONFIG_NATIVE_IGNORE_WARNING=true` to suppress this warning.
+
+ RUN  v4.1.11 E:/CODEX/VIBE CODING/recipe-step-app-ui-v2
+
+ ❯ src/native/ui-v2/theme-preference-storage.test.tsx (28 tests | 2 failed | 26 skipped) 105ms
+   × a latest write failure converges UI and cache to the preceding successful Native ACK 96ms
+   × a choice waits for the initial Native read and a failed write retains that actual saved baseline 7ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/native/ui-v2/theme-preference-storage.test.tsx > a latest write failure converges UI and cache to the preceding successful Native ACK
+AssertionError: expected 'warm-ivory' to be 'pure-glass' // Object.is equality
+
+Expected: "pure-glass"
+Received: "warm-ivory"
+
+ ❯ src/native/ui-v2/theme-preference-storage.test.tsx:142:73
+    140|   act(() => hook.result.current.changeTheme("soft-sage")); await act(a…
+    141|   await waitFor(() => expect(hook.result.current.warning).toBeTruthy()…
+    142|   expect(durable).toBe("pure-glass"); expect(hook.result.current.theme…
+       |                                                                         ^
+    143|   expect(localStorage.getItem(key)).toBe("pure-glass"); expect(hook.re…
+    144| });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯
+
+ FAIL  src/native/ui-v2/theme-preference-storage.test.tsx > a choice waits for the initial Native read and a failed write retains that actual saved baseline
+AssertionError: expected "vi.fn()" to not be called at all, but actually been called 1 times
+
+Received:
+
+  1st vi.fn() call:
+
+    Array [
+      Object {
+        "data": "soft-sage",
+        "directory": "DATA",
+        "encoding": "utf8",
+        "path": "recipio-ui-v2-theme-v1.txt",
+      },
+    ]
+
+
+Number of calls: 1
+
+ ❯ src/native/ui-v2/theme-preference-storage.test.tsx:150:59
+    148|   native.writeFile.mockRejectedValue(new Error("latest write failed"));
+    149|   const hook = renderHook(useV2ThemePreference); act(() => hook.result…
+    150|   await act(async () => {}); expect(native.writeFile).not.toHaveBeenCa…
+       |                                                           ^
+    151|   durable = "pure-glass"; await act(async () => { read.resolve({ data:…
+    152|   await waitFor(() => expect(hook.result.current.warning).toBeTruthy()…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  2 failed | 26 skipped (28)
+   Start at  12:18:22
+   Duration  3.38s (transform 333ms, setup 429ms, import 825ms, tests 105ms, environment 1.60s)

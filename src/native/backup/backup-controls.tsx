@@ -16,6 +16,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import type { BackupService, BackupState } from "./service";
+import { useV2DialogAppearance } from "../ui-v2/appearance";
 export type BackupController = Pick<
   BackupService,
   | "getState"
@@ -54,7 +55,8 @@ const labels = {
   validating: "正在校验备份格式、引用与文件哈希…",
   restoring: "正在创建安全副本并替换数据，请勿清除应用数据…",
 };
-export function BackupControls({ service }: { service?: BackupController }) {
+export function BackupControls({ service, appearance }: { service?: BackupController; appearance?: "v2" }) {
+  const dialogAppearance = useV2DialogAppearance(appearance);
   const state = useBackupState(service);
   const [confirm, setConfirm] = useState(false);
   const busy = backupBusy(state);
@@ -81,7 +83,7 @@ export function BackupControls({ service }: { service?: BackupController }) {
     <Card>
       <CardHeader>
         <CardTitle>
-          <h3>数据与备份</h3>
+          <h3 aria-hidden={appearance === "v2" || undefined}>数据与备份</h3>
         </CardTitle>
         <CardDescription>
           完整保留菜谱、烹饪记录、成品照片与修改历史中的旧图片。
@@ -186,7 +188,7 @@ export function BackupControls({ service }: { service?: BackupController }) {
               open={confirm && state.phase === "preview"}
               onOpenChange={setConfirm}
             >
-              <DialogContent showCloseButton={false}>
+              <DialogContent {...dialogAppearance} showCloseButton={false}>
                 <DialogTitle>确认替换当前数据？</DialogTitle>
                 <DialogDescription>
                   将用备份中的 {manifest?.counts.recipes ?? 0} 道菜谱替换当前{" "}

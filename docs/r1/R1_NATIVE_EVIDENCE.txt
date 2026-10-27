@@ -1,0 +1,24 @@
+R1 native runtime evidence - SYNTHETIC CLOUD EMULATOR ONLY
+Source: d830733ab1a0dc4d88ea6c06bc325524fcc88a1b
+Run: https://github.com/cc7279694-debug/menu/actions/runs/40288815966
+Job: 121461902483
+Device: Recipio_R1_Fixture / emulator-5554 / API36
+App: app.recipio.local.cloudpreview
+Test app: app.recipio.local.cloudpreview.test
+Classes: LocalBackupPluginTest, LocalCookingStorageTest
+Actual status: PASS 11
+Actual instrumentation: OK (11 tests), 4.329 seconds
+NOT proof of permanent-signature .next upgrade, real SAF UI or a physical phone.
+
+Executed cases:
+actualStagingSpaceFailureKeepsOldMedia
+publishedCommitProtectsMediaDespiteStaleJournal
+realAndroidPrivateDirectoryCanReopenItsOwnOperation
+providerReadWriteAndCorruptionFailuresDoNotRemovePrivateBackup
+realProviderDeletionFailureWarnsAndVerifiedDocumentIsRetained
+actualDocumentStreamsRoundTripAndVerifyHash
+realSqliteIncrementalMigrationRetainsAllOldFieldsAndMetadata
+startupCleanupPreservesCookingOnlyGenerationDuringRecipeUndo
+nativeReferenceAuditIncludesCurrentStepHistoryAndSharedCookingPhoto
+constraintsAndCascadeAreRealNativeSqlite
+failedMigrationRollsBackSchemaVersionAndData

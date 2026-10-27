@@ -98,7 +98,7 @@ public class ShareIntakeInstrumentedTest {
         nativeFakes();
         // Cold Share may route before the observer sees the transient home header.
         // Wait for its stable destination; ordinary launches still require home.
-        until(expectsAiInput?"document.body.innerText.includes('AI 整理菜谱')&&!!document.querySelector('textarea')":"!!document.querySelector('button[aria-label=\"新增菜谱\"]')");
+        until(expectsAiInput?"document.body.innerText.includes('整理菜谱')&&!!document.querySelector('textarea')":"!!document.querySelector('button[aria-label=\"新增菜谱\"]')");
         dataBefore = databaseSnapshot();
     }
     private String fakeDraft() throws Exception {
@@ -158,7 +158,7 @@ public class ShareIntakeInstrumentedTest {
     private void noAutomaticWork() throws Exception {
         assertEquals("Receiving a share must not POST", 0, posts.get()); assertEquals("Receiving a share must not read a page", 0, reads.get());
         assertEquals("Receiving a share must not write business data", dataBefore, databaseSnapshot());
-        assertEquals("false", js("document.body.innerText.includes('检查 AI 整理结果')||document.body.innerText.includes('检查网页菜谱')"));
+        assertEquals("false", js("document.body.innerText.includes('检查整理结果')||document.body.innerText.includes('检查网页菜谱')"));
     }
     private void aiInput(String value, int count) throws Exception {
         until("document.querySelector('textarea')?.value===" + JSONObject.quote(value) + "&&document.querySelectorAll('img[alt^=\"截图 \"]').length===" + count);
@@ -179,7 +179,7 @@ public class ShareIntakeInstrumentedTest {
         while (file.exists() && android.os.SystemClock.elapsedRealtime() < deadline) Thread.sleep(50);
         assertFalse("Owned temporary file is released", file.exists());
     }
-    private void discardAi() throws Exception { click("返回"); click("放弃本轮整理"); until("!document.body.innerText.includes('AI 整理菜谱')"); }
+    private void discardAi() throws Exception { click("返回"); click("放弃本轮整理"); until("!document.body.innerText.includes('整理菜谱')"); }
     @Before public void setup() throws Exception {
         assertTrue("Dedicated emulator only", android.os.Build.HARDWARE.equals("ranchu") || android.os.Build.HARDWARE.equals("goldfish"));
         ShareTargetInbox.PROCESS.consume();
@@ -255,7 +255,7 @@ public class ShareIntakeInstrumentedTest {
         holdAi = true; click("开始 AI 整理"); assertTrue(aiEntered.await(8, TimeUnit.SECONDS)); send(text("APK5C GENERATED 在途分享")); pending();
         assertEquals(TEXT, js("document.querySelector('textarea').value")); assertEquals(1, posts.get());
         assertEquals("true", js("document.body.innerText.includes('正在整理')")); click("忽略这次分享"); aiRelease.countDown();
-        until("document.body.innerText.includes('检查 AI 整理结果')"); input(titleInput(), "APK5C GENERATED 用户修改");
+        until("document.body.innerText.includes('检查整理结果')"); input(titleInput(), "APK5C GENERATED 用户修改");
         send(images(null, fixture("jpeg"))); pending(); assertEquals("APK5C GENERATED 用户修改", js("(" + titleInput() + ").value"));
         click("忽略这次分享"); click("快速保存菜谱"); until("document.activeElement?.getAttribute('aria-label')==='AI 整理审核'");
         assertEquals("false", js("document.querySelector('input[type=checkbox]').checked")); assertEquals(dataBefore, databaseSnapshot()); assertEquals(1, posts.get()); assertEquals(0, reads.get());

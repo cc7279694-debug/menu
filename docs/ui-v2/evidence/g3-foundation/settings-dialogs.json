@@ -1,0 +1,15 @@
+{
+  "checks": [
+    "warm-ivory / 删除 AI 密钥",
+    "warm-ivory / 验证模型访问",
+    "warm-ivory / 恢复并替换当前数据",
+    "pure-glass / 删除 AI 密钥",
+    "pure-glass / 验证模型访问",
+    "pure-glass / 恢复并替换当前数据",
+    "soft-sage / 删除 AI 密钥",
+    "soft-sage / 验证模型访问",
+    "soft-sage / 恢复并替换当前数据"
+  ],
+  "errors": [],
+  "scope": "Real UI components/portals with fake non-network key and backup ports; not Native verification."
+}

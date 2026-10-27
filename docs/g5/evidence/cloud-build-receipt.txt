@@ -1,0 +1,4 @@
+package: name='app.recipio.local' versionCode='25' versionName='0.10.0-g5-qa' platformBuildVersionName='16' platformBuildVersionCode='36' compileSdkVersion='36' compileSdkVersionCodename='16'
+EPHEMERAL CLOUD TEST FIXTURE ONLY. NEVER INSTALL OVER USER APP.
+a1813a7e0d22f2689e4198053c9cb2a03ea20e415f960751500f381a873b3a15  app-fixture.apk
+ec116cc5c9abbe4c3aee5e9dcf9059a651bd0dee7d7c3a7fd13243dd38620886  test-fixture.apk

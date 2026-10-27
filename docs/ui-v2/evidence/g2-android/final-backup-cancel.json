@@ -1,0 +1,41 @@
+{
+  "status": "PASS",
+  "utc": "2026-10-24T04:53:06.189Z",
+  "before": {
+    "rowHash": "72d33ab479a2c6fef988b5ad42ae10378f30a581f38fb334cf1432cfa573d330",
+    "imageHash": "46d1996d1913e47d530cafbbbfc939a582bfec4ff44707d0a0e1ebc3d3149218",
+    "counts": {
+      "recipes": 28,
+      "recipe_ingredients": 4,
+      "recipe_steps": 6,
+      "recipe_preparations": 0,
+      "recipe_key_tips": 0,
+      "recipe_changes": 2,
+      "cooking_records": 2,
+      "backup_restore_state": 0
+    },
+    "imageCount": 3
+  },
+  "after": {
+    "rowHash": "72d33ab479a2c6fef988b5ad42ae10378f30a581f38fb334cf1432cfa573d330",
+    "imageHash": "46d1996d1913e47d530cafbbbfc939a582bfec4ff44707d0a0e1ebc3d3149218",
+    "counts": {
+      "recipes": 28,
+      "recipe_ingredients": 4,
+      "recipe_steps": 6,
+      "recipe_preparations": 0,
+      "recipe_key_tips": 0,
+      "recipe_changes": 2,
+      "cooking_records": 2,
+      "backup_restore_state": 0
+    },
+    "imageCount": 3
+  },
+  "calls": {
+    "choose": 1,
+    "write": 0,
+    "online": 0
+  },
+  "realAiCalls": 0,
+  "scope": "Actual Native SAF open/cancel, full eight-table/all retained-image fingerprint comparison"
+}

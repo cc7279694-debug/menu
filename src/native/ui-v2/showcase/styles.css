@@ -1,0 +1,32 @@
+@import "../layout.css";
+
+/* This stylesheet is imported exclusively by the DEV-only showcase entry. */
+.recipio-ui-v2.v2-app { --v2-controls-height: 0px; height: 100dvh; max-width: 960px; margin: 0 auto; display: grid; grid-template-columns: minmax(0,1fr); grid-template-rows: auto minmax(0,1fr); position: relative; background: var(--v2-canvas); }
+.recipio-ui-v2 .v2-demo-bar { grid-area: 1/1; display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 0 20px; color: var(--v2-caption); font-size: .75rem; border-bottom: 1px solid var(--v2-border); }
+.recipio-ui-v2 .v2-demo-bar button { min-height: 48px; border: 0; padding: 8px 0 8px 12px; background: transparent; color: var(--v2-action); font-size: .75rem; cursor: pointer; flex-shrink: 0; }
+.recipio-ui-v2 .v2-viewport { grid-area: 2/1; display: flex; flex-direction: column; min-height: 0; isolation: isolate; }
+.recipio-ui-v2 .v2-page-region { flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin; }
+/* Every V2 modal, including cooking/component portals, suspends background large blur. */
+body:has(.v2-portal .v2-sheet) .v2-app :is(.v2-glass,.v2-detail-navigation .v2-button) { backdrop-filter: none; -webkit-backdrop-filter: none; background: var(--v2-surface); }
+.recipio-ui-v2 .v2-settings-note { display: flex; flex-direction: column; gap: 16px; padding-top: 16px; }
+.recipio-ui-v2 .v2-settings-note h2 { font-size: 1.25rem; font-weight: 600; }
+.recipio-ui-v2 .v2-settings-note p { color: var(--v2-secondary); }
+.recipio-ui-v2 .v2-review-controls { display: flex; flex-direction: column; gap: 20px; }
+.recipio-ui-v2 .v2-review-controls > label { display: flex; flex-direction: column; gap: 8px; }
+.recipio-ui-v2 .v2-review-controls select { width: 100%; min-height: 52px; padding: 12px; border: 1px solid var(--v2-control); border-radius: 18px; background: var(--v2-surface); font-size: 1rem; }
+.recipio-ui-v2 .v2-review-controls > .v2-toggle-label { flex-direction: row; align-items: center; min-height: 48px; }
+.recipio-ui-v2 .v2-toggle-label input { width: 24px; height: 24px; flex-shrink: 0; accent-color: var(--v2-action); }
+.recipio-ui-v2 .v2-theme-picker { min-width: 0; margin: 0; padding: 0; border: 0; }
+.recipio-ui-v2 .v2-theme-picker legend { padding: 0; margin-bottom: 12px; font-weight: 600; }
+.recipio-ui-v2 .v2-theme-options { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 8px; }
+.recipio-ui-v2 .v2-theme-option { position: relative; display: flex; flex-direction: column; gap: 8px; padding: 12px 8px; min-height: 72px; border: 1px solid var(--v2-control); border-radius: 16px; font-size: .75rem; line-height: 1.5; overflow-wrap: anywhere; cursor: pointer; }
+.recipio-ui-v2 .v2-theme-option:has(:checked) { border-color: var(--v2-action); background: var(--v2-soft); box-shadow: inset 0 0 0 1px var(--v2-action); }
+.recipio-ui-v2 .v2-theme-option:focus-within { outline: 2px solid var(--v2-focus); outline-offset: 2px; }
+.recipio-ui-v2 .v2-theme-option input { accent-color: var(--v2-action); width: 18px; height: 18px; margin: 0; }
+.recipio-ui-v2 .v2-theme-swatch { display: grid; grid-template-columns: 1fr 1fr 1fr; height: 24px; overflow: hidden; border: 1px solid var(--v2-border); border-radius: 8px; }
+.recipio-ui-v2 .v2-theme-swatch i:nth-child(1) { background: var(--v2-canvas); }
+.recipio-ui-v2 .v2-theme-swatch i:nth-child(2) { background: var(--v2-surface); }
+.recipio-ui-v2 .v2-theme-swatch i:nth-child(3) { background: var(--v2-action); }
+.recipio-ui-v2[data-cooking="true"] { background: var(--v2-cook); --v2-focus: var(--v2-cook-focus); }
+.recipio-ui-v2[data-cooking="true"] > .v2-demo-bar { color: var(--v2-cook-secondary); border-color: var(--v2-cook-border); }
+.recipio-ui-v2[data-cooking="true"] > .v2-demo-bar button { color: var(--v2-cook-focus); }

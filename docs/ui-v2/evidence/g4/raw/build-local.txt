@@ -1,0 +1,6 @@
+
+> recipe-app-foundation-auth@0.1.0 build:local
+> vite build --config vite.native.config.mts
+
+vite v8.3.2 building client environment for production...
+transforming...

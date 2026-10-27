@@ -1,0 +1,128 @@
+{
+  "baseRevision": "3b120bee4581a0d08be217605b577d5c0fa1f57e",
+  "dirtyAtRun": true,
+  "fingerprint": "531adc7b01d9d96df016072ea6a27db4e652cc26d9b326132429aa70546d3a11",
+  "algorithm": "sha256 of sorted JSON path/raw-file-sha256 entries",
+  "entries": [
+    {
+      "path": "scripts/ui-v2-evidence-source.mjs",
+      "sha256": "d33d8fa5febfe35eb8b026ecb95a21dc4b4815764c1e684a171258c98337b37f"
+    },
+    {
+      "path": "scripts/verify-ui-v2-polish.mjs",
+      "sha256": "60024f01677214db5cefdff4e61f99daafa14323ca4ef0235faa42d33a9ef6a8"
+    },
+    {
+      "path": "scripts/verify-ui-v2-themes.mjs",
+      "sha256": "a728abe0acd2f0038734a46ce93a26e1d785220837e54a07c8981e039413a636"
+    },
+    {
+      "path": "scripts/verify-ui-v2.mjs",
+      "sha256": "18b007d92746b54c39acda7ca68ea34a93d47c4781f58fd14755da6cf5c4e534"
+    },
+    {
+      "path": "src/native/ui-v2/appearance.tsx",
+      "sha256": "261f53b00c04e4fbeae4ed0584d89be4e99c344c278ffd2366a57a8c17e174c2"
+    },
+    {
+      "path": "src/native/ui-v2/components.tsx",
+      "sha256": "cdd42458788bf1807e3240503ce39406ee431c93d68c76999c138394ead45c5f"
+    },
+    {
+      "path": "src/native/ui-v2/showcase/assets/README.md",
+      "sha256": "39f044c6ac02248771f994fdc0a24fef7998cef07a76081d7fbebf485f1a6ef7"
+    },
+    {
+      "path": "src/native/ui-v2/showcase/assets/broccoli.webp",
+      "sha256": "06d309df8b32df41c41c3c087b8bc555d0cabed63a5f8f080c7c1ce612e4648e"
+    },
+    {
+      "path": "src/native/ui-v2/showcase/assets/cola-step.webp",
+      "sha256": "526e5f9a7240b86417463f0c547ae62bc9a84e72e5035d183867a6a301a5a951"
+    },
+    {
+      "path": "src/native/ui-v2/showcase/assets/cola-wings.webp",
+      "sha256": "8288a5a41a3de3ae718ec403c3f028ab9150943b271ccbe742c7cfc72e10645d"
+    },
+    {
+      "path": "src/native/ui-v2/showcase/assets/tomato-egg-soup.webp",
+      "sha256": "430dca452a8942167a075395d44acc9c41af5f275f8fc1f6f60af0cc959a44a2"
+    },
+    {
+      "path": "src/native/ui-v2/showcase/components-page.css",
+      "sha256": "3f5957538e65bd192a3795ac5d76778c6b310bf675b14974f0e91933f71f52db"
+    },
+    {
+      "path": "src/native/ui-v2/showcase/components-page.tsx",
+      "sha256": "e85cbbfb24985156358be632198589784c7d174977d179f427545cb5aa0ca1ad"
+    },
+    {
+      "path": "src/native/ui-v2/showcase/cooking.tsx",
+      "sha256": "c969062027c88f694809b3cf82532e9d019ff7e2f7df0cf499ffe670e2fca88c"
+    },
+    {
+      "path": "src/native/ui-v2/showcase/demo-data.ts",
+      "sha256": "822c4d06deea9b5ac1205c703ccf107587d8e029ea9fac49a1c2c5dd552042d1"
+    },
+    {
+      "path": "src/native/ui-v2/showcase/detail.tsx",
+      "sha256": "12759222b6151f41d749c3a255f99a06295567ff1322a1446b1403111e818fcb"
+    },
+    {
+      "path": "src/native/ui-v2/showcase/final-polish.test.tsx",
+      "sha256": "b0e43e0b983e74f8d193c714100e41c54c1ae1cca19fd4754b9b02cbd4bf9ba5"
+    },
+    {
+      "path": "src/native/ui-v2/showcase/home.tsx",
+      "sha256": "8e890c96c294ae80cabb732cd4572c96a04526f763a4cc7deb75df09b4ecaa6c"
+    },
+    {
+      "path": "src/native/ui-v2/showcase/main.tsx",
+      "sha256": "04c60b0f8a6a129d473d1d77f60bc0e8f68bc2f7bee3df5f246be67bb31355bd"
+    },
+    {
+      "path": "src/native/ui-v2/showcase/material-sample.tsx",
+      "sha256": "358592c9e42fc30aabdaa8b2fc8d00c30a533bba3cbca5b20211a6c764d03c63"
+    },
+    {
+      "path": "src/native/ui-v2/showcase/showcase.test.tsx",
+      "sha256": "d1c23e88d94a528e605d220829cee21283dbdde838d631a06d497189cc9b6660"
+    },
+    {
+      "path": "src/native/ui-v2/showcase/showcase.tsx",
+      "sha256": "4cb4f4b20bd2bd9a54f491ce7711bd88622465b40a6b3742480b2343ae1c685a"
+    },
+    {
+      "path": "src/native/ui-v2/showcase/styles.css",
+      "sha256": "8ffd0c0360bf0e048d05990a23b7d1bbf3b2cdbabd6a307420323bcad19a1fc2"
+    },
+    {
+      "path": "src/native/ui-v2/showcase/theme-picker.tsx",
+      "sha256": "767aa7fa0e850f75428e7e8c2e5d094dd0fb28f730fed9a7d9d188d10457116e"
+    },
+    {
+      "path": "src/native/ui-v2/showcase/theme-refresh.test.tsx",
+      "sha256": "b40b9fc99148be4a4eac4ec462a7d903e6b203465b008f46364a85cc28f6cc0c"
+    },
+    {
+      "path": "src/native/ui-v2/showcase/vite-env.d.ts",
+      "sha256": "65996936fbb042915f7b74a200fcdde7e410f32a669b1ab9597cfaa4b0faddb5"
+    },
+    {
+      "path": "src/native/ui-v2/tokens.css",
+      "sha256": "5c33774a2f063c807fa8bd5f120b72a7c2d6eb6212bf4590722bc9aa7b721bf2"
+    },
+    {
+      "path": "src/native/ui-v2/use-control-clearance.ts",
+      "sha256": "e1f355b970c8267576bb1adf0979c1fb90d068edcb7a4a307df76014ee7746f8"
+    },
+    {
+      "path": "ui-v2-showcase/index.html",
+      "sha256": "a7370c1528719ad9d853990d1a769d1ba5bb0cdefea507fbc308257ac29fce0a"
+    },
+    {
+      "path": "vite.ui-v2.config.mts",
+      "sha256": "bd6587ae2ed6b61f91510b73005f4156cd126a1314aa5c4d9d486ac56928e32f"
+    }
+  ]
+}
