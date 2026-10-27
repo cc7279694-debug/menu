@@ -4,6 +4,11 @@ import { matchesDuration, type DurationFilter } from "../../recipe-model";
 import type { DemoRecipe } from "./demo-data";
 import logo from "../../../../native/public/icon.png";
 
+/** Supports URL-string imports in Vite and StaticImageData in Next.js. */
+function previewImageUrl(image: string | { readonly src: string }): string {
+  return typeof image === "string" ? image : image.src;
+}
+
 export function HomeScreen({ recipes, library, query, filter, onQuery, onFilter, onOpen, onAdd, onFind, onLibrary }: {
   recipes: readonly DemoRecipe[]; library: boolean; query: string; filter: DurationFilter;
   onQuery: (query: string) => void; onFilter: (filter: DurationFilter) => void;
@@ -17,7 +22,7 @@ export function HomeScreen({ recipes, library, query, filter, onQuery, onFilter,
     <div className="v2-home-controls v2-glass">
     <header className="v2-home-header">
       {library ? <h1 className="v2-page-title">我的菜谱</h1> : <div className="v2-brand">
-        <img src={logo} alt="" width="40" height="40" />
+        <img src={previewImageUrl(logo)} alt="" width="40" height="40" />
         <div><h1>谱序</h1><span>RECIPIO</span></div>
       </div>}
       <V2Button variant="icon" aria-label="新增菜谱" onClick={onAdd}><Plus aria-hidden="true" /></V2Button>
