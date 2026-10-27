@@ -1,0 +1,190 @@
+name: RECIPIO personal unsigned Release preparation
+
+# Deliberately no signing job, signing environment or private material.
+on:
+  push:
+    branches: [release/recipio-personal-signing]
+    paths:
+      - .github/workflows/recipio-personal-unsigned.yml
+      - scripts/personal-release/**
+permissions:
+  contents: read
+concurrency:
+  group: recipio-personal-unsigned-${{ github.ref }}
+  cancel-in-progress: false
+env:
+  SOURCE_SHA: 19bb5c9dc5642edb27203e6c5c0b95d7977ff2fe
+jobs:
+  web-checks:
+    name: Personal Release pinned-main incremental checks
+    runs-on: windows-latest
+    timeout-minutes: 30
+    defaults:
+      run:
+        working-directory: product
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          path: tooling
+          persist-credentials: false
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: 19bb5c9dc5642edb27203e6c5c0b95d7977ff2fe
+          path: product
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: product/package-lock.json
+      - name: Confirm exact main and test non-secret delivery guards
+        shell: pwsh
+        run: |
+          if ((git rev-parse HEAD).Trim() -ne $env:SOURCE_SHA) { throw 'Wrong product source' }
+          node --test ../tooling/scripts/personal-release/*.test.mjs
+          if ($LASTEXITCODE -ne 0) { throw 'Delivery guard tests failed' }
+      - run: npm ci --no-audit --no-fund
+      - name: G5 cooking G6 serving G7 intake and save boundaries
+        run: npm test -- src/native/serving-adjustment.test.ts src/native/ui-v2/g6-serving-integration.test.tsx src/native/ui-v2/g5-library.test.tsx src/native/ui-v2/g5-intake.test.tsx src/native/ui-v2/g5-cooking.test.tsx src/native/ui-v2/g5-editor.test.tsx src/native/ai/preview.test.tsx src/native/ai/presentation-v2.test.tsx src/native/intake-review src/native/ui-v2/native-sheet-registration.test.tsx --pool=threads --maxWorkers=1 --no-file-parallelism --reporter=dot --reporter=json --outputFile=output/r1p-targeted.json
+      - run: npm run typecheck
+      - run: npm run lint
+      - run: npm run build:local
+        env:
+          VITE_RECIPIO_VERSION: 0.11.0-personal.2
+      - run: node scripts/verify-ui-v2-isolation.mjs
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: recipio-r1p-main-web-evidence-${{ github.run_id }}-${{ github.run_attempt }}
+          path: product/output/r1p-targeted.json
+          if-no-files-found: error
+          retention-days: 30
+
+  browser:
+    name: Personal Release main browser regression (Fake external I/O only)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    defaults:
+      run:
+        working-directory: product
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: 19bb5c9dc5642edb27203e6c5c0b95d7977ff2fe
+          path: product
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: product/package-lock.json
+      - name: Exact approved main only
+        run: test "$(git rev-parse HEAD)" = "$SOURCE_SHA"
+      - run: npm ci --no-audit --no-fund
+      - name: Pinned isolated browser tooling
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm install --prefix "$RUNNER_TEMP/recipio-r1p-browser-tools" --no-save --ignore-scripts playwright@1.62.1
+          "$RUNNER_TEMP/recipio-r1p-browser-tools/node_modules/.bin/playwright" install --with-deps chromium
+          sudo apt-get install -y --no-install-recommends fonts-noto-cjk
+      - name: Existing kitchen and serving real-page checks
+        run: node scripts/verify-g6-browser.mjs --runtime="$RUNNER_TEMP/recipio-r1p-browser-tools/node_modules"
+      - name: Existing current-draft source confirm and recovery real-page checks
+        run: node scripts/verify-g7-browser.mjs --runtime="$RUNNER_TEMP/recipio-r1p-browser-tools/node_modules"
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: recipio-r1p-main-browser-evidence-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            product/output/playwright/g6/cloud/
+            product/output/playwright/g7/cloud/
+          if-no-files-found: error
+          retention-days: 30
+
+  build-unsigned:
+    name: Pinned main unsigned Release26 and27 (owner signing required)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 40
+    defaults:
+      run:
+        working-directory: product
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          path: tooling
+          persist-credentials: false
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: 19bb5c9dc5642edb27203e6c5c0b95d7977ff2fe
+          path: product
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: product/package-lock.json
+      - uses: actions/setup-java@cf277c60eb25467037889841efdb72551f06f6c3
+        with:
+          distribution: temurin
+          java-version: '21'
+      - name: Exact approved main and Android36 inspection tools
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$SOURCE_SHA"
+          SDKMANAGER="$(command -v sdkmanager || true)"
+          if [[ -z "$SDKMANAGER" ]]; then
+            for candidate in "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "$ANDROID_HOME/cmdline-tools/16.0/bin/sdkmanager"; do
+              if [[ -x "$candidate" ]]; then SDKMANAGER="$candidate"; break; fi
+            done
+          fi
+          test -x "$SDKMANAGER"
+          "$SDKMANAGER" 'platforms;android-36' 'build-tools;36.0.0'
+          APKANALYZER="$(dirname "$SDKMANAGER")/apkanalyzer"
+          test -x "$APKANALYZER"
+          printf 'APKANALYZER=%s\n' "$APKANALYZER" >> "$GITHUB_ENV"
+          mkdir -p "$GITHUB_WORKSPACE/r1p-release/unsigned"
+      - run: npm ci --no-audit --no-fund
+      - name: Release builds no signing configuration or materials
+        shell: bash
+        run: |
+          set -euo pipefail
+          chmod +x android/gradlew
+          for CODE in 26 27; do
+            VERSION="0.11.0-personal.$((CODE - 25))"
+            VITE_RECIPIO_VERSION="$VERSION" npm run sync:android
+            VITE_RECIPIO_VERSION="$VERSION" node scripts/verify-ui-v2-isolation.mjs
+            if [[ "$CODE" == 26 ]]; then
+              (cd android && ./gradlew :app:testReleaseUnitTest :app:lintRelease :app:assembleRelease --no-daemon --max-workers=2 -Dorg.gradle.jvmargs="-Xmx1536m -XX:MaxMetaspaceSize=512m" -PapkVersionCode="$CODE" -PapkVersionName="$VERSION")
+            else
+              (cd android && ./gradlew :app:assembleRelease --no-daemon --max-workers=2 -Dorg.gradle.jvmargs="-Xmx1536m -XX:MaxMetaspaceSize=512m" -PapkVersionCode="$CODE" -PapkVersionName="$VERSION")
+            fi
+            APK="$GITHUB_WORKSPACE/r1p-release/unsigned/recipio-personal-v${CODE}-unsigned.apk"
+            cp android/app/build/outputs/apk/release/app-release-unsigned.apk "$APK"
+            node ../tooling/scripts/personal-release/inspect-unsigned.mjs --product="$PWD" --apk="$APK" --output="$GITHUB_WORKSPACE/r1p-release" --version-code="$CODE" --apkanalyzer="$APKANALYZER"
+          done
+          node ../tooling/scripts/personal-release/inspect-unsigned.mjs --manifest --output="$GITHUB_WORKSPACE/r1p-release"
+      - name: Collect actual Release JVM results and public build provenance
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import glob,json,os,pathlib,xml.etree.ElementTree as ET
+          files=glob.glob('android/app/build/test-results/testReleaseUnitTest/TEST-*.xml')
+          assert files, 'No actual release-variant JVM reports'
+          suites=[ET.parse(file).getroot() for file in files]
+          counts={key:sum(int(s.attrib.get(key,0)) for s in suites) for key in ['tests','failures','errors','skipped']}
+          assert counts['tests']>0 and counts['failures']==0 and counts['errors']==0 and counts['skipped']==0
+          out=pathlib.Path(os.environ['GITHUB_WORKSPACE'])/'r1p-release'
+          report={'sourceSha':os.environ['SOURCE_SHA'],'workflowSha':os.environ['GITHUB_SHA'],'scope':'JVM_RELEASE_VARIANT_ONLY','suites':len(suites),**counts}
+          (out/'jvm-release-results.json').write_text(json.dumps(report,indent=2)+'\n')
+          (out/'READ_ME_FIRST.txt').write_text('UNSIGNED RELEASE BUILD INPUTS ONLY. NOT INSTALLABLE.\nNo private key or signing password exists in this artifact.\n26 is an internal upgrade seed;27 is the prospective final candidate.\nOwner-controlled local backup verification and signing are required.\nNo phone, same-signature upgrade or personal migration was executed here.\n')
+          print(json.dumps(report))
+          PY
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: recipio-r1p-UNSIGNED-OWNER-SIGNING-REQUIRED-${{ github.run_id }}-${{ github.run_attempt }}
+          path: r1p-release/
+          if-no-files-found: error
+          retention-days: 30
