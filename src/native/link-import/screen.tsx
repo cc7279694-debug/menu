@@ -37,7 +37,7 @@ function ParserPreview({ service, onSaved, onBack, editingSession, sourceContext
   useEffect(() => {
     if (!duplicate) return;
     const back = (event: Event) => { if (event.defaultPrevented) return; event.preventDefault(); decide(false); };
-    window.addEventListener("recipio:back", back); return () => window.removeEventListener("recipio:back", back);
+    window.addEventListener("recipio:back", back, true); return () => window.removeEventListener("recipio:back", back, true);
   });
   async function save(input: RecipeDetailsInput) {
     if (!valid()) return;

@@ -1011,3 +1011,12 @@ the corresponding UI session and never enters persistence. Current checks show
 three issues initially; complete original evidence is an explicit expansion,
 without changing confirmation. Existing audit tests retain assertions and now
 perform that deliberate expansion.
+### Specific Back regression RED — 2026-10-27
+
+Source9082441c9563c5303a6345eaed36575b3caf0ffd/run40451105345:
+existing217PASS and G7 115PASS; only the2new duplicate Back cases RED.
+Both failures were the still-visible same-name Dialog after cancelable page Back,
+not a loader/mock error. Child editor's bubbling listener consumed the event while
+its save lock awaited the decision. Move only both duplicate listeners to capture,
+along the existing Sheet routing, retaining defaultPrevented. No IME state machine,
+delay/debounce, global Back disable or business save rule change.
