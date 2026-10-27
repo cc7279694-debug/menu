@@ -992,3 +992,22 @@ uncertain save recovery, keyboard/Sheet/dirty Back precedence, no hidden writes.
 
 Evidence: final counts and source SHA come only from actual fresh runs.
 No real AI, physical phone, personal backups, signing/main/PR/tag/release/G8.
+
+### Test-first evidence and current integration ruling — 2026-10-27
+
+Initial source fd1a602bc5335c72b1094f89872559dfd23906fb, cloud run
+40447931345/job122003537570: existing7files/217tests PASS; new G7
+5files/113tests:103 RED and10PASS. Actual failures were explicit implementation
+stubs, missing current-review/source UI and unguarded stale saving; no missing-import
+or test-loader failure. This is RED evidence, not final verification.
+
+Existing AiIntakeService.save replaces draft.recipe with the attempted edited DTO,
+but preserves the review object. A UI-only editing session therefore borrows the
+initial recipe and remembers transient row bindings across the existing uncertain
+screen. It owns no second current editable DTO and changes no service/save identity.
+The actual current draft remains exclusively in RecipeEditor. Parser uses the
+same metadata rule, cleared on leaving its preview; all metadata is cleared with
+the corresponding UI session and never enters persistence. Current checks show
+three issues initially; complete original evidence is an explicit expansion,
+without changing confirmation. Existing audit tests retain assertions and now
+perform that deliberate expansion.

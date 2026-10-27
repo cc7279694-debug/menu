@@ -13,17 +13,28 @@ export type IntakeSourceContext = SourceOwner & (
   | Readonly<{ kind: "finder"; selected: Readonly<Pick<FinderCandidate, "title" | "sourceHost" | "summary">> }>
 );
 
-export function aiInputSource(snapshot: AiIntakeState, isCurrent?: () => boolean): IntakeSourceContext | null {
-  void snapshot; void isCurrent;
-  return null;
+const available = () => true;
+
+/** Borrow the current owner's source; never copy it into an independently-lived cache. */
+export function aiInputSource(snapshot: AiIntakeState, isCurrent: () => boolean = available): IntakeSourceContext | null {
+  if (snapshot.phase !== "preview" || !snapshot.draft || !snapshot.operationId || !isCurrent()) return null;
+  if (!snapshot.input.text.trim() && !snapshot.images.length) return null;
+  return { kind: "ai-input", identity: snapshot.draft, isCurrent, text: snapshot.input.text, images: snapshot.images, operationId: snapshot.operationId };
 }
 
-export function webIntakeSource(snapshot: LinkImportState, selected: ParserCandidate | null, aiDraft?: AiReviewDraft | null, isCurrent?: () => boolean): IntakeSourceContext | null {
-  void snapshot; void selected; void aiDraft; void isCurrent;
-  return null;
+export function webIntakeSource(snapshot: LinkImportState, selected: ParserCandidate | null, aiDraft?: AiReviewDraft | null, isCurrent: () => boolean = available): IntakeSourceContext | null {
+  if (!snapshot.visible || !isCurrent()) return null;
+  if (selected && (snapshot.selectedId !== selected.id || !snapshot.parsed?.candidates.includes(selected))) return null;
+  if (aiDraft) {
+    if (snapshot.phase !== "ai-preview") return null;
+    return { kind: "web-ai", identity: aiDraft, isCurrent, visible: snapshot.visible, selected };
+  }
+  if (snapshot.phase !== "ready") return null;
+  if (!snapshot.visible.text.trim() && !snapshot.visible.title.trim() && !selected) return null;
+  return { kind: "web-parser", identity: selected ?? snapshot.visible, isCurrent, visible: snapshot.visible, selected };
 }
 
-export function finderIntakeSource(snapshot: FindState, aiDraft: AiReviewDraft | null, isCurrent?: () => boolean): IntakeSourceContext | null {
-  void snapshot; void aiDraft; void isCurrent;
-  return null;
+export function finderIntakeSource(snapshot: FindState, aiDraft: AiReviewDraft | null, isCurrent: () => boolean = available): IntakeSourceContext | null {
+  if (snapshot.phase !== "preview" || !aiDraft || !snapshot.selected || !isCurrent()) return null;
+  return { kind: "finder", identity: aiDraft, isCurrent, selected: snapshot.selected };
 }

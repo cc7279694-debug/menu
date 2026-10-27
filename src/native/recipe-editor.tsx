@@ -9,6 +9,10 @@ import {
 } from "./recipe-model";
 import { LocalImage } from "./local-image";
 import { pickLocalImage, saveLocalImage, usesNativeImagePicker } from "./media";
+import { createFieldBindings, insertFieldBinding, moveFieldBinding, removeFieldBinding, type IntakeArrayGroup, type IntakeFieldBindings } from "./intake-review/field-bindings";
+import type { IntakeEditingSession } from "./intake-review/editor-session";
+
+export type IntakeEditorContext = { currentRecipe: RecipeDetailsInput; fieldBindings: IntakeFieldBindings; locate: (path: string) => void };
 
 function numberOrNull(text: string) {
   return text.trim() === "" ? null : Number(text);
@@ -25,6 +29,9 @@ export function RecipeEditor({
   mediaEnabled=true,
   beforeSubmit,
   appearance,
+  renderIntake,
+  onActualChange,
+  editingSession,
 }: {
   initial?: RecipeDetailsInput;
   onSave: (input: RecipeDetailsInput) => Promise<void>;
@@ -37,11 +44,18 @@ export function RecipeEditor({
   mediaEnabled?:boolean;
   beforeSubmit?:(input:RecipeDetailsInput)=>boolean;
   appearance?: "v2";
+  renderIntake?: (context: IntakeEditorContext) => ReactNode;
+  onActualChange?: () => void;
+  editingSession?: IntakeEditingSession | null;
 }) {
   function presentationClass(legacy: string, v2: string) {
     return appearance === "v2" ? `${v2} ${legacy}` : legacy;
   }
-  const [value, setValue] = useState(() => initial ?? emptyDetails());
+  const [editor, setEditor] = useState(() => ({ value: initial ?? emptyDetails(), fieldBindings: editingSession?.getBindings() ?? createFieldBindings(initial ?? emptyDetails()) }));
+  const editorRef = useRef(editor);
+  const formRef = useRef<HTMLFormElement>(null);
+  const originalValue = useRef(editingSession?.originalRecipe ?? initial ?? emptyDetails());
+  const { value, fieldBindings } = editor;
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const errorRef = useRef<HTMLParagraphElement>(null);
@@ -53,7 +67,7 @@ export function RecipeEditor({
   }
   const lock = useRef(false);
   const dirty =
-    JSON.stringify(value) !== JSON.stringify(initial ?? emptyDetails());
+    JSON.stringify(value) !== JSON.stringify(originalValue.current);
   useEffect(() => {
     const prevent = (e: BeforeUnloadEvent) => {
       if (dirty) {
@@ -70,6 +84,7 @@ export function RecipeEditor({
   }
   useEffect(() => {
     const back = (event: Event) => {
+      if (event.defaultPrevented) return;
       event.preventDefault();
       // Keep this renderer and the input while a local write is in progress.
       if (!lock.current) cancel();
@@ -77,8 +92,44 @@ export function RecipeEditor({
     window.addEventListener("recipio:back", back);
     return () => window.removeEventListener("recipio:back", back);
   });
-  function patch(change: Partial<RecipeDetailsInput>) {
-    setValue((v) => ({ ...v, ...change }));
+  function patch(change: Partial<RecipeDetailsInput>, bindings = editorRef.current.fieldBindings) {
+    const previous = editorRef.current;
+    const nextValue = { ...previous.value, ...change };
+    // Existing add controls append a single row; all moves/removals pass their explicit mapping.
+    for (const group of ["ingredients", "steps", "preparations", "keyTips"] as const) {
+      for (let index = bindings.currentRows[group].length; index < nextValue[group].length; index++) bindings = insertFieldBinding(bindings, group, index);
+    }
+    if (JSON.stringify(previous.value) === JSON.stringify(nextValue) && bindings === previous.fieldBindings) return;
+    const next = { value: nextValue, fieldBindings: bindings };
+    editorRef.current = next;
+    setEditor(next);
+    editingSession?.rememberBindings(bindings);
+    // User-event side effects belong outside React's replayable state updater.
+    onActualChange?.();
+  }
+  function locate(path: string) {
+    const labels: Record<string, string> = { title: "菜名", totalMinutes: "做菜耗时（分钟）", servings: "约几人份", caloriesPerServing: "每份参考热量（kcal）", notes: "个人备注" };
+    const row = /^(ingredients|steps|preparations|keyTips)\[(\d+)\]\.(name|amount|instruction|minutes|timingText|stepNumber)$/.exec(path);
+    if (row) {
+      const index = Number(row[2]) + 1;
+      const fields: Record<string, Record<string, string>> = {
+        ingredients: { name: `食材 ${index}`, amount: `用量 ${index}` }, steps: { instruction: `步骤 ${index}` },
+        preparations: { instruction: `准备事项 ${index}`, minutes: `准备时长 ${index}（分钟）`, timingText: `文字时间 ${index}` },
+        keyTips: { instruction: `关键事项 ${index}`, stepNumber: `关联步骤 ${index}（可选）` },
+      };
+      labels[path] = fields[row[1]]?.[row[3]];
+    }
+    const field = Array.from(formRef.current?.querySelectorAll("label") ?? []).find(label => label.querySelector("span")?.textContent === labels[path]);
+    const addLabels: Record<string, string> = { ingredients: "添加食材", steps: "添加步骤", preparations: "添加准备事项", keyTips: "添加关键事项" };
+    const add = addLabels[path];
+    const target = field?.querySelector<HTMLElement>("input,textarea") ?? (add ? Array.from(formRef.current?.querySelectorAll("button") ?? []).find(button => button.textContent?.trim() === add) : undefined);
+    if (!target) return;
+    target.focus({ preventScroll: true });
+    target.scrollIntoView?.({ block: "center" });
+    if (!window.matchMedia?.("(prefers-reduced-motion: reduce)").matches && target.animate) {
+      const style = getComputedStyle(target);
+      target.animate([{ backgroundColor: style.getPropertyValue("--v2-soft").trim() }, { backgroundColor: style.getPropertyValue("--v2-surface").trim() }], { duration: 800 });
+    }
   }
   async function image(file: File | undefined, step?: number) {
     if (!mediaEnabled||(!file && !usesNativeImagePicker()) || lock.current) return;
@@ -90,12 +141,10 @@ export function RecipeEditor({
         ? await pickLocalImage()
         : file ? await saveLocalImage(file) : null;
       if (path === null) return;
-      setValue((v) =>
-        step === undefined
-          ? { ...v, coverPath: path }
+      patch(step === undefined
+          ? { coverPath: path }
           : {
-              ...v,
-              steps: v.steps.map((r, i) =>
+              steps: editorRef.current.value.steps.map((r, i) =>
                 i === step ? { ...r, imagePath: path } : r,
               ),
             },
@@ -107,11 +156,13 @@ export function RecipeEditor({
       setBusy(false);
     }
   }
-  function move<K extends "ingredients" | "steps" | "preparations" | "keyTips">(
+  function move<K extends IntakeArrayGroup>(
     group: K,
     index: number,
     offset: number,
   ) {
+    if (lock.current || index + offset < 0 || index + offset >= value[group].length) return;
+    const bindings = moveFieldBinding(fieldBindings, group, index, index + offset);
     const next = [...value[group]];
     [next[index], next[index + offset]] = [next[index + offset], next[index]];
     // Step-bound tips follow their referenced step when its position changes.
@@ -127,13 +178,15 @@ export function RecipeEditor({
                 ? index + 1
                 : t.stepNumber,
         })),
-      });
-    else patch({ [group]: next });
+      }, bindings);
+    else patch({ [group]: next }, bindings);
   }
   function remove(
-    group: "ingredients" | "steps" | "preparations" | "keyTips",
+    group: IntakeArrayGroup,
     index: number,
   ) {
+    if (lock.current || index < 0 || index >= value[group].length) return;
+    const bindings = removeFieldBinding(fieldBindings, group, index);
     if (group === "steps")
       patch({
         steps: value.steps.filter((_, i) => i !== index),
@@ -146,8 +199,8 @@ export function RecipeEditor({
                 ? t.stepNumber - 1
                 : t.stepNumber,
         })),
-      });
-    else patch({ [group]: value[group].filter((_, i) => i !== index) });
+      }, bindings);
+    else patch({ [group]: value[group].filter((_, i) => i !== index) }, bindings);
   }
   function controls(
     group: "ingredients" | "steps" | "preparations" | "keyTips",
@@ -191,6 +244,7 @@ export function RecipeEditor({
   }
   return (
     <form
+      ref={formRef}
       className={presentationClass("space-y-6", "v2-production-form v2-g5-editor")}
       onSubmit={(e) => {
         e.preventDefault();
@@ -243,6 +297,7 @@ export function RecipeEditor({
       </p>
       <fieldset disabled={busy} className={presentationClass("space-y-6", "v2-form-fields")}>
         {beforeFields}
+        {renderIntake?.({ currentRecipe: value, fieldBindings, locate })}
         <label className={presentationClass("block space-y-2", "v2-field-label")}>
           <span>菜名</span>
           <Input
@@ -331,7 +386,7 @@ export function RecipeEditor({
         <section className={presentationClass("space-y-3", "v2-form-section")}>
           <h3 className={presentationClass("text-lg font-semibold", "v2-section-title")}>食材与实际用量</h3>
           {value.ingredients.map((r, i) => (
-            <div key={i} className={presentationClass("rounded-xl border p-3", "v2-form-row")}>
+            <div key={fieldBindings.currentRows.ingredients[i]} className={presentationClass("rounded-xl border p-3", "v2-form-row")}>
               <div className="grid grid-cols-2 gap-3">
                 <label>
                   <span className="text-sm">食材 {i + 1}</span>
@@ -379,7 +434,7 @@ export function RecipeEditor({
         <section className={presentationClass("space-y-3", "v2-form-section")}>
           <h3 className={presentationClass("text-lg font-semibold", "v2-section-title")}>完整步骤</h3>
           {value.steps.map((r, i) => (
-            <div key={i} className={presentationClass("rounded-xl border p-3 space-y-3", "v2-form-row")}>
+            <div key={fieldBindings.currentRows.steps[i]} className={presentationClass("rounded-xl border p-3 space-y-3", "v2-form-row")}>
               <label className="block">
                 <span className="text-sm">步骤 {i + 1}</span>
                 <Textarea
@@ -449,7 +504,7 @@ export function RecipeEditor({
         <section className={presentationClass("space-y-3", "v2-form-section")}>
           <h3 className={presentationClass("text-lg font-semibold", "v2-section-title")}>提前准备</h3>
           {value.preparations.map((r, i) => (
-            <div key={i} className={presentationClass("rounded-xl border p-3 space-y-3", "v2-form-row")}>
+            <div key={fieldBindings.currentRows.preparations[i]} className={presentationClass("rounded-xl border p-3 space-y-3", "v2-form-row")}>
               <label className="block">
                 <span>准备事项 {i + 1}</span>
                 <Textarea
@@ -519,7 +574,7 @@ export function RecipeEditor({
         <section className={presentationClass("space-y-3", "v2-form-section")}>
           <h3 className={presentationClass("text-lg font-semibold", "v2-section-title")}>关键事项</h3>
           {value.keyTips.map((r, i) => (
-            <div key={i} className={presentationClass("rounded-xl border p-3 space-y-3", "v2-form-row")}>
+            <div key={fieldBindings.currentRows.keyTips[i]} className={presentationClass("rounded-xl border p-3 space-y-3", "v2-form-row")}>
               <label className="block">
                 <span>关键事项 {i + 1}</span>
                 <Textarea

@@ -7,5 +7,6 @@ import "./ui-v2/g5-intake.css";
 import "./ui-v2/g5-cooking.css";
 import "./ui-v2/g5-editor.css";
 import "./ui-v2/g6-serving.css";
+import "./ui-v2/g7-intake.css";
 
 createRoot(document.getElementById("root")!).render(<NativeApp />);

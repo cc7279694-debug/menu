@@ -59,6 +59,8 @@ function change(label: string, value: string) {
 }
 
 function originalReviewRow(label: string) {
+  const expand = screen.queryByRole("button", { name: "查看完整来源审核" });
+  if (expand) fireEvent.click(expand);
   const review = screen.getByRole("region", { name: "AI 整理审核" });
   const row = within(review).getByText(label, { selector: "strong" }).closest("li");
   if (!row) throw new Error(`Missing original review row: ${label}`);
@@ -222,6 +224,8 @@ it("T09 only a real changed value revokes a previous acknowledgement and keeps t
   title.focus();
   fireEvent.focus(title);
   fireEvent.blur(title);
+  const expand = screen.queryByRole("button", { name: "查看完整来源审核" });
+  if (expand) fireEvent.click(expand);
   fireEvent.click(screen.getByText("AI 推断 1"));
   change("菜名", "啤酒鸭");
   expect(checkbox).toBeChecked();

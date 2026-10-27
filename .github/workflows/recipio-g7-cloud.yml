@@ -24,8 +24,12 @@ jobs:
       - run: npm ci --no-audit --no-fund
       - name: Existing affected G5 G6 and review baseline
         run: npm test -- src/native/serving-adjustment.test.ts src/native/ui-v2/g6-serving-integration.test.tsx src/native/ui-v2/g5-library.test.tsx src/native/ui-v2/g5-intake.test.tsx src/native/ui-v2/g5-cooking.test.tsx src/native/ui-v2/g5-editor.test.tsx src/native/ai/preview.test.tsx --pool=threads --maxWorkers=1 --no-file-parallelism --reporter=dot
-      - name: G7 requirements before implementation
+      - name: G7 current-draft source and recovery requirements
         run: npm test -- src/native/intake-review --pool=threads --maxWorkers=1 --no-file-parallelism --reporter=default --reporter=json --outputFile=output/g7-targeted.json
+      - run: npm run typecheck
+      - run: npm run lint
+      - run: npm run build:local
+      - run: node scripts/verify-ui-v2-isolation.mjs
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         if: always()
         with:

@@ -32,6 +32,10 @@ import type { AiIntakeService } from "./ai/service";
 import { openAiIntakeRuntime } from "./ai/runtime";
 import { AiIntakeScreen } from "./ai/intake-screen";
 import { AiPreview } from "./ai/preview";
+import { useIntakeEditingSession } from "./intake-review/editor-session";
+import { aiInputSource } from "./intake-review/source-context";
+import { buildIntakeQualityReport } from "./intake-review/quality";
+import { IntakeQualityPanel } from "./intake-review/review-panel";
 import { AiSaveRecovery } from "./ai/save-recovery";
 import type { LinkImportService } from "./link-import/service";
 import type { FindRecipeService } from "./find-recipe/service";
@@ -89,6 +93,10 @@ export function LibraryApp({
   const backupState = useBackupState(backup);
   const restored = useRef<unknown>(null);
   const [view, setView] = useState<View|AiView>("home");
+  const intakeReviewIdentity = useMemo(() => intakeState.draft ? {} : null, [intakeState.draft?.review, intakeState.operationId]);
+  const intakeEditing = useIntakeEditingSession(view === "ai-preview" ? intakeReviewIdentity : null, intakeState.draft?.recipe);
+  const currentIntake = () => intake.snapshot().phase === "preview" && intake.snapshot().operationId === intakeState.operationId && intake.snapshot().draft?.review === intakeState.draft?.review;
+  const intakeSource = aiInputSource(intakeState, currentIntake);
   const [returnView, setReturnView] = useState<"home" | "library">("home");
   const settingsRoot = useRef<"home" | "library">("home");
   const [records, setRecords] = useState<RecipeListItem[]>([]);
@@ -531,11 +539,12 @@ export function LibraryApp({
       {intakeState.pendingCleanup&&<aside role="status" className="v2-share-notice v2-task"><p>临时文件清理待重试；已保存的菜谱不受影响。</p><Button className="min-h-11 mt-2" variant="outline" onClick={()=>void intake.retryCleanup()}>重试临时文件清理</Button></aside>}
       {linkService && (view === "link-input" || fromLinkSettings) && <div hidden={view !== "link-input"}><Suspense fallback={<p role="status">正在打开网页导入…</p>}><LinkImportScreen service={linkService} active={view === "link-input"} onSaved={showAiRecipe} onCancel={()=>setView(returnView)} onConfigureKey={()=>{setFromLinkSettings(true);setView("settings");}} onFallback={target=>{setSelected(null);setView(target === "ai" ? "ai-input" : "new");}} /></Suspense></div>}
       {finderService&&(view==="find-input"||fromFindSettings)&&<div hidden={view!=="find-input"}><Suspense fallback={<p role="status">正在打开寻找做法…</p>}><FindRecipeScreen service={finderService} active={view==="find-input"} onSaved={showAiRecipe} onCancel={()=>setView(returnView)} onConfigureKey={()=>{setFromFindSettings(true);setView("settings");}} onFallback={target=>{setSelected(null);if(target==="link")void openLinkImport();else setView(target==="ai"?"ai-input":"new");}}/></Suspense></div>}
-      {view === "link-input"||view==="find-input" ? null : (view==="ai-input"||view==="ai-preview")&&intakeState.phase==="uncertain"?<AiSaveRecovery service={intake} onSaved={showAiRecipe} onAbsent={()=>setView("ai-preview")} onLibrary={()=>setView(returnView)}/>:view==="ai-input"?<AiIntakeScreen service={intake} onPreview={()=>setView("ai-preview")} onCancel={()=>setView(returnView)} onManual={()=>{setSelected(null);setView("new");}} onConfigureKey={()=>{setFromAiSettings(true);setView("settings");}}/>:view==="ai-preview"?intakeState.draft?<AiPreview draft={intakeState.draft} confirmed={intakeState.confirmed} onConfirmedChange={value=>intake.setConfirmed(value)} hasExactTitle={title=>store.hasExactTitle(title)} onSave={async input=>{showAiRecipe(await intake.save(input));}} onCancel={()=>setView("ai-input")}/>:<section className="space-y-4"><p>本轮结果已失效，请重新整理。</p><Button className="min-h-11" variant="outline" onClick={()=>setView("ai-input")}>返回本轮输入</Button></section>:view === "new" || view === "edit" ? (
+      {view === "link-input"||view==="find-input" ? null : (view==="ai-input"||view==="ai-preview")&&intakeState.phase==="uncertain"?<AiSaveRecovery service={intake} onSaved={showAiRecipe} onAbsent={()=>setView("ai-preview")} onLibrary={()=>setView(returnView)}/>:view==="ai-input"?<AiIntakeScreen service={intake} onPreview={()=>setView("ai-preview")} onCancel={()=>setView(returnView)} onManual={()=>{setSelected(null);setView("new");}} onConfigureKey={()=>{setFromAiSettings(true);setView("settings");}}/>:view==="ai-preview"?intakeState.draft?<AiPreview sourceContext={intakeSource} editingSession={intakeEditing} isCurrent={currentIntake} draft={intakeState.draft} confirmed={intakeState.confirmed} onConfirmedChange={value=>intake.setConfirmed(value)} hasExactTitle={title=>store.hasExactTitle(title)} onSave={async input=>{showAiRecipe(await intake.save(input));}} onCancel={()=>setView("ai-input")}/>:<section className="space-y-4"><p>本轮结果已失效，请重新整理。</p><Button className="min-h-11" variant="outline" onClick={()=>setView("ai-input")}>返回本轮输入</Button></section>:view === "new" || view === "edit" ? (
         <RecipeEditor
           appearance="v2"
           key={selected?.id ?? "new"}
           initial={view === "edit" && selected ? selected : undefined}
+          renderIntake={view === "new" ? ({ currentRecipe, fieldBindings, locate }) => <IntakeQualityPanel report={buildIntakeQualityReport({ currentRecipe, fieldBindings, mode: "manual" })} locate={locate} /> : undefined}
           onSave={save}
           onCancel={() => selected ? backToDetail() : setView(returnView)}
         />

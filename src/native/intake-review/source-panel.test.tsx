@@ -80,7 +80,7 @@ it("T07 temporary screenshot enlargement stays in the same sheet and uses the ex
   const source: IntakeSourceContext = { ...textSource(), kind: "ai-input", text: "", operationId, images: [first, second] };
   render(wrap(<IntakeSourcePanel source={source} open onOpenChange={vi.fn()} />));
   const dialog = await screen.findByRole("dialog", { name: "本轮来源" });
-  expect(within(dialog).getByText(/本轮提供的截图/)).toBeVisible();
+  expect(within(dialog).getByRole("heading", { name: "本轮提供的截图" })).toBeVisible();
   fireEvent.click(within(dialog).getByRole("button", { name: "查看截图 2" }));
   expect(within(dialog).getByAltText("本轮截图 2")).toHaveAttribute("src", aiImagePreviewUri(second));
   expect(screen.getAllByRole("dialog")).toHaveLength(1);

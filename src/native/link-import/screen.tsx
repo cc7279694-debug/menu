@@ -1,4 +1,4 @@
-import { useEffect, useId, useRef, useState, useSyncExternalStore } from "react";
+import { useEffect, useId, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogTitle } from "@/components/ui/dialog";
@@ -7,27 +7,54 @@ import { AiPreview } from "../ai/preview";
 import type { RecipeDetails, RecipeDetailsInput } from "../recipe-model";
 import type { LinkImportService } from "./service";
 import { useV2DialogAppearance } from "../ui-v2/appearance";
+import { useIntakeEditingSession, type IntakeEditingSession } from "../intake-review/editor-session";
+import { webIntakeSource, type IntakeSourceContext } from "../intake-review/source-context";
+import { buildIntakeQualityReport } from "../intake-review/quality";
+import { IntakeQualityPanel } from "../intake-review/review-panel";
 
-function ParserPreview({ service, onSaved, onBack }: { service: LinkImportService; onSaved: (recipe: RecipeDetails) => void; onBack: () => void }) {
+function ParserPreview({ service, onSaved, onBack, editingSession, sourceContext, isCurrent }: {
+  service: LinkImportService; onSaved: (recipe: RecipeDetails) => void; onBack: () => void;
+  editingSession?: IntakeEditingSession | null; sourceContext: IntakeSourceContext | null; isCurrent: () => boolean;
+}) {
   const selected = service.selected()!;
+  const ownSession = useIntakeEditingSession(editingSession ? null : selected, selected.recipe);
+  const session = editingSession ?? ownSession!;
+  const editorKey = useRef({ identity: session.identity, sequence: 0 });
+  if (editorKey.current.identity !== session.identity) editorKey.current = { identity: session.identity, sequence: editorKey.current.sequence + 1 };
   const dialogAppearance = useV2DialogAppearance("v2");
-  const [duplicate, setDuplicate] = useState(false); const decision = useRef<((yes: boolean) => void) | null>(null);
-  const decide = (yes: boolean) => { setDuplicate(false); decision.current?.(yes); decision.current = null; };
-  useEffect(() => () => { decision.current?.(false); decision.current = null; }, []);
+  const alive = useRef(true), current = useRef({ identity: session.identity, isCurrent });
+  current.current = { identity: session.identity, isCurrent };
+  const [duplicateIdentity, setDuplicateIdentity] = useState<object | null>(null);
+  const decision = useRef<{ identity: object; resolve: (yes: boolean) => void } | null>(null);
+  function valid() {
+    try { return alive.current && current.current.identity === session.identity && current.current.isCurrent(); }
+    catch { return false; }
+  }
+  const duplicate = duplicateIdentity === session.identity && valid();
+  const decide = (yes: boolean) => { const pending = decision.current; decision.current = null; setDuplicateIdentity(null); pending?.resolve(yes && pending.identity === session.identity && valid()); };
+  useEffect(() => { alive.current = true; return () => { alive.current = false; decision.current?.resolve(false); decision.current = null; }; }, []);
+  useEffect(() => { if (duplicateIdentity && !duplicate) { decision.current?.resolve(false); decision.current = null; setDuplicateIdentity(null); } }, [duplicateIdentity, duplicate]);
   useEffect(() => {
-    if (!duplicate) return; const back = (event: Event) => { event.preventDefault(); decide(false); };
+    if (!duplicate) return;
+    const back = (event: Event) => { if (event.defaultPrevented) return; event.preventDefault(); decide(false); };
     window.addEventListener("recipio:back", back); return () => window.removeEventListener("recipio:back", back);
-  }, [duplicate]);
+  });
   async function save(input: RecipeDetailsInput) {
+    if (!valid()) return;
     let exists: boolean;
-    try { exists = await service.dependencies.store.hasExactTitle(input.title.trim()); } catch { throw new Error("同名检查未完成，请重试；当前内容尚未保存。"); }
-    if (exists && !await new Promise<boolean>(resolve => { decision.current = resolve; setDuplicate(true); })) return;
-    onSaved(await service.saveParser(input));
+    try { exists = await service.dependencies.store.hasExactTitle(input.title.trim()); }
+    catch { if (!valid()) return; throw new Error("同名检查未完成，请重试；当前内容尚未保存。"); }
+    if (!valid()) return;
+    if (exists && !await new Promise<boolean>(resolve => { decision.current = { identity: session.identity, resolve }; setDuplicateIdentity(session.identity); })) return;
+    if (!valid()) return;
+    const recipe = await service.saveParser(input);
+    if (service.snapshot().phase === "saved") onSaved(recipe);
   }
   return <section className="v2-task v2-link-intake v2-import-preview v2-parser-preview">
     <div className="v2-task-status"><p>{selected.quality === "partial" ? "网页信息不完整" : "已从网页读取"}</p><p className="v2-task-note">已读取网页自带菜谱结构，未调用 AI。请检查后保存；缺失信息保持空白。网页图片和来源不会保存。</p></div>
-    {selected.warnings.map(warning => <p className="v2-task-status" role="status" key={warning}>{warning}</p>)}
-    <RecipeEditor appearance="v2" heading="检查网页菜谱" submitLabel="确认保存菜谱" initial={service.snapshot().parserDraft ?? selected.recipe} mediaEnabled={false} onSave={save} onCancel={onBack} />
+    <RecipeEditor key={editorKey.current.sequence} appearance="v2" heading="检查网页菜谱" submitLabel="确认保存菜谱" initial={service.snapshot().parserDraft ?? selected.recipe} editingSession={session} mediaEnabled={false} onSave={save} onCancel={onBack}
+      beforeSubmit={valid}
+      renderIntake={({ currentRecipe, fieldBindings, locate }) => <IntakeQualityPanel report={buildIntakeQualityReport({ currentRecipe, originalRecipe: session.originalRecipe, warnings: selected.warnings, fieldBindings, mode: "parser" })} locate={locate} source={sourceContext} external />} />
     <Dialog open={duplicate} onOpenChange={open => { if (!open) decide(false); }}><DialogContent {...dialogAppearance}><DialogTitle>已存在同名菜谱</DialogTitle><DialogDescription>继续会新建另一条，不覆盖或合并原菜谱。</DialogDescription><DialogFooter><Button variant="outline" onClick={() => decide(false)}>返回检查</Button><Button onClick={() => decide(true)}>仍然新建菜谱</Button></DialogFooter></DialogContent></Dialog>
   </section>;
 }
@@ -41,6 +68,14 @@ export function LinkImportScreen({ service, active, onSaved, onCancel, onConfigu
   useEffect(() => { alive.current = true; return () => { alive.current = false; }; }, []);
   const uncertain = state.phase === "uncertain" || aiState.phase === "uncertain" && state.phase === "ai-preview";
   const busy = ["reading", "ai-requesting", "saving"].includes(state.phase) || leaving || aiState.phase === "saving";
+  const selected = service.selected();
+  const parserEditing = useIntakeEditingSession(parserOpen ? selected : null, selected?.recipe);
+  const reviewIdentity = useMemo(() => aiState.draft ? {} : null, [aiState.draft?.review, aiState.operationId]);
+  const aiEditing = useIntakeEditingSession(state.phase === "ai-preview" ? reviewIdentity : null, aiState.draft?.recipe);
+  const currentParser = () => active && alive.current && !leaving && service.snapshot().phase === "ready" && service.snapshot().parsed === state.parsed && service.selected() === selected;
+  const currentAi = () => active && alive.current && !leaving && service.snapshot().phase === "ai-preview" && service.snapshot().parsed === state.parsed && ai.snapshot().phase === "preview" && ai.snapshot().operationId === aiState.operationId && ai.snapshot().draft?.review === aiState.draft?.review;
+  const parserSource = webIntakeSource(state, selected, null, currentParser);
+  const aiSource = webIntakeSource(state, selected, aiState.draft, currentAi);
   useEffect(() => {
     if (!active) return;
     const back = (event: Event) => {
@@ -63,8 +98,8 @@ export function LinkImportScreen({ service, active, onSaved, onCancel, onConfigu
     catch { setLocalError("仍无法核对保存结果，请稍后重试；不会重新创建菜谱。"); }
   }
   if (uncertain) return <section className="v2-task v2-link-intake"><header className="v2-task-header"><h2 className="v2-page-title">先核对保存结果</h2></header><p className="v2-task-note">为避免重复，新建已暂停；核对只读取原编号，不重新创建。</p>{localError && <p className="v2-task-status" role="alert">{localError}</p>}<div className="v2-task-actions"><Button onClick={() => void recover()}>核对保存结果</Button></div></section>;
-  if (state.phase === "ai-preview" && aiState.draft) return <AiPreview draft={aiState.draft} confirmed={aiState.confirmed} onConfirmedChange={value => ai.setConfirmed(value)} hasExactTitle={title => service.dependencies.store.hasExactTitle(title)} onSave={async input => { onSaved(await service.saveAi(input)); }} onCancel={backToResults} source="web" />;
-  if (parserOpen && service.selected()) return <ParserPreview key={service.selected()!.id} service={service} onSaved={onSaved} onBack={backToResults} />;
+  if (state.phase === "ai-preview" && aiState.draft) return <AiPreview editingSession={aiEditing} sourceContext={aiSource} isCurrent={currentAi} draft={aiState.draft} confirmed={aiState.confirmed} onConfirmedChange={value => ai.setConfirmed(value)} hasExactTitle={title => service.dependencies.store.hasExactTitle(title)} onSave={async input => { onSaved(await service.saveAi(input)); }} onCancel={backToResults} source="web" />;
+  if (parserOpen && selected) return <ParserPreview key={selected.id} editingSession={parserEditing} sourceContext={parserSource} isCurrent={currentParser} service={service} onSaved={onSaved} onBack={backToResults} />;
   return <section className="v2-task v2-link-intake">
     <header className="v2-task-header"><h2 className="v2-page-title">从网页导入</h2><Button variant="outline" disabled={leaving} onClick={() => { destination.current = "back"; setConfirm(true); }}>返回</Button></header>
     <div className="v2-intake-field"><label className="v2-field-label"><span>网页链接</span><Input type="url" inputMode="url" autoCapitalize="none" autoCorrect="off" placeholder="https://…" aria-describedby={`${descriptionId}${state.error || localError ? ` ${errorId}` : ""}`} aria-invalid={state.phase === "error" && !!state.error} value={state.url} disabled={busy} onChange={event => { setLocalError(""); setParserOpen(false); service.setUrl(event.target.value); }} /></label>

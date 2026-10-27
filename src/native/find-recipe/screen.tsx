@@ -1,4 +1,4 @@
-import { useEffect, useId, useRef, useState, useSyncExternalStore } from "react";
+import { useEffect, useId, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogTitle } from "@/components/ui/dialog";
@@ -7,6 +7,8 @@ import type { RecipeDetails } from "../recipe-model";
 import { searchInputSchema, safeFinderError } from "./contract";
 import type { FindRecipeService } from "./service";
 import { useV2DialogAppearance } from "../ui-v2/appearance";
+import { useIntakeEditingSession } from "../intake-review/editor-session";
+import { finderIntakeSource } from "../intake-review/source-context";
 
 export function FindRecipeScreen({ service, active, onSaved, onCancel, onConfigureKey, onFallback }: { service: FindRecipeService; active: boolean; onSaved: (recipe: RecipeDetails) => void; onCancel: () => void; onConfigureKey: () => void; onFallback: (target: "ai" | "link" | "manual") => void }) {
   const state = useSyncExternalStore(service.subscribe, service.snapshot, service.snapshot), ai = service.dependencies.ai;
@@ -18,6 +20,10 @@ export function FindRecipeScreen({ service, active, onSaved, onCancel, onConfigu
   useEffect(() => { alive.current = true; return () => { alive.current = false; }; }, []);
   const busy = state.phase === "searching" || state.phase === "extracting" || state.cancelling || leaving;
   const saving = state.phase === "saving", uncertain = state.phase === "uncertain";
+  const reviewIdentity = useMemo(() => aiState.draft ? {} : null, [aiState.draft?.review, aiState.operationId]);
+  const editingSession = useIntakeEditingSession(state.phase === "preview" || saving || uncertain ? reviewIdentity : null, aiState.draft?.recipe);
+  const currentPreview = () => active && alive.current && !service.snapshot().cancelling && service.snapshot().phase === "preview" && service.snapshot().selected === state.selected && ai.snapshot().phase === "preview" && ai.snapshot().operationId === aiState.operationId && ai.snapshot().draft?.review === aiState.draft?.review;
+  const sourceContext = finderIntakeSource(state, aiState.draft, currentPreview);
   useEffect(() => {
     if (!active) return;
     const back = (event: Event) => {
@@ -41,7 +47,7 @@ export function FindRecipeScreen({ service, active, onSaved, onCancel, onConfigu
   async function search() { setLocalError(""); setNotice(""); try { await service.search(); } catch { /* Safe service message, never automatic retry. */ } }
   async function extract(id: string) { setLocalError(""); setNotice(""); try { await service.extract(id); } catch { /* Selection remains visible; no other-source fallback. */ } }
   if (uncertain) return <section className="v2-task v2-finder space-y-4"><header className="v2-task-header"><h2 className="v2-page-title">先核对保存结果</h2></header><p className="v2-task-note">为避免重复，新建已暂停；只核对原编号，不重新创建。</p>{localError && <p className="v2-task-status" role="alert">{localError}</p>}<div className="v2-task-actions"><Button className="min-h-11" onClick={() => void service.recoverSave().then(recipe => { if (recipe && alive.current) onSaved(recipe); }).catch(error => setLocalError(safeFinderError(error).message))}>核对保存结果</Button></div></section>;
-  if ((state.phase === "preview" || saving) && aiState.draft) return <AiPreview draft={aiState.draft} confirmed={aiState.confirmed} onConfirmedChange={value => ai.setConfirmed(value)} source="web" hasExactTitle={title => ai.dependencies.store.hasExactTitle(title)} onSave={async input => { const recipe = await service.save(input); if (alive.current) onSaved(recipe); }} onCancel={() => void service.returnToResults().catch(error => setLocalError(safeFinderError(error).message))}/>;
+  if ((state.phase === "preview" || saving) && aiState.draft) return <AiPreview editingSession={editingSession} sourceContext={sourceContext} isCurrent={currentPreview} draft={aiState.draft} confirmed={aiState.confirmed} onConfirmedChange={value => ai.setConfirmed(value)} source="web" hasExactTitle={title => ai.dependencies.store.hasExactTitle(title)} onSave={async input => { const recipe = await service.save(input); if (alive.current) onSaved(recipe); }} onCancel={() => void service.returnToResults().catch(error => setLocalError(safeFinderError(error).message))}/>;
   const results = state.phase === "results" || state.phase === "extracting";
   const dishLength = Array.from(state.dish.trim()).length, preferenceLength = Array.from(state.preference.trim()).length;
   return <section className="v2-task v2-finder">
