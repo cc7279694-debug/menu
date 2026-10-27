@@ -26,7 +26,7 @@ it("AI settings detour and Preview renderer keep the same session without auto r
   const store=new PreviewRecipeLibrary(),fake=fakeAi();fake.keys.hasAiKey.mockResolvedValue({configured:false});const ai=new AiIntakeService(fake.keys,fake.bridge,{store});render(<LibraryApp store={store} ai={ai}/>);
   fireEvent.click(screen.getByRole("button",{name:"新增菜谱"}));fireEvent.click(await screen.findByRole("button",{name:"AI 整理"}));await screen.findByLabelText("菜谱文字");fireEvent.change(screen.getByLabelText("菜谱文字"),{target:{value:"啤酒鸭"}});
   fireEvent.click(await screen.findByRole("button",{name:"前往设置 AI 密钥"}));await screen.findByText("未配置");fake.keys.hasAiKey.mockResolvedValue({configured:true});fireEvent.click(screen.getByRole("button",{name:"返回本轮 AI 整理"}));expect(await screen.findByLabelText("菜谱文字")).toHaveValue("啤酒鸭");expect(fake.bridge.organize).not.toHaveBeenCalled();
-  fireEvent.click(await screen.findByRole("button",{name:"开始 AI 整理"}));await screen.findByRole("heading",{name:"检查 AI 整理结果"});expect(ai.snapshot().draft?.recipe.title).toBe("啤酒鸭");expect(fake.bridge.discardSession).not.toHaveBeenCalled();
+  fireEvent.click(await screen.findByRole("button",{name:"开始 AI 整理"}));await screen.findByRole("heading",{name:"检查整理结果"});expect(ai.snapshot().draft?.recipe.title).toBe("啤酒鸭");expect(fake.bridge.discardSession).not.toHaveBeenCalled();
 });
 it("a delayed completion cannot navigate over an editor or history while its record is saving", async () => {
   const store = new PreviewRecipeLibrary(),
@@ -47,13 +47,16 @@ it("a delayed completion cannot navigate over an editor or history while its rec
     for (const name of [
       "编辑菜谱",
       "返回菜谱库",
-      "删除这道菜",
+      "更多菜谱操作",
+      "补充做法",
       "查看修改记录",
       "查看做菜记录",
-      "设置",
     ]) {
       expect(screen.getByRole("button", { name })).toBeDisabled();
     }
+    expect(screen.queryByRole("navigation", { name: "主要导航" })).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "更多菜谱操作" }));
+    expect(screen.queryByRole("dialog", { name: "菜谱操作" })).not.toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "编辑菜谱" }));
     expect(screen.queryByLabelText("菜名")).not.toBeInTheDocument();
   } finally {

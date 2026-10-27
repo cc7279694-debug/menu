@@ -1,0 +1,957 @@
+diff --git a/src/native/library-app.tsx b/src/native/library-app.tsx
+index 3a73304..6549a5f 100644
+--- a/src/native/library-app.tsx
++++ b/src/native/library-app.tsx
+@@ -1,2 +1,2 @@
+-import { lazy, Suspense, useEffect, useLayoutEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
+-import { BookOpen, House, Plus, Settings } from "lucide-react";
++import { lazy, Suspense, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
++import { BookOpen, House, Settings } from "lucide-react";
+@@ -4 +3,0 @@ import { Button } from "@/components/ui/button";
+-import { Input } from "@/components/ui/input";
+@@ -14 +13,5 @@ import { RecipeDetail } from "./recipe-detail";
+-import { LocalImage } from "./local-image";
++import { CoreLibraryScreen } from "./ui-v2/library-screens";
++import { NativeV2Sheet } from "./ui-v2/native-sheet";
++import { V2Button } from "./ui-v2/components";
++import { V2AppearanceProvider } from "./ui-v2/appearance";
++import { useControlClearance } from "./ui-v2/use-control-clearance";
+@@ -33 +35,0 @@ import { AiSaveRecovery } from "./ai/save-recovery";
+-import { Dialog,DialogContent,DialogDescription,DialogTitle } from "@/components/ui/dialog";
+@@ -97,0 +100,7 @@ export function LibraryApp({
++  const rootRef = useRef<HTMLDivElement>(null);
++  const navigationRef = useRef<HTMLElement>(null);
++  const listReturn = useRef({ scroll: 0, restore: false });
++  const detailPageReturn = useRef({ scroll: 0, restore: false });
++  const isRoot = ["home", "library", "settings"].includes(view) && !fromAiSettings && !fromLinkSettings && !fromFindSettings;
++  const isCore = ["home", "library", "detail", "new", "edit", "history", "changes", "completion"].includes(view);
++  useControlClearance(rootRef, navigationRef, isRoot && isCore);
+@@ -184,0 +194,25 @@ export function LibraryApp({
++  useLayoutEffect(() => {
++    if ((view === "home" || view === "library") && !loading && listReturn.current.restore) {
++      listReturn.current.restore = false;
++      window.scrollTo(0, listReturn.current.scroll);
++    }
++  }, [view, records, loading]);
++  useLayoutEffect(() => {
++    if (view !== "detail" || !detailPageReturn.current.restore) return;
++    detailPageReturn.current.restore = false;
++    const scroll = detailPageReturn.current.scroll;
++    const restore = () => window.scrollTo(0, scroll);
++    restore();
++    // Local images and the existing history summary resolve asynchronously.
++    // Reapply the saved position on actual layout growth, never a guessed delay.
++    // Any new user interaction immediately hands scrolling back to the user.
++    const observer = typeof ResizeObserver === "undefined" ? null : new ResizeObserver(restore);
++    if (rootRef.current) observer?.observe(rootRef.current);
++    const stop = () => observer?.disconnect();
++    const interactions = ["pointerdown", "wheel", "touchstart", "keydown"] as const;
++    interactions.forEach(type => window.addEventListener(type, stop, { once: true, passive: true }));
++    return () => {
++      stop();
++      interactions.forEach(type => window.removeEventListener(type, stop));
++    };
++  }, [view]);
+@@ -219,0 +254,2 @@ export function LibraryApp({
++    if (lock.current) return;
++    listReturn.current.scroll = window.scrollY;
+@@ -234,0 +271,15 @@ export function LibraryApp({
++  const backToList = useCallback(() => {
++    if (lock.current) return;
++    listReturn.current.restore = true;
++    setView(returnView);
++  }, [returnView]);
++  function openDetailPage(next: "edit" | "history" | "changes") {
++    if (lock.current) return;
++    detailPageReturn.current.scroll = window.scrollY;
++    setView(next);
++    window.scrollTo(0, 0);
++  }
++  function backToDetail() {
++    detailPageReturn.current.restore = true;
++    setView("detail");
++  }
+@@ -271,0 +323 @@ export function LibraryApp({
++    detailPageReturn.current = { scroll: 0, restore: false };
+@@ -311,2 +363,2 @@ export function LibraryApp({
+-    setView("detail");
+-    window.scrollTo(0, 0);
++    if (selected) backToDetail();
++    else { setView("detail"); window.scrollTo(0, 0); }
+@@ -382,0 +435,4 @@ export function LibraryApp({
++      // Native dispatch targets window itself. Chromium invokes at-target
++      // listeners in registration order, even with capture=true. Defer to the
++      // currently mounted sheet without consuming its event or closing its page.
++      if (document.querySelector(".v2-portal .v2-sheet")) return;
+@@ -411,2 +467,2 @@ export function LibraryApp({
+-      if (view === "detail") setView(returnView);
+-      else if (view === "changes") setView("detail");
++      if (view === "detail") backToList();
++      else if (view === "changes") backToDetail();
+@@ -423 +479 @@ export function LibraryApp({
+-  }, [view, returnView, backupState, viewer,fromAiSettings,fromLinkSettings,fromFindSettings,intakeState.draft,intakeState.phase]);
++  }, [view, returnView, backToList, backupState, viewer,fromAiSettings,fromLinkSettings,fromFindSettings,intakeState.draft,intakeState.phase]);
+@@ -425,2 +481,3 @@ export function LibraryApp({
+-    <div className="mx-auto min-h-dvh max-w-3xl px-4 pb-28 pt-5 sm:px-8">
+-      <header className="mb-7 flex items-center justify-between gap-4">
++    <V2AppearanceProvider theme="warm-ivory" solid={false}>
++    <div ref={rootRef} className={isCore ? "recipio-ui-v2 v2-production" : "mx-auto min-h-dvh max-w-3xl px-4 pb-28 pt-5 sm:px-8"} data-v2-theme={isCore ? "warm-ivory" : undefined}>
++      {!isCore && <header className="mb-7 flex items-center justify-between gap-4">
+@@ -436,16 +493 @@ export function LibraryApp({
+-        {(view === "home" || view === "library") && (
+-          <Button
+-            size="icon"
+-            className="h-11 w-11"
+-            aria-label="新增菜谱"
+-            disabled={busy||backupBusy(backupState)||backupState.phase==="uncertain"}
+-            onClick={() => {
+-              setSelected(null);
+-              setReturnView(view);
+-              setAddOpen(true);
+-            }}
+-          >
+-            <Plus size={22} />
+-          </Button>
+-        )}
+-      </header>
++      </header>}
+@@ -465 +507,6 @@ export function LibraryApp({
+-      <Dialog open={addOpen} onOpenChange={setAddOpen}><DialogContent><DialogTitle>添加菜谱</DialogTitle><DialogDescription>手动记录始终可离线使用；AI 整理和网页读取是可选联网能力。</DialogDescription><div className="grid gap-3"><Button className="min-h-11" disabled={busy} onClick={()=>{setAddOpen(false);setView("new");}}>手动录入</Button><Button className="min-h-11" variant="outline" disabled={busy} onClick={()=>{setAddOpen(false);setView("ai-input");}}>AI 整理</Button><Button className="min-h-11" variant="outline" disabled={busy} onClick={()=>void openLinkImport()}>从网页链接导入</Button><Button className="min-h-11" variant="outline" disabled={busy} onClick={()=>void openFinder()}>帮我找做法</Button></div></DialogContent></Dialog>
++      <NativeV2Sheet open={addOpen} onOpenChange={setAddOpen} title="添加菜谱" description="手动记录始终可离线使用；AI 整理和网页读取是可选联网能力。"><div className="v2-action-list">
++        <V2Button variant="text" disabled={busy} onClick={()=>{setAddOpen(false);setView("new");}}>手动录入</V2Button>
++        <V2Button variant="text" disabled={busy} aria-label="AI 整理" onClick={()=>{setAddOpen(false);setView("ai-input");}}>文字／截图 AI 整理</V2Button>
++        <V2Button variant="text" disabled={busy} onClick={()=>void openLinkImport()}>从网页链接导入</V2Button>
++        <V2Button variant="text" disabled={busy} onClick={()=>void openFinder()}>帮我找做法</V2Button>
++      </div></NativeV2Sheet>
+@@ -483,0 +531 @@ export function LibraryApp({
++          appearance="v2"
+@@ -487 +535 @@ export function LibraryApp({
+-          onCancel={() => setView(selected ? "detail" : returnView)}
++          onCancel={() => selected ? backToDetail() : setView(returnView)}
+@@ -493 +541 @@ export function LibraryApp({
+-          onBack={() => setView("detail")}
++          onBack={backToDetail}
+@@ -509 +557 @@ export function LibraryApp({
+-          onBack={() => setView("detail")}
++          onBack={backToDetail}
+@@ -516 +564 @@ export function LibraryApp({
+-              if (!lock.current) setView("edit");
++              openDetailPage("edit");
+@@ -519 +567 @@ export function LibraryApp({
+-              if (!lock.current) setView(returnView);
++              backToList();
+@@ -525,0 +574,5 @@ export function LibraryApp({
++            onChanges={() => openDetailPage("changes")}
++            overview={<CookingOverview
++              recipeId={selected.id} store={store} revision={revision} disabled={busy}
++              onHistory={() => openDetailPage("history")}
++            />}
+@@ -527,19 +579,0 @@ export function LibraryApp({
+-          <CookingOverview
+-            recipeId={selected.id}
+-            store={store}
+-            revision={revision}
+-            disabled={busy}
+-            onHistory={() => {
+-              if (!lock.current) setView("history");
+-            }}
+-          />
+-          <Button
+-            variant="outline"
+-            className="mt-5 min-h-11"
+-            disabled={busy}
+-            onClick={() => {
+-              if (!lock.current) setView("changes");
+-            }}
+-          >
+-            查看修改记录
+-          </Button>
+@@ -571,120 +605,6 @@ export function LibraryApp({
+-        <>
+-          <h2 className="mb-4 text-2xl font-semibold">
+-            {view === "home" ? "今天想做什么？" : "我的菜谱"}
+-          </h2>
+-          <label className="block">
+-            <span className="sr-only">搜索菜名或食材</span>
+-            <Input
+-              className="min-h-12"
+-              placeholder="搜索菜名或食材"
+-              value={search}
+-              onChange={(e) => {
+-                setSearch(e.target.value);
+-                setPage(0);
+-              }}
+-            />
+-          </label>
+-          {view==="home"&&search.trim()&&<Button className="mt-3 min-h-11 max-w-full whitespace-normal" variant="outline" disabled={busy} onClick={()=>void openFinder(search.trim())}>帮我找『{search.trim()}』的做法</Button>}
+-          {view === "library" && (
+-            <label className="mt-4 flex items-center gap-3 text-sm">
+-              耗时筛选
+-              <select
+-                aria-label="耗时筛选"
+-                className="min-h-11 rounded-lg border bg-background px-3"
+-                value={filter}
+-                onChange={(e) => {
+-                  setFilter(e.target.value as DurationFilter);
+-                  setPage(0);
+-                }}
+-              >
+-                <option value="all">全部</option>
+-                <option value="short">30 分钟内</option>
+-                <option value="medium">超过 30 至 60 分钟</option>
+-                <option value="long">超过 60 分钟</option>
+-              </select>
+-            </label>
+-          )}
+-          <h3 className="mb-4 mt-6 text-sm text-muted-foreground">
+-            {search ? "搜索结果" : view === "home" ? "最近加入" : "全部菜谱"}
+-          </h3>
+-          {loading && !records.length ? (
+-            <p role="status">正在读取本地菜谱…</p>
+-          ) : !records.length ? (
+-            <section className="rounded-2xl border border-dashed px-5 py-12 text-center">
+-              <BookOpen className="mx-auto mb-4 text-muted-foreground" />
+-              <p>
+-                {search || filter !== "all"
+-                  ? "没有符合条件的菜谱"
+-                  : "先记下第一道想做的菜"}
+-              </p>
+-              <p className="mt-2 text-sm text-muted-foreground">
+-                只记菜名也可以，以后再完善。
+-              </p>
+-              <Button
+-                variant="outline"
+-                className="mt-5"
+-                onClick={() => {
+-                  setSelected(null);
+-                  setView("new");
+-                }}
+-              >
+-                记下一个菜名
+-              </Button>
+-            </section>
+-          ) : (
+-            <ul className="grid gap-4 sm:grid-cols-2">
+-              {records.map((r) => (
+-                <li
+-                  key={r.id}
+-                  className="overflow-hidden rounded-2xl border bg-card"
+-                >
+-                  <button
+-                    className="block w-full text-left disabled:opacity-60"
+-                    aria-label={`打开 ${r.title}`}
+-                    disabled={busy}
+-                    onClick={() => void open(r.id)}
+-                  >
+-                    <LocalImage
+-                      path={r.coverPath}
+-                      alt={`${r.title} 封面`}
+-                      className="h-40 w-full object-cover"
+-                    />
+-                    <div className="p-4">
+-                      <p className="break-words font-semibold">{r.title}</p>
+-                      <p className="mt-2 text-sm text-muted-foreground">
+-                        {r.totalMinutes == null
+-                          ? "耗时未记录"
+-                          : `${r.totalMinutes} 分钟`}
+-                        {view === "home" && r.caloriesPerServing != null
+-                          ? ` · 约 ${r.caloriesPerServing} kcal/份`
+-                          : ""}
+-                      </p>
+-                      {view === "home" && r.preparationHint && (
+-                        <p className="mt-3 line-clamp-2 text-xs text-muted-foreground">
+-                          提前准备：{r.preparationHint}
+-                        </p>
+-                      )}
+-                      {view === "home" && r.lastCookedAt && (
+-                        <p className="mt-3 text-xs text-muted-foreground">
+-                          上次做过：{new Date(r.lastCookedAt).toLocaleString()}
+-                        </p>
+-                      )}
+-                    </div>
+-                  </button>
+-                </li>
+-              ))}
+-            </ul>
+-          )}
+-          <div className="mt-5 flex gap-3">
+-            {page > 0 && (
+-              <Button variant="outline" onClick={() => setPage((n) => n - 1)}>
+-                上一页
+-              </Button>
+-            )}
+-            {records.length === 100 && (
+-              <Button variant="outline" onClick={() => setPage((n) => n + 1)}>
+-                下一页
+-              </Button>
+-            )}
+-          </div>
+-        </>
++        <CoreLibraryScreen records={records} library={view === "library"} query={search} filter={filter}
++          loading={loading} busy={busy || backupBusy(backupState) || backupState.phase === "uncertain"} page={page}
++          onQuery={value => { setSearch(value); setPage(0); }} onFilter={value => { setFilter(value); setPage(0); }}
++          onPage={setPage} onOpen={id => void open(id)} onLibrary={() => void navigate("library")}
++          onAdd={() => { setSelected(null); setReturnView(view === "library" ? "library" : "home"); setAddOpen(true); }}
++          onFind={dish => void openFinder(dish)} />
+@@ -728 +648 @@ export function LibraryApp({
+-      {view !== "new" && view !== "edit" && view !== "completion" && view!=="ai-input" && view!=="ai-preview" && view!=="link-input" && view!=="find-input" && !fromAiSettings && !fromLinkSettings && !fromFindSettings && (
++      {isRoot && (
+@@ -731 +651,2 @@ export function LibraryApp({
+-          className="fixed inset-x-0 bottom-0 z-10 border-t bg-background/95 pb-[env(safe-area-inset-bottom)]"
++          className="recipio-ui-v2 v2-nav-area v2-production-nav"
++          ref={navigationRef}
+@@ -733 +654 @@ export function LibraryApp({
+-          <div className="mx-auto grid max-w-3xl grid-cols-3">
++          <div className="v2-bottom-nav v2-glass">
+@@ -748,0 +670 @@ export function LibraryApp({
++                aria-label={item.label}
+@@ -750 +671,0 @@ export function LibraryApp({
+-                className={`flex min-h-16 flex-col items-center justify-center gap-1 text-xs ${view === item.key ? "bg-muted font-semibold" : "text-muted-foreground"}`}
+@@ -752,2 +673,2 @@ export function LibraryApp({
+-                <item.icon size={21} />
+-                {item.label}
++                <item.icon aria-hidden="true" />
++                {item.key === "library" ? "菜谱" : item.label}
+@@ -759,0 +681 @@ export function LibraryApp({
++    </V2AppearanceProvider>
+diff --git a/src/native/main.tsx b/src/native/main.tsx
+index 6dbadc3..d819c84 100644
+--- a/src/native/main.tsx
++++ b/src/native/main.tsx
+@@ -3,0 +4 @@ import "./styles.css";
++import "./ui-v2/production.css";
+diff --git a/src/native/ui-v2/appearance.tsx b/src/native/ui-v2/appearance.tsx
+index 754659e..6545d55 100644
+--- a/src/native/ui-v2/appearance.tsx
++++ b/src/native/ui-v2/appearance.tsx
+@@ -17 +17 @@ const AppearanceContext = createContext<Appearance>({ theme: "warm-ivory", solid
+-/** Sample-only context; carries presentation through React portals, never persistence. */
++/** Presentation-only context shared by core UI and showcase; never persistence. */
+diff --git a/src/native/ui-v2/layout.css b/src/native/ui-v2/layout.css
+new file mode 100644
+index 0000000..8560e6d
+--- /dev/null
++++ b/src/native/ui-v2/layout.css
+@@ -0,0 +1,126 @@
++/* Accepted G1 layout shared by showcase and production core screens. */
++.recipio-ui-v2 .v2-home { width: 100%; max-width: 680px; padding: 0 20px calc(var(--v2-controls-height,0px) + 28px); margin-inline: auto; scroll-padding-bottom: calc(var(--v2-controls-height,0px) + 24px); }
++.recipio-ui-v2 .v2-home-controls.v2-glass { position: sticky; top: 0; z-index: 1; margin-inline: -20px; padding: 12px 20px; border-bottom: 1px solid var(--v2-glass-low-edge); border-radius: 0; box-shadow: inset 0 -1px 0 var(--v2-glass-edge); }
++.recipio-ui-v2 .v2-home-header { display: flex; align-items: center; justify-content: space-between; gap: 16px; min-height: 48px; margin-bottom: 12px; }
++.recipio-ui-v2 .v2-home-header > .v2-button { border: 1px solid var(--v2-border); flex: 0 0 48px; }
++.recipio-ui-v2 .v2-brand { display: flex; align-items: center; gap: 12px; }
++.recipio-ui-v2 .v2-brand img { width: 36px; height: 36px; flex-shrink: 0; border-radius: 9px; }
++.recipio-ui-v2 .v2-brand h1 { font-size: 1.375rem; font-weight: 600; line-height: 1.33; letter-spacing: .05em; }
++.recipio-ui-v2 .v2-brand span { display: block; font-size: .625rem; letter-spacing: .28em; line-height: 1.6; }
++.recipio-ui-v2 .v2-page-title { font-size: 1.75rem; font-weight: 600; line-height: 1.28; overflow-wrap: anywhere; }
++.recipio-ui-v2 .v2-search { display: flex; align-items: center; min-height: 52px; padding: 0 12px 0 16px; gap: 10px; background: var(--v2-field-shield); border: 1px solid var(--v2-control); border-radius: 18px; box-shadow: inset 0 1px 0 var(--v2-glass-edge); }
++.recipio-ui-v2 .v2-search > svg { flex: 0 0 20px; height: 20px; color: var(--v2-caption); stroke-width: 1.6; }
++.recipio-ui-v2 .v2-search input { width: 100%; min-width: 0; min-height: 50px; border: 0; padding: 8px 0; background: transparent; outline-offset: 3px; font-size: 1rem; }
++.recipio-ui-v2 .v2-search input::placeholder { color: var(--v2-caption); }
++.recipio-ui-v2 .v2-search input::-webkit-search-cancel-button { display: none; }
++.recipio-ui-v2 .v2-search .v2-button { flex: 0 0 48px; margin-right: -10px; background: transparent; }
++.recipio-ui-v2 .v2-entry-grid { display: grid; grid-template-columns: 1.15fr 1fr; gap: 8px; margin-top: 16px; }
++.recipio-ui-v2 .v2-entry-card { display: grid; grid-template-columns: 24px minmax(0,1fr); align-items: center; min-width: 0; min-height: 64px; gap: 10px; padding: 12px 10px; background: transparent; border: 1px solid transparent; border-radius: 18px; text-align: left; cursor: pointer; transition: background 120ms var(--v2-ease); }
++.recipio-ui-v2 .v2-entry-card--primary { background: var(--v2-soft); }
++.recipio-ui-v2 .v2-entry-card:active { background: var(--v2-muted); }
++.recipio-ui-v2 .v2-entry-symbol { width: 24px; height: 24px; display: grid; place-items: center; color: var(--v2-action); }
++.recipio-ui-v2 .v2-entry-symbol svg { width: 22px; height: 22px; stroke-width: 1.6; }
++.recipio-ui-v2 .v2-entry-copy { display: flex; flex-direction: column; gap: 4px; color: var(--v2-secondary); font-size: .75rem; line-height: 1.5; }
++.recipio-ui-v2 .v2-entry-card strong { color: var(--v2-text); font-size: 1rem; line-height: 1.5; font-weight: 600; overflow-wrap: anywhere; }
++.recipio-ui-v2 .v2-section { margin-top: 24px; }
++.recipio-ui-v2 .v2-section-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 12px; }
++.recipio-ui-v2 .v2-section-heading h2, .recipio-ui-v2 .v2-content-section > h2 { font-size: 1.25rem; line-height: 1.4; font-weight: 600; }
++.recipio-ui-v2 .v2-section-heading .v2-button { font-size: .875rem; font-weight: 400; color: var(--v2-secondary); padding-inline: 0; flex-shrink: 0; }
++.recipio-ui-v2 .v2-section-heading .v2-button svg { width: 16px; height: 16px; }
++.recipio-ui-v2 .v2-recent-strip { display: flex; gap: 12px; overflow-x: auto; scroll-snap-type: x proximity; padding-bottom: 8px; scrollbar-width: none; }
++.recipio-ui-v2 .v2-recent-card { flex: 0 0 152px; min-width: 0; padding: 0; display: flex; flex-direction: column; gap: 4px; background: transparent; border: 0; text-align: left; cursor: pointer; scroll-snap-align: start; }
++.recipio-ui-v2 .v2-recent-card > img, .recipio-ui-v2 .v2-recent-card > .v2-image-placeholder { width: 100%; height: 114px; border-radius: 18px; object-fit: cover; font-size: .75rem; flex-wrap: wrap; }
++.recipio-ui-v2 .v2-recent-title { font-size: 1rem; line-height: 1.5; font-weight: 500; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; overflow-wrap: anywhere; }
++.recipio-ui-v2 .v2-recent-card > .v2-secondary { font-size: .75rem; line-height: 1.5; }
++.recipio-ui-v2 .v2-recipe-list { display: flex; flex-direction: column; }
++.recipio-ui-v2 .v2-recipe-row { display: grid; grid-template-columns: 72px minmax(0,1fr) 18px; align-items: center; gap: 12px; width: 100%; min-height: 96px; padding: 12px 0; border: 0; border-bottom: 1px solid var(--v2-border); background: transparent; text-align: left; cursor: pointer; }
++.recipio-ui-v2 .v2-recipe-row:active { background: var(--v2-muted); }
++.recipio-ui-v2 .v2-recipe-row > img, .recipio-ui-v2 .v2-recipe-row > .v2-image-placeholder { width: 72px; height: 72px; object-fit: cover; border-radius: 14px; font-size: .625rem; flex-direction: column; gap: 4px; }
++.recipio-ui-v2 .v2-row-text { min-width: 0; display: flex; flex-direction: column; gap: 5px; }
++.recipio-ui-v2 .v2-row-text strong { font-size: 1rem; font-weight: 500; line-height: 1.5; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; overflow-wrap: anywhere; }
++.recipio-ui-v2 .v2-recipe-row > svg { width: 18px; height: 18px; color: var(--v2-caption); }
++.recipio-ui-v2 .v2-filters { display: flex; gap: 8px; margin-top: 16px; padding: 3px 0; overflow-x: auto; scrollbar-width: none; }
++.recipio-ui-v2 .v2-filters .v2-button { border-radius: 999px; padding: 8px 14px; font-size: .875rem; font-weight: 400; white-space: nowrap; }
++.recipio-ui-v2 .v2-empty { display: flex; flex-direction: column; align-items: flex-start; gap: 16px; padding-block: 32px; }
++.recipio-ui-v2 .v2-empty > svg { color: var(--v2-sage); width: 32px; height: 32px; stroke-width: 1.4; }
++.recipio-ui-v2 .v2-empty h2 { font-size: 1.25rem; font-weight: 600; }
++.recipio-ui-v2 .v2-nav-area { grid-area: 2/1; align-self: end; position: relative; padding: 8px 16px max(12px,env(safe-area-inset-bottom)); pointer-events: none; }
++.recipio-ui-v2 .v2-bottom-nav { pointer-events: auto; min-height: 60px; width: min(100%,648px); margin-inline: auto; padding: 4px; display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); border: 1px solid var(--v2-glass-low-edge); border-radius: 24px; }
++.recipio-ui-v2 .v2-glass { background: var(--v2-glass); backdrop-filter: var(--v2-glass-blur); -webkit-backdrop-filter: var(--v2-glass-blur); box-shadow: inset 0 1px 0 var(--v2-glass-edge), inset 0 -1px 0 var(--v2-glass-low-edge), var(--v2-shadow); }
++.recipio-ui-v2 .v2-bottom-nav button { min-height: 50px; min-width: 0; padding: 4px 8px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; background: transparent; border: 0; border-radius: 20px; color: var(--v2-text); cursor: pointer; font-size: .75rem; line-height: 1.5; }
++.recipio-ui-v2 .v2-bottom-nav button svg { width: 22px; height: 22px; stroke-width: 1.65; }
++.recipio-ui-v2 .v2-bottom-nav button[aria-current="page"] { color: var(--v2-action); background: var(--v2-soft); font-weight: 600; }
++.recipio-ui-v2 .v2-detail { height: 100%; min-height: 0; display: grid; grid-template-rows: minmax(0,1fr); width: 100%; max-width: 680px; margin-inline: auto; background: var(--v2-surface); }
++.recipio-ui-v2 .v2-detail-scroll { grid-area: 1/1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin; padding-bottom: calc(var(--v2-controls-height,112px) + 24px); scroll-padding-bottom: calc(var(--v2-controls-height,112px) + 24px); }
++.recipio-ui-v2 .v2-detail-hero { position: relative; }
++.recipio-ui-v2 .v2-cover-button { display: block; width: 100%; padding: 0; border: 0; background: transparent; cursor: zoom-in; }
++.recipio-ui-v2 .v2-cover { display: flex; width: 100%; height: auto; aspect-ratio: 4/3; object-fit: cover; }
++.recipio-ui-v2 .v2-detail-navigation { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 16px; }
++.recipio-ui-v2 .v2-detail-hero > .v2-detail-navigation { position: absolute; inset: 0 0 auto; pointer-events: none; }
++.recipio-ui-v2 .v2-detail-navigation .v2-button { pointer-events: auto; border: 1px solid var(--v2-glass-edge); background: var(--v2-glass); backdrop-filter: var(--v2-glass-blur); -webkit-backdrop-filter: var(--v2-glass-blur); box-shadow: inset 0 1px 0 var(--v2-glass-edge), var(--v2-shadow); }
++.recipio-ui-v2 .v2-detail-body { position: relative; padding: 20px 20px 32px; background: var(--v2-surface); }
++.recipio-ui-v2 .v2-detail-body--overlap { margin-top: -12px; border-radius: 24px 24px 0 0; }
++.recipio-ui-v2 .v2-detail-title { font-size: 1.875rem; font-weight: 600; line-height: 1.333; letter-spacing: -.025em; overflow-wrap: anywhere; }
++.recipio-ui-v2 .v2-meta { display: flex; flex-wrap: wrap; gap: 12px 16px; margin-top: 12px; padding-block: 0; }
++.recipio-ui-v2 .v2-meta > div { flex: 1 1 auto; display: grid; grid-template-columns: 18px max-content; column-gap: 6px; align-content: start; min-width: 0; }
++.recipio-ui-v2 .v2-meta svg { grid-row: span 2; width: 18px; height: 18px; stroke-width: 1.6; margin-top: 3px; color: var(--v2-secondary); }
++.recipio-ui-v2 .v2-meta dt { font-size: .75rem; line-height: 1.5; color: var(--v2-secondary); }
++.recipio-ui-v2 .v2-meta dd { font-size: .875rem; line-height: 1.57; overflow-wrap: anywhere; }
++.recipio-ui-v2 .v2-meta .v2-meta-calories dd { font-size: .75rem; line-height: 1.83; color: var(--v2-secondary); }
++.recipio-ui-v2 .v2-content-section { margin-top: 32px; }
++.recipio-ui-v2 .v2-content-section > h2 { margin-bottom: 12px; }
++.recipio-ui-v2 .v2-detail-body > header + .v2-content-section { margin-top: 24px; }
++.recipio-ui-v2 .v2-preparation-list { list-style: none; padding: 0; display: flex; flex-direction: column; gap: 14px; }
++.recipio-ui-v2 .v2-preparation-list > li { display: flex; align-items: baseline; gap: 10px; }
++.recipio-ui-v2 .v2-preparation-list > li > span { width: 22px; height: 22px; display: inline-grid; place-items: center; background: var(--v2-soft); color: var(--v2-action); font-size: .75rem; border-radius: 50%; flex-shrink: 0; }
++.recipio-ui-v2 .v2-callout { display: flex; align-items: flex-start; gap: 12px; padding: 16px; border-radius: 18px; background: var(--v2-warning-surface); color: var(--v2-warning); font-size: .875rem; line-height: 1.57; }
++.recipio-ui-v2 .v2-callout > svg { width: 20px; height: 20px; flex: 0 0 20px; margin-top: 2px; }
++.recipio-ui-v2 .v2-step-list { list-style: none; padding: 0; }
++.recipio-ui-v2 .v2-step-list > li { display: grid; grid-template-columns: 1.75rem minmax(0,1fr); gap: 12px; margin-bottom: 28px; }
++.recipio-ui-v2 .v2-step-number { font-size: 1rem; font-weight: 500; color: var(--v2-action); line-height: 48px; font-variant-numeric: tabular-nums; }
++.recipio-ui-v2 .v2-step-heading { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 4px 8px; min-height: 48px; }
++.recipio-ui-v2 .v2-step-heading h3 { font-size: 1.125rem; font-weight: 500; }
++.recipio-ui-v2 .v2-step-heading .v2-button { font-size: .75rem; padding: 8px 0; font-weight: 400; }
++.recipio-ui-v2 .v2-step-heading .v2-button svg { width: 16px; height: 16px; }
++.recipio-ui-v2 .v2-step-list p { white-space: pre-wrap; overflow-wrap: anywhere; line-height: 1.625; }
++.recipio-ui-v2 .v2-step-image-button { display: block; width: 100%; min-height: 48px; padding: 0; border: 0; border-radius: 18px; background: transparent; cursor: zoom-in; margin-top: 16px; }
++.recipio-ui-v2 .v2-step-image { display: block; width: 100%; height: auto; border-radius: 18px; }
++.recipio-ui-v2 .v2-notes { display: flex; align-items: flex-start; gap: 10px; white-space: pre-wrap; overflow-wrap: anywhere; }
++.recipio-ui-v2 .v2-notes svg { flex: 0 0 18px; width: 18px; height: 18px; margin-top: 5px; color: var(--v2-secondary); }
++.recipio-ui-v2 .v2-bottom-actions { grid-area: 1/1; align-self: end; position: relative; margin: 12px 16px max(12px,env(safe-area-inset-bottom)); padding: 8px; display: flex; flex-wrap: wrap; gap: 10px; border: 1px solid var(--v2-glass-low-edge); border-radius: 24px; }
++.recipio-ui-v2 .v2-bottom-actions > .v2-button { flex: 1 1 auto; }
++.recipio-ui-v2 .v2-bottom-actions > .v2-button { border-radius: 16px; }
++.recipio-ui-v2 .v2-bottom-actions > .v2-button--text { flex-grow: 0; padding-inline: 16px; color: var(--v2-text); font-weight: 500; }
++.recipio-ui-v2 .v2-action-list { display: flex; flex-direction: column; gap: 4px; }
++.recipio-ui-v2 .v2-action-list > button:not(.v2-button) { display: grid; grid-template-columns: 22px minmax(0,1fr) 20px; align-items: center; gap: 16px; min-height: 76px; padding: 12px 0; text-align: left; border: 0; background: transparent; border-bottom: 1px solid var(--v2-border); cursor: pointer; }
++.recipio-ui-v2 .v2-action-list > button > svg { width: 22px; height: 22px; stroke-width: 1.6; color: var(--v2-action); }
++.recipio-ui-v2 .v2-action-list > button > span { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
++.recipio-ui-v2 .v2-action-list strong { font-size: 1rem; font-weight: 500; }
++.recipio-ui-v2 .v2-dialog-dismiss { width: 100%; margin-top: 24px; }
++.recipio-ui-v2 .v2-large-image { display: block; width: 100%; height: auto; border-radius: 18px; }
++.recipio-ui-v2.v2-cooking { width: 100%; max-width: 680px; height: 100%; min-height: 0; margin-inline: auto; display: grid; grid-template-rows: auto minmax(0,1fr); background: var(--v2-cook); }
++.recipio-ui-v2 .v2-cook-header { grid-area: 1/1; padding: 12px 20px 18px; }
++.recipio-ui-v2 .v2-cook-toolbar { display: grid; grid-template-columns: 48px minmax(0,1fr) 48px; align-items: center; gap: 12px; padding: 5px; border: 1px solid var(--v2-glass-edge); border-radius: 999px; }
++.recipio-ui-v2 .v2-cook-toolbar p { text-align: center; font-size: 1rem; font-weight: 500; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; overflow-wrap: anywhere; }
++.recipio-ui-v2 .v2-cook-toolbar .v2-button { background: transparent; }
++.recipio-ui-v2 .v2-cook-progress { display: flex; align-items: center; gap: 16px; padding-top: 20px; }
++.recipio-ui-v2 .v2-cook-progress progress { appearance: none; height: 4px; border: 0; border-radius: 999px; width: 100%; min-width: 32px; background: var(--v2-cook-track); color: var(--v2-cook-focus); }
++.recipio-ui-v2 .v2-cook-progress progress::-webkit-progress-bar { background: var(--v2-cook-track); border-radius: 999px; }
++.recipio-ui-v2 .v2-cook-progress progress::-webkit-progress-value { background: var(--v2-cook-focus); border-radius: 999px; }
++.recipio-ui-v2 .v2-cook-progress progress::-moz-progress-bar { background: var(--v2-cook-focus); border-radius: 999px; }
++.recipio-ui-v2 .v2-cook-progress span { font-size: .75rem; color: var(--v2-secondary); flex-shrink: 0; }
++.recipio-ui-v2 .v2-cook-scroll { grid-area: 2/1; min-height: 0; overflow-y: auto; padding: 20px 24px calc(var(--v2-controls-height,112px) + 32px); scroll-padding-bottom: calc(var(--v2-controls-height,112px) + 24px); overscroll-behavior: contain; }
++.recipio-ui-v2 .v2-cook-scroll .v2-cook-step-label { font-size: 1rem; font-weight: 400; line-height: 1.5; color: var(--v2-cook-secondary); margin-bottom: 12px; }
++.recipio-ui-v2 .v2-cook-instruction { max-width: 32ch; font-size: 1.25rem; line-height: 1.7; white-space: pre-wrap; overflow-wrap: anywhere; }
++.recipio-ui-v2 .v2-cook-image-button { margin-top: 28px; margin-bottom: 20px; border-radius: 24px; }
++.recipio-ui-v2 .v2-cook-image { display: block; width: 100%; height: auto; min-height: min(50dvh,420px); border-radius: 24px; object-fit: cover; }
++.recipio-ui-v2 .v2-cook-tip { margin-top: 24px; border-left: 2px solid var(--v2-cook-focus); padding: 12px 16px; color: var(--v2-cook-tip-text); background: var(--v2-cook-tip); border-radius: 0 14px 14px 0; font-size: .875rem; }
++.recipio-ui-v2 .v2-cook-tip strong { display: block; margin-bottom: 8px; font-weight: 500; }
++.recipio-ui-v2 .v2-cook-footer { grid-area: 2/1; align-self: end; position: relative; margin: 12px 16px max(12px,env(safe-area-inset-bottom)); display: flex; flex-wrap: wrap; gap: 10px; padding: 8px; border: 1px solid var(--v2-glass-low-edge); border-radius: 24px; }
++.recipio-ui-v2 .v2-cook-footer > .v2-button { flex: 1 1 auto; }
++.recipio-ui-v2 .v2-cook-footer > .v2-button { border-radius: 16px; }
++.recipio-ui-v2 .v2-cook-footer .v2-button--text { flex-grow: 0; padding-inline: 12px; background: transparent; color: var(--v2-text); font-weight: 500; }
++.recipio-ui-v2 .v2-cook-footer .v2-button:disabled { background: var(--v2-cook-muted); color: var(--v2-cook-secondary); border-color: var(--v2-cook-track); }
++.recipio-ui-v2 .v2-cook-notice { margin-top: 24px; color: var(--v2-cook-focus); }
++@media (min-width:600px) { .recipio-ui-v2 .v2-home { padding-inline: 24px; } .recipio-ui-v2 .v2-home-controls.v2-glass { margin-inline: -24px; padding-inline: 24px; } }
++@media (max-width:359px) { .recipio-ui-v2 .v2-home, .recipio-ui-v2 .v2-detail-body { padding-inline: 16px; } .recipio-ui-v2 .v2-home-controls.v2-glass { margin-inline: -16px; padding-inline: 16px; } .recipio-ui-v2 .v2-entry-grid { grid-template-columns: 1fr; gap: 4px; } .recipio-ui-v2 .v2-recent-card { flex-basis: 136px; } .recipio-ui-v2 .v2-recent-card > img, .recipio-ui-v2 .v2-recent-card > .v2-image-placeholder { height: 102px; } .recipio-ui-v2 .v2-meta > div { flex-basis: 120px; } .recipio-ui-v2 .v2-cook-progress { flex-wrap: wrap; } .recipio-ui-v2 .v2-cook-scroll { padding-inline: 20px; } }
+diff --git a/src/native/ui-v2/library-screens.tsx b/src/native/ui-v2/library-screens.tsx
+new file mode 100644
+index 0000000..d650e3f
+--- /dev/null
++++ b/src/native/ui-v2/library-screens.tsx
+@@ -0,0 +1,82 @@
++import { BookOpen, ChevronRight, Plus, Search, Sparkles, X } from "lucide-react";
++import type { DurationFilter, RecipeListItem } from "../recipe-model";
++import { LocalImage } from "../local-image";
++import { V2Button } from "./components";
++
++/** Real paginated rows only. Querying, ordering and navigation stay in LibraryApp. */
++export function CoreLibraryScreen({ records, library, query, filter, loading, busy, page,
++  onQuery, onFilter, onPage, onOpen, onAdd, onFind, onLibrary,
++}: {
++  records: readonly RecipeListItem[]; library: boolean; query: string;
++  filter: DurationFilter; loading: boolean; busy: boolean; page: number;
++  onQuery: (query: string) => void; onFilter: (filter: DurationFilter) => void;
++  onPage: (page: number) => void; onOpen: (id: string) => void; onAdd: () => void;
++  onFind: (dish?: string) => void; onLibrary: () => void;
++}) {
++  const searching = query.trim().length > 0;
++  return <main className="v2-home" aria-label={library ? "我的菜谱" : "首页"}>
++    <div className="v2-home-controls v2-glass">
++      <header className="v2-home-header">
++        {library ? <h1 className="v2-page-title">我的菜谱</h1> : <div className="v2-brand">
++          <img src="./icon.png" alt="" width="36" height="36" />
++          <div><h1>谱序</h1><span>RECIPIO</span></div>
++        </div>}
++        <V2Button variant="icon" aria-label="新增菜谱" disabled={busy} onClick={onAdd}><Plus aria-hidden="true" /></V2Button>
++      </header>
++      <div className="v2-search"><Search aria-hidden="true" />
++        <input type="search" aria-label="搜索菜名或食材" placeholder="搜索菜名或食材" value={query}
++          onChange={event => onQuery(event.target.value)} />
++        {query ? <V2Button variant="icon" aria-label="清空搜索" onClick={event => {
++          onQuery(""); event.currentTarget.parentElement?.querySelector("input")?.focus();
++        }}><X aria-hidden="true" /></V2Button> : null}
++      </div>
++      {library ? <label className="v2-production-filter">耗时筛选
++        <select aria-label="耗时筛选" value={filter} onChange={event => onFilter(event.target.value as DurationFilter)}>
++          <option value="all">全部</option><option value="short">30 分钟内</option>
++          <option value="medium">超过 30 至 60 分钟</option><option value="long">超过 60 分钟</option>
++        </select>
++      </label> : null}
++    </div>
++    {!library && !searching ? <>
++      <div className="v2-entry-grid" role="group" aria-label="菜谱快捷操作">
++        <button className="v2-entry-card v2-entry-card--primary" disabled={busy} onClick={onAdd}>
++          <span className="v2-entry-symbol"><Plus aria-hidden="true" /></span><span className="v2-entry-copy"><strong>添加菜谱</strong><span>文字、截图或链接</span></span>
++        </button>
++        <button className="v2-entry-card v2-entry-card--secondary" disabled={busy} onClick={() => onFind()}>
++          <span className="v2-entry-symbol"><Sparkles aria-hidden="true" /></span><span className="v2-entry-copy"><strong>帮我找做法</strong><span>比较有来源的做法</span></span>
++        </button>
++      </div>
++      {records.length ? <section className="v2-section" aria-labelledby="recent-title">
++        <div className="v2-section-heading"><h2 id="recent-title">最近加入</h2><V2Button variant="text" onClick={onLibrary}>全部<ChevronRight aria-hidden="true" /></V2Button></div>
++        <div className="v2-recent-strip">{records.slice(0, 6).map(row => <button className="v2-recent-card" key={row.id}
++          aria-label={`查看最近加入的 ${row.title}`} disabled={busy} onClick={() => onOpen(row.id)}>
++          <LocalImage path={row.coverPath} alt={`${row.title} 封面`} />
++          <strong className="v2-recent-title">{row.title}</strong><span className="v2-secondary"><time dateTime={row.createdAt}>{new Date(row.createdAt).toLocaleDateString()}</time> 加入</span>
++        </button>)}</div>
++      </section> : null}
++    </> : null}
++    <section className="v2-section" aria-labelledby="library-title">
++      <div className="v2-section-heading"><h2 id="library-title">{searching ? "搜索结果" : library ? "全部菜谱" : "我的菜谱"}</h2>
++        {!library && !searching && records.length ? <V2Button variant="text" onClick={onLibrary}>查看全部<ChevronRight aria-hidden="true" /></V2Button> : null}
++      </div>
++      {loading && !records.length ? <p role="status" className="v2-secondary">正在读取本地菜谱…</p> : !records.length ? <div className="v2-empty">
++        <BookOpen aria-hidden="true" /><h3>{searching || filter !== "all" ? "没有符合条件的菜谱" : "先记下第一道想做的菜"}</h3>
++        <p className="v2-secondary">只记菜名也可以，以后再完善。</p>
++        <V2Button variant="secondary" disabled={busy} onClick={onAdd}>添加第一道菜</V2Button>
++      </div> : <ul className="v2-recipe-list">{records.map(row => <li key={row.id}>
++        <button className="v2-recipe-row" aria-label={`打开 ${row.title}`} disabled={busy} onClick={() => onOpen(row.id)}>
++          <LocalImage path={row.coverPath} alt={`${row.title} 封面`} />
++          <span className="v2-row-text"><strong>{row.title}</strong><span className="v2-secondary">{row.totalMinutes == null ? "耗时未记录" : `${row.totalMinutes} 分钟`}
++            {!library && row.preparationHint ? " · 需提前准备" : ""}</span>
++            {!library && row.lastCookedAt ? <span className="v2-secondary">上次做过：{new Date(row.lastCookedAt).toLocaleString()}</span> : null}
++          </span><ChevronRight aria-hidden="true" />
++        </button>
++      </li>)}</ul>}
++      {!library && searching ? <V2Button className="v2-search-find" variant="secondary" disabled={busy} onClick={() => onFind(query.trim())}>帮我找『{query.trim()}』的做法</V2Button> : null}
++      <div className="v2-pagination">
++        {page > 0 ? <V2Button variant="secondary" disabled={busy || loading} onClick={() => onPage(page - 1)}>上一页</V2Button> : null}
++        {records.length === 100 ? <V2Button variant="secondary" disabled={busy || loading} onClick={() => onPage(page + 1)}>下一页</V2Button> : null}
++      </div>
++    </section>
++  </main>;
++}
+diff --git a/src/native/ui-v2/native-sheet.tsx b/src/native/ui-v2/native-sheet.tsx
+new file mode 100644
+index 0000000..5c4fcce
+--- /dev/null
++++ b/src/native/ui-v2/native-sheet.tsx
+@@ -0,0 +1,18 @@
++import { useEffect, type ComponentProps } from "react";
++import { V2Sheet } from "./components";
++
++/** Existing modal owns focus; only its open state consumes the native page Back. */
++export function NativeV2Sheet(props: ComponentProps<typeof V2Sheet>) {
++  const { open, onOpenChange } = props;
++  useEffect(() => {
++    if (!open) return;
++    const back = (event: Event) => {
++      if (event.defaultPrevented) return;
++      event.preventDefault();
++      onOpenChange(false);
++    };
++    window.addEventListener("recipio:back", back, true);
++    return () => window.removeEventListener("recipio:back", back, true);
++  }, [open, onOpenChange]);
++  return <V2Sheet {...props} />;
++}
+diff --git a/src/native/ui-v2/production.css b/src/native/ui-v2/production.css
+new file mode 100644
+index 0000000..7a9df86
+--- /dev/null
++++ b/src/native/ui-v2/production.css
+@@ -0,0 +1,242 @@
++@import "./tokens.css";
++@import "./layout.css";
++
++/* Real core routes use the document scroll owner retained by LibraryApp. */
++.recipio-ui-v2.v2-production {
++  min-width: 0;
++  min-height: 100dvh;
++  margin: 0;
++  padding: env(safe-area-inset-top) 0 0;
++  background: var(--v2-canvas);
++  overflow-wrap: anywhere;
++  isolation: isolate;
++}
++#root > .recipio-ui-v2.v2-production { padding-top: env(safe-area-inset-top); }
++#root .recipio-ui-v2.v2-production button { min-height: 48px; }
++#root .recipio-ui-v2.v2-production .v2-button--primary { min-height: 52px; }
++#root .recipio-ui-v2.v2-production .v2-search input { min-height: 50px; }
++.recipio-ui-v2.v2-production .v2-home { min-height: 100dvh; }
++.v2-production main.v2-home { padding-top: 0; }
++.v2-production .v2-production-filter { display: flex; align-items: center; flex-wrap: wrap; gap: 12px; margin-top: 12px; font-size: .875rem; }
++.v2-production .v2-production-filter select { min-height: 48px; max-width: 100%; padding: 8px 12px; border: 1px solid var(--v2-control); border-radius: 16px; background: var(--v2-surface); }
++.v2-production .v2-pagination { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 20px; }
++.v2-production .v2-search-find { margin-top: 20px; }
++.v2-production .v2-recent-card > [role="img"] { width: 100%; height: 114px; border-radius: 18px; }
++.v2-production .v2-recipe-row > [role="img"] { width: 72px; height: 72px; border-radius: 14px; flex-shrink: 0; }
++.recipio-ui-v2 .v2-action-list > .v2-button { width: 100%; min-height: 64px; justify-content: flex-start; text-align: left; }
++.v2-production .v2-cover-button > [role="img"] { aspect-ratio: 4/3; width: 100%; }
++.v2-production-cooking .v2-cook-image { max-height: 65dvh; object-fit: contain; }
++.v2-production .v2-step-image, .v2-production .v2-large-image { object-fit: contain; }
++.recipio-ui-v2.v2-production .v2-nav-area,
++.recipio-ui-v2.v2-production-nav {
++  position: fixed;
++  inset: auto 0 0;
++  z-index: 10;
++  width: 100%;
++  max-width: 680px;
++  margin-inline: auto;
++}
++.recipio-ui-v2 .v2-production-detail.v2-detail {
++  --v2-controls-height: 112px;
++  display: block;
++  height: auto;
++  min-height: 100dvh;
++}
++.recipio-ui-v2 .v2-production-detail .v2-detail-scroll {
++  overflow: visible;
++  overscroll-behavior: auto;
++  padding-bottom: calc(var(--v2-controls-height,112px) + max(24px,env(safe-area-inset-bottom)) + 12px);
++  scroll-padding-bottom: calc(var(--v2-controls-height,112px) + max(24px,env(safe-area-inset-bottom)) + 12px);
++}
++.recipio-ui-v2 .v2-production-detail .v2-bottom-actions {
++  position: fixed;
++  inset: auto 0 0;
++  z-index: 10;
++  width: calc(100% - 32px);
++  max-width: 648px;
++  margin-inline: auto;
++}
++.recipio-ui-v2 .v2-production-detail .v2-detail-navigation {
++  padding-top: max(16px,env(safe-area-inset-top));
++}
++
++/* Opt-in legacy forms/history retain their value, service and event owners. */
++.recipio-ui-v2 :is(.v2-production-form,.v2-production-history) {
++  --background: var(--v2-canvas);
++  --foreground: var(--v2-text);
++  --card: var(--v2-surface);
++  --card-foreground: var(--v2-text);
++  --muted: var(--v2-muted);
++  --muted-foreground: var(--v2-secondary);
++  --primary: var(--v2-action);
++  --primary-foreground: #fff;
++  --secondary: var(--v2-soft);
++  --secondary-foreground: var(--v2-action);
++  --destructive: var(--v2-error);
++  --border: var(--v2-border);
++  --input: var(--v2-control);
++  --ring: var(--v2-focus);
++  min-width: 0;
++  color: var(--v2-text);
++}
++.recipio-ui-v2 :is(.v2-production-form,.v2-production-history:not(.v2-production-overview)) {
++  width: 100%;
++  max-width: 680px;
++  margin-inline: auto;
++  padding: 24px 20px max(32px,env(safe-area-inset-bottom));
++}
++.recipio-ui-v2 :is(.v2-production-form,.v2-production-history) :is(fieldset,label) { min-width: 0; }
++.recipio-ui-v2 :is(.v2-production-form,.v2-production-history) fieldset { min-inline-size: 0; }
++.recipio-ui-v2 :is(.v2-production-form,.v2-production-history) :is(h2,h3,p,label,time) { overflow-wrap: anywhere; }
++.recipio-ui-v2 :is(.v2-production-form,.v2-production-history) > h2,
++.recipio-ui-v2 .v2-production-form > header h2 {
++  font-size: 1.75rem;
++  line-height: 1.28;
++  font-weight: 600;
++}
++.recipio-ui-v2 .v2-production-form > header > div { flex-wrap: wrap; }
++#root .recipio-ui-v2.v2-production :is(.v2-production-form,.v2-production-history) :is([data-slot="button"],[data-slot="input"],select,input[type="file"]) { min-height: 48px; }
++#root .recipio-ui-v2 .v2-production-form .v2-form-footer {
++  z-index: 2;
++  padding-bottom: max(12px,env(safe-area-inset-bottom));
++  border-top: 1px solid var(--v2-border);
++  background: var(--v2-surface);
++}
++.recipio-ui-v2 .v2-production-form :is(.v2-form-section,.v2-form-media),
++.recipio-ui-v2 .v2-production-history.v2-production-overview {
++  padding: 0;
++  border: 0;
++  border-radius: 0;
++  background: transparent;
++}
++.recipio-ui-v2 .v2-production-form .v2-form-section { margin-top: 32px; }
++.recipio-ui-v2 .v2-production-form .v2-form-row,
++.recipio-ui-v2 .v2-production-history .v2-history-row {
++  padding: 16px 0;
++  border: 0;
++  border-bottom: 1px solid var(--v2-border);
++  border-radius: 0;
++  background: transparent;
++}
++.recipio-ui-v2 :is(.v2-production-form,.v2-production-history) [data-slot="button"] {
++  min-width: 48px;
++  min-height: 48px;
++  height: auto;
++  max-width: 100%;
++  padding: 12px 16px;
++  border-radius: var(--v2-radius-input);
++  color: var(--v2-text);
++  font-size: 1rem;
++  line-height: 1.5;
++  white-space: normal;
++  overflow-wrap: anywhere;
++  text-align: center;
++}
++.recipio-ui-v2 :is(.v2-production-form,.v2-production-history) [data-slot="button"].bg-primary {
++  background: var(--v2-action);
++  color: #fff;
++}
++.recipio-ui-v2 :is(.v2-production-form,.v2-production-history) [data-slot="button"].bg-secondary {
++  background: var(--v2-soft);
++  color: var(--v2-action);
++}
++.recipio-ui-v2 :is(.v2-production-form,.v2-production-history) [data-slot="button"].bg-background {
++  border-color: var(--v2-control);
++  background: var(--v2-surface);
++}
++.recipio-ui-v2 :is(.v2-production-form,.v2-production-history) [data-slot="button"].text-destructive {
++  background: var(--v2-error-surface);
++  color: var(--v2-error);
++}
++.recipio-ui-v2 :is(.v2-production-form,.v2-production-history) [data-slot="button"]:active:not(:disabled) { background: var(--v2-muted); }
++.recipio-ui-v2 :is(.v2-production-form,.v2-production-history) [data-slot="button"].bg-primary:active:not(:disabled) {
++  background: var(--v2-action-pressed);
++  color: #fff;
++}
++.recipio-ui-v2 :is(.v2-production-form,.v2-production-history) :is([data-slot="input"],[data-slot="textarea"],select,input[type="file"]) {
++  min-width: 0;
++  min-height: 48px;
++  height: auto;
++  max-width: 100%;
++  padding: 12px;
++  border: 1px solid var(--v2-control);
++  border-radius: var(--v2-radius-input);
++  background: var(--v2-surface);
++  color: var(--v2-text);
++  font-size: 1rem;
++  line-height: 1.5;
++}
++.recipio-ui-v2 :is(.v2-production-form,.v2-production-history) [data-slot="textarea"] {
++  min-height: 7rem;
++  resize: vertical;
++}
++.recipio-ui-v2 :is(.v2-production-form,.v2-production-history) :is([data-slot="input"],[data-slot="textarea"])::placeholder { color: var(--v2-caption); }
++.recipio-ui-v2 :is(.v2-production-form,.v2-production-history) input[type="file"]::file-selector-button {
++  min-height: 48px;
++  height: auto;
++  margin-right: 12px;
++  padding: 8px 12px;
++  border: 0;
++  border-radius: 12px;
++  background: var(--v2-soft);
++  color: var(--v2-action);
++  font: inherit;
++}
++.recipio-ui-v2 :is(.v2-production-form,.v2-production-history) :is([data-slot="button"],[data-slot="input"],[data-slot="textarea"],select):disabled {
++  background: var(--v2-muted);
++  color: var(--v2-caption);
++  border-color: var(--v2-border);
++  opacity: 1;
++}
++.recipio-ui-v2 :is(.v2-production-form,.v2-production-history) [role="alert"] {
++  padding: 16px;
++  border: 1px solid var(--v2-error);
++  border-radius: 18px;
++  background: var(--v2-error-surface);
++  color: var(--v2-error);
++}
++.recipio-ui-v2 .v2-production-history time { font-size: .875rem; line-height: 1.57; color: var(--v2-secondary); }
++.recipio-ui-v2 .v2-production-history ol { padding: 0; list-style: none; }
++
++/* The existing Base UI dialog remains the cooking portal and Back/focus owner. */
++.v2-production-cooking {
++  position: fixed;
++  inset: 0;
++  z-index: 50;
++  display: flex;
++  width: 100%;
++  max-width: none;
++  height: 100dvh;
++  max-height: none;
++  margin: 0;
++  padding: 0;
++  gap: 0;
++  overflow: hidden;
++  border: 0;
++  border-radius: 0;
++  background: var(--v2-cook,#202420);
++  transform: none;
++  translate: none;
++}
++.v2-production-cooking > .recipio-ui-v2.v2-cooking { height: 100%; }
++.recipio-ui-v2.v2-production-cooking.v2-cooking { display: grid; max-width: 680px; margin-inline: auto; }
++.v2-production-cooking .v2-cook-header { padding-top: max(12px,env(safe-area-inset-top)); }
++body:has(.v2-production,.v2-production-cooking) .recipio-ui-v2.v2-portal { z-index: 70; }
++body:has(.v2-production,.v2-production-cooking) .recipio-ui-v2.v2-portal .v2-backdrop { z-index: 70; }
++body:has(.v2-production,.v2-production-cooking) .recipio-ui-v2.v2-portal .v2-sheet { z-index: 80; }
++body:has(.v2-portal .v2-sheet,.v2-production-cooking) .v2-production :is(.v2-glass,.v2-detail-navigation .v2-button),
++body:has(.v2-portal .v2-sheet) .v2-production-cooking :is(.v2-glass,.v2-cook-toolbar) {
++  background: var(--v2-surface);
++  backdrop-filter: none;
++  -webkit-backdrop-filter: none;
++}
++@media (min-width:600px) {
++  .recipio-ui-v2 :is(.v2-production-form,.v2-production-history:not(.v2-production-overview)) { padding-inline: 24px; }
++}
++@media (max-width:479px) {
++  .recipio-ui-v2 .v2-production-form .grid.grid-cols-2 { grid-template-columns: minmax(0,1fr); }
++}
++@media (max-width:359px) {
++  .recipio-ui-v2 :is(.v2-production-form,.v2-production-history:not(.v2-production-overview)) { padding-inline: 16px; }
++  .recipio-ui-v2 .v2-production-form > header > div { width: 100%; }
++}
+diff --git a/src/native/ui-v2/showcase/styles.css b/src/native/ui-v2/showcase/styles.css
+index 3bc6c7f..8331f92 100644
+--- a/src/native/ui-v2/showcase/styles.css
++++ b/src/native/ui-v2/showcase/styles.css
+@@ -0,0 +1,2 @@
++@import "../layout.css";
++
+@@ -7,48 +8,0 @@
+-.recipio-ui-v2 .v2-home { width: 100%; max-width: 680px; padding: 0 20px calc(var(--v2-controls-height,0px) + 28px); margin-inline: auto; scroll-padding-bottom: calc(var(--v2-controls-height,0px) + 24px); }
+-.recipio-ui-v2 .v2-home-controls.v2-glass { position: sticky; top: 0; z-index: 1; margin-inline: -20px; padding: 12px 20px; border-bottom: 1px solid var(--v2-glass-low-edge); border-radius: 0; box-shadow: inset 0 -1px 0 var(--v2-glass-edge); }
+-.recipio-ui-v2 .v2-home-header { display: flex; align-items: center; justify-content: space-between; gap: 16px; min-height: 48px; margin-bottom: 12px; }
+-.recipio-ui-v2 .v2-home-header > .v2-button { border: 1px solid var(--v2-border); flex: 0 0 48px; }
+-.recipio-ui-v2 .v2-brand { display: flex; align-items: center; gap: 12px; }
+-.recipio-ui-v2 .v2-brand img { width: 36px; height: 36px; flex-shrink: 0; border-radius: 9px; }
+-.recipio-ui-v2 .v2-brand h1 { font-size: 1.375rem; font-weight: 600; line-height: 1.33; letter-spacing: .05em; }
+-.recipio-ui-v2 .v2-brand span { display: block; font-size: .625rem; letter-spacing: .28em; line-height: 1.6; }
+-.recipio-ui-v2 .v2-page-title { font-size: 1.75rem; font-weight: 600; line-height: 1.28; overflow-wrap: anywhere; }
+-.recipio-ui-v2 .v2-search { display: flex; align-items: center; min-height: 52px; padding: 0 12px 0 16px; gap: 10px; background: var(--v2-field-shield); border: 1px solid var(--v2-control); border-radius: 18px; box-shadow: inset 0 1px 0 var(--v2-glass-edge); }
+-.recipio-ui-v2 .v2-search > svg { flex: 0 0 20px; height: 20px; color: var(--v2-caption); stroke-width: 1.6; }
+-.recipio-ui-v2 .v2-search input { width: 100%; min-width: 0; min-height: 50px; border: 0; padding: 8px 0; background: transparent; outline-offset: 3px; font-size: 1rem; }
+-.recipio-ui-v2 .v2-search input::placeholder { color: var(--v2-caption); }
+-.recipio-ui-v2 .v2-search input::-webkit-search-cancel-button { display: none; }
+-.recipio-ui-v2 .v2-search .v2-button { flex: 0 0 48px; margin-right: -10px; background: transparent; }
+-.recipio-ui-v2 .v2-entry-grid { display: grid; grid-template-columns: 1.15fr 1fr; gap: 8px; margin-top: 16px; }
+-.recipio-ui-v2 .v2-entry-card { display: grid; grid-template-columns: 24px minmax(0,1fr); align-items: center; min-width: 0; min-height: 64px; gap: 10px; padding: 12px 10px; background: transparent; border: 1px solid transparent; border-radius: 18px; text-align: left; cursor: pointer; transition: background 120ms var(--v2-ease); }
+-.recipio-ui-v2 .v2-entry-card--primary { background: var(--v2-soft); }
+-.recipio-ui-v2 .v2-entry-card:active { background: var(--v2-muted); }
+-.recipio-ui-v2 .v2-entry-symbol { width: 24px; height: 24px; display: grid; place-items: center; color: var(--v2-action); }
+-.recipio-ui-v2 .v2-entry-symbol svg { width: 22px; height: 22px; stroke-width: 1.6; }
+-.recipio-ui-v2 .v2-entry-copy { display: flex; flex-direction: column; gap: 4px; color: var(--v2-secondary); font-size: .75rem; line-height: 1.5; }
+-.recipio-ui-v2 .v2-entry-card strong { color: var(--v2-text); font-size: 1rem; line-height: 1.5; font-weight: 600; overflow-wrap: anywhere; }
+-.recipio-ui-v2 .v2-section { margin-top: 24px; }
+-.recipio-ui-v2 .v2-section-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 12px; }
+-.recipio-ui-v2 .v2-section-heading h2, .recipio-ui-v2 .v2-content-section > h2 { font-size: 1.25rem; line-height: 1.4; font-weight: 600; }
+-.recipio-ui-v2 .v2-section-heading .v2-button { font-size: .875rem; font-weight: 400; color: var(--v2-secondary); padding-inline: 0; flex-shrink: 0; }
+-.recipio-ui-v2 .v2-section-heading .v2-button svg { width: 16px; height: 16px; }
+-.recipio-ui-v2 .v2-recent-strip { display: flex; gap: 12px; overflow-x: auto; scroll-snap-type: x proximity; padding-bottom: 8px; scrollbar-width: none; }
+-.recipio-ui-v2 .v2-recent-card { flex: 0 0 152px; min-width: 0; padding: 0; display: flex; flex-direction: column; gap: 4px; background: transparent; border: 0; text-align: left; cursor: pointer; scroll-snap-align: start; }
+-.recipio-ui-v2 .v2-recent-card > img, .recipio-ui-v2 .v2-recent-card > .v2-image-placeholder { width: 100%; height: 114px; border-radius: 18px; object-fit: cover; font-size: .75rem; flex-wrap: wrap; }
+-.recipio-ui-v2 .v2-recent-title { font-size: 1rem; line-height: 1.5; font-weight: 500; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; overflow-wrap: anywhere; }
+-.recipio-ui-v2 .v2-recent-card > .v2-secondary { font-size: .75rem; line-height: 1.5; }
+-.recipio-ui-v2 .v2-recipe-list { display: flex; flex-direction: column; }
+-.recipio-ui-v2 .v2-recipe-row { display: grid; grid-template-columns: 72px minmax(0,1fr) 18px; align-items: center; gap: 12px; width: 100%; min-height: 96px; padding: 12px 0; border: 0; border-bottom: 1px solid var(--v2-border); background: transparent; text-align: left; cursor: pointer; }
+-.recipio-ui-v2 .v2-recipe-row:active { background: var(--v2-muted); }
+-.recipio-ui-v2 .v2-recipe-row > img, .recipio-ui-v2 .v2-recipe-row > .v2-image-placeholder { width: 72px; height: 72px; object-fit: cover; border-radius: 14px; font-size: .625rem; flex-direction: column; gap: 4px; }
+-.recipio-ui-v2 .v2-row-text { min-width: 0; display: flex; flex-direction: column; gap: 5px; }
+-.recipio-ui-v2 .v2-row-text strong { font-size: 1rem; font-weight: 500; line-height: 1.5; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; overflow-wrap: anywhere; }
+-.recipio-ui-v2 .v2-recipe-row > svg { width: 18px; height: 18px; color: var(--v2-caption); }
+-.recipio-ui-v2 .v2-filters { display: flex; gap: 8px; margin-top: 16px; padding: 3px 0; overflow-x: auto; scrollbar-width: none; }
+-.recipio-ui-v2 .v2-filters .v2-button { border-radius: 999px; padding: 8px 14px; font-size: .875rem; font-weight: 400; white-space: nowrap; }
+-.recipio-ui-v2 .v2-empty { display: flex; flex-direction: column; align-items: flex-start; gap: 16px; padding-block: 32px; }
+-.recipio-ui-v2 .v2-empty > svg { color: var(--v2-sage); width: 32px; height: 32px; stroke-width: 1.4; }
+-.recipio-ui-v2 .v2-empty h2 { font-size: 1.25rem; font-weight: 600; }
+-.recipio-ui-v2 .v2-nav-area { grid-area: 2/1; align-self: end; position: relative; padding: 8px 16px max(12px,env(safe-area-inset-bottom)); pointer-events: none; }
+-.recipio-ui-v2 .v2-bottom-nav { pointer-events: auto; min-height: 60px; width: min(100%,648px); margin-inline: auto; padding: 4px; display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); border: 1px solid var(--v2-glass-low-edge); border-radius: 24px; }
+-.recipio-ui-v2 .v2-glass { background: var(--v2-glass); backdrop-filter: var(--v2-glass-blur); -webkit-backdrop-filter: var(--v2-glass-blur); box-shadow: inset 0 1px 0 var(--v2-glass-edge), inset 0 -1px 0 var(--v2-glass-low-edge), var(--v2-shadow); }
+@@ -57,44 +10,0 @@ body:has(.v2-portal .v2-sheet) .v2-app :is(.v2-glass,.v2-detail-navigation .v2-b
+-.recipio-ui-v2 .v2-bottom-nav button { min-height: 50px; min-width: 0; padding: 4px 8px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; background: transparent; border: 0; border-radius: 20px; color: var(--v2-text); cursor: pointer; font-size: .75rem; line-height: 1.5; }
+-.recipio-ui-v2 .v2-bottom-nav button svg { width: 22px; height: 22px; stroke-width: 1.65; }
+-.recipio-ui-v2 .v2-bottom-nav button[aria-current="page"] { color: var(--v2-action); background: var(--v2-soft); font-weight: 600; }
+-.recipio-ui-v2 .v2-detail { height: 100%; min-height: 0; display: grid; grid-template-rows: minmax(0,1fr); width: 100%; max-width: 680px; margin-inline: auto; background: var(--v2-surface); }
+-.recipio-ui-v2 .v2-detail-scroll { grid-area: 1/1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin; padding-bottom: calc(var(--v2-controls-height,112px) + 24px); scroll-padding-bottom: calc(var(--v2-controls-height,112px) + 24px); }
+-.recipio-ui-v2 .v2-detail-hero { position: relative; }
+-.recipio-ui-v2 .v2-cover-button { display: block; width: 100%; padding: 0; border: 0; background: transparent; cursor: zoom-in; }
+-.recipio-ui-v2 .v2-cover { display: flex; width: 100%; height: auto; aspect-ratio: 4/3; object-fit: cover; }
+-.recipio-ui-v2 .v2-detail-navigation { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 16px; }
+-.recipio-ui-v2 .v2-detail-hero > .v2-detail-navigation { position: absolute; inset: 0 0 auto; pointer-events: none; }
+-.recipio-ui-v2 .v2-detail-navigation .v2-button { pointer-events: auto; border: 1px solid var(--v2-glass-edge); background: var(--v2-glass); backdrop-filter: var(--v2-glass-blur); -webkit-backdrop-filter: var(--v2-glass-blur); box-shadow: inset 0 1px 0 var(--v2-glass-edge), var(--v2-shadow); }
+-.recipio-ui-v2 .v2-detail-body { position: relative; padding: 20px 20px 32px; background: var(--v2-surface); }
+-.recipio-ui-v2 .v2-detail-body--overlap { margin-top: -12px; border-radius: 24px 24px 0 0; }
+-.recipio-ui-v2 .v2-detail-title { font-size: 1.875rem; font-weight: 600; line-height: 1.333; letter-spacing: -.025em; overflow-wrap: anywhere; }
+-.recipio-ui-v2 .v2-meta { display: flex; flex-wrap: wrap; gap: 12px 16px; margin-top: 12px; padding-block: 0; }
+-.recipio-ui-v2 .v2-meta > div { flex: 1 1 auto; display: grid; grid-template-columns: 18px max-content; column-gap: 6px; align-content: start; min-width: 0; }
+-.recipio-ui-v2 .v2-meta svg { grid-row: span 2; width: 18px; height: 18px; stroke-width: 1.6; margin-top: 3px; color: var(--v2-secondary); }
+-.recipio-ui-v2 .v2-meta dt { font-size: .75rem; line-height: 1.5; color: var(--v2-secondary); }
+-.recipio-ui-v2 .v2-meta dd { font-size: .875rem; line-height: 1.57; overflow-wrap: anywhere; }
+-.recipio-ui-v2 .v2-meta .v2-meta-calories dd { font-size: .75rem; line-height: 1.83; color: var(--v2-secondary); }
+-.recipio-ui-v2 .v2-content-section { margin-top: 32px; }
+-.recipio-ui-v2 .v2-content-section > h2 { margin-bottom: 12px; }
+-.recipio-ui-v2 .v2-detail-body > header + .v2-content-section { margin-top: 24px; }
+-.recipio-ui-v2 .v2-preparation-list { list-style: none; padding: 0; display: flex; flex-direction: column; gap: 14px; }
+-.recipio-ui-v2 .v2-preparation-list > li { display: flex; align-items: baseline; gap: 10px; }
+-.recipio-ui-v2 .v2-preparation-list > li > span { width: 22px; height: 22px; display: inline-grid; place-items: center; background: var(--v2-soft); color: var(--v2-action); font-size: .75rem; border-radius: 50%; flex-shrink: 0; }
+-.recipio-ui-v2 .v2-callout { display: flex; align-items: flex-start; gap: 12px; padding: 16px; border-radius: 18px; background: var(--v2-warning-surface); color: var(--v2-warning); font-size: .875rem; line-height: 1.57; }
+-.recipio-ui-v2 .v2-callout > svg { width: 20px; height: 20px; flex: 0 0 20px; margin-top: 2px; }
+-.recipio-ui-v2 .v2-step-list { list-style: none; padding: 0; }
+-.recipio-ui-v2 .v2-step-list > li { display: grid; grid-template-columns: 1.75rem minmax(0,1fr); gap: 12px; margin-bottom: 28px; }
+-.recipio-ui-v2 .v2-step-number { font-size: 1rem; font-weight: 500; color: var(--v2-action); line-height: 48px; font-variant-numeric: tabular-nums; }
+-.recipio-ui-v2 .v2-step-heading { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 4px 8px; min-height: 48px; }
+-.recipio-ui-v2 .v2-step-heading h3 { font-size: 1.125rem; font-weight: 500; }
+-.recipio-ui-v2 .v2-step-heading .v2-button { font-size: .75rem; padding: 8px 0; font-weight: 400; }
+-.recipio-ui-v2 .v2-step-heading .v2-button svg { width: 16px; height: 16px; }
+-.recipio-ui-v2 .v2-step-list p { white-space: pre-wrap; overflow-wrap: anywhere; line-height: 1.625; }
+-.recipio-ui-v2 .v2-step-image-button { display: block; width: 100%; min-height: 48px; padding: 0; border: 0; border-radius: 18px; background: transparent; cursor: zoom-in; margin-top: 16px; }
+-.recipio-ui-v2 .v2-step-image { display: block; width: 100%; height: auto; border-radius: 18px; }
+-.recipio-ui-v2 .v2-notes { display: flex; align-items: flex-start; gap: 10px; white-space: pre-wrap; overflow-wrap: anywhere; }
+-.recipio-ui-v2 .v2-notes svg { flex: 0 0 18px; width: 18px; height: 18px; margin-top: 5px; color: var(--v2-secondary); }
+-.recipio-ui-v2 .v2-bottom-actions { grid-area: 1/1; align-self: end; position: relative; margin: 12px 16px max(12px,env(safe-area-inset-bottom)); padding: 8px; display: flex; flex-wrap: wrap; gap: 10px; border: 1px solid var(--v2-glass-low-edge); border-radius: 24px; }
+-.recipio-ui-v2 .v2-bottom-actions > .v2-button { flex: 1 1 auto; }
+-.recipio-ui-v2 .v2-bottom-actions > .v2-button { border-radius: 16px; }
+-.recipio-ui-v2 .v2-bottom-actions > .v2-button--text { flex-grow: 0; padding-inline: 16px; color: var(--v2-text); font-weight: 500; }
+@@ -104,7 +13,0 @@ body:has(.v2-portal .v2-sheet) .v2-app :is(.v2-glass,.v2-detail-navigation .v2-b
+-.recipio-ui-v2 .v2-action-list { display: flex; flex-direction: column; gap: 4px; }
+-.recipio-ui-v2 .v2-action-list > button:not(.v2-button) { display: grid; grid-template-columns: 22px minmax(0,1fr) 20px; align-items: center; gap: 16px; min-height: 76px; padding: 12px 0; text-align: left; border: 0; background: transparent; border-bottom: 1px solid var(--v2-border); cursor: pointer; }
+-.recipio-ui-v2 .v2-action-list > button > svg { width: 22px; height: 22px; stroke-width: 1.6; color: var(--v2-action); }
+-.recipio-ui-v2 .v2-action-list > button > span { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+-.recipio-ui-v2 .v2-action-list strong { font-size: 1rem; font-weight: 500; }
+-.recipio-ui-v2 .v2-dialog-dismiss { width: 100%; margin-top: 24px; }
+-.recipio-ui-v2 .v2-large-image { display: block; width: 100%; height: auto; border-radius: 18px; }
+@@ -130,26 +32,0 @@ body:has(.v2-portal .v2-sheet) .v2-app :is(.v2-glass,.v2-detail-navigation .v2-b
+-.recipio-ui-v2.v2-cooking { width: 100%; max-width: 680px; height: 100%; min-height: 0; margin-inline: auto; display: grid; grid-template-rows: auto minmax(0,1fr); background: var(--v2-cook); }
+-.recipio-ui-v2 .v2-cook-header { grid-area: 1/1; padding: 12px 20px 18px; }
+-.recipio-ui-v2 .v2-cook-toolbar { display: grid; grid-template-columns: 48px minmax(0,1fr) 48px; align-items: center; gap: 12px; padding: 5px; border: 1px solid var(--v2-glass-edge); border-radius: 999px; }
+-.recipio-ui-v2 .v2-cook-toolbar p { text-align: center; font-size: 1rem; font-weight: 500; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; overflow-wrap: anywhere; }
+-.recipio-ui-v2 .v2-cook-toolbar .v2-button { background: transparent; }
+-.recipio-ui-v2 .v2-cook-progress { display: flex; align-items: center; gap: 16px; padding-top: 20px; }
+-.recipio-ui-v2 .v2-cook-progress progress { appearance: none; height: 4px; border: 0; border-radius: 999px; width: 100%; min-width: 32px; background: var(--v2-cook-track); color: var(--v2-cook-focus); }
+-.recipio-ui-v2 .v2-cook-progress progress::-webkit-progress-bar { background: var(--v2-cook-track); border-radius: 999px; }
+-.recipio-ui-v2 .v2-cook-progress progress::-webkit-progress-value { background: var(--v2-cook-focus); border-radius: 999px; }
+-.recipio-ui-v2 .v2-cook-progress progress::-moz-progress-bar { background: var(--v2-cook-focus); border-radius: 999px; }
+-.recipio-ui-v2 .v2-cook-progress span { font-size: .75rem; color: var(--v2-secondary); flex-shrink: 0; }
+-.recipio-ui-v2 .v2-cook-scroll { grid-area: 2/1; min-height: 0; overflow-y: auto; padding: 20px 24px calc(var(--v2-controls-height,112px) + 32px); scroll-padding-bottom: calc(var(--v2-controls-height,112px) + 24px); overscroll-behavior: contain; }
+-.recipio-ui-v2 .v2-cook-scroll .v2-cook-step-label { font-size: 1rem; font-weight: 400; line-height: 1.5; color: var(--v2-cook-secondary); margin-bottom: 12px; }
+-.recipio-ui-v2 .v2-cook-instruction { max-width: 32ch; font-size: 1.25rem; line-height: 1.7; white-space: pre-wrap; overflow-wrap: anywhere; }
+-.recipio-ui-v2 .v2-cook-image-button { margin-top: 28px; margin-bottom: 20px; border-radius: 24px; }
+-.recipio-ui-v2 .v2-cook-image { display: block; width: 100%; height: auto; min-height: min(50dvh,420px); border-radius: 24px; object-fit: cover; }
+-.recipio-ui-v2 .v2-cook-tip { margin-top: 24px; border-left: 2px solid var(--v2-cook-focus); padding: 12px 16px; color: var(--v2-cook-tip-text); background: var(--v2-cook-tip); border-radius: 0 14px 14px 0; font-size: .875rem; }
+-.recipio-ui-v2 .v2-cook-tip strong { display: block; margin-bottom: 8px; font-weight: 500; }
+-.recipio-ui-v2 .v2-cook-footer { grid-area: 2/1; align-self: end; position: relative; margin: 12px 16px max(12px,env(safe-area-inset-bottom)); display: flex; flex-wrap: wrap; gap: 10px; padding: 8px; border: 1px solid var(--v2-glass-low-edge); border-radius: 24px; }
+-.recipio-ui-v2 .v2-cook-footer > .v2-button { flex: 1 1 auto; }
+-.recipio-ui-v2 .v2-cook-footer > .v2-button { border-radius: 16px; }
+-.recipio-ui-v2 .v2-cook-footer .v2-button--text { flex-grow: 0; padding-inline: 12px; background: transparent; color: var(--v2-text); font-weight: 500; }
+-.recipio-ui-v2 .v2-cook-footer .v2-button:disabled { background: var(--v2-cook-muted); color: var(--v2-cook-secondary); border-color: var(--v2-cook-track); }
+-.recipio-ui-v2 .v2-cook-notice { margin-top: 24px; color: var(--v2-cook-focus); }
+-@media (min-width:600px) { .recipio-ui-v2 .v2-home { padding-inline: 24px; } .recipio-ui-v2 .v2-home-controls.v2-glass { margin-inline: -24px; padding-inline: 24px; } }
+-@media (max-width:359px) { .recipio-ui-v2 .v2-home, .recipio-ui-v2 .v2-detail-body { padding-inline: 16px; } .recipio-ui-v2 .v2-home-controls.v2-glass { margin-inline: -16px; padding-inline: 16px; } .recipio-ui-v2 .v2-entry-grid { grid-template-columns: 1fr; gap: 4px; } .recipio-ui-v2 .v2-recent-card { flex-basis: 136px; } .recipio-ui-v2 .v2-recent-card > img, .recipio-ui-v2 .v2-recent-card > .v2-image-placeholder { height: 102px; } .recipio-ui-v2 .v2-meta > div { flex-basis: 120px; } .recipio-ui-v2 .v2-cook-progress { flex-wrap: wrap; } .recipio-ui-v2 .v2-cook-scroll { padding-inline: 20px; } }

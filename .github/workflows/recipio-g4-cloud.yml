@@ -1,0 +1,251 @@
+name: RECIPIO G4 cloud preview
+
+on:
+  push:
+    branches:
+      - feat/recipio-ui-v2-glass-minimal
+    paths:
+      - .github/workflows/recipio-g4-cloud.yml
+      - android/**
+      - src/**
+      - scripts/**
+      - native/**
+      - public/**
+      - package.json
+      - package-lock.json
+      - vite.native.config.mts
+      - capacitor.config.ts
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: recipio-g4-cloud-preview
+  cancel-in-progress: true
+
+jobs:
+  web-checks:
+    name: TypeScript, lint, and full unit suite
+    # Historical SQLite-jsdom and PowerShell packet tests are Windows-only.
+    # Run the complete suite there rather than skip or weaken either test.
+    runs-on: windows-2025
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Install locked dependencies
+        run: npm ci --no-audit --no-fund
+      - name: Typecheck
+        run: npm run typecheck
+      - name: Lint
+        run: npm run lint
+      - name: Full unit suite (no connected/device claims)
+        run: npm test -- --pool=threads --maxWorkers=1 --no-file-parallelism --reporter=dot
+      - name: Build production WebView
+        env:
+          VITE_RECIPIO_VERSION: 0.10.0-ui-v2-g4-rc2-cloudpreview
+        run: npm run build:local
+      - name: Ensure showcase and test fixtures stay out of production
+        run: node scripts/verify-ui-v2-isolation.mjs
+
+  android-cloud-preview:
+    # Build independently to surface Android/SDK problems without waiting for
+    # the long full unit suite. The output remains labeled UNVERIFIED; G4
+    # acceptance requires both this job AND web-checks to pass.
+    name: Build isolated Android preview APK
+    runs-on: ubuntu-24.04
+    timeout-minutes: 55
+    outputs:
+      r1_artifact_id: ${{ steps.native-fixtures.outputs.artifact-id }}
+    env:
+      VITE_RECIPIO_VERSION: 0.10.0-ui-v2-g4-rc2-cloudpreview
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: '22'
+          cache: npm
+      - uses: actions/setup-java@cf277c60eb25467037889841efdb72551f06f6c3 # v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      # The hosted ubuntu-24.04 image already has Android command-line tools.
+      # setup-android@v3 tries to install the retired "tools" SDK package
+      # and fails before Gradle runs (observed run 40197296971).
+      - name: Android API 36 and build tools (hosted SDK)
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "ANDROID_HOME=$ANDROID_HOME"
+          SDKMANAGER="$(command -v sdkmanager || true)"
+          if [[ -z "$SDKMANAGER" ]]; then
+            for candidate in "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "$ANDROID_HOME/cmdline-tools/16.0/bin/sdkmanager"; do
+              if [[ -x "$candidate" ]]; then SDKMANAGER="$candidate"; break; fi
+            done
+          fi
+          test -x "$SDKMANAGER"
+          "$SDKMANAGER" --version
+          "$SDKMANAGER" "platforms;android-36" "build-tools;36.0.0" "platform-tools"
+      - name: Install locked dependencies
+        run: npm ci --no-audit --no-fund
+      - name: Build and synchronize Capacitor assets
+        run: npm run sync:android
+      - name: Gradle JVM tests and lint (not connected tests)
+        working-directory: android
+        run: |
+          chmod +x ./gradlew
+          ./gradlew :app:testDebugUnitTest :app:lintDebug --no-daemon --max-workers=2 -Dorg.gradle.jvmargs="-Xmx1536m -XX:MaxMetaspaceSize=512m" -PrecipioCloudPreview=true
+      - name: Assemble separate cloud-preview APK
+        working-directory: android
+        run: |
+          ./gradlew :app:assembleDebug :app:assembleDebugAndroidTest --no-daemon --max-workers=2 -Dorg.gradle.jvmargs="-Xmx1536m -XX:MaxMetaspaceSize=512m" -PrecipioCloudPreview=true -PapkVersionCode=25 -PapkVersionName=0.10.0-ui-v2-g4-rc2
+      - name: Compile separate UNSIGNED new-install identity (no private key)
+        working-directory: android
+        shell: bash
+        run: |
+          set -euo pipefail
+          ./gradlew :app:assembleRelease --no-daemon --max-workers=2 -Dorg.gradle.jvmargs="-Xmx1536m -XX:MaxMetaspaceSize=512m" -PrecipioSignedNext=true -PapkVersionCode=26 -PapkVersionName=0.10.0-ui-v2-g4-rc3
+          UNSIGNED=app/build/outputs/apk/release/app-release-unsigned.apk
+          test -s "$UNSIGNED"
+          IDENTITY=$("$ANDROID_HOME/build-tools/36.0.0/aapt" dump badging "$UNSIGNED" | head -n 1)
+          [[ "$IDENTITY" == *"name='app.recipio.local.next'"* ]] || { echo "::error::Unsafe release application ID."; exit 1; }
+          [[ "$IDENTITY" == *"versionCode='26'"* ]] || { echo "::error::Release versionCode unexpected."; exit 1; }
+          [[ "$IDENTITY" == *"versionName='0.10.0-ui-v2-g4-rc3-next'"* ]] || { echo "::error::Release versionName unexpected."; exit 1; }
+          echo "PASS: correct separate new-install package ID; UNSIGNED APK intentionally not uploaded."
+      - name: Check identity, signature, and SHA-256
+        shell: bash
+        run: |
+          set -euo pipefail
+          APK=android/app/build/outputs/apk/debug/app-debug.apk
+          AAPT="$ANDROID_HOME/build-tools/36.0.0/aapt"
+          SIGNER="$ANDROID_HOME/build-tools/36.0.0/apksigner"
+          test -s "$APK"
+          "$SIGNER" verify "$APK"
+          BADGING=$("$AAPT" dump badging "$APK" | head -n 1)
+          printf '%s\n' "$BADGING"
+          if [[ "$BADGING" != *"name='app.recipio.local.cloudpreview'"* ]]; then
+            echo "Unsafe package name: this artifact must NEVER replace the user's existing app"
+            exit 1
+          fi
+          mkdir -p cloud-artifacts
+          cp "$APK" cloud-artifacts/recipio-ui-v2-g4-v25-cloudpreview-debug.apk
+          (cd cloud-artifacts && sha256sum *.apk > SHA256SUMS.txt)
+          printf '%s\n' 'This is a separate app.recipio.local.cloudpreview build with a new GitHub runner debug signature.' > cloud-artifacts/READ_ME_FIRST.txt
+          printf '%s\n' 'It does not contain or overwrite the existing app.recipio.local data. No real AI/Provider, emulator, TalkBack or on-device test was executed.' >> cloud-artifacts/READ_ME_FIRST.txt
+          cat cloud-artifacts/SHA256SUMS.txt
+      - name: Prepare synthetic R1 runtime APKs (not a formal candidate)
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir cloud-fixtures
+          cp android/app/build/outputs/apk/debug/app-debug.apk cloud-fixtures/app-fixture.apk
+          cp android/app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk cloud-fixtures/test-fixture.apk
+          (cd cloud-fixtures && sha256sum app-fixture.apk test-fixture.apk > SHA256SUMS.txt)
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        id: native-fixtures
+        with:
+          name: recipio-r1-fixtures-${{ github.run_id }}-${{ github.run_attempt }}
+          path: cloud-fixtures/
+          if-no-files-found: error
+          retention-days: 1
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: recipio-g4-v25-cloudpreview-UNVERIFIED-android
+          path: cloud-artifacts/
+          if-no-files-found: error
+          retention-days: 7
+
+  android-r1-fixtures:
+    name: R1 synthetic Android runtime (not signed-next upgrade)
+    needs: [web-checks, android-cloud-preview]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    env:
+      R1_ARTIFACT_ID: ${{ needs.android-cloud-preview.outputs.r1_artifact_id }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-java@cf277c60eb25467037889841efdb72551f06f6c3 # v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - name: Check isolated hosted runner resources
+        id: ready
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir r1-device-evidence
+          echo 'NOT_RUN: emulator/fixture execution has not completed' > r1-device-evidence/status.txt
+          echo 'ready=false' >> "$GITHUB_OUTPUT"
+          [[ "$GITHUB_ACTIONS" == true && "$RUNNER_ENVIRONMENT" == github-hosted ]]
+          [[ "$R1_ARTIFACT_ID" =~ ^[1-9][0-9]*$ ]]
+          AVD_ROOT="${ANDROID_AVD_HOME:-$HOME/.android/avd}"
+          if [[ -e "$AVD_ROOT/Recipio_R1_Fixture.avd" ]]; then
+            echo 'NOT_RUN: refusing to reuse an existing AVD' > r1-device-evidence/status.txt
+            exit 0
+          fi
+          if [[ ! -e /dev/kvm ]]; then
+            echo 'NOT_RUN: hosted KVM unavailable' > r1-device-evidence/status.txt
+            exit 0
+          fi
+          if (( $(awk '/MemAvailable:/ {print $2}' /proc/meminfo) < 4194304 )); then
+            echo 'NOT_RUN: less than 4 GiB available before emulator startup' > r1-device-evidence/status.txt
+            exit 0
+          fi
+          # Only this short-lived, key-free hosted VM; never the user's PC.
+          if [[ ! -w /dev/kvm ]]; then
+            if ! sudo setfacl -m "u:$(id -un):rw" /dev/kvm; then
+              echo 'NOT_RUN: hosted KVM not accessible' > r1-device-evidence/status.txt
+              exit 0
+            fi
+          fi
+          echo 'ready=true' >> "$GITHUB_OUTPUT"
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        if: steps.ready.outputs.ready == 'true'
+        with:
+          artifact-ids: ${{ needs.android-cloud-preview.outputs.r1_artifact_id }}
+          merge-multiple: true
+          path: cloud-fixtures
+      - name: Ensure API 36 inspection tools are present
+        if: steps.ready.outputs.ready == 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          SDKMANAGER="$(command -v sdkmanager || true)"
+          if [[ -z "$SDKMANAGER" ]]; then
+            for candidate in "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "$ANDROID_HOME/cmdline-tools/16.0/bin/sdkmanager"; do
+              if [[ -x "$candidate" ]]; then SDKMANAGER="$candidate"; break; fi
+            done
+          fi
+          test -x "$SDKMANAGER"
+          "$SDKMANAGER" 'build-tools;36.0.0'
+      - name: Run only generated native backup/storage fixtures
+        if: steps.ready.outputs.ready == 'true'
+        uses: ReactiveCircus/android-emulator-runner@a421e43855164a8197daf9d8d40fe71c6996bb0d # v2
+        with:
+          api-level: 36
+          target: google_apis
+          arch: x86_64
+          avd-name: Recipio_R1_Fixture
+          force-avd-creation: false
+          emulator-port: 5554
+          emulator-boot-timeout: 600
+          emulator-options: -no-window -gpu swiftshader -no-snapshot -noaudio -no-boot-anim -memory 2048
+          disable-animations: true
+          script: bash scripts/verify-r1-native-fixtures.sh
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        if: always()
+        with:
+          name: recipio-r1-native-evidence-${{ github.run_id }}-${{ github.run_attempt }}
+          path: r1-device-evidence/
+          if-no-files-found: error
+          retention-days: 3

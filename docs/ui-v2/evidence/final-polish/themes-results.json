@@ -1,0 +1,1427 @@
+{
+  "status": "PASS",
+  "date": "2026-10-23T11:12:54.463Z",
+  "revision": "3b120bee4581a0d08be217605b577d5c0fa1f57e",
+  "testedSource": {
+    "baseRevision": "3b120bee4581a0d08be217605b577d5c0fa1f57e",
+    "dirtyAtRun": true,
+    "fingerprint": "531adc7b01d9d96df016072ea6a27db4e652cc26d9b326132429aa70546d3a11",
+    "algorithm": "sha256 of sorted JSON path/raw-file-sha256 entries",
+    "entries": [
+      {
+        "path": "scripts/ui-v2-evidence-source.mjs",
+        "sha256": "d33d8fa5febfe35eb8b026ecb95a21dc4b4815764c1e684a171258c98337b37f"
+      },
+      {
+        "path": "scripts/verify-ui-v2-polish.mjs",
+        "sha256": "60024f01677214db5cefdff4e61f99daafa14323ca4ef0235faa42d33a9ef6a8"
+      },
+      {
+        "path": "scripts/verify-ui-v2-themes.mjs",
+        "sha256": "a728abe0acd2f0038734a46ce93a26e1d785220837e54a07c8981e039413a636"
+      },
+      {
+        "path": "scripts/verify-ui-v2.mjs",
+        "sha256": "18b007d92746b54c39acda7ca68ea34a93d47c4781f58fd14755da6cf5c4e534"
+      },
+      {
+        "path": "src/native/ui-v2/appearance.tsx",
+        "sha256": "261f53b00c04e4fbeae4ed0584d89be4e99c344c278ffd2366a57a8c17e174c2"
+      },
+      {
+        "path": "src/native/ui-v2/components.tsx",
+        "sha256": "cdd42458788bf1807e3240503ce39406ee431c93d68c76999c138394ead45c5f"
+      },
+      {
+        "path": "src/native/ui-v2/showcase/assets/README.md",
+        "sha256": "39f044c6ac02248771f994fdc0a24fef7998cef07a76081d7fbebf485f1a6ef7"
+      },
+      {
+        "path": "src/native/ui-v2/showcase/assets/broccoli.webp",
+        "sha256": "06d309df8b32df41c41c3c087b8bc555d0cabed63a5f8f080c7c1ce612e4648e"
+      },
+      {
+        "path": "src/native/ui-v2/showcase/assets/cola-step.webp",
+        "sha256": "526e5f9a7240b86417463f0c547ae62bc9a84e72e5035d183867a6a301a5a951"
+      },
+      {
+        "path": "src/native/ui-v2/showcase/assets/cola-wings.webp",
+        "sha256": "8288a5a41a3de3ae718ec403c3f028ab9150943b271ccbe742c7cfc72e10645d"
+      },
+      {
+        "path": "src/native/ui-v2/showcase/assets/tomato-egg-soup.webp",
+        "sha256": "430dca452a8942167a075395d44acc9c41af5f275f8fc1f6f60af0cc959a44a2"
+      },
+      {
+        "path": "src/native/ui-v2/showcase/components-page.css",
+        "sha256": "3f5957538e65bd192a3795ac5d76778c6b310bf675b14974f0e91933f71f52db"
+      },
+      {
+        "path": "src/native/ui-v2/showcase/components-page.tsx",
+        "sha256": "e85cbbfb24985156358be632198589784c7d174977d179f427545cb5aa0ca1ad"
+      },
+      {
+        "path": "src/native/ui-v2/showcase/cooking.tsx",
+        "sha256": "c969062027c88f694809b3cf82532e9d019ff7e2f7df0cf499ffe670e2fca88c"
+      },
+      {
+        "path": "src/native/ui-v2/showcase/demo-data.ts",
+        "sha256": "822c4d06deea9b5ac1205c703ccf107587d8e029ea9fac49a1c2c5dd552042d1"
+      },
+      {
+        "path": "src/native/ui-v2/showcase/detail.tsx",
+        "sha256": "12759222b6151f41d749c3a255f99a06295567ff1322a1446b1403111e818fcb"
+      },
+      {
+        "path": "src/native/ui-v2/showcase/final-polish.test.tsx",
+        "sha256": "b0e43e0b983e74f8d193c714100e41c54c1ae1cca19fd4754b9b02cbd4bf9ba5"
+      },
+      {
+        "path": "src/native/ui-v2/showcase/home.tsx",
+        "sha256": "8e890c96c294ae80cabb732cd4572c96a04526f763a4cc7deb75df09b4ecaa6c"
+      },
+      {
+        "path": "src/native/ui-v2/showcase/main.tsx",
+        "sha256": "04c60b0f8a6a129d473d1d77f60bc0e8f68bc2f7bee3df5f246be67bb31355bd"
+      },
+      {
+        "path": "src/native/ui-v2/showcase/material-sample.tsx",
+        "sha256": "358592c9e42fc30aabdaa8b2fc8d00c30a533bba3cbca5b20211a6c764d03c63"
+      },
+      {
+        "path": "src/native/ui-v2/showcase/showcase.test.tsx",
+        "sha256": "d1c23e88d94a528e605d220829cee21283dbdde838d631a06d497189cc9b6660"
+      },
+      {
+        "path": "src/native/ui-v2/showcase/showcase.tsx",
+        "sha256": "4cb4f4b20bd2bd9a54f491ce7711bd88622465b40a6b3742480b2343ae1c685a"
+      },
+      {
+        "path": "src/native/ui-v2/showcase/styles.css",
+        "sha256": "8ffd0c0360bf0e048d05990a23b7d1bbf3b2cdbabd6a307420323bcad19a1fc2"
+      },
+      {
+        "path": "src/native/ui-v2/showcase/theme-picker.tsx",
+        "sha256": "767aa7fa0e850f75428e7e8c2e5d094dd0fb28f730fed9a7d9d188d10457116e"
+      },
+      {
+        "path": "src/native/ui-v2/showcase/theme-refresh.test.tsx",
+        "sha256": "b40b9fc99148be4a4eac4ec462a7d903e6b203465b008f46364a85cc28f6cc0c"
+      },
+      {
+        "path": "src/native/ui-v2/showcase/vite-env.d.ts",
+        "sha256": "65996936fbb042915f7b74a200fcdde7e410f32a669b1ab9597cfaa4b0faddb5"
+      },
+      {
+        "path": "src/native/ui-v2/tokens.css",
+        "sha256": "5c33774a2f063c807fa8bd5f120b72a7c2d6eb6212bf4590722bc9aa7b721bf2"
+      },
+      {
+        "path": "src/native/ui-v2/use-control-clearance.ts",
+        "sha256": "e1f355b970c8267576bb1adf0979c1fb90d068edcb7a4a307df76014ee7746f8"
+      },
+      {
+        "path": "ui-v2-showcase/index.html",
+        "sha256": "a7370c1528719ad9d853990d1a769d1ba5bb0cdefea507fbc308257ac29fce0a"
+      },
+      {
+        "path": "vite.ui-v2.config.mts",
+        "sha256": "bd6587ae2ed6b61f91510b73005f4156cd126a1314aa5c4d9d486ac56928e32f"
+      }
+    ]
+  },
+  "browser": "151.0.7922.34",
+  "checks": [
+    "unknown URL theme safely falls back to Warm Ivory",
+    "warm-ivory frozen semantic tokens and common status colors",
+    "warm-ivory transparent secondary footer text stays readable over both underlay extrema",
+    "warm-ivory 320 home: same layout and no overflow",
+    "warm-ivory 320 detail: same layout and no overflow",
+    "warm-ivory 320 cooking: same layout and no overflow",
+    "warm-ivory 390 home: same layout and no overflow",
+    "warm-ivory 390 detail: same layout and no overflow",
+    "warm-ivory 390 cooking: same layout and no overflow",
+    "warm-ivory 412 home: same layout and no overflow",
+    "warm-ivory 412 detail: same layout and no overflow",
+    "warm-ivory 412 cooking: same layout and no overflow",
+    "warm-ivory 768 home: same layout and no overflow",
+    "warm-ivory 768 detail: same layout and no overflow",
+    "warm-ivory 768 cooking: same layout and no overflow",
+    "warm-ivory 320 home 200% long text and reachable actions",
+    "warm-ivory 320 detail 200% long text and reachable actions",
+    "warm-ivory 320 cooking 200% long text and reachable actions",
+    "warm-ivory 320 components 200% long text and reachable actions",
+    "warm-ivory 320 200% long ingredients: full amount, final row and safe close",
+    "warm-ivory no-image and title-only content remains complete",
+    "warm-ivory every Sheet/Dialog portal matches theme and pauses background blur",
+    "warm-ivory glass covers moving real Home, Detail and Cooking content",
+    "warm-ivory Reduced Motion disables actual animations and transitions",
+    "pure-glass frozen semantic tokens and common status colors",
+    "pure-glass transparent secondary footer text stays readable over both underlay extrema",
+    "pure-glass 320 home: same layout and no overflow",
+    "pure-glass 320 detail: same layout and no overflow",
+    "pure-glass 320 cooking: same layout and no overflow",
+    "pure-glass 390 home: same layout and no overflow",
+    "pure-glass 390 detail: same layout and no overflow",
+    "pure-glass 390 cooking: same layout and no overflow",
+    "pure-glass 412 home: same layout and no overflow",
+    "pure-glass 412 detail: same layout and no overflow",
+    "pure-glass 412 cooking: same layout and no overflow",
+    "pure-glass 768 home: same layout and no overflow",
+    "pure-glass 768 detail: same layout and no overflow",
+    "pure-glass 768 cooking: same layout and no overflow",
+    "pure-glass 320 home 200% long text and reachable actions",
+    "pure-glass 320 detail 200% long text and reachable actions",
+    "pure-glass 320 cooking 200% long text and reachable actions",
+    "pure-glass 320 components 200% long text and reachable actions",
+    "pure-glass 320 200% long ingredients: full amount, final row and safe close",
+    "pure-glass no-image and title-only content remains complete",
+    "pure-glass every Sheet/Dialog portal matches theme and pauses background blur",
+    "pure-glass glass covers moving real Home, Detail and Cooking content",
+    "pure-glass Reduced Motion disables actual animations and transitions",
+    "soft-sage frozen semantic tokens and common status colors",
+    "soft-sage transparent secondary footer text stays readable over both underlay extrema",
+    "soft-sage 320 home: same layout and no overflow",
+    "soft-sage 320 detail: same layout and no overflow",
+    "soft-sage 320 cooking: same layout and no overflow",
+    "soft-sage 390 home: same layout and no overflow",
+    "soft-sage 390 detail: same layout and no overflow",
+    "soft-sage 390 cooking: same layout and no overflow",
+    "soft-sage 412 home: same layout and no overflow",
+    "soft-sage 412 detail: same layout and no overflow",
+    "soft-sage 412 cooking: same layout and no overflow",
+    "soft-sage 768 home: same layout and no overflow",
+    "soft-sage 768 detail: same layout and no overflow",
+    "soft-sage 768 cooking: same layout and no overflow",
+    "soft-sage 320 home 200% long text and reachable actions",
+    "soft-sage 320 detail 200% long text and reachable actions",
+    "soft-sage 320 cooking 200% long text and reachable actions",
+    "soft-sage 320 components 200% long text and reachable actions",
+    "soft-sage 320 200% long ingredients: full amount, final row and safe close",
+    "soft-sage no-image and title-only content remains complete",
+    "soft-sage every Sheet/Dialog portal matches theme and pauses background blur",
+    "soft-sage glass covers moving real Home, Detail and Cooking content",
+    "soft-sage Reduced Motion disables actual animations and transitions",
+    "hot theme changes keep search, duration filter and selected recipe",
+    "hot theme changes preserve Guided step, live settings dialog, focus and completion",
+    "hot theme changes retain component inputs, explicit review gate and saved acknowledgement",
+    "all visited documents avoid database initialization, storage writes, cookies and external/API requests"
+  ],
+  "checkCount": 74,
+  "materials": [
+    {
+      "theme": "warm-ivory",
+      "name": "home-nav-glass",
+      "placement": {
+        "scrollTop": 55,
+        "maxScroll": 364,
+        "overlap": {
+          "width": 72,
+          "height": 61
+        },
+        "image": "http://127.0.0.1:5182/src/native/ui-v2/showcase/assets/broccoli.webp",
+        "blur": "blur(24px) saturate(1.2)",
+        "background": "rgba(251, 250, 247, 0.74)",
+        "clip": {
+          "x": 18,
+          "y": 773,
+          "width": 354,
+          "height": 57
+        }
+      },
+      "scrollAfter": 95,
+      "difference": {
+        "meanChannelChange": 1.459840750652526,
+        "changedChannelFraction": 0.17748703208114447
+      }
+    },
+    {
+      "theme": "warm-ivory",
+      "name": "same-state-glass-versus-solid",
+      "difference": {
+        "meanChannelChange": 1.5827609365937052,
+        "changedChannelFraction": 0.10170345269713343
+      }
+    },
+    {
+      "theme": "warm-ivory",
+      "name": "home-header-glass",
+      "placement": {
+        "scrollTop": 298,
+        "maxScroll": 364,
+        "overlap": {
+          "width": 152,
+          "height": 114
+        },
+        "image": "http://127.0.0.1:5182/src/native/ui-v2/showcase/assets/cola-wings.webp",
+        "blur": "blur(24px) saturate(1.2)",
+        "background": "rgba(251, 250, 247, 0.74)",
+        "clip": {
+          "x": 2,
+          "y": 51,
+          "width": 386,
+          "height": 133
+        }
+      },
+      "scrollAfter": 338,
+      "difference": {
+        "meanChannelChange": 5.16560182840521,
+        "changedChannelFraction": 0.42985702598465075
+      }
+    },
+    {
+      "theme": "warm-ivory",
+      "name": "detail-footer-glass",
+      "placement": {
+        "scrollTop": 861,
+        "maxScroll": 1538,
+        "overlap": {
+          "width": 310,
+          "height": 70
+        },
+        "image": "http://127.0.0.1:5182/src/native/ui-v2/showcase/assets/cola-step.webp",
+        "blur": "blur(24px) saturate(1.2)",
+        "background": "rgba(251, 250, 247, 0.74)",
+        "clip": {
+          "x": 18,
+          "y": 764,
+          "width": 354,
+          "height": 66
+        }
+      },
+      "scrollAfter": 901,
+      "difference": {
+        "meanChannelChange": 12.965516749415055,
+        "changedChannelFraction": 0.41198710266506877
+      }
+    },
+    {
+      "theme": "warm-ivory",
+      "name": "cooking-footer-glass",
+      "placement": {
+        "scrollTop": 0,
+        "maxScroll": 62,
+        "overlap": {
+          "width": 342,
+          "height": 22.5
+        },
+        "image": "http://127.0.0.1:5182/src/native/ui-v2/showcase/assets/cola-step.webp",
+        "blur": "blur(24px) saturate(1.2)",
+        "background": "rgba(32, 36, 32, 0.74)",
+        "clip": {
+          "x": 18,
+          "y": 764,
+          "width": 354,
+          "height": 66
+        }
+      },
+      "scrollAfter": 40,
+      "difference": {
+        "meanChannelChange": 0.9918678308508817,
+        "changedChannelFraction": 0.15673686012669064
+      }
+    },
+    {
+      "theme": "warm-ivory",
+      "name": "component-material-glass",
+      "placement": {
+        "scrollTop": 80,
+        "maxScroll": 446,
+        "overlap": {
+          "width": 286,
+          "height": 66
+        },
+        "image": "http://127.0.0.1:5182/src/native/ui-v2/showcase/assets/tomato-egg-soup.webp",
+        "blur": "blur(24px) saturate(1.2)",
+        "background": "rgba(251, 250, 247, 0.74)",
+        "clip": {
+          "x": 54,
+          "y": 756,
+          "width": 282,
+          "height": 62
+        }
+      },
+      "scrollAfter": 120,
+      "difference": {
+        "meanChannelChange": 6.324239304506978,
+        "changedChannelFraction": 0.6704796766567528
+      }
+    },
+    {
+      "theme": "pure-glass",
+      "name": "home-nav-glass",
+      "placement": {
+        "scrollTop": 55,
+        "maxScroll": 364,
+        "overlap": {
+          "width": 72,
+          "height": 61
+        },
+        "image": "http://127.0.0.1:5182/src/native/ui-v2/showcase/assets/broccoli.webp",
+        "blur": "blur(26px) saturate(1.25)",
+        "background": "rgba(255, 255, 255, 0.7)",
+        "clip": {
+          "x": 18,
+          "y": 773,
+          "width": 354,
+          "height": 57
+        }
+      },
+      "scrollAfter": 95,
+      "difference": {
+        "meanChannelChange": 1.777199590312882,
+        "changedChannelFraction": 0.18274027819076882
+      }
+    },
+    {
+      "theme": "pure-glass",
+      "name": "same-state-glass-versus-solid",
+      "difference": {
+        "meanChannelChange": 1.7200750984522393,
+        "changedChannelFraction": 0.17048264493085447
+      }
+    },
+    {
+      "theme": "pure-glass",
+      "name": "home-header-glass",
+      "placement": {
+        "scrollTop": 298,
+        "maxScroll": 364,
+        "overlap": {
+          "width": 152,
+          "height": 114
+        },
+        "image": "http://127.0.0.1:5182/src/native/ui-v2/showcase/assets/cola-wings.webp",
+        "blur": "blur(26px) saturate(1.25)",
+        "background": "rgba(255, 255, 255, 0.7)",
+        "clip": {
+          "x": 2,
+          "y": 51,
+          "width": 386,
+          "height": 133
+        }
+      },
+      "scrollAfter": 338,
+      "difference": {
+        "meanChannelChange": 5.822068123677068,
+        "changedChannelFraction": 0.44373238796473047
+      }
+    },
+    {
+      "theme": "pure-glass",
+      "name": "detail-footer-glass",
+      "placement": {
+        "scrollTop": 861,
+        "maxScroll": 1538,
+        "overlap": {
+          "width": 310,
+          "height": 70
+        },
+        "image": "http://127.0.0.1:5182/src/native/ui-v2/showcase/assets/cola-step.webp",
+        "blur": "blur(26px) saturate(1.25)",
+        "background": "rgba(255, 255, 255, 0.7)",
+        "clip": {
+          "x": 18,
+          "y": 764,
+          "width": 354,
+          "height": 66
+        }
+      },
+      "scrollAfter": 901,
+      "difference": {
+        "meanChannelChange": 1.2075129829367117,
+        "changedChannelFraction": 0.17495577241339952
+      }
+    },
+    {
+      "theme": "pure-glass",
+      "name": "cooking-footer-glass",
+      "placement": {
+        "scrollTop": 0,
+        "maxScroll": 62,
+        "overlap": {
+          "width": 342,
+          "height": 22.5
+        },
+        "image": "http://127.0.0.1:5182/src/native/ui-v2/showcase/assets/cola-step.webp",
+        "blur": "blur(26px) saturate(1.25)",
+        "background": "rgba(25, 36, 42, 0.7)",
+        "clip": {
+          "x": 18,
+          "y": 764,
+          "width": 354,
+          "height": 66
+        }
+      },
+      "scrollAfter": 40,
+      "difference": {
+        "meanChannelChange": 0.9631912343776751,
+        "changedChannelFraction": 0.15993265993265993
+      }
+    },
+    {
+      "theme": "pure-glass",
+      "name": "component-material-glass",
+      "placement": {
+        "scrollTop": 80,
+        "maxScroll": 446,
+        "overlap": {
+          "width": 286,
+          "height": 66
+        },
+        "image": "http://127.0.0.1:5182/src/native/ui-v2/showcase/assets/tomato-egg-soup.webp",
+        "blur": "blur(26px) saturate(1.25)",
+        "background": "rgba(255, 255, 255, 0.7)",
+        "clip": {
+          "x": 54,
+          "y": 756,
+          "width": 282,
+          "height": 62
+        }
+      },
+      "scrollAfter": 120,
+      "difference": {
+        "meanChannelChange": 7.0036414245405325,
+        "changedChannelFraction": 0.6802409822313734
+      }
+    },
+    {
+      "theme": "soft-sage",
+      "name": "home-nav-glass",
+      "placement": {
+        "scrollTop": 55,
+        "maxScroll": 364,
+        "overlap": {
+          "width": 72,
+          "height": 61
+        },
+        "image": "http://127.0.0.1:5182/src/native/ui-v2/showcase/assets/broccoli.webp",
+        "blur": "blur(24px) saturate(1.2)",
+        "background": "rgba(248, 252, 247, 0.74)",
+        "clip": {
+          "x": 18,
+          "y": 773,
+          "width": 354,
+          "height": 57
+        }
+      },
+      "scrollAfter": 95,
+      "difference": {
+        "meanChannelChange": 1.5505005451481813,
+        "changedChannelFraction": 0.1673109326989791
+      }
+    },
+    {
+      "theme": "soft-sage",
+      "name": "same-state-glass-versus-solid",
+      "difference": {
+        "meanChannelChange": 2.6559819275269407,
+        "changedChannelFraction": 0.48125591476630947
+      }
+    },
+    {
+      "theme": "soft-sage",
+      "name": "home-header-glass",
+      "placement": {
+        "scrollTop": 298,
+        "maxScroll": 364,
+        "overlap": {
+          "width": 152,
+          "height": 114
+        },
+        "image": "http://127.0.0.1:5182/src/native/ui-v2/showcase/assets/cola-wings.webp",
+        "blur": "blur(24px) saturate(1.2)",
+        "background": "rgba(248, 252, 247, 0.74)",
+        "clip": {
+          "x": 2,
+          "y": 51,
+          "width": 386,
+          "height": 133
+        }
+      },
+      "scrollAfter": 338,
+      "difference": {
+        "meanChannelChange": 5.125482099029958,
+        "changedChannelFraction": 0.4284545560793175
+      }
+    },
+    {
+      "theme": "soft-sage",
+      "name": "detail-footer-glass",
+      "placement": {
+        "scrollTop": 861,
+        "maxScroll": 1538,
+        "overlap": {
+          "width": 310,
+          "height": 70
+        },
+        "image": "http://127.0.0.1:5182/src/native/ui-v2/showcase/assets/cola-step.webp",
+        "blur": "blur(24px) saturate(1.2)",
+        "background": "rgba(248, 252, 247, 0.74)",
+        "clip": {
+          "x": 18,
+          "y": 764,
+          "width": 354,
+          "height": 66
+        }
+      },
+      "scrollAfter": 901,
+      "difference": {
+        "meanChannelChange": 13.07794042116076,
+        "changedChannelFraction": 0.41240084460423443
+      }
+    },
+    {
+      "theme": "soft-sage",
+      "name": "cooking-footer-glass",
+      "placement": {
+        "scrollTop": 0,
+        "maxScroll": 62,
+        "overlap": {
+          "width": 342,
+          "height": 22.5
+        },
+        "image": "http://127.0.0.1:5182/src/native/ui-v2/showcase/assets/cola-step.webp",
+        "blur": "blur(24px) saturate(1.2)",
+        "background": "rgba(29, 43, 34, 0.74)",
+        "clip": {
+          "x": 18,
+          "y": 764,
+          "width": 354,
+          "height": 66
+        }
+      },
+      "scrollAfter": 40,
+      "difference": {
+        "meanChannelChange": 0.9926810477657936,
+        "changedChannelFraction": 0.1517291559664441
+      }
+    },
+    {
+      "theme": "soft-sage",
+      "name": "component-material-glass",
+      "placement": {
+        "scrollTop": 80,
+        "maxScroll": 446,
+        "overlap": {
+          "width": 286,
+          "height": 66
+        },
+        "image": "http://127.0.0.1:5182/src/native/ui-v2/showcase/assets/tomato-egg-soup.webp",
+        "blur": "blur(24px) saturate(1.2)",
+        "background": "rgba(248, 252, 247, 0.74)",
+        "clip": {
+          "x": 54,
+          "y": 756,
+          "width": 282,
+          "height": 62
+        }
+      },
+      "scrollAfter": 120,
+      "difference": {
+        "meanChannelChange": 6.322695035460993,
+        "changedChannelFraction": 0.6701937009074964
+      }
+    }
+  ],
+  "contrast": {
+    "scope": "Rendered local text/tint pairs composited against both black and white extrema; screenshots supplied for visual review, not a complete accessibility audit",
+    "records": [
+      {
+        "theme": "warm-ivory",
+        "target": null,
+        "text": "rgb(27, 27, 29)",
+        "background": "rgb(246, 244, 239)",
+        "contrastOverBlack": 15.64570428471876,
+        "contrastOverWhite": 15.64570428471876,
+        "minimum": 4.5
+      },
+      {
+        "theme": "warm-ivory",
+        "target": "v2-entry-copy",
+        "text": "rgb(110, 106, 101)",
+        "background": "rgb(230, 239, 229)",
+        "contrastOverBlack": 4.560381133841109,
+        "contrastOverWhite": 4.560381133841109,
+        "minimum": 4.5
+      },
+      {
+        "theme": "warm-ivory",
+        "target": "v2-button v2-button--text",
+        "text": "rgb(27, 27, 29)",
+        "background": "rgba(251, 250, 247, 0.74)",
+        "contrastOverBlack": 8.764798881384216,
+        "contrastOverWhite": 16.661694902235613,
+        "minimum": 4.5
+      },
+      {
+        "theme": "warm-ivory",
+        "target": "v2-button v2-button--text",
+        "text": "rgb(251, 250, 247)",
+        "background": "rgba(32, 36, 32, 0.74)",
+        "contrastOverBlack": 16.703687178233757,
+        "contrastOverWhite": 6.395697927406643,
+        "minimum": 4.5
+      },
+      {
+        "theme": "warm-ivory",
+        "target": "v2-cook-instruction",
+        "text": "rgb(251, 250, 247)",
+        "background": "rgb(32, 36, 32)",
+        "contrastOverBlack": 15.074799493723537,
+        "contrastOverWhite": 15.074799493723537,
+        "minimum": 4.5
+      },
+      {
+        "theme": "warm-ivory",
+        "target": "v2-cook-instruction",
+        "text": "rgb(251, 250, 247)",
+        "background": "rgb(32, 36, 32)",
+        "contrastOverBlack": 15.074799493723537,
+        "contrastOverWhite": 15.074799493723537,
+        "minimum": 4.5
+      },
+      {
+        "theme": "warm-ivory",
+        "target": "v2-cook-instruction",
+        "text": "rgb(251, 250, 247)",
+        "background": "rgb(32, 36, 32)",
+        "contrastOverBlack": 15.074799493723537,
+        "contrastOverWhite": 15.074799493723537,
+        "minimum": 4.5
+      },
+      {
+        "theme": "warm-ivory",
+        "target": "v2-cook-instruction",
+        "text": "rgb(251, 250, 247)",
+        "background": "rgb(32, 36, 32)",
+        "contrastOverBlack": 15.074799493723537,
+        "contrastOverWhite": 15.074799493723537,
+        "minimum": 4.5
+      },
+      {
+        "theme": "warm-ivory",
+        "target": null,
+        "text": "rgb(200, 205, 197)",
+        "background": "rgb(32, 36, 32)",
+        "contrastOverBlack": 9.736568009658418,
+        "contrastOverWhite": 9.736568009658418,
+        "minimum": 4.5
+      },
+      {
+        "theme": "warm-ivory",
+        "target": "v2-section-title",
+        "text": "rgb(27, 27, 29)",
+        "background": "rgba(251, 250, 247, 0.88)",
+        "contrastOverBlack": 12.540685134036456,
+        "contrastOverWhite": 16.56155957149602,
+        "minimum": 4.5
+      },
+      {
+        "theme": "warm-ivory",
+        "target": "v2-secondary",
+        "text": "rgb(27, 27, 29)",
+        "background": "rgba(251, 250, 247, 0.88)",
+        "contrastOverBlack": 12.540685134036456,
+        "contrastOverWhite": 16.56155957149602,
+        "minimum": 4.5
+      },
+      {
+        "theme": "warm-ivory",
+        "target": "v2-section-title",
+        "text": "rgb(27, 27, 29)",
+        "background": "rgba(251, 250, 247, 0.88)",
+        "contrastOverBlack": 12.540685134036456,
+        "contrastOverWhite": 16.56155957149602,
+        "minimum": 4.5
+      },
+      {
+        "theme": "warm-ivory",
+        "target": "v2-secondary",
+        "text": "rgb(27, 27, 29)",
+        "background": "rgba(251, 250, 247, 0.88)",
+        "contrastOverBlack": 12.540685134036456,
+        "contrastOverWhite": 16.56155957149602,
+        "minimum": 4.5
+      },
+      {
+        "theme": "warm-ivory",
+        "target": "v2-section-title",
+        "text": "rgb(27, 27, 29)",
+        "background": "rgba(251, 250, 247, 0.88)",
+        "contrastOverBlack": 12.540685134036456,
+        "contrastOverWhite": 16.56155957149602,
+        "minimum": 4.5
+      },
+      {
+        "theme": "warm-ivory",
+        "target": "v2-secondary",
+        "text": "rgb(27, 27, 29)",
+        "background": "rgba(251, 250, 247, 0.88)",
+        "contrastOverBlack": 12.540685134036456,
+        "contrastOverWhite": 16.56155957149602,
+        "minimum": 4.5
+      },
+      {
+        "theme": "warm-ivory",
+        "target": "v2-section-title",
+        "text": "rgb(251, 250, 247)",
+        "background": "rgba(32, 36, 32, 0.88)",
+        "contrastOverBlack": 15.842821863749224,
+        "contrastOverWhite": 10.358369354904935,
+        "minimum": 4.5
+      },
+      {
+        "theme": "warm-ivory",
+        "target": "v2-secondary",
+        "text": "rgb(251, 250, 247)",
+        "background": "rgba(32, 36, 32, 0.88)",
+        "contrastOverBlack": 15.842821863749224,
+        "contrastOverWhite": 10.358369354904935,
+        "minimum": 4.5
+      },
+      {
+        "theme": "warm-ivory",
+        "target": "v2-section-title",
+        "text": "rgb(251, 250, 247)",
+        "background": "rgba(32, 36, 32, 0.88)",
+        "contrastOverBlack": 15.842821863749224,
+        "contrastOverWhite": 10.358369354904935,
+        "minimum": 4.5
+      },
+      {
+        "theme": "warm-ivory",
+        "target": "v2-secondary",
+        "text": "rgb(251, 250, 247)",
+        "background": "rgba(32, 36, 32, 0.88)",
+        "contrastOverBlack": 15.842821863749224,
+        "contrastOverWhite": 10.358369354904935,
+        "minimum": 4.5
+      },
+      {
+        "theme": "warm-ivory",
+        "target": "v2-section-title",
+        "text": "rgb(27, 27, 29)",
+        "background": "rgba(251, 250, 247, 0.88)",
+        "contrastOverBlack": 12.540685134036456,
+        "contrastOverWhite": 16.56155957149602,
+        "minimum": 4.5
+      },
+      {
+        "theme": "warm-ivory",
+        "target": "v2-secondary",
+        "text": "rgb(27, 27, 29)",
+        "background": "rgba(251, 250, 247, 0.88)",
+        "contrastOverBlack": 12.540685134036456,
+        "contrastOverWhite": 16.56155957149602,
+        "minimum": 4.5
+      },
+      {
+        "theme": "warm-ivory",
+        "target": "v2-section-title",
+        "text": "rgb(27, 27, 29)",
+        "background": "rgba(251, 250, 247, 0.88)",
+        "contrastOverBlack": 12.540685134036456,
+        "contrastOverWhite": 16.56155957149602,
+        "minimum": 4.5
+      },
+      {
+        "theme": "warm-ivory",
+        "target": "v2-secondary",
+        "text": "rgb(27, 27, 29)",
+        "background": "rgba(251, 250, 247, 0.88)",
+        "contrastOverBlack": 12.540685134036456,
+        "contrastOverWhite": 16.56155957149602,
+        "minimum": 4.5
+      },
+      {
+        "theme": "warm-ivory",
+        "target": "v2-section-title",
+        "text": "rgb(27, 27, 29)",
+        "background": "rgb(251, 250, 247)",
+        "contrastOverBlack": 16.476034369453398,
+        "contrastOverWhite": 16.476034369453398,
+        "minimum": 4.5
+      },
+      {
+        "theme": "warm-ivory",
+        "target": "v2-secondary",
+        "text": "rgb(27, 27, 29)",
+        "background": "rgb(251, 250, 247)",
+        "contrastOverBlack": 16.476034369453398,
+        "contrastOverWhite": 16.476034369453398,
+        "minimum": 4.5
+      },
+      {
+        "theme": "warm-ivory",
+        "target": "v2-section-title",
+        "text": "rgb(251, 250, 247)",
+        "background": "rgb(32, 36, 32)",
+        "contrastOverBlack": 15.074799493723537,
+        "contrastOverWhite": 15.074799493723537,
+        "minimum": 4.5
+      },
+      {
+        "theme": "warm-ivory",
+        "target": "v2-secondary",
+        "text": "rgb(251, 250, 247)",
+        "background": "rgb(32, 36, 32)",
+        "contrastOverBlack": 15.074799493723537,
+        "contrastOverWhite": 15.074799493723537,
+        "minimum": 4.5
+      },
+      {
+        "theme": "warm-ivory",
+        "target": "v2-section-title",
+        "text": "rgb(27, 27, 29)",
+        "background": "rgba(251, 250, 247, 0.88)",
+        "contrastOverBlack": 12.540685134036456,
+        "contrastOverWhite": 16.56155957149602,
+        "minimum": 4.5
+      },
+      {
+        "theme": "warm-ivory",
+        "target": "v2-secondary",
+        "text": "rgb(27, 27, 29)",
+        "background": "rgba(251, 250, 247, 0.88)",
+        "contrastOverBlack": 12.540685134036456,
+        "contrastOverWhite": 16.56155957149602,
+        "minimum": 4.5
+      },
+      {
+        "theme": "pure-glass",
+        "target": null,
+        "text": "rgb(23, 27, 32)",
+        "background": "rgb(247, 249, 251)",
+        "contrastOverBlack": 16.389702392142873,
+        "contrastOverWhite": 16.389702392142873,
+        "minimum": 4.5
+      },
+      {
+        "theme": "pure-glass",
+        "target": "v2-entry-copy",
+        "text": "rgb(89, 97, 106)",
+        "background": "rgb(228, 239, 240)",
+        "contrastOverBlack": 5.355934924571036,
+        "contrastOverWhite": 5.355934924571036,
+        "minimum": 4.5
+      },
+      {
+        "theme": "pure-glass",
+        "target": "v2-button v2-button--text",
+        "text": "rgb(23, 27, 32)",
+        "background": "rgba(255, 255, 255, 0.7)",
+        "contrastOverBlack": 8.20367508176255,
+        "contrastOverWhite": 17.297307769899046,
+        "minimum": 4.5
+      },
+      {
+        "theme": "pure-glass",
+        "target": "v2-button v2-button--text",
+        "text": "rgb(251, 250, 247)",
+        "background": "rgba(25, 36, 42, 0.7)",
+        "contrastOverBlack": 16.9972026270977,
+        "contrastOverWhite": 5.63180684338418,
+        "minimum": 4.5
+      },
+      {
+        "theme": "pure-glass",
+        "target": "v2-cook-instruction",
+        "text": "rgb(251, 250, 247)",
+        "background": "rgb(25, 36, 42)",
+        "contrastOverBlack": 15.160038405218403,
+        "contrastOverWhite": 15.160038405218403,
+        "minimum": 4.5
+      },
+      {
+        "theme": "pure-glass",
+        "target": "v2-cook-instruction",
+        "text": "rgb(251, 250, 247)",
+        "background": "rgb(25, 36, 42)",
+        "contrastOverBlack": 15.160038405218403,
+        "contrastOverWhite": 15.160038405218403,
+        "minimum": 4.5
+      },
+      {
+        "theme": "pure-glass",
+        "target": "v2-cook-instruction",
+        "text": "rgb(251, 250, 247)",
+        "background": "rgb(25, 36, 42)",
+        "contrastOverBlack": 15.160038405218403,
+        "contrastOverWhite": 15.160038405218403,
+        "minimum": 4.5
+      },
+      {
+        "theme": "pure-glass",
+        "target": "v2-cook-instruction",
+        "text": "rgb(251, 250, 247)",
+        "background": "rgb(25, 36, 42)",
+        "contrastOverBlack": 15.160038405218403,
+        "contrastOverWhite": 15.160038405218403,
+        "minimum": 4.5
+      },
+      {
+        "theme": "pure-glass",
+        "target": null,
+        "text": "rgb(198, 208, 213)",
+        "background": "rgb(25, 36, 42)",
+        "contrastOverBlack": 10.085249895309406,
+        "contrastOverWhite": 10.085249895309406,
+        "minimum": 4.5
+      },
+      {
+        "theme": "pure-glass",
+        "target": "v2-section-title",
+        "text": "rgb(23, 27, 32)",
+        "background": "rgba(255, 255, 255, 0.86)",
+        "contrastOverBlack": 12.529288248460707,
+        "contrastOverWhite": 17.297307769899046,
+        "minimum": 4.5
+      },
+      {
+        "theme": "pure-glass",
+        "target": "v2-secondary",
+        "text": "rgb(23, 27, 32)",
+        "background": "rgba(255, 255, 255, 0.86)",
+        "contrastOverBlack": 12.529288248460707,
+        "contrastOverWhite": 17.297307769899046,
+        "minimum": 4.5
+      },
+      {
+        "theme": "pure-glass",
+        "target": "v2-section-title",
+        "text": "rgb(23, 27, 32)",
+        "background": "rgba(255, 255, 255, 0.86)",
+        "contrastOverBlack": 12.529288248460707,
+        "contrastOverWhite": 17.297307769899046,
+        "minimum": 4.5
+      },
+      {
+        "theme": "pure-glass",
+        "target": "v2-secondary",
+        "text": "rgb(23, 27, 32)",
+        "background": "rgba(255, 255, 255, 0.86)",
+        "contrastOverBlack": 12.529288248460707,
+        "contrastOverWhite": 17.297307769899046,
+        "minimum": 4.5
+      },
+      {
+        "theme": "pure-glass",
+        "target": "v2-section-title",
+        "text": "rgb(23, 27, 32)",
+        "background": "rgba(255, 255, 255, 0.86)",
+        "contrastOverBlack": 12.529288248460707,
+        "contrastOverWhite": 17.297307769899046,
+        "minimum": 4.5
+      },
+      {
+        "theme": "pure-glass",
+        "target": "v2-secondary",
+        "text": "rgb(23, 27, 32)",
+        "background": "rgba(255, 255, 255, 0.86)",
+        "contrastOverBlack": 12.529288248460707,
+        "contrastOverWhite": 17.297307769899046,
+        "minimum": 4.5
+      },
+      {
+        "theme": "pure-glass",
+        "target": "v2-section-title",
+        "text": "rgb(251, 250, 247)",
+        "background": "rgba(25, 36, 42, 0.86)",
+        "contrastOverBlack": 16.04158768961842,
+        "contrastOverWhite": 9.752118576143518,
+        "minimum": 4.5
+      },
+      {
+        "theme": "pure-glass",
+        "target": "v2-secondary",
+        "text": "rgb(251, 250, 247)",
+        "background": "rgba(25, 36, 42, 0.86)",
+        "contrastOverBlack": 16.04158768961842,
+        "contrastOverWhite": 9.752118576143518,
+        "minimum": 4.5
+      },
+      {
+        "theme": "pure-glass",
+        "target": "v2-section-title",
+        "text": "rgb(251, 250, 247)",
+        "background": "rgba(25, 36, 42, 0.86)",
+        "contrastOverBlack": 16.04158768961842,
+        "contrastOverWhite": 9.752118576143518,
+        "minimum": 4.5
+      },
+      {
+        "theme": "pure-glass",
+        "target": "v2-secondary",
+        "text": "rgb(251, 250, 247)",
+        "background": "rgba(25, 36, 42, 0.86)",
+        "contrastOverBlack": 16.04158768961842,
+        "contrastOverWhite": 9.752118576143518,
+        "minimum": 4.5
+      },
+      {
+        "theme": "pure-glass",
+        "target": "v2-section-title",
+        "text": "rgb(23, 27, 32)",
+        "background": "rgba(255, 255, 255, 0.86)",
+        "contrastOverBlack": 12.529288248460707,
+        "contrastOverWhite": 17.297307769899046,
+        "minimum": 4.5
+      },
+      {
+        "theme": "pure-glass",
+        "target": "v2-secondary",
+        "text": "rgb(23, 27, 32)",
+        "background": "rgba(255, 255, 255, 0.86)",
+        "contrastOverBlack": 12.529288248460707,
+        "contrastOverWhite": 17.297307769899046,
+        "minimum": 4.5
+      },
+      {
+        "theme": "pure-glass",
+        "target": "v2-section-title",
+        "text": "rgb(23, 27, 32)",
+        "background": "rgba(255, 255, 255, 0.86)",
+        "contrastOverBlack": 12.529288248460707,
+        "contrastOverWhite": 17.297307769899046,
+        "minimum": 4.5
+      },
+      {
+        "theme": "pure-glass",
+        "target": "v2-secondary",
+        "text": "rgb(23, 27, 32)",
+        "background": "rgba(255, 255, 255, 0.86)",
+        "contrastOverBlack": 12.529288248460707,
+        "contrastOverWhite": 17.297307769899046,
+        "minimum": 4.5
+      },
+      {
+        "theme": "pure-glass",
+        "target": "v2-section-title",
+        "text": "rgb(23, 27, 32)",
+        "background": "rgb(255, 255, 255)",
+        "contrastOverBlack": 17.297307769899046,
+        "contrastOverWhite": 17.297307769899046,
+        "minimum": 4.5
+      },
+      {
+        "theme": "pure-glass",
+        "target": "v2-secondary",
+        "text": "rgb(23, 27, 32)",
+        "background": "rgb(255, 255, 255)",
+        "contrastOverBlack": 17.297307769899046,
+        "contrastOverWhite": 17.297307769899046,
+        "minimum": 4.5
+      },
+      {
+        "theme": "pure-glass",
+        "target": "v2-section-title",
+        "text": "rgb(251, 250, 247)",
+        "background": "rgb(25, 36, 42)",
+        "contrastOverBlack": 15.160038405218403,
+        "contrastOverWhite": 15.160038405218403,
+        "minimum": 4.5
+      },
+      {
+        "theme": "pure-glass",
+        "target": "v2-secondary",
+        "text": "rgb(251, 250, 247)",
+        "background": "rgb(25, 36, 42)",
+        "contrastOverBlack": 15.160038405218403,
+        "contrastOverWhite": 15.160038405218403,
+        "minimum": 4.5
+      },
+      {
+        "theme": "pure-glass",
+        "target": "v2-section-title",
+        "text": "rgb(23, 27, 32)",
+        "background": "rgba(255, 255, 255, 0.86)",
+        "contrastOverBlack": 12.529288248460707,
+        "contrastOverWhite": 17.297307769899046,
+        "minimum": 4.5
+      },
+      {
+        "theme": "pure-glass",
+        "target": "v2-secondary",
+        "text": "rgb(23, 27, 32)",
+        "background": "rgba(255, 255, 255, 0.86)",
+        "contrastOverBlack": 12.529288248460707,
+        "contrastOverWhite": 17.297307769899046,
+        "minimum": 4.5
+      },
+      {
+        "theme": "soft-sage",
+        "target": null,
+        "text": "rgb(27, 40, 32)",
+        "background": "rgb(239, 245, 238)",
+        "contrastOverBlack": 13.833734175782025,
+        "contrastOverWhite": 13.833734175782025,
+        "minimum": 4.5
+      },
+      {
+        "theme": "soft-sage",
+        "target": "v2-entry-copy",
+        "text": "rgb(86, 105, 92)",
+        "background": "rgb(220, 233, 219)",
+        "contrastOverBlack": 4.682792730122575,
+        "contrastOverWhite": 4.682792730122575,
+        "minimum": 4.5
+      },
+      {
+        "theme": "soft-sage",
+        "target": "v2-button v2-button--text",
+        "text": "rgb(27, 40, 32)",
+        "background": "rgba(248, 252, 247, 0.74)",
+        "contrastOverBlack": 7.85736794304016,
+        "contrastOverWhite": 14.915948259652707,
+        "minimum": 4.5
+      },
+      {
+        "theme": "soft-sage",
+        "target": "v2-button v2-button--text",
+        "text": "rgb(251, 250, 247)",
+        "background": "rgba(29, 43, 34, 0.74)",
+        "contrastOverBlack": 16.072872073178587,
+        "contrastOverWhite": 6.065783223506568,
+        "minimum": 4.5
+      },
+      {
+        "theme": "soft-sage",
+        "target": "v2-cook-instruction",
+        "text": "rgb(251, 250, 247)",
+        "background": "rgb(29, 43, 34)",
+        "contrastOverBlack": 14.159538465781015,
+        "contrastOverWhite": 14.159538465781015,
+        "minimum": 4.5
+      },
+      {
+        "theme": "soft-sage",
+        "target": "v2-cook-instruction",
+        "text": "rgb(251, 250, 247)",
+        "background": "rgb(29, 43, 34)",
+        "contrastOverBlack": 14.159538465781015,
+        "contrastOverWhite": 14.159538465781015,
+        "minimum": 4.5
+      },
+      {
+        "theme": "soft-sage",
+        "target": "v2-cook-instruction",
+        "text": "rgb(251, 250, 247)",
+        "background": "rgb(29, 43, 34)",
+        "contrastOverBlack": 14.159538465781015,
+        "contrastOverWhite": 14.159538465781015,
+        "minimum": 4.5
+      },
+      {
+        "theme": "soft-sage",
+        "target": "v2-cook-instruction",
+        "text": "rgb(251, 250, 247)",
+        "background": "rgb(29, 43, 34)",
+        "contrastOverBlack": 14.159538465781015,
+        "contrastOverWhite": 14.159538465781015,
+        "minimum": 4.5
+      },
+      {
+        "theme": "soft-sage",
+        "target": null,
+        "text": "rgb(198, 209, 199)",
+        "background": "rgb(29, 43, 34)",
+        "contrastOverBlack": 9.392724636578711,
+        "contrastOverWhite": 9.392724636578711,
+        "minimum": 4.5
+      },
+      {
+        "theme": "soft-sage",
+        "target": "v2-section-title",
+        "text": "rgb(27, 40, 32)",
+        "background": "rgba(248, 252, 247, 0.88)",
+        "contrastOverBlack": 11.245436479652584,
+        "contrastOverWhite": 14.840860118629237,
+        "minimum": 4.5
+      },
+      {
+        "theme": "soft-sage",
+        "target": "v2-secondary",
+        "text": "rgb(27, 40, 32)",
+        "background": "rgba(248, 252, 247, 0.88)",
+        "contrastOverBlack": 11.245436479652584,
+        "contrastOverWhite": 14.840860118629237,
+        "minimum": 4.5
+      },
+      {
+        "theme": "soft-sage",
+        "target": "v2-section-title",
+        "text": "rgb(27, 40, 32)",
+        "background": "rgba(248, 252, 247, 0.88)",
+        "contrastOverBlack": 11.245436479652584,
+        "contrastOverWhite": 14.840860118629237,
+        "minimum": 4.5
+      },
+      {
+        "theme": "soft-sage",
+        "target": "v2-secondary",
+        "text": "rgb(27, 40, 32)",
+        "background": "rgba(248, 252, 247, 0.88)",
+        "contrastOverBlack": 11.245436479652584,
+        "contrastOverWhite": 14.840860118629237,
+        "minimum": 4.5
+      },
+      {
+        "theme": "soft-sage",
+        "target": "v2-section-title",
+        "text": "rgb(27, 40, 32)",
+        "background": "rgba(248, 252, 247, 0.88)",
+        "contrastOverBlack": 11.245436479652584,
+        "contrastOverWhite": 14.840860118629237,
+        "minimum": 4.5
+      },
+      {
+        "theme": "soft-sage",
+        "target": "v2-secondary",
+        "text": "rgb(27, 40, 32)",
+        "background": "rgba(248, 252, 247, 0.88)",
+        "contrastOverBlack": 11.245436479652584,
+        "contrastOverWhite": 14.840860118629237,
+        "minimum": 4.5
+      },
+      {
+        "theme": "soft-sage",
+        "target": "v2-section-title",
+        "text": "rgb(251, 250, 247)",
+        "background": "rgba(29, 43, 34, 0.88)",
+        "contrastOverBlack": 15.053196299172665,
+        "contrastOverWhite": 9.706598355512941,
+        "minimum": 4.5
+      },
+      {
+        "theme": "soft-sage",
+        "target": "v2-secondary",
+        "text": "rgb(251, 250, 247)",
+        "background": "rgba(29, 43, 34, 0.88)",
+        "contrastOverBlack": 15.053196299172665,
+        "contrastOverWhite": 9.706598355512941,
+        "minimum": 4.5
+      },
+      {
+        "theme": "soft-sage",
+        "target": "v2-section-title",
+        "text": "rgb(251, 250, 247)",
+        "background": "rgba(29, 43, 34, 0.88)",
+        "contrastOverBlack": 15.053196299172665,
+        "contrastOverWhite": 9.706598355512941,
+        "minimum": 4.5
+      },
+      {
+        "theme": "soft-sage",
+        "target": "v2-secondary",
+        "text": "rgb(251, 250, 247)",
+        "background": "rgba(29, 43, 34, 0.88)",
+        "contrastOverBlack": 15.053196299172665,
+        "contrastOverWhite": 9.706598355512941,
+        "minimum": 4.5
+      },
+      {
+        "theme": "soft-sage",
+        "target": "v2-section-title",
+        "text": "rgb(27, 40, 32)",
+        "background": "rgba(248, 252, 247, 0.88)",
+        "contrastOverBlack": 11.245436479652584,
+        "contrastOverWhite": 14.840860118629237,
+        "minimum": 4.5
+      },
+      {
+        "theme": "soft-sage",
+        "target": "v2-secondary",
+        "text": "rgb(27, 40, 32)",
+        "background": "rgba(248, 252, 247, 0.88)",
+        "contrastOverBlack": 11.245436479652584,
+        "contrastOverWhite": 14.840860118629237,
+        "minimum": 4.5
+      },
+      {
+        "theme": "soft-sage",
+        "target": "v2-section-title",
+        "text": "rgb(27, 40, 32)",
+        "background": "rgba(248, 252, 247, 0.88)",
+        "contrastOverBlack": 11.245436479652584,
+        "contrastOverWhite": 14.840860118629237,
+        "minimum": 4.5
+      },
+      {
+        "theme": "soft-sage",
+        "target": "v2-secondary",
+        "text": "rgb(27, 40, 32)",
+        "background": "rgba(248, 252, 247, 0.88)",
+        "contrastOverBlack": 11.245436479652584,
+        "contrastOverWhite": 14.840860118629237,
+        "minimum": 4.5
+      },
+      {
+        "theme": "soft-sage",
+        "target": "v2-section-title",
+        "text": "rgb(27, 40, 32)",
+        "background": "rgb(250, 252, 249)",
+        "contrastOverBlack": 14.84845208792082,
+        "contrastOverWhite": 14.84845208792082,
+        "minimum": 4.5
+      },
+      {
+        "theme": "soft-sage",
+        "target": "v2-secondary",
+        "text": "rgb(27, 40, 32)",
+        "background": "rgb(250, 252, 249)",
+        "contrastOverBlack": 14.84845208792082,
+        "contrastOverWhite": 14.84845208792082,
+        "minimum": 4.5
+      },
+      {
+        "theme": "soft-sage",
+        "target": "v2-section-title",
+        "text": "rgb(251, 250, 247)",
+        "background": "rgb(29, 43, 34)",
+        "contrastOverBlack": 14.159538465781015,
+        "contrastOverWhite": 14.159538465781015,
+        "minimum": 4.5
+      },
+      {
+        "theme": "soft-sage",
+        "target": "v2-secondary",
+        "text": "rgb(251, 250, 247)",
+        "background": "rgb(29, 43, 34)",
+        "contrastOverBlack": 14.159538465781015,
+        "contrastOverWhite": 14.159538465781015,
+        "minimum": 4.5
+      },
+      {
+        "theme": "soft-sage",
+        "target": "v2-section-title",
+        "text": "rgb(27, 40, 32)",
+        "background": "rgba(248, 252, 247, 0.88)",
+        "contrastOverBlack": 11.245436479652584,
+        "contrastOverWhite": 14.840860118629237,
+        "minimum": 4.5
+      },
+      {
+        "theme": "soft-sage",
+        "target": "v2-secondary",
+        "text": "rgb(27, 40, 32)",
+        "background": "rgba(248, 252, 247, 0.88)",
+        "contrastOverBlack": 11.245436479652584,
+        "contrastOverWhite": 14.840860118629237,
+        "minimum": 4.5
+      }
+    ]
+  },
+  "errors": [],
+  "externalRequests": [],
+  "businessRequests": [],
+  "notRun": [
+    "user/ChatGPT visual acceptance",
+    "Android WebView",
+    "IME",
+    "TalkBack",
+    "physical device/OEM",
+    "same-device performance",
+    "production G2-G4"
+  ]
+}

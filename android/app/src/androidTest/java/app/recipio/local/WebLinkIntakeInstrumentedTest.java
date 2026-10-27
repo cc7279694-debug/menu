@@ -119,11 +119,11 @@ public class WebLinkIntakeInstrumentedTest {
         scenario.close();launch();until("document.body.innerText.includes("+JSONObject.quote(title+" EDITED")+")");
     }
     @Test public void partialParser_explicitAi_reviewGate()throws Exception{
-        page=html(recipe(title,false));read();until("document.body.innerText.includes('直接完善菜谱')");assertEquals(0,posts.get());click("使用 AI 继续整理");until("document.body.innerText.includes('检查 AI 整理结果')");assertEquals(1,posts.get());
-        assertEquals("false",js("document.querySelector('input[type=checkbox]').checked"));click("快速保存菜谱");until("document.activeElement?.getAttribute('aria-label')==='AI 整理审核'");assertEquals("true",js("document.body.innerText.includes('检查 AI 整理结果')"));
+        page=html(recipe(title,false));read();until("document.body.innerText.includes('直接完善菜谱')");assertEquals(0,posts.get());click("使用 AI 继续整理");until("document.body.innerText.includes('检查整理结果')");assertEquals(1,posts.get());
+        assertEquals("false",js("document.querySelector('input[type=checkbox]').checked"));assertEquals("true",js("Array.from(document.querySelectorAll('button')).find(b=>b.getAttribute('aria-label')==='快速保存菜谱').disabled"));js("document.querySelector('form').dispatchEvent(new Event('submit',{bubbles:true,cancelable:true}))");until("document.activeElement?.getAttribute('aria-label')==='AI 整理审核'");assertEquals("true",js("document.body.innerText.includes('检查整理结果')"));
     }
     @Test public void noJsonLd_readable_doesNotCallAiUntilClicked()throws Exception{
-        page="<main><h1>测试生成菜</h1><p>牛肉200克煮熟</p></main>";read();until("document.body.innerText.includes('没有完整的结构化菜谱')");assertEquals(0,posts.get());click("使用 AI 继续整理");until("document.body.innerText.includes('检查 AI 整理结果')");assertEquals(1,posts.get());
+        page="<main><h1>测试生成菜</h1><p>牛肉200克煮熟</p></main>";read();until("document.body.innerText.includes('没有完整的结构化菜谱')");assertEquals(0,posts.get());click("使用 AI 继续整理");until("document.body.innerText.includes('检查整理结果')");assertEquals(1,posts.get());
     }
     @Test public void multipleCandidates_explicitSelection()throws Exception{
         page=html("["+recipe(title,true)+","+recipe(title+" SECOND",true)+"]");read();until("document.body.innerText.includes('请选择要导入的菜谱')");click(title+" SECOND · 1 项食材 · 1 个步骤");until("document.body.innerText.includes('检查网页菜谱')");assertEquals(title+" SECOND",js("("+titleInput()+").value"));assertEquals(0,posts.get());
@@ -132,7 +132,7 @@ public class WebLinkIntakeInstrumentedTest {
         setInput("document.querySelector('input[type=url]')","https://recipes.example/generated");openIme("document.querySelector('input[type=url]')");back();awaitIme(false);assertEquals("false",js("!!document.querySelector('[role=dialog]')"));assertEquals("https://recipes.example/generated",js("document.querySelector('input[type=url]').value"));back();until("!!document.querySelector('[role=dialog]')");assertEquals(0,reads.get());
     }
     @Test public void previewImeBack_keepsEditedTitleAndReviewGate()throws Exception{
-        page=html(recipe(title,false));read();until("document.body.innerText.includes('直接完善菜谱')");click("使用 AI 继续整理");until("document.body.innerText.includes('检查 AI 整理结果')");setInput(titleInput(),title+" EDITED");openIme(titleInput());back();awaitIme(false);assertEquals(title+" EDITED",js("("+titleInput()+").value"));assertEquals("false",js("!!document.querySelector('[role=dialog]')"));assertEquals("false",js("document.querySelector('input[type=checkbox]').checked"));assertEquals(1,posts.get());
+        page=html(recipe(title,false));read();until("document.body.innerText.includes('直接完善菜谱')");click("使用 AI 继续整理");until("document.body.innerText.includes('检查整理结果')");setInput(titleInput(),title+" EDITED");openIme(titleInput());back();awaitIme(false);assertEquals(title+" EDITED",js("("+titleInput()+").value"));assertEquals("false",js("!!document.querySelector('[role=dialog]')"));assertEquals("false",js("document.querySelector('input[type=checkbox]').checked"));assertEquals(1,posts.get());
     }
     @Test public void busyBack_andCancel_doNotDoubleFetchOrSave()throws Exception{
         hold=true;read();assertTrue(entered.await(8,TimeUnit.SECONDS));until("document.body.innerText.includes('正在安全读取网页')");awaitWindow();back();until("document.querySelectorAll('[role=dialog]').length===1");back();until("document.querySelectorAll('[role=dialog]').length===1");assertEquals(1,reads.get());assertEquals(0,posts.get());click("放弃网页导入");until("!!document.querySelector('button[aria-label=\"新增菜谱\"]')");release.countDown();assertEquals(1,reads.get());

@@ -55,7 +55,7 @@ it("settings remains navigable to backup and home after key failure", async () =
   const port:AiKeyPort=keys();vi.spyOn(port,"hasAiKey").mockRejectedValue({code:"key_unavailable"});vi.spyOn(window,"scrollTo").mockImplementation(()=>{});
   render(<LibraryApp store={new PreviewRecipeLibrary()} aiKeys={port} />);
   fireEvent.click(screen.getByRole("button",{name:"设置"}));await screen.findByText("请在设置中重新配置本机 AI 密钥。");
-  expect(screen.getByRole("heading",{name:"数据与备份"})).toBeInTheDocument();fireEvent.click(screen.getByRole("button",{name:"首页"}));await screen.findByRole("heading",{name:"今天想做什么？"});
+  expect(screen.getByRole("heading",{name:"数据与备份"})).toBeInTheDocument();fireEvent.click(screen.getByRole("button",{name:"首页"}));await screen.findByRole("main",{name:"首页"});
 });
 it("model preflight requires an explicit cost confirmation and never starts on mount",async()=>{
   const verify=vi.fn(async()=>({available:true as const,model:"qwen3.8-flash" as const,region:"beijing" as const}));

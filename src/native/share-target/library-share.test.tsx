@@ -28,13 +28,13 @@ async function menu(name: string) { fireEvent.click(screen.getByRole("button", {
 function nativeBack() { fireEvent(window, new Event("recipio:back", { cancelable: true })); }
 
 it("cold-like late receipt opens idle Link Input exactly once without Read, AI or Save", async () => {
-  const f = setup(), view = render(<LibraryApp {...f} />); await screen.findByText("自己的做法，随时翻开");
+  const f = setup(), view = render(<LibraryApp {...f} />); await screen.findByRole("main", { name: "首页" });
   const shared = { status: "url" as const, id: crypto.randomUUID(), url, replaced: false }; await f.emit(shared);
   expect(await screen.findByLabelText("网页链接")).toHaveValue(url);
   expect(f.web.read).not.toHaveBeenCalled(); expect(f.fake.bridge.organize).not.toHaveBeenCalled(); expect(await f.store.list()).toEqual([]);
   fireEvent.change(screen.getByLabelText("网页链接"), { target: { value: "https://generated.example/edited" } }); await f.emit(shared);
   expect(screen.getByLabelText("网页链接")).toHaveValue("https://generated.example/edited");
-  view.unmount(); render(<LibraryApp {...f} />); await screen.findByText("自己的做法，随时翻开"); expect(screen.queryByLabelText("网页链接")).not.toBeInTheDocument();
+  view.unmount(); render(<LibraryApp {...f} />); await screen.findByRole("main", { name: "首页" }); expect(screen.queryByLabelText("网页链接")).not.toBeInTheDocument();
 });
 it("new recipe draft is protected; returning home requires explicit Open and shows hostname only", async () => {
   const f = setup(); render(<LibraryApp {...f} />); await menu("手动录入");
@@ -86,7 +86,7 @@ it("AI request and its Preview edits/gate survive share without a second request
   const response = deferred<{ rawJson: string }>(); f.fake.bridge.organize.mockReturnValue(response.promise);
   fireEvent.click(await screen.findByRole("button", { name: "开始 AI 整理" })); await waitFor(() => expect(f.fake.bridge.organize).toHaveBeenCalledOnce()); await f.emit();
   expect(f.ai.snapshot().input.text).toBe("测试输入"); expect(f.fake.bridge.cancel).not.toHaveBeenCalled();
-  await act(async () => { response.resolve({ rawJson: JSON.stringify({ recipe: emptyDetails("AI 测试菜"), fieldChecks: [], warnings: [] }) }); }); await screen.findByRole("heading", { name: "检查 AI 整理结果" });
+  await act(async () => { response.resolve({ rawJson: JSON.stringify({ recipe: emptyDetails("AI 测试菜"), fieldChecks: [], warnings: [] }) }); }); await screen.findByRole("heading", { name: "检查整理结果" });
   fireEvent.change(screen.getByLabelText("菜名"), { target: { value: "Preview 修改" } }); await f.emit(); expect(screen.getByLabelText("菜名")).toHaveValue("Preview 修改"); expect(f.ai.snapshot().confirmed).toBe(false);
   expect(f.fake.bridge.organize).toHaveBeenCalledOnce(); expect(f.fake.bridge.discardSession).not.toHaveBeenCalled(); expect(await f.store.list()).toEqual([]);
 });

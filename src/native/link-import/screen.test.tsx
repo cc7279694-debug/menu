@@ -24,10 +24,10 @@ it("complete parser opens editable source-free Preview and saves without AI chec
   await waitFor(() => expect(onSaved).toHaveBeenCalledOnce()); expect((await store.list())[0].title).toBe("自己的网页菜");
 });
 it("partial page offers direct editing and explicit AI, with no automatic request", async () => {
-  const { fake } = setup(html.replace(',"recipeInstructions":["煮熟"]', "")); await read();
+  const { fake, onSaved } = setup(html.replace(',"recipeInstructions":["煮熟"]', "")); await read();
   await screen.findByRole("button", { name: "直接完善菜谱" }); expect(fake.bridge.organize).not.toHaveBeenCalled();
-  fireEvent.click(screen.getByRole("button", { name: "使用 AI 继续整理" })); await screen.findByRole("heading", { name: "检查 AI 整理结果" }); expect(fake.bridge.organize).toHaveBeenCalledOnce();
-  fireEvent.click(screen.getByRole("button", { name: "确认保存菜谱" })); expect(screen.getByRole("region", { name: "AI 整理审核" })).toHaveFocus();
+  fireEvent.click(screen.getByRole("button", { name: "使用 AI 继续整理" })); await screen.findByRole("heading", { name: /检查.*整理结果/ }); expect(fake.bridge.organize).toHaveBeenCalledOnce();
+  expect(screen.getByRole("button", { name: "确认保存菜谱" })).toBeDisabled(); fireEvent.submit(document.querySelector("form")!); expect(onSaved).not.toHaveBeenCalled(); expect(screen.getByRole("region", { name: "AI 整理审核" })).toHaveFocus();
 });
 it("missing key exposes settings return path and keeps partial data", async () => {
   const { fake, onConfigureKey, service } = setup('<main><h1>牛肉</h1><p>牛肉200克煮熟</p></main>'); fake.keys.hasAiKey.mockResolvedValue({ configured: false }); await read();

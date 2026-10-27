@@ -1,0 +1,20 @@
+{
+  "classification": "RESOURCE_ENVIRONMENT",
+  "decision": "Do not interpret browser navigation timeouts as confirmed product defects.",
+  "reason": "Parent agent observed host free memory at 0.257 GiB and paging pressure, then instructed this agent to stop its owned browser and QA processes without rerunning.",
+  "production": "page.goto 127.0.0.1:5184 timed out before the first product assertion; raw log and results preserved.",
+  "settingsDialogs": "page.goto 127.0.0.1:5184 timed out before the first product assertion; raw log and results preserved.",
+  "intake": "Runner was active when the stop was requested; no complete result is claimed by this note.",
+  "notRun": ["foundation", "built-cooking", "supplemental"],
+  "ownedProcessTree": {
+    "wrapper": 24616,
+    "intake": 24124,
+    "browser": 408,
+    "browserChildren": [28424, 10156, 5968],
+    "conhost": 23764
+  },
+  "cleanup": "Only verified owned wrapper PID 24616 still existed on the final pre-stop check; it was stopped. All recorded owned PIDs were absent in the post-stop query. Exec session 39713 exited with code 1.",
+  "untouched": "Vite server, user browser, other projects, production source, dependencies, historic evidence.",
+  "staticRiskOnly": "Warm Ivory caption #716d65 on muted #f0ece5 calculates 4.373905:1; requires real rendered-DOM confirmation before calling it a product defect.",
+  "resume": "Wait for parent agent's explicit instruction after resource recovery. Use a new evidence directory; preserve this attempt."
+}

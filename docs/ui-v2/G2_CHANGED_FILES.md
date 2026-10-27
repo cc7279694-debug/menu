@@ -1,0 +1,74 @@
+# G2 changed-file inventory
+
+Baseline9a17b1c to the current source plus staged handoff. A=added, M=modified.
+No deleted files, dependency or protected Native/data source changes.
+PNG files are controlled browser evidence, not production assets.
+
+- `M` `docs/CURRENT_STATE.md`
+- `M` `docs/DECISIONS.md`
+- `M` `docs/ROADMAP.md`
+- `A` `docs/ui-v2/G2_ACCEPTANCE_MATRIX.md`
+- `A` `docs/ui-v2/G2_APPROVED_BRIEF.md`
+- `A` `docs/ui-v2/G2_CHECKPOINT.md`
+- `A` `docs/ui-v2/G2_ENGINEERING_REVIEW.md`
+- `A` `docs/ui-v2/G2_EXECUTION.md`
+- `A` `docs/ui-v2/G2_GALLERY.md`
+- `A` `docs/ui-v2/G2_PROGRESS.md`
+- `A` `docs/ui-v2/G2_REVIEW_SCOPE.md`
+- `A` `docs/ui-v2/G2_VERIFICATION.md`
+- `A` `docs/ui-v2/evidence/g2/add-sheet-390.png`
+- `A` `docs/ui-v2/evidence/g2/apk-metadata.json`
+- `A` `docs/ui-v2/evidence/g2/browser-results.json`
+- `A` `docs/ui-v2/evidence/g2/changes-390.png`
+- `A` `docs/ui-v2/evidence/g2/command-receipts.txt`
+- `A` `docs/ui-v2/evidence/g2/completion-390.png`
+- `A` `docs/ui-v2/evidence/g2/cooking-320-200.png`
+- `A` `docs/ui-v2/evidence/g2/cooking-390.png`
+- `A` `docs/ui-v2/evidence/g2/detail-320-200.png`
+- `A` `docs/ui-v2/evidence/g2/detail-390.png`
+- `A` `docs/ui-v2/evidence/g2/editor-320-200.png`
+- `A` `docs/ui-v2/evidence/g2/editor-390.png`
+- `A` `docs/ui-v2/evidence/g2/empty-390.png`
+- `A` `docs/ui-v2/evidence/g2/focus-390.png`
+- `A` `docs/ui-v2/evidence/g2/forms-history.diff`
+- `A` `docs/ui-v2/evidence/g2/history-390.png`
+- `A` `docs/ui-v2/evidence/g2/home-320-200.png`
+- `A` `docs/ui-v2/evidence/g2/home-390.png`
+- `A` `docs/ui-v2/evidence/g2/ingredients-sheet-390.png`
+- `A` `docs/ui-v2/evidence/g2/library-390.png`
+- `A` `docs/ui-v2/evidence/g2/name-only-390.png`
+- `A` `docs/ui-v2/evidence/g2/protection-tests.diff`
+- `A` `docs/ui-v2/evidence/g2/reading-cooking.diff`
+- `A` `docs/ui-v2/evidence/g2/search-390.png`
+- `A` `docs/ui-v2/evidence/g2/shell-and-shared.diff`
+- `A` `docs/ui-v2/evidence/g2/showcase-pure-glass-results.json`
+- `A` `docs/ui-v2/evidence/g2/showcase-soft-sage-results.json`
+- `A` `docs/ui-v2/evidence/g2/showcase-warm-ivory-results.json`
+- `A` `docs/ui-v2/evidence/g2/solid-home-390.png`
+- `A` `docs/ui-v2/evidence/g2/source-fingerprint.json`
+- `A` `docs/ui-v2/evidence/g2/test-results.txt`
+- `M` `scripts/verify-ui-v2-isolation.mjs`
+- `A` `scripts/verify-ui-v2-production.mjs`
+- `M` `src/native/ai/ai-settings.test.tsx`
+- `M` `src/native/cooking-completion.tsx`
+- `M` `src/native/cooking-history.tsx`
+- `M` `src/native/library-app.test.tsx`
+- `M` `src/native/library-app.tsx`
+- `M` `src/native/main.tsx`
+- `M` `src/native/recipe-change-history.tsx`
+- `M` `src/native/recipe-detail.test.tsx`
+- `M` `src/native/recipe-detail.tsx`
+- `M` `src/native/recipe-editor.tsx`
+- `M` `src/native/recipe-step-content.tsx`
+- `M` `src/native/share-target/library-share.test.tsx`
+- `M` `src/native/step-viewer.test.tsx`
+- `M` `src/native/step-viewer.tsx`
+- `M` `src/native/ui-v2/appearance.tsx`
+- `A` `src/native/ui-v2/core-detail-viewer.test.tsx`
+- `A` `src/native/ui-v2/layout.css`
+- `A` `src/native/ui-v2/library-screens.tsx`
+- `A` `src/native/ui-v2/native-sheet.tsx`
+- `A` `src/native/ui-v2/production-core.test.tsx`
+- `A` `src/native/ui-v2/production.css`
+- `M` `src/native/ui-v2/showcase/styles.css`
+- `A` `docs/ui-v2/G2_CHANGED_FILES.md` (this inventory)

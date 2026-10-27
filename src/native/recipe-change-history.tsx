@@ -61,14 +61,16 @@ export function RecipeChangeHistory({
   }, [load]);
   const last = rows.at(-1);
   return (
-    <section className="space-y-5">
-      <Button variant="ghost" className="min-h-11" onClick={onBack}>
-        返回菜谱
-      </Button>
-      <h2 className="text-2xl font-semibold">修改记录</h2>
-      <p className="text-sm text-muted-foreground">
-        这里只回看以前改过什么；当前菜谱始终是你的最新做法。
-      </p>
+    <section className="v2-production-history v2-g5-change-history space-y-5">
+      <header className="v2-history-header space-y-3">
+        <Button variant="ghost" className="min-h-11" onClick={onBack}>
+          返回菜谱
+        </Button>
+        <h2 className="v2-page-title text-2xl font-semibold">修改记录</h2>
+        <p className="v2-secondary text-sm text-muted-foreground">
+          这里只回看以前改过什么；当前菜谱始终是你的最新做法。
+        </p>
+      </header>
       {busy && <p role="status">读取本地修改记录…</p>}
       {error && (
         <div>
@@ -85,12 +87,12 @@ export function RecipeChangeHistory({
       {!busy && !error && !rows.length && (
         <p>还没有修改记录。当前菜谱就是你认可的最新做法。</p>
       )}
-      <ol className="space-y-4">
+      <ol className="v2-history-list space-y-4">
         {rows.map((r) => (
           <li
             key={r.id}
             data-testid="recipe-change"
-            className="rounded-xl border p-4"
+            className="v2-history-row rounded-xl border p-4"
           >
             <time
               dateTime={r.changedAt}

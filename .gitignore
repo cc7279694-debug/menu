@@ -30,6 +30,8 @@
 /android/app/src/main/assets/capacitor.plugins.json
 *.jks
 *.keystore
+*.p12
+*.pfx
 
 # misc
 .DS_Store

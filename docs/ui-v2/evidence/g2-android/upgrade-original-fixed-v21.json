@@ -1,0 +1,60 @@
+{
+  "status": "PASS",
+  "utc": "2026-10-24T04:49:04.183Z",
+  "avd": "Recipio_Backup_36",
+  "android": 16,
+  "api": 36,
+  "fromVersion": 21,
+  "toVersion": 21,
+  "apkSha256": "ae343d4222c06dcb699fff5158d5f7171e86a26d4b338c967f331a6ec3e815e9",
+  "before": {
+    "schema": 4,
+    "integrity": "ok",
+    "foreignKeyErrors": 0,
+    "rowHash": "6d91ac59f23d7fc8db8aeff498f7563bdfc2cfbea78948ae72e6c0fce603aca8",
+    "idOrderTimeHash": "b6c3e04d1aec3123fd15892fffe679de064dea35bd1e98feb6e19228e75fd8c5",
+    "imageHash": "bc3d51c8656334cb1fd420c94d53a8368394446dac51c4a789b5b63f02621db7",
+    "counts": {
+      "recipes": 15,
+      "recipe_ingredients": 3,
+      "recipe_steps": 4,
+      "recipe_preparations": 0,
+      "recipe_key_tips": 0,
+      "recipe_changes": 1,
+      "cooking_records": 1,
+      "backup_restore_state": 0
+    },
+    "imageCount": 2,
+    "archiveBytes": 91136,
+    "archiveSha256": "eae6b2ec73e2d010dfd6baa36e73df2603a78a9f694eecab50608f82a5da6239"
+  },
+  "after": {
+    "schema": 4,
+    "integrity": "ok",
+    "foreignKeyErrors": 0,
+    "rowHash": "6d91ac59f23d7fc8db8aeff498f7563bdfc2cfbea78948ae72e6c0fce603aca8",
+    "idOrderTimeHash": "b6c3e04d1aec3123fd15892fffe679de064dea35bd1e98feb6e19228e75fd8c5",
+    "imageHash": "bc3d51c8656334cb1fd420c94d53a8368394446dac51c4a789b5b63f02621db7",
+    "counts": {
+      "recipes": 15,
+      "recipe_ingredients": 3,
+      "recipe_steps": 4,
+      "recipe_preparations": 0,
+      "recipe_key_tips": 0,
+      "recipe_changes": 1,
+      "cooking_records": 1,
+      "backup_restore_state": 0
+    },
+    "imageCount": 2,
+    "archiveBytes": 91136,
+    "archiveSha256": "eae6b2ec73e2d010dfd6baa36e73df2603a78a9f694eecab50608f82a5da6239"
+  },
+  "checks": [
+    "installed exact final layout-fix v21; no uninstall or clear; earlier 30-second observer timeout retained",
+    "all8 business tables / IDs / timestamps / row order / image bytes exactly retained across original-to-fixed v21"
+  ],
+  "observerTimeoutEvidence": "fixed-cover-upgrade-failure-1792817243258.json",
+  "scope": "Preserved original v19 to original v21 earlier; now original v21 to fixed v21. No direct v19-to-fixed-v21 claim.",
+  "privateData": "Ignored local safety copies only; no credentials or private media in Git",
+  "realAiCalls": 0
+}

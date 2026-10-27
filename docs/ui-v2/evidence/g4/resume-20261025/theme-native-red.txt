@@ -1,0 +1,6 @@
+{"phase":"choose warm-ivory","state":{"root":"warm-ivory","stored":null,"checked":"warm-ivory"}}
+{"phase":"cold warm-ivory","state":{"root":"warm-ivory","stored":null}}
+{"phase":"choose pure-glass","state":{"root":"pure-glass","stored":"pure-glass","checked":"pure-glass"}}
+{"phase":"cold pure-glass","state":{"root":"warm-ivory","stored":null}}
+{"phase":"choose soft-sage","state":{"root":"soft-sage","stored":"soft-sage","checked":"soft-sage"}}
+{"phase":"cold soft-sage","state":{"root":"warm-ivory","stored":null}}

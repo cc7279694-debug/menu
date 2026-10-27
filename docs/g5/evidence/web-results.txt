@@ -1,0 +1,10 @@
+Source: e5fbe1b75c97295b214dea9ed0f0ad202b2b6b60
+Cloud run: 40313302175
+Windows job: 121539552661
+Targeted: 5 files / 20 PASS (included in the full suite).
+Full JS/TS: 210 files / 1184 PASS, 0 FAIL.
+Typecheck: PASS.
+Lint: 0 errors, 5 existing warnings.
+Local production build: PASS.
+Production isolation: PASS; productionModuleCount=313; sharedV2Modules=13; showcaseModules=0; fixtureAssets=0.
+Source: actual completed job logs, not reused historical numbers.

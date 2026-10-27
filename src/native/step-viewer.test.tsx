@@ -25,7 +25,8 @@ it("focuses any requested step with bounds and shared tips, never offers automat
       onComplete={complete}
     />,
   );
-  expect(screen.getByText("第 2 步 / 2")).toBeInTheDocument();
+  expect(screen.getByText("第 2 步／共 2 步")).toBeInTheDocument();
+  expect(screen.getByRole("progressbar", { name: "烹饪步骤进度" })).toHaveAttribute("value", "2");
   expect(screen.getByText("焖煮")).toBeInTheDocument();
   expect(screen.getByText("注意：别煮干")).toBeInTheDocument();
   expect(screen.getByRole("button", { name: "下一步" })).toBeDisabled();
@@ -48,7 +49,8 @@ it("guided starts from 1/N and only an explicit final button completes", () => {
       onComplete={complete}
     />,
   );
-  expect(screen.getByText("第 1 步 / 2")).toBeInTheDocument();
+  expect(screen.getByText("第 1 步／共 2 步")).toBeInTheDocument();
+  expect(screen.getByRole("progressbar", { name: "烹饪步骤进度" })).toHaveAttribute("value", "1");
   expect(
     screen.queryByRole("button", { name: "完成这道菜" }),
   ).not.toBeInTheDocument();

@@ -1,0 +1,106 @@
+/* G6 is a display-only refinement of the existing ingredient sections.
+   Theme, dark, solid and reduced-motion behavior keep their current owners. */
+.recipio-ui-v2 .v2-g6-serving {
+  min-width: 0;
+  margin-block: 12px 16px;
+  padding-block: 4px 16px;
+  border-bottom: 1px solid var(--v2-border);
+  overflow-wrap: anywhere;
+}
+.recipio-ui-v2 .v2-g6-serving-heading {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4px 12px;
+  margin-bottom: 8px;
+}
+.recipio-ui-v2 .v2-g6-serving-original {
+  color: var(--v2-secondary);
+  font-size: .875rem;
+}
+.recipio-ui-v2 .v2-g6-serving-heading .v2-button {
+  color: var(--v2-text);
+  font-size: .875rem;
+  font-weight: 500;
+}
+.recipio-ui-v2 .v2-g6-serving-label {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 1rem;
+  font-weight: 500;
+}
+.recipio-ui-v2 .v2-g6-serving-inputs {
+  display: grid;
+  grid-template-columns: 48px minmax(0, 1fr) 48px;
+  align-items: stretch;
+  gap: 10px;
+  max-width: 360px;
+}
+.recipio-ui-v2 .v2-g6-serving-inputs .v2-g6-serving-step {
+  min-width: 48px;
+  min-height: 48px;
+  padding: 10px;
+}
+.recipio-ui-v2 .v2-g6-serving-field {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  min-width: 0;
+  gap: 2px 6px;
+  padding-inline: 12px;
+  border: 1px solid var(--v2-control);
+  border-radius: var(--v2-radius-input);
+  background: var(--v2-surface);
+}
+.recipio-ui-v2 .v2-g6-serving-field:focus-within {
+  outline: 2px solid var(--v2-focus);
+  outline-offset: 2px;
+}
+.recipio-ui-v2 .v2-g6-serving-field:has([aria-invalid="true"]) { border-color: var(--v2-error); }
+#root .recipio-ui-v2 .v2-g6-serving-field input,
+.recipio-ui-v2 .v2-g6-serving-field input {
+  flex: 1 1 3ch;
+  width: 3ch;
+  min-width: 0;
+  min-height: 48px;
+  padding: 4px 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: var(--v2-text);
+  text-align: center;
+  font-size: 1.125rem;
+  font-variant-numeric: tabular-nums;
+}
+.recipio-ui-v2 .v2-g6-serving-field input:focus-visible { outline: 0; }
+.recipio-ui-v2 .v2-g6-serving-field > span {
+  color: var(--v2-secondary);
+  font-size: .875rem;
+}
+.recipio-ui-v2 .v2-g6-serving-status { margin-top: 10px; font-weight: 500; }
+.recipio-ui-v2 .v2-g6-serving-help {
+  margin-top: 6px;
+  color: var(--v2-secondary);
+  font-size: .875rem;
+  line-height: 1.7;
+}
+.recipio-ui-v2 .v2-g6-serving-error {
+  margin-top: 10px;
+  padding: 8px 10px;
+  border-radius: 10px;
+  color: var(--v2-error);
+  background: var(--v2-error-surface);
+  font-size: .875rem;
+  line-height: 1.7;
+}
+.recipio-ui-v2 .v2-g6-amount { display: grid; gap: 4px; }
+.recipio-ui-v2 .v2-g6-amount-value { color: var(--v2-text); font-variant-numeric: tabular-nums; }
+.recipio-ui-v2 .v2-g6-amount-original { color: var(--v2-secondary); font-size: .8125rem; line-height: 1.65; }
+.recipio-ui-v2 .v2-ingredients:has(.v2-g6-amount-value) > div { min-width: 0; }
+.recipio-ui-v2 .v2-ingredients:has(.v2-g6-amount-value) dt { min-width: 0; }
+.recipio-ui-v2 .v2-ingredients:has(.v2-g6-amount-value) dd { min-width: 0; flex-shrink: 1; }
+@media (max-width: 359px) {
+  .recipio-ui-v2 .v2-g6-serving-inputs { gap: 8px; }
+  .recipio-ui-v2 .v2-g6-serving-field { padding-inline: 6px; }
+}

@@ -1,0 +1,17 @@
+{
+  "Utc": "2026-10-24T07:39:39.3299542Z",
+  "FreeGiB": 3.408,
+  "MinimumFreeGiB": 4,
+  "RunningEmulatorCount": 0,
+  "Emulators": [],
+  "EarlierGate": {
+    "Utc": "2026-10-24T07:34:31.4611190Z",
+    "FreeGiB": 1.398,
+    "UnoperatedEmulatorPids": [5484, 20460]
+  },
+  "OwnedAvdRegistered": true,
+  "Action": "No emulator launched; no device or other process operated",
+  "result": "NOT_RUN — safe memory gate failed",
+  "physicalPhone": "UNTOUCHED",
+  "realAiCalls": 0
+}

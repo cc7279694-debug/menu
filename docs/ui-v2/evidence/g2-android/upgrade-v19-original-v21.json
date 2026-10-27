@@ -1,0 +1,61 @@
+{
+  "status": "PASS",
+  "utc": "2026-10-24T03:54:13.085Z",
+  "avd": "Recipio_Backup_36",
+  "android": 16,
+  "api": 36,
+  "fromVersion": 19,
+  "toVersion": 21,
+  "apkSha256": "c2c770e12e1af995c522da3d1e2b898ad1eca2a6fe3535ea3a065fe524d57090",
+  "before": {
+    "schema": 4,
+    "integrity": "ok",
+    "foreignKeyErrors": 0,
+    "rowHash": "54019de18718d5397e573e331399006379b088b19614d0a49a5fc37fdf31f5b2",
+    "idOrderTimeHash": "a7a667dbd756440b367412b32a7f20f938cd90fbda3ea264a825c135d84192d8",
+    "imageHash": "055341208a8fa06fd1ae127f4539dd4b2edc54ec8f64881d17457f17355a1ca7",
+    "counts": {
+      "recipes": 2,
+      "recipe_ingredients": 2,
+      "recipe_steps": 2,
+      "recipe_preparations": 0,
+      "recipe_key_tips": 0,
+      "recipe_changes": 0,
+      "cooking_records": 0,
+      "backup_restore_state": 0
+    },
+    "imageCount": 1,
+    "archiveBytes": 89600,
+    "archiveSha256": "96eaaac8be721ca316edee761a4d06b9b080f010b2a362161063de2460a69cb7"
+  },
+  "after": {
+    "schema": 4,
+    "integrity": "ok",
+    "foreignKeyErrors": 0,
+    "rowHash": "54019de18718d5397e573e331399006379b088b19614d0a49a5fc37fdf31f5b2",
+    "idOrderTimeHash": "a7a667dbd756440b367412b32a7f20f938cd90fbda3ea264a825c135d84192d8",
+    "imageHash": "055341208a8fa06fd1ae127f4539dd4b2edc54ec8f64881d17457f17355a1ca7",
+    "counts": {
+      "recipes": 2,
+      "recipe_ingredients": 2,
+      "recipe_steps": 2,
+      "recipe_preparations": 0,
+      "recipe_key_tips": 0,
+      "recipe_changes": 0,
+      "cooking_records": 0,
+      "backup_restore_state": 0
+    },
+    "imageCount": 1,
+    "archiveBytes": 89600,
+    "archiveSha256": "96eaaac8be721ca316edee761a4d06b9b080f010b2a362161063de2460a69cb7"
+  },
+  "checks": [
+    "owned Android16/API36 / installed exact v19 / approved exact v21",
+    "private quiescent safety copy; actual Android SQLite4 eight tables / integrity / image hashes",
+    "exact v19 to exact v21 cover install without uninstall/clear",
+    "all8 tables / IDs / times / row order / image bytes exactly retained"
+  ],
+  "scope": "Quiescent files copied from actual emulator; SQLite inspected read-only on host. Runtime Native SQLite startup and G2 UI acceptance remain separate.",
+  "privateData": "Raw database and images only in ignored local safety copies, never Git/review packet",
+  "realAiCalls": 0
+}

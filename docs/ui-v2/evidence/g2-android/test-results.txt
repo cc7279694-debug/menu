@@ -1,0 +1,63 @@
+G2 Android supplement - 2026-10-24
+Exact candidate: recipio-ui-v2-g2-v21-layout-fix-debug.apk
+SHA256 ae343d4222c06dcb699fff5158d5f7171e86a26d4b338c967f331a6ec3e815e9
+One production UI-line change; source fingerprints in final-apk.json.
+
+Fresh commands/results:
+npm.cmd test -- --pool=threads --maxWorkers=1 --no-file-parallelism --reporter=dot
+  198 test files PASS;1079 tests PASS;exit0;767.52s.
+npm.cmd run typecheck: PASS exit0.
+npm.cmd run lint: PASS exit0;0 errors;5 pre-existing legacy Next img warnings.
+npm.cmd run build:local: PASS exit0;26.41s;existing500kB chunk warning.
+node scripts/verify-ui-v2-built-cooking.mjs --runtime=<installed-playwright-root>
+  RED before production fix (offscreen at320/100%); final GREEN16 layouts.
+  Focus/Guided x320/390/412/768 x100/200%; real next/exit;errors0/external0.
+node scripts/verify-ui-v2-production.mjs --runtime=<installed-playwright-root>
+  PASS11 browser groups;errors0/external0; fresh isolated IndexedDB context.
+npx.cmd cap sync android: PASS; portable node_modules paths restored;
+  no tracked Android/Native source/config diff.
+android/gradlew.bat -p android :app:assembleDebug --no-daemon --max-workers=1
+  -Dorg.gradle.jvmargs=-Xmx1024m\ -XX:MaxMetaspaceSize=384m
+  -PapkVersionCode=21 -PapkVersionName=0.10.0-ui-v2-g2-rc1
+  PASS;58s;113 tasks (21 executed,92 up-to-date).
+apksigner verify --print-certs: PASS;certificate matches acceptedv19.
+aapt2 dump badging: app.recipio.local /code21/name0.10.0-ui-v2-g2-rc1.
+Packaged assets vs dist-native SHA256 comparison:15/15;2 generated Cordova
+  files excluded from Vite build count;no showcase food assets in APK.
+
+Actual selected Android emulator, not browser/mock-only:
+Recipio_Backup_36 /emulator-5580 /Android16/API36.
+Quiescent full8table/IDs/timestamps/order/all-image comparisons at both
+  upgrade steps PASS. No uninstall/clear/downgrade.
+Final exact APK:10 distinct grouped UI checks PASS, NOT10 JUnit tests.
+Real Android IME + hardware Back + native discard-dialog Cancel/OK PASS.
+Real native image picker/generated PNG/cancel preservation PASS.
+Actual Focus/Guided viewport origin0,0 /360x734;on-screen touch controls PASS.
+Read-only browsing creates0 records;explicit completion adds exactly1 PASS.
+SQLite ingredient search/filter/scroll return/creation order PASS.
+Actual airplane+WiFi/data-off cold start/local image/Guided PASS.
+G3 entries open/cancel with0 Provider/page/Finder calls PASS.
+Native Backup SAF cancel:all8tables/all-image fingerprints identical PASS.
+All pre-patch15recipes/2images retained;final28recipes/3images include new
+  controlled fixtures only. Schema4/integrityOK/foreign-key errors0.
+No real AI calls;no physical phone or other-project emulator/process operated.
+Network/IME test preferences restored;owned emulator normally stopped.
+
+Observer failures retained:
+30-second install observer timeout; installed byte hash and preservation
+  checked afterward (no product failure inferred).
+Picker observer exhausted before DocumentsUI focus; test-only polling fixed,
+  IME evidence retained from same final APK;production timing unchanged.
+Earlier real cooking layout failure is retained with before/after screenshots.
+Old c2 candidate logical cooking checks are NOT used as final-layout proof.
+
+NOT RUN this targeted supplement:
+Full connected Android suite;JVM188;Android lint;G1 three-theme browser suite;
+physical/OEM/TalkBack;destructive restore;real AI. Prior evidence labelled
+historical, not relabelled fresh.
+
+Warnings retained:
+Legacy Vite configLoader notice,jsdom scrollTo diagnostic,legacy unawaited
+assertion notice,5 Next img lint warnings,chunk/flatDir/unchecked build notes.
+No unrelated warning cleanup. Raw logs in ignored output/playwright/ui-v2/
+g2-android;private safety archives never committed. No background polling.

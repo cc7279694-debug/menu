@@ -240,7 +240,7 @@ public class RecipeFinderUiInstrumentedTest {
         String edited = fixture.title + " EDITED"; ownTitle(edited);
         finder(); search(dish, preference); results(3); counts(1, 0);
         assertEquals(fixture.title + " 2", js("document.querySelector('[aria-label=\"找到的做法\"]').querySelectorAll('article')[1].querySelector('h4').textContent"));
-        select(1); until("document.body.innerText.includes('检查 AI 整理结果')"); counts(1, 1);
+        select(1); until("document.body.innerText.includes('检查整理结果')"); counts(1, 1);
         assertEquals("false", js("document.querySelector('input[type=checkbox]').checked"));
         setInput(titleInput(), edited); click("快速保存菜谱");
         until("document.activeElement?.getAttribute('aria-label')==='AI 整理审核'");
@@ -276,7 +276,7 @@ public class RecipeFinderUiInstrumentedTest {
         fixture.mode = RecipeFinderTestProvider.Mode.WRONG_EXTRACT_URL;
         finder(); search("生成鸭肉做法", ""); results(3); select(1);
         until("document.querySelector('[role=alert]')?.textContent.includes('这个来源暂时无法读取')");
-        results(3); assertEquals("false", js("document.body.innerText.includes('检查 AI 整理结果')"));
+        results(3); assertEquals("false", js("document.body.innerText.includes('检查整理结果')"));
         assertEquals("false", js("!!document.querySelector('input[type=checkbox]')"));
         counts(1, 1); noGeneratedSave();
     }
@@ -324,7 +324,7 @@ public class RecipeFinderUiInstrumentedTest {
         until("[...document.querySelectorAll('button')].some(e=>e.textContent.trim()==='开始寻找'&&!e.disabled)");
         assertEquals("生成鸭肉做法", js("(" + dishInput() + ").value")); assertEquals("少油", js("(" + preferenceInput() + ").value"));
         assertEquals("false", js("!!document.querySelector('[aria-label=\"找到的做法\"]')"));
-        assertEquals("false", js("document.body.innerText.includes('检查 AI 整理结果')"));
+        assertEquals("false", js("document.body.innerText.includes('检查整理结果')"));
         counts(1, 0); noGeneratedSave();
     }
 
@@ -343,7 +343,7 @@ public class RecipeFinderUiInstrumentedTest {
         assertTrue("Native cancellation precedes releasing the delayed fake response", cancelled.await(8, TimeUnit.SECONDS));
         fixture.release.countDown(); flushFinder();
         results(3); until("[...document.querySelectorAll('[aria-label=\"找到的做法\"] article button')].every(e=>!e.disabled)");
-        assertEquals("false", js("document.body.innerText.includes('检查 AI 整理结果')"));
+        assertEquals("false", js("document.body.innerText.includes('检查整理结果')"));
         assertEquals("false", js("!!document.querySelector('input[type=checkbox]')")); counts(1, 1); noGeneratedSave();
         back(); until("!!(" + dishInput() + ")"); assertEquals("生成鸭肉做法", js("(" + dishInput() + ").value"));
         assertEquals("少油", js("(" + preferenceInput() + ").value")); counts(1, 1);

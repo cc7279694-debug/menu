@@ -1,5 +1,152 @@
 # Decisions
 
+## 2026-10-24 — Register G3 user acceptance; G4 verifies without expanding scope
+
+### Decision / context
+
+The user reports ChatGPT independent acceptance and v23 preserving phone upgrade
+plus six core experience checks PASS. Freeze G3 delivery2080f86/sourcee182a72 as
+ACCEPTED / FROZEN — PASS WITH NOTES, for visual/interaction scope only. Preserve
+all Codex NOT_RUN notes. This supersedes G3's pending acceptance gate, not its
+historical execution record.
+
+### Reason / consequences
+
+G4-A/B/C/D now has explicit authority for fresh engineering, data, Android,
+accessibility and performance evidence. Existing v23 is reused if production
+does not change. No new product/design system or Provider call; no data-model,
+Native safety, key, SSRF or backup contract changes. Device gate>=4GiB and owned
+RECIPIO environment; never operate user phone or another project. G4 remains
+unaccepted until external review and cannot merge/tag/deploy itself.
+
+## 2026-10-24 — G3 task pages share presentation, not new business owners
+
+### Decision
+
+Extend the approved V2 theme/root to AI, Link, Finder and pending-share notices.
+Reuse RecipeEditor V2 inside the existing AI Preview, with the full explicit
+acknowledgement next to save. Review items can locate existing inputs; location
+never changes values, source status or acknowledgement. Reduced motion omits
+the transient highlight. Parser preview remains distinct from AI Review.
+
+### Context / Alternatives / Reason
+
+G3-0 was explicitly accepted. The remainder brief authorizes presentation only.
+Preserving the existing mounted-hidden Link/Finder and Service instances avoids
+draft/session loss while visually unifying settings-return and dialogs. A new
+router, AI editor or service state machine would duplicate frozen ownership.
+
+### Consequences
+
+SQLite4/Preview7/Backup2, Native KeyStore/IME, Provider/source/SSRF contracts,
+temporary media lifecycle, UUID recovery and restore transactions are unchanged.
+Only Android instrumentation display selectors/disabled-submit expectations were
+updated and compiled; this does not claim device execution. G3 is an unaccepted
+v23 candidate pending Android supplement and independent review. G4 remains gated.
+
+## 2026-10-23 — G2 reuses accepted visual rules without replacing business owners
+
+### Decision
+
+The user's explicit G1 visual approval supersedes its old pending gate. Integrate
+only the approved G2 core routes using the shared G1 layout/tokens/Base UI.
+Warm Ivory is the integration skin; no persisted theme preference is introduced.
+
+### Context / Alternatives / Reason
+
+The showcase is not an application router or database. Extract its125 common
+layout rules unchanged, keep a production-only integration stylesheet, and use
+the actual RecipeLibrary/services/local media. A build-graph check permits
+shared presentation while excluding demo routes, fixtures and test assets.
+Replacing data/router/confirmation state machines would exceed this UI task.
+
+### Consequences
+
+SQLite4 /Preview7 /Backup2, Native IME, Provider/Share/restore/save/completion
+owners remain frozen. Core RecipeEditor opts in; AI/Link editor keeps its legacy
+default. Existing route glue restores list/detail reading positions and defers
+Back to mounted sheets; no guessed delay or second keyboard state machine.
+Actual Android evidence remains separate from browser route evidence. G3/G4,
+theme-product choice, main merge/tag and deployment require further approval.
+
+## 2026-10-23 — G1 final polish changes weight, not product meaning
+
+### Decision
+
+Apply the approved third-round density/hierarchy changes to the same three G1
+screens and themes. Replace equal large shortcut boxes with compact unequal
+visual weight; soften control chrome, not content. Keep original food bytes and
+4:3 cover framing. Make generic cooking labels secondary to the real instruction.
+
+### Context / Alternatives / Reason
+
+Independent visual feedback approved the direction but withheld G2. Ordinary
+spacing, fine edges and restrained shadow solve the requested weight without
+new styles, stronger blur, new assets/fonts or decorative content cards. Weak
+secondary actions must retain readable contrast on the frozen translucent tints;
+use scoped primary text with restrained weight rather than low-contrast alpha.
+
+### Consequences
+
+Warm Ivory is recommended for preview only. No product-default theme decision,
+new destination, new cooking state, automatic completion, data/Provider change
+or production wiring. Actual paired captures and fresh regression remain the
+evidence; user/ChatGPT final visual confirmation still gates G2. See
+ui-v2/FINAL_POLISH_VERIFICATION.md and FINAL_POLISH_CHECKPOINT.md.
+
+## 2026-10-23 — G1 theme skins share structure and transient state
+
+### Decision
+
+Apply the user-approved Warm Ivory, Pure Glass and Soft Sage tables to the same
+isolated showcase. Theme is an in-memory appearance context, explicitly supplied
+to nested cooking and portalled Sheets. Theme is never a React key or a database
+setting. Shared success/warning/error colors do not track the theme action color.
+
+### Context / Alternatives / Reason
+
+The user requested clearer glass and three skins before G2, not three page
+implementations or a production preference feature. Use existing CSS tint,
+blur, fine edges and actual control/content overlap; no new refraction library,
+image generation or redesign interview. Solid/no-support material fallback
+protects reading. Base UI owns focus; its initialFocus ref replaces native
+autoFocus on the sample safe-confirmation button to preserve the return target.
+
+### Consequences
+
+Only the shared showcase presentation, its tests/tools and repository handoff
+change. Every theme has the same information architecture, interactions and
+small spacing/type refinements. Memory resets on refresh, query is initialization
+only. Real browser evidence and input-file fingerprints accompany the visual
+gate; user/ChatGPT approval is still pending. No production/Native/Provider,
+Logo, SQLite4/Preview7/Backup2, main, APK or G2–G4 changes are authorized here.
+
+## 2026-10-23 — UI V2 uses an isolated visual gate before production wiring
+
+### Decision
+
+Treat the user-provided UI V2 specification/execution file and Concept A as the
+fixed design baseline. G0/G1 builds a separate serve-only Vite showcase from
+stable main649804a. Do not replace the production entry until user visual approval.
+
+### Context / Alternatives / Reason
+
+The older pasted design prompt suggested several concepts, Compose, extra tabs
+and timers. Those conflict with the supplied final specification and the real
+React/Capacitor product. Reuse existing Base UI behavior, Lucide and local pure
+recipe types; style under `.recipio-ui-v2` instead of modifying shared Web UI.
+Five HR design capabilities are existing playbooks, not five packages to install.
+
+### Consequences
+
+Three root destinations only; complete recipe steps stay the default. Focus is
+viewing, Guided completion needs an explicit action. Fixtures and the explicitly
+approved generated food images exist only in the isolated sample, without
+IndexedDB/SQLite/Provider initialization or production fallback. SQLite4,
+Preview7, Backup2, Native security and existing Logo remain unchanged. G1 does
+not require an APK and does not prove Android IME/TalkBack/OEM/performance or
+production data preservation. See ui-v2/EXECUTION.md for the G2–G4 approval gate.
+
 ## 2026-10-06 — Carry approved brand assets into the accepted feature lineage
 
 ### Decision
@@ -410,3 +557,126 @@ Separating the core local data path from optional AI prevents an AI outage from 
 ### Consequences
 
 The first local version must show clear AI-unavailable states and allow manual editing/saving without AI results.
+
+## 2026-10-24 — UI-only theme preference outside business backups
+
+### Decision
+
+Persist only a validated G1 theme enum in `recipio.ui-v2.theme.v1`. LibraryApp
+owns the in-memory selection and supplies the existing V2 appearance context;
+nav/portals/cooking explicitly receive it. Storage errors do not block work.
+
+### Context / alternatives
+
+G3-0 enables existing Warm Ivory/Pure Glass/Soft Sage without a new palette.
+No suitable lightweight preference mechanism exists. A Native preferences
+dependency or business-schema/backup migration is unnecessary for this setting.
+
+### Reason / consequences
+
+The user explicitly permits a namespaced localStorage enum for this non-sensitive
+display preference. SQLite4/Preview7/Backup2 remain unchanged; no recipe/key/input
+is stored there or added to backups. Same-root Settings returns preserve current
+local query/filter/page. Native key input and backup transactions are reused;
+confirmation dialogs opt into theme attributes without new action handlers.
+
+## 2026-10-24 — Freeze G3-0; extend presentation only through G3-3
+
+### Decision / context
+
+The user's supplied acceptance records six real-phone checks on6cc631a/v22 as
+PASS, with ChatGPT ACCEPTED/FROZEN — PASS WITH NOTES. Preserve original Codex
+NOT_RUN evidence. G3-1/2/3 are now explicitly authorized on the same feature
+history, without rewriting G2/G3-0 or changing services/data/safety contracts.
+
+### Reason / consequences
+
+Reuse existing AI Review/RecipeEditor and Parser/Finder/share ownership instead
+of a parallel workflow. Targeted tests per module, one final full regression and
+APK; real Provider0, G4/main/tag/deployment/video remain gated.
+
+## 2026-10-25 — Acknowledged Android appearance persistence (G4 source patch)
+
+### Decision / context
+
+Actual v24 changed/read the enum but immediate force-stop lost Pure/Sage;
+separate observation confirmed delayed LevelDB writing (~914ms). Source now
+reuses existing Filesystem/Data for one fixed validated enum file, applying
+Native theme after write ACK. Web keeps namespaced localStorage.
+
+### Alternatives / reason
+
+No artificial wait/debounce, new Preferences dependency, Native security bridge
+or SQLite/Backup migration. Initial read completion precedes serial writes;
+latest intent wins; latest failure returns to last successful ACK with warning.
+Missing can inherit legal legacy cache; malformed existing value→Warm.
+
+### Consequences / verification limit
+
+Display file is outside backup/media; LibraryApp not remounted. Final focused
+44PASS and source review support patch; full regression/build/new Native proof
+remain pending resource stop. Not G4 acceptance or a stable main change.
+
+## 2026-10-27 — G6 serving adjustment is a transient display projection
+
+### Decision / context
+
+Use RecipeDetails.servings as the sole original denominator; LibraryApp owns
+one memory-only valid target shared with detail and the existing kitchen Sheet.
+Amount text remains free-form. Parse only whole unambiguous quantity/unit fields
+and use bounded decimal rational arithmetic; preserve unsupported/unsafe text.
+
+### Alternatives / reason
+
+Do not persist a scaled recipe, invent a default denominator or add normalized
+amount fields for this milestone. The approved task requires temporary reading
+without changing SQLite4/Preview7/Backup2 or user-owned recipe/history semantics.
+
+### Consequences / verification
+
+Opening/reentering/switching/successful save/restart initializes original target;
+kitchen/history/edit-cancel retain the same session. Steps/time/calories remain
+original. Adjustment never writes data or creates a cooking record. Source
+d8f2e3a/run40440306979 has fresh1381JS/189JVM/23Native and real browser evidence;
+see g6/G6_REVIEW.md for exact scope and NOT_RUN. Not independent G6/G4 freeze,
+R1 resumption or authorization for a later module.
+
+## 2026-10-27 — G7 review metadata remains a transient UI concern
+
+### Decision
+
+RecipeEditor owns the single current editable DTO and atomic array bindings.
+An intake UI session borrows the original normalized recipe and remembers only
+row-binding metadata through the existing uncertain/reconciliation screen.
+Original fieldChecks are immutable historical evidence; current edit state is
+computed separately. Neither structure enters Recipe, SQLite, Preview or Backup.
+
+### Context and reason
+
+The existing AI service replaces draft.recipe with the attempted edited DTO on
+save, retaining its review object. Rebuilding original evidence from that DTO
+would falsely mark edits unchanged after a failed/uncertain save. Recreating
+array identity from contents would also misbind duplicate-name/reordered rows.
+Keeping this bounded metadata in the existing UI owner avoids both problems
+without changing service generation/creation identities or holding a second
+current draft. Cancel/replacement/success releases the UI session; there is no
+durable source or review archive.
+
+### Consequences
+
+Current schema and existing confirmation/duplicate/uncertain gates remain the
+only save authority. Source references borrow only information already retained
+by the owning service. Finder does not retain or refetch sourceText. Source
+viewing, issue expansion and focus do not confirm review or create writes.
+
+### Runtime finding within the same UI boundary
+
+Real Chromium window-target listeners also follow registration order when
+capture is enabled. Capture-only tests had not proved modal ownership. Editor
+now defers to the existing live, visible, noninert data-open modal, respecting
+defaultPrevented. Editor/NativeV2Sheet register and clean up during layout so a
+committed reopened Sheet already owns Back. No new IME state machine, delay,
+debounce, service authority or Native production change. Fresh source e8c2f948,
+run40460260275 verifies the browser and real API36 WebView/IME paths; see
+g7/G7_REVIEW.md. This shared UI change is explicitly disclosed, not described as
+an untouched G6 UI file. G6 quantity/session semantics remain unchanged.

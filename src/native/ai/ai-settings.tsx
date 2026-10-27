@@ -3,8 +3,10 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogTitle } from "@/components/ui/dialog";
 import { createAiBridge, createAiKeyPort, safeAiError, type AiKeyPort, type AiPreflightResult } from "./native-bridge";
+import { useV2DialogAppearance } from "../ui-v2/appearance";
 
-export function AiSettings({ keys, onChanged, verifyAccess }: {keys?: AiKeyPort; onChanged:()=>void; verifyAccess?:()=>Promise<AiPreflightResult>}) {
+export function AiSettings({ keys, onChanged, verifyAccess, appearance }: {keys?: AiKeyPort; onChanged:()=>void; verifyAccess?:()=>Promise<AiPreflightResult>; appearance?:"v2"}) {
+  const dialogAppearance = useV2DialogAppearance(appearance);
   const port=useMemo(()=>keys??createAiKeyPort(),[keys]);
   const [configured,setConfigured]=useState<boolean|null>(null), [busy,setBusy]=useState(false), [error,setError]=useState(""), [supported,setSupported]=useState(true), [confirm,setConfirm]=useState(false);
   const lock=useRef(false), alive=useRef(true);
@@ -25,7 +27,7 @@ export function AiSettings({ keys, onChanged, verifyAccess }: {keys?: AiKeyPort;
     finally{lock.current=false;if(alive.current)setBusy(false);}
   }
   return <Card>
-    <CardHeader><CardTitle><h3>AI 整理</h3></CardTitle></CardHeader>
+    <CardHeader><CardTitle><h3 aria-hidden={appearance === "v2" || undefined}>AI 整理</h3></CardTitle></CardHeader>
     <CardContent className="space-y-4">
       <p className="text-sm text-muted-foreground">可选联网功能。文字和选中的截图会按密钥类型发送给千问 AI 平台或北京百炼，可能产生 API 费用；已有菜谱始终可离线使用。</p>
       {supported && <p aria-live="polite">{configured===null?"正在读取本机密钥状态…":configured?"已配置":"未配置"}</p>}
@@ -39,13 +41,13 @@ export function AiSettings({ keys, onChanged, verifyAccess }: {keys?: AiKeyPort;
         {error && <Button className="min-h-11" variant="outline" disabled={busy} onClick={()=>void work("read")}>重新读取状态</Button>}
       </div>}
       <Dialog open={confirm} onOpenChange={v=>{if(!busy)setConfirm(v);}}>
-        <DialogContent showCloseButton={!busy}>
+        <DialogContent {...dialogAppearance} showCloseButton={!busy}>
           <DialogTitle>删除本机 AI 密钥？</DialogTitle><DialogDescription>菜谱和备份不受影响；再次使用 AI 整理时需要重新配置密钥。</DialogDescription>
           <DialogFooter><Button className="min-h-11" variant="outline" disabled={busy} onClick={()=>setConfirm(false)}>保留密钥</Button><Button className="min-h-11" disabled={busy} onClick={()=>void work("delete")}>确认删除</Button></DialogFooter>
         </DialogContent>
       </Dialog>
       <Dialog open={verifyConfirm} onOpenChange={v=>{if(!busy)setVerifyConfirm(v);}}>
-        <DialogContent showCloseButton={!busy}>
+        <DialogContent {...dialogAppearance} showCloseButton={!busy}>
           <DialogTitle>验证 qwen3.8-flash 访问？</DialogTitle><DialogDescription>将发送极小的固定测试文字到密钥对应的官方接口，只检查模型访问与 JSON 输出，可能产生少量 API 费用。不验证图片识别，不发送已有菜谱，也不会自动重试。</DialogDescription>
           <DialogFooter><Button className="min-h-11" variant="outline" disabled={busy} onClick={()=>setVerifyConfirm(false)}>暂不验证</Button><Button className="min-h-11" disabled={busy} onClick={()=>void work("verify")}>{busy?"正在验证…":"确认验证"}</Button></DialogFooter>
         </DialogContent>
