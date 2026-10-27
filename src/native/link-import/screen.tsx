@@ -70,7 +70,8 @@ export function LinkImportScreen({ service, active, onSaved, onCancel, onConfigu
   const busy = ["reading", "ai-requesting", "saving"].includes(state.phase) || leaving || aiState.phase === "saving";
   const selected = service.selected();
   const parserEditing = useIntakeEditingSession(parserOpen ? selected : null, selected?.recipe);
-  const reviewIdentity = useMemo(() => aiState.draft ? {} : null, [aiState.draft?.review, aiState.operationId]);
+  const review = aiState.draft?.review;
+  const reviewIdentity = useMemo(() => review && aiState.operationId ? {} : null, [review, aiState.operationId]);
   const aiEditing = useIntakeEditingSession(state.phase === "ai-preview" ? reviewIdentity : null, aiState.draft?.recipe);
   const currentParser = () => active && alive.current && !leaving && service.snapshot().phase === "ready" && service.snapshot().parsed === state.parsed && service.selected() === selected;
   const currentAi = () => active && alive.current && !leaving && service.snapshot().phase === "ai-preview" && service.snapshot().parsed === state.parsed && ai.snapshot().phase === "preview" && ai.snapshot().operationId === aiState.operationId && ai.snapshot().draft?.review === aiState.draft?.review;

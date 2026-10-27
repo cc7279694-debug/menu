@@ -23,6 +23,7 @@
 | R1 signing / personal migration | Deferred by user | 无密钥工程已独立审查；长期密钥、安全保管、正式同签名更新和个人数据迁移延期，不是 G5 前置条件 |
 | UI V2 G5 | Accepted / Frozen — PASS WITH NOTES | 独立验收cb40a9fb，测试源码e5fbe1b；限定日常体验，不等于G4冻结/R1完成；见 g5/G5_INDEPENDENT_ACCEPTANCE.md |
 | UI V2 G6 | Accepted / Frozen — PASS WITH NOTES | ChatGPT 独立验收 G6-A～E；源码 d8f2e3a、交付 e295dd2、CI40440306979；1381JS/189JVM/23云端Android/33浏览器组PASS。保留明确数量单位/复杂原文回退、极窄大字观察和全部NOT_RUN；见 g6/G6_INDEPENDENT_ACCEPTANCE.md，不构成G4冻结或R1完成 |
+| UI V2 G7 | In progress — verification | 已授权可靠收录与快速校对V1，分支 feat/recipio-g7-reliable-intake。当前草稿检查、来源参考、稳定行映射和保存保护；真实AI为0，G8未授权。完成后仅送审，不自行冻结；见 g7/G7_TASK.md |
 
 APK-6历史证据见 verification/find-recipe-rc2*.md 与原checkpoint，441项是1029项的子集，不能重复相加。当前Logo集成证据见checkpoints/2026-10-06-logo-integration.md：纯资源任务未重复全仓/connected/Provider测试，完成构建和窄模拟器视觉/数据保留验证；手机视觉验收独立。用户APK-6确认不是Codex重新调用AI的证据。不恢复收藏、购物、菜单、Timer或云同步；任何后续模块或main收口需另行批准。
 此前浏览器 Dexie Repository 与 `/offline/app` 纵切是可复用资产，不是 Android SQLite 验收证据。

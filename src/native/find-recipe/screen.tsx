@@ -20,7 +20,8 @@ export function FindRecipeScreen({ service, active, onSaved, onCancel, onConfigu
   useEffect(() => { alive.current = true; return () => { alive.current = false; }; }, []);
   const busy = state.phase === "searching" || state.phase === "extracting" || state.cancelling || leaving;
   const saving = state.phase === "saving", uncertain = state.phase === "uncertain";
-  const reviewIdentity = useMemo(() => aiState.draft ? {} : null, [aiState.draft?.review, aiState.operationId]);
+  const review = aiState.draft?.review;
+  const reviewIdentity = useMemo(() => review && aiState.operationId ? {} : null, [review, aiState.operationId]);
   const editingSession = useIntakeEditingSession(state.phase === "preview" || saving || uncertain ? reviewIdentity : null, aiState.draft?.recipe);
   const currentPreview = () => active && alive.current && !service.snapshot().cancelling && service.snapshot().phase === "preview" && service.snapshot().selected === state.selected && ai.snapshot().phase === "preview" && ai.snapshot().operationId === aiState.operationId && ai.snapshot().draft?.review === aiState.draft?.review;
   const sourceContext = finderIntakeSource(state, aiState.draft, currentPreview);

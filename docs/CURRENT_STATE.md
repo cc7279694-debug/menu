@@ -1,5 +1,23 @@
 # Current State
 
+## G7 reliable intake / quick correction — implementation under verification — 2026-10-27
+
+User-authorized G7 A–E is on isolated `feat/recipio-g7-reliable-intake`, based on
+G6 independent-acceptance registration `69e221567038e1e32668f882b31e57a589c483de`.
+Current draft checks, source reference Sheet, original evidence/current edit
+separation and transient row identity are implemented in existing renderers.
+Manual-new uses only local fill checks. Existing duplicate, confirmation and
+uncertain/save identities remain authoritative; no new persisted review entity.
+
+Fresh full verification is IN_PROGRESS, not an acceptance claim. Exact results,
+source/workflow SHA, synthetic screenshots and limits will be registered in
+`docs/g7/G7_REVIEW.md`. The initial217-test compatibility baseline passed, and
+test-first Back regressions have real RED evidence in `g7/G7_TASK.md`.
+
+No real AI, local heavy tools, personal-device/data operation, user APK, signing,
+main merge or G8. G5/G6 scoped freeze below remains valid. G4 PENDING and R1
+DEFERRED_BY_USER remain unchanged.
+
 ## G6 independent acceptance — ACCEPTED / FROZEN — PASS WITH NOTES — 2026-10-27
 
 **RECIPIO_G6_ACCEPTED / FROZEN — PASS WITH NOTES.** ChatGPT's independent

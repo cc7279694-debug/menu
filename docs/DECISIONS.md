@@ -640,3 +640,31 @@ original. Adjustment never writes data or creates a cooking record. Source
 d8f2e3a/run40440306979 has fresh1381JS/189JVM/23Native and real browser evidence;
 see g6/G6_REVIEW.md for exact scope and NOT_RUN. Not independent G6/G4 freeze,
 R1 resumption or authorization for a later module.
+
+## 2026-10-27 — G7 review metadata remains a transient UI concern
+
+### Decision
+
+RecipeEditor owns the single current editable DTO and atomic array bindings.
+An intake UI session borrows the original normalized recipe and remembers only
+row-binding metadata through the existing uncertain/reconciliation screen.
+Original fieldChecks are immutable historical evidence; current edit state is
+computed separately. Neither structure enters Recipe, SQLite, Preview or Backup.
+
+### Context and reason
+
+The existing AI service replaces draft.recipe with the attempted edited DTO on
+save, retaining its review object. Rebuilding original evidence from that DTO
+would falsely mark edits unchanged after a failed/uncertain save. Recreating
+array identity from contents would also misbind duplicate-name/reordered rows.
+Keeping this bounded metadata in the existing UI owner avoids both problems
+without changing service generation/creation identities or holding a second
+current draft. Cancel/replacement/success releases the UI session; there is no
+durable source or review archive.
+
+### Consequences
+
+Current schema and existing confirmation/duplicate/uncertain gates remain the
+only save authority. Source references borrow only information already retained
+by the owning service. Finder does not retain or refetch sourceText. Source
+viewing, issue expansion and focus do not confirm review or create writes.

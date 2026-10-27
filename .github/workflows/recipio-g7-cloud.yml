@@ -23,7 +23,7 @@ jobs:
           cache: npm
       - run: npm ci --no-audit --no-fund
       - name: Targeted G7 UX and existing review focus gates
-        run: npm test -- src/native/serving-adjustment.test.ts src/native/ui-v2/g6-serving-integration.test.tsx src/native/ui-v2/g5-library.test.tsx src/native/ui-v2/g5-intake.test.tsx src/native/ui-v2/g5-cooking.test.tsx src/native/ui-v2/g5-editor.test.tsx src/native/ai/preview.test.tsx --pool=threads --maxWorkers=1 --no-file-parallelism --reporter=dot
+        run: npm test -- src/native/serving-adjustment.test.ts src/native/ui-v2/g6-serving-integration.test.tsx src/native/ui-v2/g5-library.test.tsx src/native/ui-v2/g5-intake.test.tsx src/native/ui-v2/g5-cooking.test.tsx src/native/ui-v2/g5-editor.test.tsx src/native/ai/preview.test.tsx src/native/ai/presentation-v2.test.tsx --pool=threads --maxWorkers=1 --no-file-parallelism --reporter=dot
       - name: G7 live draft source evidence and recovery gates
         run: npm test -- src/native/intake-review --pool=threads --maxWorkers=1 --no-file-parallelism --reporter=default --reporter=json --outputFile=output/g7-targeted.json
       - run: npm run typecheck
@@ -44,7 +44,6 @@ jobs:
 
   browser:
     name: G7 real intake and frozen kitchen browser checks
-    needs: web-checks
     runs-on: ubuntu-24.04
     timeout-minutes: 30
     steps:
@@ -80,7 +79,6 @@ jobs:
 
   android-build:
     name: G7 key-free Android build (cloud fixture only)
-    needs: web-checks
     runs-on: ubuntu-24.04
     timeout-minutes: 40
     outputs:

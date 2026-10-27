@@ -87,6 +87,7 @@ it("review location focuses the actual array field or missing-section action wit
   draft.review.fieldChecks = [{ path: "ingredients[0].amount", label: "食材1用量", status: "inferred", message: "请核对用量" }, { path: "steps", label: "步骤未提供", status: "missing", message: "请补充" }];
   const save = vi.fn(async () => {}), confirm = vi.fn();
   render(wrap(<AiPreview draft={draft} confirmed={false} onConfirmedChange={confirm} onSave={save} onCancel={vi.fn()} />));
+  fireEvent.click(screen.getByRole("button", { name: "查看完整来源审核" }));
   fireEvent.click(screen.getByRole("button", { name: "定位食材1用量" }));
   expect(screen.getByLabelText("用量 1")).toHaveFocus(); expect(screen.getByLabelText("用量 1")).toHaveValue("适量");
   fireEvent.click(screen.getByRole("button", { name: "定位步骤未提供" }));

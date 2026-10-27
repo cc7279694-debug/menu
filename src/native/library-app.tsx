@@ -93,7 +93,8 @@ export function LibraryApp({
   const backupState = useBackupState(backup);
   const restored = useRef<unknown>(null);
   const [view, setView] = useState<View|AiView>("home");
-  const intakeReviewIdentity = useMemo(() => intakeState.draft ? {} : null, [intakeState.draft?.review, intakeState.operationId]);
+  const intakeReview = intakeState.draft?.review;
+  const intakeReviewIdentity = useMemo(() => intakeReview && intakeState.operationId ? {} : null, [intakeReview, intakeState.operationId]);
   const intakeEditing = useIntakeEditingSession(view === "ai-preview" ? intakeReviewIdentity : null, intakeState.draft?.recipe);
   const currentIntake = () => intake.snapshot().phase === "preview" && intake.snapshot().operationId === intakeState.operationId && intake.snapshot().draft?.review === intakeState.draft?.review;
   const intakeSource = aiInputSource(intakeState, currentIntake);
