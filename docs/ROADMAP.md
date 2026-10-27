@@ -1,6 +1,6 @@
 # RECIPIO Android Roadmap
 
-2026-10-27：G5 已由独立验收限定 ACCEPTED/FROZEN（cb40a9fb）；当前 G6 智能份量与厨房备料已完成授权实现及云端验证，分支 `feat/recipio-g6-serving-adjustment`，待独立审查。G2/G3/G5 既有验收继续保留；长期签名和个人数据迁移仍由用户延期，G4 PENDING、G6 未自行冻结。不合 main、不建 Tag、不部署、不进入视频/G7；当前证据见 CURRENT_STATE.md。
+2026-10-27：G5 既有独立验收冻结继续保留（cb40a9fb）；ChatGPT 已完成 G6-A～E 独立验收，正式登记为 ACCEPTED / FROZEN — PASS WITH NOTES，源码 d8f2e3a、交付 e295dd2，分支仍为 `feat/recipio-g6-serving-adjustment`。本次仅文档登记；长期签名和个人数据迁移仍由用户延期，G4 整体 PENDING。不合 main、不建 Tag、不部署、不进入视频/G7；后续工作等待单独授权，证据见 CURRENT_STATE.md。
 
 | Module | Status | Scope |
 | --- | --- | --- |
@@ -22,7 +22,7 @@
 | UI V2 G4 | Not frozen | G4 历史资源中止证据保留于 G4_RESUME_VERIFICATION.md；后续 R1 无密钥工程和 v25 用户体验不等于长期签名/个人迁移或 G4 冻结，见 CURRENT_STATE.md |
 | R1 signing / personal migration | Deferred by user | 无密钥工程已独立审查；长期密钥、安全保管、正式同签名更新和个人数据迁移延期，不是 G5 前置条件 |
 | UI V2 G5 | Accepted / Frozen — PASS WITH NOTES | 独立验收cb40a9fb，测试源码e5fbe1b；限定日常体验，不等于G4冻结/R1完成；见 g5/G5_INDEPENDENT_ACCEPTANCE.md |
-| UI V2 G6 | Ready for independent review / not frozen | 临时本地份量换算、详情/厨房共享、保守回退、零持久化和明确完成；同一源码1381JS/189JVM/23Native及三主题真实浏览器通过；边界和NOT_RUN见 g6/G6_REVIEW.md |
+| UI V2 G6 | Accepted / Frozen — PASS WITH NOTES | ChatGPT 独立验收 G6-A～E；源码 d8f2e3a、交付 e295dd2、CI40440306979；1381JS/189JVM/23云端Android/33浏览器组PASS。保留明确数量单位/复杂原文回退、极窄大字观察和全部NOT_RUN；见 g6/G6_INDEPENDENT_ACCEPTANCE.md，不构成G4冻结或R1完成 |
 
 APK-6历史证据见 verification/find-recipe-rc2*.md 与原checkpoint，441项是1029项的子集，不能重复相加。当前Logo集成证据见checkpoints/2026-10-06-logo-integration.md：纯资源任务未重复全仓/connected/Provider测试，完成构建和窄模拟器视觉/数据保留验证；手机视觉验收独立。用户APK-6确认不是Codex重新调用AI的证据。不恢复收藏、购物、菜单、Timer或云同步；任何后续模块或main收口需另行批准。
 此前浏览器 Dexie Repository 与 `/offline/app` 纵切是可复用资产，不是 Android SQLite 验收证据。

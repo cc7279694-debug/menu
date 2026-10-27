@@ -1,6 +1,12 @@
 # Current State
 
-## G6 serving adjustment — READY_FOR_REVIEW — 2026-10-27
+## G6 independent acceptance — ACCEPTED / FROZEN — PASS WITH NOTES — 2026-10-27
+
+**RECIPIO_G6_ACCEPTED / FROZEN — PASS WITH NOTES.** ChatGPT's independent
+G6-A–E acceptance was supplied and confirmed by the user for registration.
+Accepted delivery: `e295dd20973ec9c20ad21738214b6d5a5981280a`; only docs/evidence
+follow tested source below. This registration changes documentation only and
+does not rerun product tests. [Formal independent acceptance](g6/G6_INDEPENDENT_ACCEPTANCE.md).
 
 Authorized G6 A–E implemented on isolated branch
 `feat/recipio-g6-serving-adjustment` from G5 accepted/frozen `cb40a9fb`.
@@ -26,10 +32,15 @@ personal migration remain NOT_RUN. User v23/v25 and personal data untouched;
 internal ephemeral CI APKs are not user update candidates. G5 scoped acceptance
 below remains valid, G4 remains PENDING, R1 remains DEFERRED_BY_USER.
 
-Next: ChatGPT independent G6 review only. Not G6/G4 freeze, G7, main merge,
-release or R1 resumption. [G6 review/checkpoint](g6/G6_REVIEW.md),
+NOTES remain: only explicit supported quantity/unit fields scale; complex or
+unsafe amounts retain original text. Extremely narrow/large-text layouts and
+vertical Sheet scrolling remain an observation item, not OS-font acceptance.
+Five existing lint warnings remain. The scoped G6 freeze does not freeze G4.
+
+Next: wait for separately authorized work; no automatic G7, main merge,
+release or R1 resumption. [Historical G6 review/checkpoint](g6/G6_REVIEW.md),
 [approved task](g6/G6_TASK.md) and [execution ledger](g6/G6_EXECUTION.md).
-Final documentation/evidence commit does not change the tested source.
+Neither delivery nor acceptance registration changes the tested source.
 
 ## G5 independent acceptance — 2026-10-26
 
