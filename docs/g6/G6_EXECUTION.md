@@ -92,3 +92,24 @@ ZipFile unknown archive before the device/helper could run. Native execution
 is NOT_RUN for this attempt, not a RECIPIO platform failure or PASS. A fresh
 final-source workflow retries the non-destructive hosted setup. No local
 emulator, phone, private data, real AI or signing operation was attempted.
+
+## Final-source retry and Solid fixture correction — 2026-10-27
+
+Atf84d3e9 run40347864982: actual Windows217 targeted /212 files1381 full
+PASS, type/lint/build/isolation PASS (5 existing lint warnings), JVM189 PASS
+and fresh API36 native23 PASS. The browser environment stalled at the public
+Ubuntu Noto font download and was cancelled, not recorded as product PASS.
+Only that browser job was retried against the same source in attempt2.
+
+Attempt2 ran all10 business flows plus all Warm320/390/412 CSS100/200 detail
+and kitchen checks PASS, establishing the48px fix GREEN. It then exposed a
+QA preparation error: the selector only set an already-presentdata-v2-solid,
+but actual production root defaults omit it. No production defect or failed
+layout assertion is hidden. The probe now sets the existing fallback attribute
+on real root/cooking/Portal scopes (as G5), verifies computed opaque material
+and no blur, and rechecks kitchen/main geometry and zero writes. Original33
+check groups and48px/overflow/CTA assertions remain intact. Product code,
+Native tests and workflow are unchanged by this last probe repair.
+
+Fresh normal push validates all final-source gates again. No local browser,
+Gradle, device or real AI invocation; current free RAM3.48GiB remains below4.

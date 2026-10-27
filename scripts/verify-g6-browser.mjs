@@ -29,11 +29,11 @@ const revision = spawnSync("git", ["rev-parse", "HEAD"], { cwd: root, encoding: 
 assert.equal(revision.status, 0, "Read actual source revision");
 const result = {
   status: "RUNNING", source: revision.stdout.trim(), browser: null,
-  checks: [], screenshots: [], geometry: [], externalOrigins: [], pageErrors: [], consoleErrors: [],
+  checks: [], screenshots: [], geometry: [], materials: [], externalOrigins: [], pageErrors: [], consoleErrors: [],
   scopes: {
     application: "Actual NativeApp/LibraryApp with actual PreviewRecipeLibrary/IndexedDB; generated recipes and existing approved non-private image bytes. No Showcase rendering.",
     persistence: "Actual complete Preview database rows plus generated-media byte digests before/after; IDBObjectStore and Storage entry counts during adjustment windows.",
-    display: "Browser CSS root32px is CSS200%, not Android system font scaling; actual reduced-motion emulation and existing solid fallback attribute.",
+    display: "Browser CSS root32px is CSS200%, not Android system font scaling; actual reduced-motion emulation. Test-only data-v2-solid on actual application/cooking/Portal scopes exercises existing fallback CSS with computed materials; not CSS @supports coverage.",
   },
   notRun: ["Android system IME/Back (separate native job)", "Android OS font scaling", "physical phone", "TalkBack", "real AI/Provider", "personal data", "signed upgrade"],
 };
@@ -211,6 +211,27 @@ async function capture(page, name, theme) {
   await painted(page); await page.screenshot({ path: path.join(shots, `${name}.png`) });
   result.screenshots.push({ file: `screenshots/${name}.png`, theme, viewport: page.viewportSize(), source: result.source });
 }
+async function solidFallback(page) {
+  // Production defaults to solid=false and may omit the attribute entirely.
+  // As in G5 QA, set it on real appearance scopes, including newly mounted Portals.
+  await page.evaluate(() => document.querySelectorAll('#root .recipio-ui-v2,.v2-production-cooking,.v2-production-cooking .recipio-ui-v2,.v2-portal')
+    .forEach(node => node.setAttribute("data-v2-solid", "true")));
+}
+async function solidMaterial(scope, name, theme) {
+  const material = await scope.evaluate(node => {
+    const appearance = node.closest(".recipio-ui-v2"), style = getComputedStyle(node);
+    return { root: appearance?.className, theme: appearance?.getAttribute("data-v2-theme"),
+      solid: appearance?.getAttribute("data-v2-solid"), background: style.backgroundColor,
+      surface: style.getPropertyValue("--v2-surface").trim(), backdropFilter: style.backdropFilter };
+  });
+  result.materials.push({ name, ...material });
+  assert.equal(material.theme, theme, `${name}: actual appearance theme`);
+  assert.equal(material.solid, "true", `${name}: actual appearance fallback scope`);
+  assert.equal(material.backdropFilter, "none", `${name}: fallback removes blur`);
+  assert.match(material.surface, /^#[0-9a-f]{6}$/i, `${name}: existing opaque surface token`);
+  const channels = [1, 3, 5].map(start => parseInt(material.surface.slice(start, start + 2), 16));
+  assert.equal(material.background, `rgb(${channels.join(", ")})`, `${name}: computed background equals opaque theme surface`);
+}
 async function layout(page, name) {
   await painted(page);
   const geometry = await page.evaluate(() => {
@@ -350,11 +371,25 @@ async function visualFlows(theme) {
       await closeReference(sheet); await layout(page, `${theme}-${width}-CSS${large ? 200 : 100}-cooking-main`);
       await click(cooking, "退出引导"); await cooking.waitFor({ state: "hidden" });
     }
-    await page.evaluate(() => { document.documentElement.style.fontSize = "16px"; document.querySelectorAll('[data-v2-solid]').forEach(node => node.setAttribute("data-v2-solid", "true")); });
     await check(`${theme}-solid-and-reduced-motion`, async () => {
+      const original = await snapshot(page); await watch(page, true);
+      await page.evaluate(() => { document.documentElement.style.fontSize = "16px"; });
+      await solidFallback(page);
       assert.equal(await page.evaluate(() => matchMedia("(prefers-reduced-motion: reduce)").matches), true);
       assert.equal(await detail(page).evaluate(node => node.closest("[data-v2-solid]")?.getAttribute("data-v2-solid")), "true");
+      await solidMaterial(detail(page).locator(".v2-bottom-actions"), `${theme}-solid-detail`, theme);
       await layout(page, `${theme}-solid`);
+      await capture(page, `${theme}-solid-detail`, theme);
+      const { cooking, sheet } = await reference(page, "guided");
+      await solidFallback(page);
+      await solidMaterial(sheet, `${theme}-solid-kitchen-portal`, theme);
+      await layout(page, `${theme}-solid-kitchen`);
+      await capture(page, `${theme}-solid-kitchen`, theme);
+      await closeReference(sheet);
+      await solidMaterial(cooking.locator(".v2-cook-toolbar"), `${theme}-solid-cooking-toolbar`, theme);
+      await layout(page, `${theme}-solid-cooking-main`);
+      await click(cooking, "退出引导"); await cooking.waitFor({ state: "hidden" });
+      await zeroWrites(page, original);
     });
   } catch (error) {
     await capture(page, `${theme}-failure-diagnostic`, theme).catch(() => {}); throw error;
