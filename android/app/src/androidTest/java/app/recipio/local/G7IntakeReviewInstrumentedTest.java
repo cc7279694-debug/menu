@@ -168,6 +168,14 @@ public class G7IntakeReviewInstrumentedTest {
         } while (SystemClock.elapsedRealtime() < deadline);
         fail("Dirty protection did not open after one Back from a settled hidden IME; " + imeDiagnostic("dirty-back-timeout"));
     }
+    private void awaitDuplicateClosedAfterSingleBack() throws Exception {
+        long deadline = SystemClock.elapsedRealtime() + 15000;
+        do {
+            if ("false".equals(js("!!(" + dialog("已存在同名菜谱") + ")"))) return;
+            Thread.sleep(100);
+        } while (SystemClock.elapsedRealtime() < deadline);
+        fail("Duplicate decision still visible after one Back from a settled hidden IME; " + imeDiagnostic("duplicate-close-timeout"));
+    }
     private void openIme(String selector) throws Exception {
         JSONArray point = new JSONArray(js("JSON.stringify((()=>{const e=" + selector
             + ";e.scrollIntoView({block:'center'});const r=e.getBoundingClientRect();return [r.x+r.width/2,r.y+r.height/2,innerWidth]})())"));
@@ -350,6 +358,22 @@ public class G7IntakeReviewInstrumentedTest {
         until("document.querySelector('input[type=checkbox]').checked===false");
         assertEquals("true", js("[...document.querySelectorAll('button')].find(b=>b.textContent.trim()==='确认保存菜谱').disabled"));
         js("document.querySelector('input[type=checkbox]').click()"); click("确认保存菜谱"); until("!!(" + dialog("已存在同名菜谱") + ")");
+        if (awaitSettledImeState("duplicate-open")) {
+            imeDiagnostic("duplicate-before-keyboard-back"); back(); awaitIme(false); imeDiagnostic("duplicate-after-keyboard-back");
+            assertEquals("Visible IME Back must not reach the duplicate page; " + lastImeProbe, "0", js("window.__g7PageBacks"));
+            assertEquals("Visible IME Back must retain the duplicate decision; " + lastImeProbe, "true", js("!!(" + dialog("已存在同名菜谱") + ")"));
+            assertEquals("0", js("window.__g7Confirms"));
+        }
+        awaitIme(false); imeDiagnostic("duplicate-before-page-back");
+        assertEquals("0", js("window.__g7PageBacks")); back(); awaitDuplicateClosedAfterSingleBack(); imeDiagnostic("duplicate-after-page-back");
+        assertEquals("1", js("window.__g7PageBacks")); assertEquals("0", js("window.__g7Confirms"));
+        assertEquals(finalTitle, js("(" + editor("菜名") + ").value"));
+        assertEquals("3", js("(" + editor("约几人份") + ").value"));
+        assertEquals("G7 edited generated note", js("(" + editor("个人备注") + ").value"));
+        assertEquals("15 毫升", js("(" + editor("用量 1") + ").value"));
+        assertEquals("true", js("document.querySelector('input[type=checkbox]').checked")); zeroWrites();
+        assertEquals(1, byFinalTitle().length()); assertEquals(originalRow, byFinalTitle().getJSONObject(0).toString());
+        click("确认保存菜谱"); until("!!(" + dialog("已存在同名菜谱") + ")");
         screenshot("g7-native-duplicate.png"); click("返回检查"); until("!(" + dialog("已存在同名菜谱") + ")");
         assertEquals("15 毫升", js("(" + editor("用量 1") + ").value")); zeroWrites();
         assertEquals(1, byFinalTitle().length()); assertEquals(originalRow, byFinalTitle().getJSONObject(0).toString());

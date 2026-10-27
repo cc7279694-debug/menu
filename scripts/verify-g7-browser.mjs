@@ -23,7 +23,7 @@ const out = path.join(root, "output/playwright/g7/cloud"), shots = path.join(out
 await mkdir(path.dirname(out), { recursive: true }); await mkdir(out); await mkdir(shots);
 const git = spawnSync("git", ["rev-parse", "HEAD"], { cwd: root, encoding: "utf8" });
 assert.equal(git.status, 0); assert.match(git.stdout.trim(), /^[0-9a-f]{40}$/);
-const result = { status: "RUNNING", source: git.stdout.trim(), browser: null, checks: [], screenshots: [], geometry: [], formDiagnostics: [],
+const result = { status: "RUNNING", source: git.stdout.trim(), browser: null, checks: [], screenshots: [], geometry: [], formDiagnostics: [], backDiagnostics: [],
   externalOrigins: [], pageErrors: [], consoleErrors: [],
   scope: "Real LibraryApp, AiIntakeService, LinkImportService, FindRecipeService and PreviewRecipeLibrary/IndexedDB; Fake Provider/HTTP, generated images only. Browser media adapter maps exact owned native-format URI metadata to a generated blob; native path loading is verified separately.",
   zeroWriteScope: "IDB/Storage API entries and all actual Preview DB rows during G7 edit/source windows; fixture setup, source selection and explicit save are separate windows.",
@@ -75,6 +75,32 @@ async function open(theme = "warm-ivory", options = {}) {
     reducedMotion: "reduce", serviceWorkers: "block", deviceScaleFactor: 1 });
   await context.addInitScript(theme => {
     localStorage.setItem("recipio.ui-v2.theme.v1", theme);
+    const backListeners = { capture: new Set(), bubble: new Set() };
+    const captureOption = options => typeof options === "boolean" ? options : !!options?.capture;
+    const originalAddListener = window.addEventListener, originalRemoveListener = window.removeEventListener;
+    // Delegate the original listener unchanged. Set membership mirrors the DOM's
+    // callback + capture identity; no wrapping, dispatching or order adjustment.
+    window.addEventListener = function (...args) {
+      const returned = originalAddListener.apply(this, args);
+      if (this === window && args[0] === "recipio:back" && args[1] != null)
+        backListeners[captureOption(args[2]) ? "capture" : "bubble"].add(args[1]);
+      return returned;
+    };
+    window.removeEventListener = function (...args) {
+      const returned = originalRemoveListener.apply(this, args);
+      if (this === window && args[0] === "recipio:back" && args[1] != null)
+        backListeners[captureOption(args[2]) ? "capture" : "bubble"].delete(args[1]);
+      return returned;
+    };
+    window.__g7BackState = () => ({
+      capture: backListeners.capture.size, bubble: backListeners.bubble.size,
+      sourceVisible: [...document.querySelectorAll('[role="dialog"]')].some(dialog => {
+        const name = dialog.getAttribute("aria-label") ?? (dialog.getAttribute("aria-labelledby") ?? "")
+          .split(/\s+/).filter(Boolean).map(id => document.getElementById(id)?.textContent ?? "").join(" ");
+        return name.trim() === "本轮来源" && !!dialog.getClientRects().length && getComputedStyle(dialog).visibility !== "hidden"
+          && !dialog.closest('[hidden],[inert],[aria-hidden="true"]');
+      }),
+    });
     window.__g7Writes = { enabled: false, entries: [] };
     for (const [prototype, methods] of [[IDBObjectStore.prototype, ["add", "put", "delete", "clear"]], [Storage.prototype, ["setItem", "removeItem", "clear"]]]) {
       for (const method of methods) { const original = prototype[method]; prototype[method] = function (...args) {
@@ -138,6 +164,19 @@ async function formDiagnostic(page, stage) {
     notesExactTextboxCount: await notes(page).count() });
   await persist();
 }
+async function dispatchObservedBack(page, stage) {
+  const diagnostic = await page.evaluate(() => {
+    const event = new Event("recipio:back", { cancelable: true });
+    const before = { ...window.__g7BackState(), defaultPrevented: event.defaultPrevented };
+    const dispatchReturned = window.dispatchEvent(event);
+    const after = { ...window.__g7BackState(), defaultPrevented: event.defaultPrevented };
+    return { before, after, dispatchReturned };
+  });
+  result.backDiagnostics.push({ stage, ...diagnostic }); await persist();
+}
+async function recordBackState(page, stage) {
+  result.backDiagnostics.push({ stage, ...await page.evaluate(() => window.__g7BackState()) }); await persist();
+}
 async function painted(page) {
   await page.evaluate(async () => { await document.fonts.ready;
     await Promise.all([...document.images].map(image => image.decode().catch(() => {})));
@@ -198,8 +237,10 @@ async function mainFlows() {
       assert.equal(await page.getByLabel("菜名", { exact: true }).inputValue(), "G7 人工最终菜名");
       await formDiagnostic(page, "main-after-source-closed");
       assert.equal(await notes(page).inputValue(), "用户修改后的合成备注😊"); assert(await gate(page).isChecked());
-      await openSource(page); await page.evaluate(() => window.dispatchEvent(new Event("recipio:back", { cancelable: true })));
-      await sourcePanel(page).waitFor({ state: "hidden" }); assert(await gate(page).isChecked());
+      await openSource(page); await dispatchObservedBack(page, "main-source-reopened-dispatch");
+      try { await sourcePanel(page).waitFor({ state: "hidden" }); }
+      finally { await recordBackState(page, "main-source-after-close-wait"); }
+      assert(await gate(page).isChecked());
       assert.equal(await page.evaluate(() => window.__g7Fixture.calls.ai), 1); await unchanged(page, before);
     });
     await check("T09 real changes revoke acknowledgement; focus and source access do not", async () => {
@@ -212,6 +253,14 @@ async function mainFlows() {
       await click(page, "确认保存菜谱"); await page.getByRole("alert").filter({ hasText: "同名检查未完成" }).waitFor();
       assert.equal(await page.evaluate(() => window.__g7Fixture.calls.create), 0); await unchanged(page, before);
       await click(page, "确认保存菜谱"); const duplicate = page.getByRole("dialog", { name: "已存在同名菜谱", exact: true }); await duplicate.waitFor();
+      await dispatchObservedBack(page, "main-duplicate-dispatch");
+      try { await duplicate.waitFor({ state: "hidden" }); }
+      finally { await recordBackState(page, "main-duplicate-after-close-wait"); }
+      assert.equal(await page.evaluate(() => window.__g7Fixture.calls.create), 0); assert.deepEqual(await snapshot(page), before);
+      assert.equal(await page.getByLabel("菜名", { exact: true }).inputValue(), "G7 人工最终菜名");
+      assert.equal(await notes(page).inputValue(), "用户修改后的合成备注😊");
+      assert.equal(await page.getByLabel("用量 1", { exact: true }).inputValue(), "15 毫升"); assert(await gate(page).isChecked());
+      await click(page, "确认保存菜谱"); await duplicate.waitFor();
       await capture(page, "warm-duplicate-return-review-390", "warm-ivory"); await click(duplicate, "返回检查"); await duplicate.waitFor({ state: "hidden" });
       assert.equal(await page.evaluate(() => window.__g7Fixture.calls.create), 0); assert.deepEqual(await snapshot(page), before);
       assert.equal(await page.getByLabel("用量 1", { exact: true }).inputValue(), "15 毫升");

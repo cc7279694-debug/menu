@@ -148,6 +148,10 @@ export function buildIntakeQualityReport(input: IntakeQualityInput): IntakeQuali
     if (evidence.currentState === "removed" || (evidence.check.status === "explicit" && evidence.currentState === "unchanged")) continue;
     const { mapping } = evidence;
     const path = mapping.currentPath;
+    if (evidence.check.status === "missing" && path !== null && (path === "caloriesPerServing" || path === "coverPath" || path === "notes" || /^steps\[\d+\]\.imagePath$/.test(path))) {
+      const field = readField(current, path);
+      if (field.found && isEmpty(field.value)) continue;
+    }
     const label = path === null ? evidence.check.label || evidence.check.path : pathLabel(path);
     addIssue(mapping.fieldId, path, "source", label, sourceReason(evidence), evidence);
     if (evidence.check.message) addIssue(mapping.fieldId, path, "source", label, evidence.check.message);
