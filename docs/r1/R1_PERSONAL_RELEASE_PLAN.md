@@ -17,6 +17,11 @@
 其中双离线介质及云端Secrets流程不作为本次个人本地签名的执行政策。
 本轮不向GitHub上传私钥，不启用原 `recipio-signed-next.yml` 真实签名Job。
 
+当前公开工具包入口为E:/RECIPIO-Signing/Start-RecipioPersonalSigning.cmd。
+完整同版本公共工具与原摘要绑定，bundle及依赖仅owner/SYSTEM可写；卷根独立目录
+避开Codex的AppData重定向和可写共享祖先。该位置只存公开工具、unsigned输入、
+公开回执和签名APK候选，绝不作为私人密钥或密钥备份目录。旧路径保留在历史证据中。
+
 ## 固定工程与任务边界
 
 - main产品基线：`19bb5c9dc5642edb27203e6c5c0b95d7977ff2fe`，PR#4合并G3～G7。

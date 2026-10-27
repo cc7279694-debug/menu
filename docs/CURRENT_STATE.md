@@ -15,8 +15,9 @@ production isolation and genuine unsigned Release26/27. Product checkout is
 fixed main19bb; no Debug APK was repurposed. Exact public unsigned bytes/hashes
 and scope: [R1-P review](r1/R1_PERSONAL_RELEASE_REVIEW.md).
 
-Owner-only helper is copied with pinned runtime/tool/APK hashes to
-E:/CODEX/Tools/recipio-signing/R1-P. Public local input verification passed;
+Owner-only helper is copied with pinned runtime/tool/APK hashes to the current
+protected E:/RECIPIO-Signing bundle. The earlier E:/CODEX/Tools/recipio-signing/R1-P
+location was superseded and has no executable alias. Public input verification passed;
 36base+22security tests and2FAKE lifecycle flows passed, with real generated-
 text AES256 recovery only. Logging JSON/registry, persistent-file reparse/ACL
 and encrypted-header reuse gaps were repaired and internally re-reviewed.
@@ -52,6 +53,28 @@ now implemented:37 new+75 prior tooling checks PASS, actual public toolchain
 and copied-bundle hash checks PASS. Module c94f0699; runtime updated outside Git.
 No pin update, security bypass or private operation. Await owner retry for an
 actual success receipt or the now-specific failure category; never infer PASS.
+
+Latest actual retry now identifies R1P_TOOLCHAIN_JAVA_MISSING; user confirmed no
+password prompt. The original declared Java/keytool currently exist and match
+their pins in Codex; why the owner window could not see that C: path remains
+unconfirmed. Public tooling was relocated as full, same-version snapshots into
+the outside-repository bundle's toolchain/ directory:661 files/488418625 bytes,
+every copied file hash matched. Only the six public manifest paths changed;
+all six tool digests, versions, APK/runtime hashes and helper source are unchanged.
+Fresh independent-Console public preflight, portable keytool help and signer
+version PASS; no keystore arguments or private operation. No original SDK was
+modified. A public Java handle probe explains the Codex-side C: view: logical
+AppData opens into OpenAI.Codex.../LocalCache/Local, while the E: snapshot opens
+at its exact requested path. Owner-side handle probing remains NOT_RUN. Earlier
+private-root absence checks describe the Codex view only, not independent proof
+of owner filesystem state. No signed success receipt exists; await owner retry.
+
+The whole public bundle's789 objects now have protected owner/SYSTEM-only ACLs,
+including adjacent JDK DLL/modules. It was moved atomically/no-overwrite to the
+dedicated E:/RECIPIO-Signing root to avoid writable shared ancestors; E: parent
+has no untrusted DeleteChild/WriteDac/WriteOwner. Every snapshot hash and runtime/
+APK/tool pin still matches after the move. Final independent Console public
+preflight PASS. Only public tooling/configuration/docs changed; no owner action.
 
 ## G7 independent acceptance — ACCEPTED / FROZEN — PASS WITH NOTES — 2026-10-27
 

@@ -4,6 +4,10 @@
 无密钥Release及私人辅助工具准备完成；真实私人备份和签名尚未执行，不代表正式APK已生成。
 政策和范围见 [R1_PERSONAL_RELEASE_PLAN.md](R1_PERSONAL_RELEASE_PLAN.md)。
 
+**当前唯一工具入口：E:/RECIPIO-Signing/Start-RecipioPersonalSigning.cmd。**
+旧E:/CODEX/Tools/recipio-signing/R1-P是下文的历史交付位置；完整公开工具包已迁走，
+旧路径不留可执行别名。当前仍无正式签名成功回执，不能把公开预检当作签名成功。
+
 ## 已核对的入口
 
 - 远端main：`19bb5c9dc5642edb27203e6c5c0b95d7977ff2fe`，与本次授权相同。
@@ -146,6 +150,45 @@ MISSING/READ/HASH类别，READ丢弃原异常；原SHA算法、六pin及固定7z
 新模块摘要为 `c94f0699c1ca47af0fdfc1861eb98b78b9b8c29ba823793e609c2c0289bbe65c`；
 PS1/CMD仍为16eedcf2/47fb555b。已复制到仓库外工具包并验证公开manifest/运行文件摘要，
 所有工具路径及pin保持原值。私人签名、备份、设备等仍NOT_RUN。
+
+### Latest owner retry: Java path missing — 2026-10-27
+
+真实公开回执UTC2026-10-27T14:59:11.6780283Z明确为
+`R1P_TOOLCHAIN_JAVA_MISSING`；用户确认没有密码提示。仍无OWNER_RESULT、签名APK或
+既定私人根目录。原C盘Java/keytool在Codex中存在且摘要正确；不能据此声称已解释
+owner窗口为何不可见。未读私钥、未修改权限、未改原SDK、未盲目改变任何摘要。
+
+为移除对外部C盘公共SDK路径的依赖，在仓库外工具包内准备完整同版本工具快照：
+JDK490文件、Android Build Tools36的170文件、独立7za一文件，合计661文件/
+488418625bytes；E盘事先有约69GB可用。来源和目标树拒绝reparse及意外身份文件扩展，
+每一复制文件的大小/SHA-256与来源逐一匹配，保留JDK/Android相邻DLL、配置及许可证。
+所有六工具的版本和原pin均未改变，manifest仅将六个公共工具路径改至
+E:/CODEX/Tools/recipio-signing/R1-P/toolchain；没有在仓库提交这些二进制。
+
+更新后全新独立Console的完整公开预检PASS，包含真实unsigned APK及普通测试文本归档；
+另在与owner相同的受限子进程环境执行便携keytool-help和apksigner-version，均PASS，
+未提供keystore参数。Source/helper不变，不重跑或冒充112项工具/原产品历史结果。
+公开摘要见[personal-portable-toolchain.json](evidence/personal-portable-toolchain.json)。
+这只是已验证的公共工具配置修复，不能证明真实owner步骤已成功。
+进一步对两份**公共java.exe**使用GetFinalPathNameByHandle，并在打开的公共句柄上计算
+摘要：逻辑C:/Users/CDD/AppData/Local/RecipioAndroid/...实际指向
+C:/Users/CDD/AppData/Local/Packages/OpenAI.Codex_2p2nqsd0c76g0/LocalCache/Local/RecipioAndroid/...；
+E盘快照的请求路径与实际路径一致。两者公开Java摘要都匹配原pin。
+已观察到Codex侧AppData重定向，结合owner窗口JAVA_MISSING支持本次路径修复；
+未在owner窗口执行相同句柄API，不扩大为所有私有目录的结论。
+**上文历史“私人根目录不存在”仅是Codex逻辑视图的Test-Path结果，不能独立证明
+owner侧目录或密码流程状态**；继续以用户反馈、公开成功/失败回执作为验收依据。
+
+快照初始继承Authenticated Users:Modify，连相邻JDK DLL/modules也可被其他本机用户写入；
+六exe/jar pin不能替代依赖目录保护。已只对自己创建的整个公开bundle789对象建立
+owner/SYSTEM-only受保护ACL并逐项回读，随后重新校验全部661快照文件，摘要均匹配。
+不修改原SDK、私人密钥目录或共享祖先的权限。为避免共享祖先可被重命名替换，
+经卷根ACL核对后将整个公开包同卷Directory.Move到**E:/RECIPIO-Signing**：
+目标原先不存在、不覆盖、不留旧可执行别名；E:对非受信用户没有DeleteChild/
+WriteDac/WriteOwner，全部789对象的owner/DACL/reparse及文件摘要迁移后再次通过。
+manifest仅更新工具绝对路径，版本、六工具pin、三runtime及APK摘要均未变。
+最终新独立Console公开预检PASS。私人密码/备份/签名及T01～T06仍NOT_RUN，
+下一步仅由用户在新受保护目录普通双击CMD并在私密窗口完成操作。
 
 用户最初报告私密操作完成，随后明确更正：未看到结果路径，仅按Enter关闭了窗口，
 可能并未成功。实际回读：既定公开delivery中没有OWNER_RESULT或签名APK，
