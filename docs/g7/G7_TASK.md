@@ -1020,3 +1020,24 @@ not a loader/mock error. Child editor's bubbling listener consumed the event whi
 its save lock awaited the decision. Move only both duplicate listeners to capture,
 along the existing Sheet routing, retaining defaultPrevented. No IME state machine,
 delay/debounce, global Back disable or business save rule change.
+### Real renderer Back ownership evidence and minimal fix — 2026-10-27
+
+ff0c533/run40454243810 native platform probes showed a settled hidden IME,
+focused window/WebView and focused Source button. One system Back reached the
+page (0→1), but Source stayed open. The real Chromium browser also reproduced
+Source staying open after a page Back. This is a UI failure, not an IME/network
+excuse. LibraryApp already documents Chromium window-target registration order
+and explicitly defers to the current Sheet; Editor had lacked that deferral.
+
+817905c/run40458519166:225 prior tests PASS,122 G7 targeted tests with120PASS
+and exactly2RED: later-modal ownership and reopen-commit registration. Optional
+missing evidence tests are now GREEN without changing the original audit/gate.
+Fix only UI routing: Editor defers to a live nonhidden/noninert data-open modal;
+Editor/NativeV2Sheet register/clean up during layout. Closed/hidden modal markup
+does not disable page Back. No second keyboard state, delay or Native change.
+
+Earlier1498 whole-suite/sourcef2de75e was PASS with5existing lint warnings,
+and189 JVM/build plus G6 browser33 PASS. These are intermediate evidence only,
+not final numbers. ff0c533 also exposed an old intakeDraft_survivesImeBack
+failure (0 expected/1 page Back); it remains unmodified and must pass fresh final
+native execution. No failure is removed, skipped or counted as final PASS.

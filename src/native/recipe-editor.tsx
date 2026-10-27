@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState,type ReactNode } from "react";
+import { useEffect, useLayoutEffect, useRef, useState,type ReactNode } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -82,9 +82,13 @@ export function RecipeEditor({
     if (!busy && (!dirty || window.confirm("有未保存的修改，确定放弃吗？")))
       onCancel();
   }
-  useEffect(() => {
+  useLayoutEffect(() => {
     const back = (event: Event) => {
       if (event.defaultPrevented) return;
+      // Like the root shell, defer to a live modal. Chromium's window-target
+      // dispatch can invoke an older page listener before a newer modal listener.
+      const modals = formRef.current?.ownerDocument.querySelectorAll('[role="dialog"][data-open],[role="alertdialog"][data-open]') ?? [];
+      if (Array.from(modals).some(modal => !modal.closest('[hidden],[inert],[aria-hidden="true"]'))) return;
       event.preventDefault();
       // Keep this renderer and the input while a local write is in progress.
       if (!lock.current) cancel();

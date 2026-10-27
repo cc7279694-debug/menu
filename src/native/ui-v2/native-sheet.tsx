@@ -1,10 +1,10 @@
-import { useEffect, type ComponentProps } from "react";
+import { useLayoutEffect, type ComponentProps } from "react";
 import { V2Sheet } from "./components";
 
 /** Existing modal owns focus; only its open state consumes the native page Back. */
 export function NativeV2Sheet(props: ComponentProps<typeof V2Sheet>) {
   const { open, onOpenChange } = props;
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (!open) return;
     const back = (event: Event) => {
       if (event.defaultPrevented) return;
