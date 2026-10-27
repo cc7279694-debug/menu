@@ -78,7 +78,7 @@ it("T04/T05/T11 absence recovery preserves original evidence and row bindings ac
   expect(originalRow("菜名")).toHaveTextContent(/已编辑|人工修改/);
   expect(originalRow("菜名")).toHaveTextContent(/未.*核对|未.*核实/);
   expect(originalRow("份数")).toHaveTextContent("已填写");
-  fireEvent.click(within(originalRow("第二条用量")).getByRole("button", { name: "定位第二条用量" }));
+  fireEvent.click(within(originalRow("食材2用量")).getByRole("button", { name: "定位食材2用量" }));
   expect(screen.getByLabelText("用量 1")).toHaveFocus();
   expect(app.fake.bridge.organize).toHaveBeenCalledOnce();
   fireEvent.click(screen.getByRole("button", { name: "确认保存菜谱" }));

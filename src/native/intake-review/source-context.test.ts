@@ -83,7 +83,7 @@ describe("G7 source contexts read existing session snapshots only", () => {
     expect(source?.identity).toBe(draft);
     expect(source?.kind === "finder" && source.selected).toBe(snapshot.selected);
     expect(source).not.toHaveProperty("sourceText"); expect(source).not.toHaveProperty("text"); expect(source).not.toHaveProperty("visible");
-    expect(Object.keys(snapshot).sort()).toEqual(["candidates", "cancelling", "dish", "error", "phase", "preference", "selected"]);
+    expect(Object.keys(snapshot).sort()).toEqual(["cancelling", "candidates", "dish", "error", "phase", "preference", "selected"]);
   });
 
   it("T08 Finder cannot expose metadata without both the selected result and the live AI draft", () => {
