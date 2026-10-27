@@ -1,6 +1,13 @@
 # Current State
 
-## G7 reliable intake / quick correction — READY_FOR_REVIEW — 2026-10-27
+## G7 independent acceptance — ACCEPTED / FROZEN — PASS WITH NOTES — 2026-10-27
+
+**RECIPIO_G7_ACCEPTED / FROZEN — PASS WITH NOTES.** ChatGPT completed the
+scoped G7 A–E independent acceptance; the user supplied the formal conclusion
+under RECIPIO_G7_ACCEPTANCE_REGISTRATION. Accepted delivery:
+`6f1df12806318d19ebe06d07068717d58a44d70b`. This registration changes only
+three documents and does not rerun product tests or alter tested source.
+[Formal independent acceptance](g7/G7_INDEPENDENT_ACCEPTANCE.md).
 
 User-authorized G7 A–E is on isolated `feat/recipio-g7-reliable-intake`, based on
 G6 independent-acceptance registration `69e221567038e1e32668f882b31e57a589c483de`.
@@ -10,7 +17,7 @@ Manual-new uses only local fill checks. Existing duplicate, confirmation and
 uncertain/save identities remain authoritative; no new persisted review entity.
 
 Tested production/tests/workflow: `e8c2f948544d8650919456bd2421b7a04ea218b4`.
-Fresh [cloud run40460260275](https://github.com/cc7279694-debug/menu/actions/runs/40460260275)
+Accepted [cloud run40460260275](https://github.com/cc7279694-debug/menu/actions/runs/40460260275)
 passed all4jobs:221files/1503JS/TS,189JVM and25 fresh API36 native tests,
 0failures/0skips. Targeted225/122 are included in1503, never added. Typecheck,
 lint(0errors/5existing warnings), local build/isolation, sync, Android lint and
@@ -21,20 +28,27 @@ Selected9actual synthetic PNGs are archived in `g7/screenshots/`.
 Real Chromium/WebView exposed a Sheet/Editor Back ownership bug after capture-only
 tests passed. Minimal UI deferral/layout registration fixed it; native IME routing
 and all save/storage services are unchanged. Test-first RED and resolved earlier
-failures remain documented. [Final review/checkpoint](g7/G7_REVIEW.md) records
+failures remain documented. [Historical review/checkpoint](g7/G7_REVIEW.md) records
 scope, exact evidence, screenshot provenance and all NOT_RUN. Final delivery after
-the tested SHA changes documentation/screenshots only; independent acceptance is
-PENDING, not self-declared ACCEPTED/FROZEN.
+the tested SHA changes documentation/screenshots only. Its READY_FOR_REVIEW state
+is the historical handoff, preserved unchanged; the formal conclusion above
+supersedes it without overwriting failure/repair evidence.
 
 Physical phone/OEM/TalkBack/system font scale/performance/flight-mode process cold
 boot/native image pixel presentation and deferred signing/personal migration are
 NOT_RUN. Native generated-image DOM decoding is not image-pixel acceptance;
 controlled selection is not a real SAF claim. Browser external Provider/HTTP and
 temporary-image adapter are Fake. Real paid AI calls remain0.
+Unexecuted historical connected tests remain NOT_RUN; the25 selected API36 cases
+are not full historical connected coverage. CSS200% is not Android system font
+acceptance. Five existing lint warnings and narrow/large-text observation NOTES
+remain. No claim of improved model recognition accuracy or overall release.
 
 No real AI, local heavy tools, personal-device/data operation, user APK, signing,
 main merge or G8. G5/G6 scoped freeze below remains valid. G4 PENDING and R1
 DEFERRED_BY_USER remain unchanged.
+Next: wait for ChatGPT's separately authorized next-stage plan; no automatic G8,
+R1 resumption, main merge or release.
 
 ## G6 independent acceptance — ACCEPTED / FROZEN — PASS WITH NOTES — 2026-10-27
 
