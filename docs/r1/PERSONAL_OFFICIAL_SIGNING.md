@@ -53,7 +53,10 @@ be preserved. On 2026-10-28, the new isolated AVD was started with a 1536 MiB
 override when 6.16 GiB was free. ADB identified the intended AVD, but while
 Android was starting, available memory fell to 3.90 GiB. The explicitly verified
 new AVD was stopped; no APK was installed and boot completion was not confirmed.
-Its data was retained. Installation and launch remain NOT_RUN. Future attempts
-must preserve at least 4 GiB free, use more starting headroom, and avoid other
-projects' processes, emulators, data and the user's phone.
+Its data was retained. A second user-requested attempt started with 6.52 GiB
+free and a 1024 MiB override, but free RAM fell to 3.94 GiB before boot finished.
+The same dedicated AVD was stopped and verified offline; no APK was installed.
+Installation and launch remain NOT_RUN. Future attempts must preserve at least
+4 GiB free, use more starting headroom, and avoid other projects' processes,
+emulators, data and the user's phone.
 Do not publish, merge main or begin a new product module.
