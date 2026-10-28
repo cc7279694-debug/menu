@@ -19,7 +19,8 @@ official `keytool`, `zipalign` and `apksigner`, checks the new certificate and
 signed APK metadata, then creates a 7-Zip AES encrypted backup and verifies a
 byte-identical in-memory restore before publishing its output. It never accepts
 the password through command arguments, stores it in Git, or sends it to Codex.
-The password is entered once and confirmed in the owner's own console; it
+The password is entered once and confirmed in the owner's own console; input
+shows only `*` characters so that typing is visible without exposing the password. It
 protects both the PKCS12 file and the backup. Private key, backup and outputs
 are created in new, exclusive directories under the existing ACL-checked
 `E:/RECIPIO-Signing` directory. Any existing target or preflight error stops.

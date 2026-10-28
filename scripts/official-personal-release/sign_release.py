@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import getpass
 import hashlib
 import hmac
 import json
@@ -30,6 +29,33 @@ ALIAS = 'recipio-personal'
 
 class SigningError(Exception):
     pass
+
+def read_masked_password(prompt, read_char=None, write=None):
+    if read_char is None:
+        import msvcrt
+        read_char = msvcrt.getwch
+    if write is None:
+        def write(value):
+            sys.stdout.write(value)
+            sys.stdout.flush()
+    write(prompt)
+    characters = []
+    while True:
+        char = read_char()
+        if char == '\x03':
+            raise KeyboardInterrupt
+        if char in ('\r', '\n'):
+            write('\n')
+            return ''.join(characters)
+        if char in ('\x00', '\xe0'):
+            read_char()  # Ignore Windows extended keys without displaying them.
+        elif char == '\b':
+            if characters:
+                characters.pop()
+                write('\b \b')
+        elif char.isprintable():
+            characters.append(char)
+            write('*')
 
 def ensure_new_targets(paths):
     if any(path.exists() for path in paths):
@@ -174,8 +200,8 @@ def main():
         preflight()
         print('已检查工具与文件。请设置新的签名密码：12–64 位英文字符、数字或符号，不含空格。')
         print('密钥和加密备份使用同一密码。请勿使用曾经发到聊天中的密码。')
-        password = getpass.getpass('新密码：')
-        confirm = getpass.getpass('再次输入以确认：')
+        password = read_masked_password('新密码：')
+        confirm = read_masked_password('再次输入以确认：')
         if not password_is_valid(password) or not hmac.compare_digest(password, confirm):
             raise SigningError('PASSWORD_INVALID_OR_MISMATCH')
         del confirm

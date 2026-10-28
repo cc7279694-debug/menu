@@ -10,6 +10,20 @@ module = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(module)
 
 class SigningSafetyTests(unittest.TestCase):
+    def test_password_input_shows_only_mask_and_supports_backspace(self):
+        keys = iter('ab\bc\r')
+        visible = []
+        self.assertEqual(module.read_masked_password('密码：', lambda: next(keys), visible.append), 'ac')
+        display = ''.join(visible)
+        self.assertEqual(display, '密码：**\b \b*\n')
+        self.assertNotIn('a', display)
+        self.assertNotIn('c', display)
+
+    def test_password_input_ctrl_c_cancels(self):
+        keys = iter('a\x03')
+        with self.assertRaises(KeyboardInterrupt):
+            module.read_masked_password('密码：', lambda: next(keys), lambda _: None)
+
     def test_existing_target_stops_without_modifying_it(self):
         with tempfile.TemporaryDirectory() as root:
             target = pathlib.Path(root, 'identity')
