@@ -48,11 +48,12 @@ and startup on an owned isolated Android device remain NOT_RUN until verified.
 
 An empty RECIPIO-only AVD was prepared under
 `E:/CODEX/Tools/recipio-personal-test-avd`, using the existing read-only Android
-36 system image. It has not been booted or used for installation. An older
-RECIPIO AVD contains data of unknown origin and must be preserved. The new AVD
-is configured for 2 GiB; at the time of preparation only about 4.9 GiB RAM was
-free, insufficient to retain 4 GiB of headroom while starting it. Wait for
-adequate memory before testing; do not stop other projects. Next verify
-installation/startup on the new isolated AVD without touching the user's phone
-or another project's emulator.
+36 system image. An older RECIPIO AVD contains data of unknown origin and must
+be preserved. On 2026-10-28, the new isolated AVD was started with a 1536 MiB
+override when 6.16 GiB was free. ADB identified the intended AVD, but while
+Android was starting, available memory fell to 3.90 GiB. The explicitly verified
+new AVD was stopped; no APK was installed and boot completion was not confirmed.
+Its data was retained. Installation and launch remain NOT_RUN. Future attempts
+must preserve at least 4 GiB free, use more starting headroom, and avoid other
+projects' processes, emulators, data and the user's phone.
 Do not publish, merge main or begin a new product module.
