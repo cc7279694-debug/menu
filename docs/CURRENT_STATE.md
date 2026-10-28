@@ -1,5 +1,18 @@
 # Current State
 
+## Official signing preparation — owner action required — 2026-10-28
+
+The user authorized the Android Studio signing route and deferred the prior
+custom-tool route. On `chore/recipio-official-signing`, unsigned release
+preparation progressed after resources became available. Official Studio was
+verified, extracted to a separate final directory and launched; IDE setup and
+sync are still unverified. Android resources were synced with the candidate
+version; the unsigned Release built and its package/version were inspected.
+230 targeted tests and production isolation passed. This is not a signed APK.
+The phone's actual installed version and old-keystore identity are unknown; no
+signing or phone/data operation has occurred. Resume from
+[the preparation checkpoint](r1/OFFICIAL_SIGNING_PREPARATION.md).
+
 ## G7 independent acceptance — ACCEPTED / FROZEN — PASS WITH NOTES — 2026-10-27
 
 **RECIPIO_G7_ACCEPTED / FROZEN — PASS WITH NOTES.** ChatGPT completed the
