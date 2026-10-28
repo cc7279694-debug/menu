@@ -1,17 +1,21 @@
 # Current State
 
-## Official signing preparation — owner action required — 2026-10-28
+## Personal official signing — owner action required — 2026-10-28
 
-The user authorized the Android Studio signing route and deferred the prior
-custom-tool route. On `chore/recipio-official-signing`, unsigned release
-preparation progressed after resources became available. Official Studio was
-verified, extracted to a separate final directory and launched; IDE setup and
-sync are still unverified. Android resources were synced with the candidate
-version; the unsigned Release built and its package/version were inspected.
-230 targeted tests and production isolation passed. This is not a signed APK.
-The phone's actual installed version and old-keystore identity are unknown; no
-signing or phone/data operation has occurred. Resume from
-[the preparation checkpoint](r1/OFFICIAL_SIGNING_PREPARATION.md).
+The user superseded the old-keystore and Android Studio wizard route: a new
+personal signing identity will use `app.recipio.local`; the user accepts a
+fresh installation and will manually uninstall the incompatible old app only
+after independent acceptance. No old personal data will be migrated.
+
+On `chore/recipio-official-signing`, the unsigned v27 Release was built and
+inspected. The user-operated launcher and local script use official Android
+signing tools and create an encrypted 7-Zip backup outside the repository. The
+script has been exercised with disposable test material; the actual personal
+identity and signed APK do not exist yet. The user must run the launcher and
+privately set the password, then Codex must verify the resulting public APK and
+controlled Android installation. No phone or personal data is touched. See
+[personal signing checkpoint](r1/PERSONAL_OFFICIAL_SIGNING.md); the earlier
+[Studio checkpoint](r1/OFFICIAL_SIGNING_PREPARATION.md) records the superseded route.
 
 ## G7 independent acceptance — ACCEPTED / FROZEN — PASS WITH NOTES — 2026-10-27
 
