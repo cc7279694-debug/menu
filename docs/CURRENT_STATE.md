@@ -1,12 +1,15 @@
 # Current State
 
-## Search focus fix — awaiting independent review — 2026-10-28
+## Search focus B1 — awaiting independent review — 2026-10-28
 
-On `fix/recipio-search-focus`, a scoped CSS fix moves the search input's focus
-indicator to its existing rounded container. Three-theme browser checks and 36
-targeted tests passed; actual Android IME, Xiaomi phone and TalkBack are NOT_RUN.
-The accepted signed v27 APK and personal signing identity remain unchanged.
-See [search focus review](ui-v2/SEARCH_FOCUS_REVIEW.md).
+The original search-focus fix at `533c82a` was independently BLOCKED because
+its keyboard focus indicator was not sufficiently visible. The B1 follow-up on
+`fix/recipio-search-focus` adds a rounded 2px keyboard ring while retaining the
+subtle pointer-focus border. Three-theme browser checks and 37 targeted tests
+passed. Android IME, Xiaomi phone and TalkBack remain NOT_RUN. The accepted
+signed v27 APK and personal signing identity remain unchanged. See the
+[B1 review evidence](ui-v2/SEARCH_FOCUS_B1_REVIEW.md) and the
+[original review record](ui-v2/SEARCH_FOCUS_REVIEW.md).
 
 ## Personal official signing — ready for independent review — 2026-10-28
 

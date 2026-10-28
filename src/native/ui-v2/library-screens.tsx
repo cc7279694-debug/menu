@@ -1,4 +1,4 @@
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import { BookOpen, ChevronRight, Clock, Plus, Search, Sparkles, X } from "lucide-react";
 import type { DurationFilter, RecipeListItem } from "../recipe-model";
 import { LocalImage } from "../local-image";
@@ -15,6 +15,7 @@ export function CoreLibraryScreen({ records, library, query, filter, loading, bu
   onFind: (dish?: string) => void; onLibrary: () => void;
 }) {
   const searchInput = useRef<HTMLInputElement>(null);
+  const [pointerFocus, setPointerFocus] = useState(false);
   const searching = query.trim().length > 0;
   const filtering = library && filter !== "all";
   const constrained = searching || filtering;
@@ -31,7 +32,16 @@ export function CoreLibraryScreen({ records, library, query, filter, loading, bu
         </div>}
         <V2Button variant="icon" aria-label="新增菜谱" disabled={busy} onClick={onAdd}><Plus aria-hidden="true" /></V2Button>
       </header>
-      <div className="v2-search"><Search aria-hidden="true" />
+      <div className="v2-search" data-pointer-focus={pointerFocus || undefined}
+        onPointerDownCapture={event => {
+          if (event.target instanceof Element && event.target.closest("input, button")) setPointerFocus(true);
+        }}
+        onKeyDownCapture={event => {
+          if (!event.nativeEvent.isComposing && event.key !== "Process" && event.key !== "Unidentified") setPointerFocus(false);
+        }}
+        onBlurCapture={event => {
+          if (!(event.relatedTarget instanceof Node) || !event.currentTarget.contains(event.relatedTarget)) setPointerFocus(false);
+        }}><Search aria-hidden="true" />
         <input ref={searchInput} type="search" aria-label="搜索菜名或食材" placeholder="搜索菜名或食材" value={query}
           onChange={event => onQuery(event.target.value)} />
         {query ? <V2Button variant="icon" aria-label="清空搜索" onClick={clearQuery}><X aria-hidden="true" /></V2Button> : null}

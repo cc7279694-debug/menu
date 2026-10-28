@@ -13,8 +13,15 @@
 .recipio-ui-v2 .v2-search > svg { flex: 0 0 20px; height: 20px; color: var(--v2-caption); stroke-width: 1.6; }
 .recipio-ui-v2 .v2-search input { width: 100%; min-width: 0; min-height: 50px; border: 0; padding: 8px 0; background: transparent; outline-offset: 3px; font-size: 1rem; }
 .recipio-ui-v2 .v2-search input:focus-visible { outline: none; }
+@supports selector(:has(*)) {
+  .recipio-ui-v2 .v2-search:not([data-pointer-focus="true"]):where(:has(> input:focus-visible)) { outline: 2px solid var(--v2-focus); outline-offset: 2px; }
+}
+@supports not selector(:has(*)) {
+  .recipio-ui-v2 .v2-search:not([data-pointer-focus="true"]):focus-within { outline: 2px solid var(--v2-focus); outline-offset: 2px; }
+}
 @media (forced-colors: active) {
-  .recipio-ui-v2 .v2-search:focus-within { outline: 2px solid Highlight; outline-offset: 2px; }
+  .recipio-ui-v2 .v2-search:focus-within,
+  .recipio-ui-v2 .v2-search:not([data-pointer-focus="true"]):focus-within { outline: 2px solid Highlight; outline-offset: 2px; }
 }
 .recipio-ui-v2 .v2-search input::placeholder { color: var(--v2-caption); }
 .recipio-ui-v2 .v2-search input::-webkit-search-cancel-button { display: none; }

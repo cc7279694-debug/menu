@@ -20,6 +20,28 @@ function recipe(id: string, title: string, totalMinutes: number | null): RecipeL
   };
 }
 
+it("keeps pointer focus distinct from keyboard navigation without changing the query", () => {
+  const p = props();
+  render(<CoreLibraryScreen {...p} />);
+  const input = screen.getByRole("searchbox", { name: "搜索菜名或食材" });
+  const container = input.closest(".v2-search");
+  expect(container).not.toHaveAttribute("data-pointer-focus", "true");
+  if (!container) throw new Error("Search container missing");
+  fireEvent.pointerDown(container, { pointerType: "touch" });
+  expect(container).not.toHaveAttribute("data-pointer-focus", "true");
+  fireEvent.pointerDown(input, { pointerType: "touch" });
+  fireEvent.focus(input);
+  expect(container).toHaveAttribute("data-pointer-focus", "true");
+  fireEvent.keyDown(input, { key: "Process", isComposing: true });
+  expect(container).toHaveAttribute("data-pointer-focus", "true");
+  fireEvent.keyDown(input, { key: "a" });
+  expect(container).not.toHaveAttribute("data-pointer-focus", "true");
+  fireEvent.pointerDown(input, { pointerType: "touch" });
+  fireEvent.keyDown(input, { key: "Tab" });
+  expect(container).not.toHaveAttribute("data-pointer-focus", "true");
+  expect(p.onQuery).not.toHaveBeenCalled();
+});
+
 it("a search miss offers local query recovery instead of pretending the library is empty", () => {
   const p = props({ query: "不在本机的菜" });
   render(<CoreLibraryScreen {...p} />);
