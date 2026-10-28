@@ -1,4 +1,4 @@
-# Personal official signing — signed; Android verification pending
+# Personal official signing — ready for independent review
 
 The user authorized a fresh long-term personal identity for the existing package
 `app.recipio.local`; old data migration and old certificate reuse are declined.
@@ -43,8 +43,7 @@ Independently inspected signed APK:
 different from v23. Package is `app.recipio.local`, code 27, name
 `0.11.0-personal.2`, with no debuggable/testOnly manifest flags; zipalign passed.
 All 483 unsigned ZIP entries match the signed APK contents; only signature
-metadata entries were added. No known fixture filenames were found. Installation
-and startup on an owned isolated Android device remain NOT_RUN until verified.
+metadata entries were added. No known fixture filenames were found.
 
 An empty RECIPIO-only AVD was prepared under
 `E:/CODEX/Tools/recipio-personal-test-avd`, using the existing read-only Android
@@ -56,7 +55,18 @@ new AVD was stopped; no APK was installed and boot completion was not confirmed.
 Its data was retained. A second user-requested attempt started with 6.52 GiB
 free and a 1024 MiB override, but free RAM fell to 3.94 GiB before boot finished.
 The same dedicated AVD was stopped and verified offline; no APK was installed.
-Installation and launch remain NOT_RUN. Future attempts must preserve at least
-4 GiB free, use more starting headroom, and avoid other projects' processes,
-emulators, data and the user's phone.
+
+For a third attempt the user explicitly requested proceeding even if the prior
+4 GiB free-memory threshold could not be maintained. The same dedicated AVD was
+started at 7.09 GiB free with a 1536 MiB setting and reached Android 16/API 36
+boot completion at 3.80 GiB free. Before installation `pm list packages`
+confirmed no `app.recipio.local` installation. The signed APK was rehashed and
+installed without `-r`; ADB reported `Success`. Package manager reported version
+code 27 and name `0.11.0-personal.2`. `am start -W` reported a successful cold
+start of `app.recipio.local/.MainActivity`; after startup a UI hierarchy showed
+the RECIPIO home, recipe actions and empty-library message, with the app process
+alive. This is controlled-emulator installation and startup evidence only; it is
+not physical-device, OEM, upgrade, migration or full functional acceptance.
+The AVD identity was checked before it was stopped, and its data was preserved.
+No other emulator, user's phone, private data or AI provider was operated.
 Do not publish, merge main or begin a new product module.

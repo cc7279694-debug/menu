@@ -1,6 +1,6 @@
 # Current State
 
-## Personal official signing — signed; Android verification pending — 2026-10-28
+## Personal official signing — ready for independent review — 2026-10-28
 
 The user superseded the old-keystore and Android Studio wizard route: a new
 personal signing identity will use `app.recipio.local`; the user accepts a
@@ -13,9 +13,10 @@ signing tools and create an encrypted 7-Zip backup outside the repository. The
 script has been exercised with disposable test material; the user privately
 completed signing. The resulting APK signature, package, version, alignment and
 hash passed independent static verification. The signing receipt reports an
-encrypted-backup round trip; the backup remains on the same drive. Android
-installation and launch require an explicitly owned controlled device and have
-not yet passed. No phone or personal data is touched. See
+encrypted-backup round trip; the backup remains on the same drive. A fresh
+isolated Android 16/API 36 AVD passed installation, cold start and home-screen
+checks; this is not a physical-device or independent acceptance claim. No phone
+or personal data was touched. See
 [personal signing checkpoint](r1/PERSONAL_OFFICIAL_SIGNING.md); the earlier
 [Studio checkpoint](r1/OFFICIAL_SIGNING_PREPARATION.md) records the superseded route.
 
