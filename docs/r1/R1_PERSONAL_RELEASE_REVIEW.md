@@ -1,12 +1,41 @@
 # RECIPIO R1-P — 个人正式版执行证据与审查记录
 
-2026-10-27。当前：**RECIPIO_R1_PERSONAL_OWNER_ACTION_REQUIRED**。
+2026-10-28。当前：**RECIPIO_R1_PERSONAL_OWNER_ACTION_REQUIRED**。
 无密钥Release及私人辅助工具准备完成；真实私人备份和签名尚未执行，不代表正式APK已生成。
 政策和范围见 [R1_PERSONAL_RELEASE_PLAN.md](R1_PERSONAL_RELEASE_PLAN.md)。
 
 **当前唯一工具入口：E:/RECIPIO-Signing/Start-RecipioPersonalSigning.cmd。**
 旧E:/CODEX/Tools/recipio-signing/R1-P是下文的历史交付位置；完整公开工具包已迁走，
 旧路径不留可执行别名。当前仍无正式签名成功回执，不能把公开预检当作签名成功。
+
+## 最新重试与安全阶段诊断 — 2026-10-28
+
+公开记录：01:20:57Z为R1P_PASSWORD_STRENGTH，01:21:33Z及01:28:20Z均为
+UNEXPECTED_FAILURE。用户先确认密码格式错误，随后报告本次只提示输入一次。
+代码核对：首次设置副本密码需确认；复用已有副本只验证一次，之后仍须输入并确认
+独立备份密码。没有读取真实私人目录推断当前分支，也不能把未知错误直接归因于密码。
+
+本轮只修辅助工具诊断：12个固定阶段标签覆盖公开预检、私人目录准备、各密码输入、
+身份/备份验证、签名及发布；保留既有精确R1P类别，未知错误不输出原文、异常类型、
+堆栈、私人路径或Native输出。公开失败记录仍为原4字段。
+清理时每个Secret/partial/session/pending资源独立尝试，任何失败统一PRIVATE_CLEANUP，
+不能因第一个异常跳过第二个受控目录。原路径、文件白名单、reparse/ACL保护不变。
+
+新增阶段回归对旧HEAD公开源码副本实跑1PASS/22FAIL（RED），当前实现23PASS/0FAIL；
+根代理独立重新执行23PASS。另重新运行36基础（含真实普通文本AES归档）、22安全、
+15公开失败记录、37工具摘要及2FAKE生命周期，共135项工具检查PASS。
+只读内部安全审查无新增阻断，不代表ChatGPT独立验收或真实签名成功。
+
+当前E:/RECIPIO-Signing已回读更新：模块SHA-256为
+`5228f75ce545a50cb1a053a2446055fdd03805c3cfe2187fe8b32e85decc232b`；
+PS1/CMD、6个工具和两份unsigned APK摘要不变。全新独立Console的日志门禁、公开
+manifest/运行摘要、unsigned实际APK与普通合成文本AES归档预检PASS，privateOperations=0。
+
+真实UNEXPECTED_FAILURE根因仍UNKNOWN；没有成功OWNER_RESULT或签名APK。
+真实密钥/密码/备份未由Codex读取，未运行真实owner入口，未改产品、CI或main。
+一份仅含旧公开模块源码的测试临时副本因自动审批拒绝删除而保留；不含私人材料。
+后续只能由用户本人在更新后的独立窗口重试，再核对公开结果；T01签名至T06设备门禁
+继续NOT_RUN。不得更换身份、猜密码、覆盖私人副本或把预检当作真实恢复/签名证据。
 
 ## 已核对的入口
 

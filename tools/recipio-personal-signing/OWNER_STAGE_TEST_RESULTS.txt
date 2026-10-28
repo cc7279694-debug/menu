@@ -1,0 +1,24 @@
+PASS unknown failure is reduced to fixed stage PUBLIC_PREFLIGHT
+PASS unknown failure is reduced to fixed stage PRIVATE_STORAGE
+PASS unknown failure is reduced to fixed stage INPUT_COPY
+PASS unknown failure is reduced to fixed stage SOURCE_PASSWORD
+PASS unknown failure is reduced to fixed stage STORE_PASSWORD
+PASS unknown failure is reduced to fixed stage BACKUP_PASSWORD
+PASS unknown failure is reduced to fixed stage PASSWORD_SEPARATION
+PASS unknown failure is reduced to fixed stage IDENTITY_VERIFY_IMPORT
+PASS unknown failure is reduced to fixed stage BACKUP_VERIFY_RESTORE
+PASS unknown failure is reduced to fixed stage APK_SIGN
+PASS unknown failure is reduced to fixed stage PUBLICATION
+PASS unknown failure is reduced to fixed stage PRIVATE_CLEANUP
+PASS exact existing category survives R1P_PASSWORD_STRENGTH
+PASS exact existing category survives R1P_KEY_CERTIFICATE_MISMATCH
+PASS exact existing category survives R1P_SOURCE_IMPORT_FAILED_NO_REKEY
+PASS unrecognized stage has fixed generic fallback
+PASS partial or multiline category does not bypass normalization
+PASS integrated SOURCE_PASSWORD failure is sanitized and publishes no success
+PASS integrated STORE_PASSWORD failure is sanitized and publishes no success
+PASS integrated BACKUP_PASSWORD failure is sanitized and publishes no success
+PASS integrated IDENTITY_VERIFY_IMPORT failure is sanitized and publishes no success
+PASS integrated known password policy category survives successful cleanup
+PASS cleanup failure takes priority and second controlled directory is attempted
+RESULT 23 PASS / 0 FAIL; public synthetic fixtures only; real owner/signing NOT_RUN

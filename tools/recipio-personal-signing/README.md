@@ -101,6 +101,14 @@ Toolchain diagnostics use only the fixed six tool labels and
 exceptions enter the failure category. All six tool pins and the independent
 fixed 7-Zip identity check remain mandatory. This diagnostic refinement does
 not establish or claim to repair the earlier unreplicated toolchain failure.
+Unexpected owner-flow failures now identify only a fixed internal stage, such
+as `R1P_OWNER_STORE_PASSWORD_UNEXPECTED`. Existing exact R1P categories survive.
+Cleanup attempts every owned resource independently; any cleanup failure stops
+publication with `R1P_PRIVATE_CLEANUP`. The public attempt still has four fields.
+This improves diagnosis; the earlier real `UNEXPECTED_FAILURE` cause is unknown.
+When an existing personal copy is found, its password is requested once without
+confirmation; this verifies an existing password rather than setting a new one.
+The independent backup-password prompt and confirmation remain required.
 The helper retains original identities. It does not regenerate keys, overwrite an existing backup, install
 an app, modify a phone, or import personal recipes. Unexpected files stop
 temporary cleanup instead of triggering recursive deletion. An interrupted
@@ -115,6 +123,7 @@ pwsh -NoProfile -File tools/recipio-personal-signing/Test-OwnerLifecycle.ps1
 pwsh -NoProfile -File tools/recipio-personal-signing/Test-SigningSafetyRepairs.ps1
 pwsh -NoProfile -File tools/recipio-personal-signing/Test-OwnerAttempt.ps1
 pwsh -NoProfile -File tools/recipio-personal-signing/Test-ToolchainDiagnostics.ps1
+pwsh -NoProfile -File tools/recipio-personal-signing/Test-OwnerStageDiagnostics.ps1
 ```
 
 The first suite includes a real modern7-Zip AES backup of generated ordinary

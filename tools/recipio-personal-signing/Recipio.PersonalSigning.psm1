@@ -459,6 +459,15 @@ function Get-R1FailureCategory([string]$Message){
   return 'UNEXPECTED_FAILURE'
 }
 
+function Get-R1OwnerFailureCategory([string]$Message,[string]$Stage){
+  $category=Get-R1FailureCategory $Message
+  if($category-cne'UNEXPECTED_FAILURE'){return $category}
+  # Fixed internal labels only: no exception text, type, path or user input.
+  $stages=@('PUBLIC_PREFLIGHT','PRIVATE_STORAGE','INPUT_COPY','SOURCE_PASSWORD','STORE_PASSWORD','BACKUP_PASSWORD','PASSWORD_SEPARATION','IDENTITY_VERIFY_IMPORT','BACKUP_VERIFY_RESTORE','APK_SIGN','PUBLICATION','PRIVATE_CLEANUP')
+  if($stages-ccontains$Stage){return 'R1P_OWNER_'+$Stage+'_UNEXPECTED'}
+  return 'UNEXPECTED_FAILURE'
+}
+
 function Write-R1FailedAttempt([string]$BundleRoot,[string]$Message){
   # Public status only: never persist an exception, native output or private path.
   Assert-R1SafeLocalPath $BundleRoot
@@ -471,6 +480,8 @@ function Write-R1FailedAttempt([string]$BundleRoot,[string]$Message){
 }
 
 function Invoke-R1OwnerSigning([string]$BundleRoot){
+  $stage='PUBLIC_PREFLIGHT'
+  try{
   Assert-R1PrivateConsole
   Assert-R1OutsideRepository $BundleRoot
   $manifestPath=Join-Path $BundleRoot 'release-manifest.json'
@@ -488,6 +499,7 @@ function Invoke-R1OwnerSigning([string]$BundleRoot){
   $finalTarget=Join-Path $deliveryRoot 'RECIPIO-0.11.0-personal.2-signed.apk'
   $seedTarget=Join-Path $verificationRoot 'RECIPIO-personal-v26-signed-test.apk'
   foreach($target in @($receiptPath,$finalTarget,$seedTarget)){if(Test-Path -LiteralPath $target){Stop-R1 'DELIVERY_EXISTS_REVIEW_REQUIRED'}}
+  $stage='PRIVATE_STORAGE'
   $ownerPaths=Get-R1OwnerPaths
   $privateRoot=$ownerPaths.privateRoot
   $backupRoot=$ownerPaths.backupRoot
@@ -513,6 +525,7 @@ function Invoke-R1OwnerSigning([string]$BundleRoot){
   $sessionsCleaned=$false;$seedPending=$null;$finalPending=$null
   $sessionFiles=@('identity.p12','input26.apk','input27.apk','aligned26.apk','aligned27.apk','signed26.apk','signed27.apk')
   try{
+    $stage='INPUT_COPY'
     foreach($apk in $manifest.apks){
       $copy=Join-Path $sessionRoot ('input'+$apk.versionCode+'.apk')
       [IO.File]::Copy((Join-Path $BundleRoot $apk.file),$copy,$false)
@@ -521,11 +534,16 @@ function Invoke-R1OwnerSigning([string]$BundleRoot){
     Write-Host 'RECIPIO 个人签名：仅在此独立窗口输入密码，请勿发送到聊天。'
     Write-Host '同机两个文件目录不具备独立离线介质的灾难恢复能力；电脑损坏、丢失或恶意软件可同时影响它们。'
     Write-Host '本工具不安装手机App、不恢复个人菜谱、不上传密钥。按Ctrl+C可取消；原签名文件不会被修改。'
+    $stage='SOURCE_PASSWORD'
     if($action-eq'IMPORT_EXISTING_SOURCE'){$sourceSecret=Read-R1Secret '旧版签名文件密码' -Legacy}
+    $stage='STORE_PASSWORD'
     $prompt=if($action-eq'REUSE_PERSONAL_COPY'){'已有个人签名副本密码'}else{'为个人副本设置至少16位长ASCII密码（大小写/数字/符号至少三类）'}
     $storeSecret=Read-R1Secret $prompt -Confirm:($action-eq'IMPORT_EXISTING_SOURCE')
+    $stage='BACKUP_PASSWORD'
     $backupSecret=Read-R1Secret '独立加密备份密码（至少16位长ASCII，与签名密码不同）' -Confirm
+    $stage='PASSWORD_SEPARATION'
     if((Test-R1SecretsEqual $storeSecret $backupSecret)-or($null-ne$sourceSecret-and(Test-R1SecretsEqual $sourceSecret $backupSecret))){Stop-R1 'BACKUP_PASSWORD_NOT_INDEPENDENT'}
+    $stage='IDENTITY_VERIFY_IMPORT'
     $tools=Get-R1Toolchain $manifest
     if($action-eq'IMPORT_EXISTING_SOURCE'){
       $sourceBefore=Get-R1Hash $sourceKey
@@ -546,6 +564,7 @@ function Invoke-R1OwnerSigning([string]$BundleRoot){
       if($oldRecovery.certificateSha256-ne$script:R1Certificate-or$oldRecovery.alias-ne'recipio-personal'-or$oldRecovery.keystoreSha256-ne(Get-R1Hash $personalKey)){Stop-R1 'EXISTING_RECOVERY_METADATA'}
     }else{Write-R1NewJson $recoveryPath @{formatVersion=1;alias='recipio-personal';certificateSha256=$script:R1Certificate;keystoreSha256=(Get-R1Hash $personalKey);sameComputerBackupRisk=$true}}
 
+    $stage='BACKUP_VERIFY_RESTORE'
     foreach($name in $script:R1ArchiveFiles){Assert-R1ExistingPrivateFile (Join-Path $privateRoot $name)}
     $verifyArchive=$archive
     if(-not(Test-Path -LiteralPath $archive)){
@@ -570,6 +589,7 @@ function Invoke-R1OwnerSigning([string]$BundleRoot){
     $restoredKey=Join-Path $restoreRoot 'identity.p12'
     $null=Get-R1Certificate $tools $restoredKey 'recipio-personal' $storeSecret
     $state=@{backupRestored=$true;identityVerified=$true;seedVerified=$false;finalVerified=$false;privateCleanupVerified=$false}
+    $stage='APK_SIGN'
     foreach($apk in $manifest.apks){
       $code=$apk.versionCode
       $apkInput=Join-Path $sessionRoot ('input'+$code+'.apk')
@@ -579,6 +599,7 @@ function Invoke-R1OwnerSigning([string]$BundleRoot){
       Assert-R1SameApkPayload $apkInput $signed
       if($code-eq26){$state.seedVerified=$true}else{$state.finalVerified=$true}
     }
+    $stage='PUBLICATION'
     if($null-ne$archivePart){[IO.File]::Move($archivePart,$archive,$false);$archivePart=$null}
     $null=[IO.Directory]::CreateDirectory($deliveryRoot);$null=[IO.Directory]::CreateDirectory($verificationRoot)
     $seedSigned=Join-Path $sessionRoot 'signed26.apk';$finalSigned=Join-Path $sessionRoot 'signed27.apk'
@@ -586,9 +607,11 @@ function Invoke-R1OwnerSigning([string]$BundleRoot){
     $finalPending=Join-Path $deliveryRoot ('pending-'+[guid]::NewGuid().ToString('N')+'.apk')
     [IO.File]::Move($seedSigned,$seedPending,$false)
     [IO.File]::Move($finalSigned,$finalPending,$false)
+    $stage='PRIVATE_CLEANUP'
     Remove-R1OwnedTemporaryDirectory $sessionRoot $privateRoot $sessionFiles
     Remove-R1OwnedTemporaryDirectory $restoreRoot $privateRoot $script:R1ArchiveFiles
     $sessionsCleaned=$true;$state.privateCleanupVerified=$true
+    $stage='PUBLICATION'
     Assert-R1PublishGate $state
     $receipt=@{formatVersion=1;status='SIGNED_LOCAL_STATIC_VALIDATED_PENDING_DEVICE';sourceSha=$script:R1Source;certificateSha256=$script:R1Certificate;packageName='app.recipio.local';backupRestoreVerified=$true;sameComputerBackupRisk=$true;deviceTests='NOT_RUN';createdAt=[DateTime]::UtcNow.ToString('o');verificationApk=@{path=$seedTarget;sha256=(Get-R1Hash $seedPending);bytes=(Get-Item -LiteralPath $seedPending).Length;versionCode=26;versionName='0.11.0-personal.1'};finalApk=@{path=$finalTarget;sha256=(Get-R1Hash $finalPending);bytes=(Get-Item -LiteralPath $finalPending).Length;versionCode=27;versionName='0.11.0-personal.2'}}
     Assert-R1PublicReceipt $receipt
@@ -603,10 +626,21 @@ function Invoke-R1OwnerSigning([string]$BundleRoot){
     Write-Host '这是待独立验收候选；手机安装、连续版本升级与真实数据迁移尚未运行。不要自动安装。'
     Write-Host '请将公开OWNER_RESULT.json路径交回Codex；不要发送任何密码、keystore或加密备份。'
   }finally{
-    foreach($secret in @($sourceSecret,$storeSecret,$backupSecret)){if($null-ne$secret){$secret.Dispose()}}
-    if($null-ne$archivePart-and(Test-Path -LiteralPath $archivePart)){Remove-Item -LiteralPath $archivePart -Force}
-    if(-not$sessionsCleaned){Remove-R1OwnedTemporaryDirectory $sessionRoot $privateRoot $sessionFiles;Remove-R1OwnedTemporaryDirectory $restoreRoot $privateRoot $script:R1ArchiveFiles}
-    foreach($pending in @($seedPending,$finalPending)){if($null-ne$pending-and(Test-Path -LiteralPath $pending)){Remove-Item -LiteralPath $pending -Force}}
+    # One cleanup failure must neither expose a raw exception nor skip another
+    # owned resource. Keep all existing path/allowlist protections unchanged.
+    $cleanupFailed=$false
+    foreach($secret in @($sourceSecret,$storeSecret,$backupSecret)){if($null-ne$secret){try{$secret.Dispose()}catch{$cleanupFailed=$true}}}
+    try{if($null-ne$archivePart-and(Test-Path -LiteralPath $archivePart)){Remove-Item -LiteralPath $archivePart -Force}}catch{$cleanupFailed=$true}
+    if(-not$sessionsCleaned){
+      try{Remove-R1OwnedTemporaryDirectory $sessionRoot $privateRoot $sessionFiles}catch{$cleanupFailed=$true}
+      try{Remove-R1OwnedTemporaryDirectory $restoreRoot $privateRoot $script:R1ArchiveFiles}catch{$cleanupFailed=$true}
+    }
+    foreach($pending in @($seedPending,$finalPending)){try{if($null-ne$pending-and(Test-Path -LiteralPath $pending)){Remove-Item -LiteralPath $pending -Force}}catch{$cleanupFailed=$true}}
+    if($cleanupFailed){Stop-R1 'PRIVATE_CLEANUP'}
+  }
+  }catch{
+    $category=Get-R1OwnerFailureCategory $_.Exception.Message $stage
+    throw [InvalidOperationException]::new($category)
   }
 }
 

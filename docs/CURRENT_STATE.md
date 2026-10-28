@@ -1,6 +1,16 @@
 # Current State
 
-## R1-P personal Release — OWNER_ACTION_REQUIRED — 2026-10-27
+## R1-P personal Release — OWNER_ACTION_REQUIRED — 2026-10-28
+
+Latest owner retry still has no successful receipt or signed APK. Actual public
+attempts show PASSWORD_STRENGTH followed by two UNEXPECTED_FAILURE records; the
+owner reports fewer password prompts. Existing-copy reuse intentionally asks
+once instead of setting/confirming a new copy password, but the observed failure
+cause remains UNKNOWN. Helper-only fixed-stage diagnostics and independent
+fail-closed cleanup now pass23new+112existing synthetic tooling checks. Product
+source, identity pins, private storage boundaries and all signed-device gates
+are unchanged. Await an owner retry with the updated public bundle; no root
+agent execution of real signing, private input, key or backup inspection.
 
 User authorized the personal local-signing alternative to the historical two-
 offline-media policy. Main product source is19bb5c9dc5642edb27203e6c5c0b95d7977ff2fe
