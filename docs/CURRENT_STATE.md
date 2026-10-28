@@ -1,15 +1,22 @@
 # Current State
 
-## Search focus B1 — awaiting independent review — 2026-10-28
+## Search focus B1 — ACCEPTED / FROZEN — PASS WITH NOTES — 2026-10-28
 
-The original search-focus fix at `533c82a` was independently BLOCKED because
-its keyboard focus indicator was not sufficiently visible. The B1 follow-up on
-`fix/recipio-search-focus` adds a rounded 2px keyboard ring while retaining the
-subtle pointer-focus border. Three-theme browser checks and 37 targeted tests
-passed. Android IME, Xiaomi phone and TalkBack remain NOT_RUN. The accepted
-signed v27 APK and personal signing identity remain unchanged. See the
-[B1 review evidence](ui-v2/SEARCH_FOCUS_B1_REVIEW.md) and the
-[original review record](ui-v2/SEARCH_FOCUS_REVIEW.md).
+ChatGPT's independent review accepted the B1 follow-up on
+`fix/recipio-search-focus`, tested source
+`d29ff1a34d3fc4a06affffac7ccc048e9c956ce4`. It checked the two review ZIPs,
+six source/evidence files and hashes, nine theme screenshots, the GitHub commit
+and focus handling. The keyboard ring, subtle touch border and three-theme
+visual evidence passed. The 37 targeted tests, TypeScript, lint and build were
+accepted as the submitter's report, not independently rerun. Normalized Git
+blob hashes matched despite line-ending differences in the packet.
+
+Xiaomi 14, TalkBack, Android IME dismissal and the `:has()`-unsupported browser
+fallback remain NOT_RUN. Five existing lint warnings remain. This acceptance is
+limited to B1; it does not imply a new APK or release. The accepted signed v27
+APK and personal signing identity remain unchanged. The
+[B1 review evidence](ui-v2/SEARCH_FOCUS_B1_REVIEW.md) and
+[original review record](ui-v2/SEARCH_FOCUS_REVIEW.md) are historical records.
 
 ## Personal official signing — ready for independent review — 2026-10-28
 
