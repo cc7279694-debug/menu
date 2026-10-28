@@ -20,10 +20,19 @@ function Assert-R1PasswordPolicy {
     if($text.Length-eq0-or$text-match'[^\x20-\x7e]'){Stop-R1 'PASSWORD_ASCII_ONLY'}
     if(-not$Legacy){
       $classes=0
-      foreach($pattern in @('[a-z]','[A-Z]','[0-9]','[^a-zA-Z0-9]')){if($text-match$pattern){$classes++}}
+      foreach($pattern in @('[a-z]','[A-Z]','[0-9]','[^a-zA-Z0-9]')){if($text-cmatch$pattern){$classes++}}
       if($text.Length-lt16-or$classes-lt3){Stop-R1 'PASSWORD_STRENGTH'}
     }
   } finally { $text=$null }
+}
+
+function Get-R1PasswordUsagePolicy([string]$Usage,[string]$IdentityAction,[bool]$BackupExists){
+  if($IdentityAction-cnotin@('IMPORT_EXISTING_SOURCE','REUSE_PERSONAL_COPY')){Stop-R1 'PASSWORD_USAGE_POLICY'}
+  switch -CaseSensitive ($Usage){
+    'PERSONAL_COPY' {return @{legacy=($IdentityAction-ceq'REUSE_PERSONAL_COPY');confirm=($IdentityAction-ceq'IMPORT_EXISTING_SOURCE')}}
+    'BACKUP' {return @{legacy=$BackupExists;confirm=$true}}
+    default {Stop-R1 'PASSWORD_USAGE_POLICY'}
+  }
 }
 
 function Test-R1SecretsEqual([Security.SecureString]$First,[Security.SecureString]$Second) {
@@ -41,6 +50,34 @@ function Read-R1Secret([string]$Prompt,[switch]$Legacy,[switch]$Confirm) {
     }
     return $first
   }catch{$first.Dispose();throw}
+}
+
+function Assert-R1BackupState([bool]$InitiallyPresent,[bool]$NowPresent){
+  if($InitiallyPresent-ne$NowPresent){Stop-R1 'BACKUP_STATE_CHANGED'}
+}
+
+function Read-R1OwnerSecrets([string]$IdentityAction,[bool]$BackupExists,[ref]$Stage){
+  $source=$null;$store=$null;$backup=$null
+  try{
+    $Stage.Value='SOURCE_PASSWORD'
+    if($IdentityAction-ceq'IMPORT_EXISTING_SOURCE'){$source=Read-R1Secret '旧版签名文件密码' -Legacy}
+    $Stage.Value='STORE_PASSWORD'
+    $copyPolicy=Get-R1PasswordUsagePolicy 'PERSONAL_COPY' $IdentityAction $BackupExists
+    $prompt=if($IdentityAction-ceq'REUSE_PERSONAL_COPY'){'已有个人签名副本密码'}else{'为个人副本设置至少16位长ASCII密码（大小写/数字/符号至少三类）'}
+    $store=Read-R1Secret $prompt -Legacy:$copyPolicy.legacy -Confirm:$copyPolicy.confirm
+    $Stage.Value='BACKUP_PASSWORD'
+    $backupPolicy=Get-R1PasswordUsagePolicy 'BACKUP' $IdentityAction $BackupExists
+    $backupPrompt=if($BackupExists){'已有独立加密备份密码'}else{'独立加密备份密码（至少16位长ASCII，与签名密码不同）'}
+    $backup=Read-R1Secret $backupPrompt -Legacy:$backupPolicy.legacy -Confirm:$backupPolicy.confirm
+    $Stage.Value='PASSWORD_SEPARATION'
+    if((Test-R1SecretsEqual $store $backup)-or($null-ne$source-and(Test-R1SecretsEqual $source $backup))){Stop-R1 'BACKUP_PASSWORD_NOT_INDEPENDENT'}
+    return @{source=$source;store=$store;backup=$backup}
+  }catch{
+    $cleanupFailed=$false
+    foreach($secret in @($source,$store,$backup)){if($null-ne$secret){try{$secret.Dispose()}catch{$cleanupFailed=$true}}}
+    if($cleanupFailed){Stop-R1 'PRIVATE_CLEANUP'}
+    throw
+  }
 }
 
 function Get-R1ArchiveArguments {
@@ -455,7 +492,31 @@ function Assert-R1OutsideRepository([string]$Path){
 }
 
 function Get-R1FailureCategory([string]$Message){
-  if($Message.Length-le128-and$Message-cmatch'\AR1P_[A-Z_]+\z'){return $Message}
+  # Permit only labels emitted by this module, never arbitrary external text.
+  $fixed=@(
+    'PASSWORD_REQUIRED','PASSWORD_ASCII_ONLY','PASSWORD_STRENGTH','PASSWORD_CONFIRMATION','PASSWORD_USAGE_POLICY',
+    'RESTORE_DIRECTORY_REQUIRED','ARCHIVE_OPERATION','ARCHIVE_LISTING','ARCHIVE_ENTRY','ARCHIVE_LINK_OR_DIRECTORY','ARCHIVE_SIZE','ARCHIVE_NOT_AES256','ARCHIVE_CONTENTS',
+    'LOCAL_PATH_REQUIRED','PRIVATE_PATH_FORBIDDEN','PATH_METADATA_READ','REPARSE_POINT','MANIFEST_IDENTITY','MANIFEST_VERSIONS','MANIFEST_APK','UNSIGNED_HASH','BUNDLE_MANIFEST','BUNDLE_HASH',
+    'PUBLIC_RECEIPT_FIELD','PUBLIC_RECEIPT_GATE','PUBLIC_RECEIPT_IDENTITY','PUBLIC_APK_RECEIPT','PUBLIC_APK_RECEIPT_FIELD',
+    'POLICY_CONFIGURATION_SHAPE','POLICY_CONFIGURATION_DUPLICATE','POLICY_CONFIGURATION_PARSE','POLICY_CONFIGURATION_UNKNOWN','POLICY_CONFIGURATION_READ','ENFORCED_LOGGING',
+    'PRIVATE_FILE_TYPE','PRIVATE_FILE_OWNER','PRIVATE_FILE_NULL_DACL','PRIVATE_FILE_ACL','PRIVATE_FILE_ACL_READ','PRIVATE_FILE_METADATA_READ','BACKUP_HEADERS_NOT_ENCRYPTED',
+    'PRIVATE_CONSOLE_REQUIRED','POLICY_SCOPE_UNKNOWN','ENFORCED_LOGGING_OR_UNKNOWN','POLICY_REGISTRY_READ','CHILD_SECRET_CHANNEL','PASSWORD_IN_ARGUMENT','CHILD_START','CHILD_TIMEOUT','CHILD_OUTPUT_LIMIT',
+    'PRIVATE_ACL','CLEANUP_SCOPE','CLEANUP_UNEXPECTED_FILE','BACKUP_TOOL_IDENTITY','KEY_CERTIFICATE_UNAVAILABLE','KEY_CERTIFICATE_FORMAT','KEY_CERTIFICATE_MISMATCH',
+    'APK_BADGING','APK_IDENTITY','APK_MANIFEST','DEBUG_OR_TEST_APK','INPUT_ALREADY_SIGNED','SIGNATURE_VERIFICATION','SIGNED_CERTIFICATE_MISMATCH','SIGNED_ALIGNMENT','SIGN_OUTPUT_EXISTS','ALIGN_UNSIGNED','SIGNING_FAILED',
+    'SYNTHETIC_ARCHIVE_CREATE','SYNTHETIC_ARCHIVE_LIST','SYNTHETIC_WRONG_PASSWORD','SYNTHETIC_ARCHIVE_RESTORE','SYNTHETIC_ARCHIVE_BYTES',
+    'ROUTE_A_UNAVAILABLE_NO_AUTOMATIC_REKEY','PUBLISH_GATE','DUPLICATE_APK_ENTRY','APK_PAYLOAD_CHANGED','TOOL_MUST_BE_OUTSIDE_REPOSITORY','PUBLIC_BUNDLE_REQUIRED','RELEASE_MANIFEST_REQUIRED',
+    'ARCHIVE_PREFLIGHT','DELIVERY_EXISTS_REVIEW_REQUIRED','STORAGE_REPAIR_NOT_VERIFIED','UNSIGNED_COPY_HASH','BACKUP_PASSWORD_NOT_INDEPENDENT','BACKUP_STATE_CHANGED','SOURCE_IMPORT_FAILED_NO_REKEY','SOURCE_KEY_CHANGED','EXISTING_PUBLIC_CERTIFICATE',
+    'EXISTING_RECOVERY_METADATA','BACKUP_CREATION','BACKUP_PASSWORD_OR_CONTAINER','BACKUP_INTEGRITY','BACKUP_DECRYPTION','BACKUP_RESTORE_BYTES','PRIVATE_CLEANUP'
+  )
+  if($Message.Length-gt128-or$Message-cnotmatch'\AR1P_[A-Z0-9_]+\z'){return 'UNEXPECTED_FAILURE'}
+  $suffix=$Message.Substring(4)
+  if($fixed-ccontains$suffix){return $Message}
+  foreach($tool in @('JAVA','KEYTOOL','AAPT','ZIPALIGN','APKSIGNER','SEVENZIP')){
+    foreach($reason in @('ENTRY','PIN_FORMAT','MISSING','READ','HASH')){if($suffix-ceq('TOOLCHAIN_'+$tool+'_'+$reason)){return $Message}}
+  }
+  foreach($stage in @('PUBLIC_PREFLIGHT','PRIVATE_STORAGE','INPUT_COPY','SOURCE_PASSWORD','STORE_PASSWORD','BACKUP_PASSWORD','PASSWORD_SEPARATION','IDENTITY_VERIFY_IMPORT','BACKUP_VERIFY_RESTORE','APK_SIGN','PUBLICATION','PRIVATE_CLEANUP')){
+    if($suffix-ceq('OWNER_'+$stage+'_UNEXPECTED')){return $Message}
+  }
   return 'UNEXPECTED_FAILURE'
 }
 
@@ -479,7 +540,12 @@ function Write-R1FailedAttempt([string]$BundleRoot,[string]$Message){
   return $path
 }
 
+# This experimental branch must fail closed until the storage repair has
+# passed the separately authorized Windows filesystem/ACL verification.
+function Assert-R1StorageRepairVerified {Stop-R1 'STORAGE_REPAIR_NOT_VERIFIED'}
+
 function Invoke-R1OwnerSigning([string]$BundleRoot){
+  Assert-R1StorageRepairVerified
   $stage='PUBLIC_PREFLIGHT'
   try{
   Assert-R1PrivateConsole
@@ -534,15 +600,10 @@ function Invoke-R1OwnerSigning([string]$BundleRoot){
     Write-Host 'RECIPIO 个人签名：仅在此独立窗口输入密码，请勿发送到聊天。'
     Write-Host '同机两个文件目录不具备独立离线介质的灾难恢复能力；电脑损坏、丢失或恶意软件可同时影响它们。'
     Write-Host '本工具不安装手机App、不恢复个人菜谱、不上传密钥。按Ctrl+C可取消；原签名文件不会被修改。'
-    $stage='SOURCE_PASSWORD'
-    if($action-eq'IMPORT_EXISTING_SOURCE'){$sourceSecret=Read-R1Secret '旧版签名文件密码' -Legacy}
-    $stage='STORE_PASSWORD'
-    $prompt=if($action-eq'REUSE_PERSONAL_COPY'){'已有个人签名副本密码'}else{'为个人副本设置至少16位长ASCII密码（大小写/数字/符号至少三类）'}
-    $storeSecret=Read-R1Secret $prompt -Confirm:($action-eq'IMPORT_EXISTING_SOURCE')
     $stage='BACKUP_PASSWORD'
-    $backupSecret=Read-R1Secret '独立加密备份密码（至少16位长ASCII，与签名密码不同）' -Confirm
-    $stage='PASSWORD_SEPARATION'
-    if((Test-R1SecretsEqual $storeSecret $backupSecret)-or($null-ne$sourceSecret-and(Test-R1SecretsEqual $sourceSecret $backupSecret))){Stop-R1 'BACKUP_PASSWORD_NOT_INDEPENDENT'}
+    $backupExists=Test-Path -LiteralPath $archive -PathType Leaf
+    $secrets=Read-R1OwnerSecrets $action $backupExists ([ref]$stage)
+    $sourceSecret=$secrets.source;$storeSecret=$secrets.store;$backupSecret=$secrets.backup;$secrets=$null
     $stage='IDENTITY_VERIFY_IMPORT'
     $tools=Get-R1Toolchain $manifest
     if($action-eq'IMPORT_EXISTING_SOURCE'){
@@ -566,8 +627,9 @@ function Invoke-R1OwnerSigning([string]$BundleRoot){
 
     $stage='BACKUP_VERIFY_RESTORE'
     foreach($name in $script:R1ArchiveFiles){Assert-R1ExistingPrivateFile (Join-Path $privateRoot $name)}
+    Assert-R1BackupState $backupExists (Test-Path -LiteralPath $archive -PathType Leaf)
     $verifyArchive=$archive
-    if(-not(Test-Path -LiteralPath $archive)){
+    if(-not$backupExists){
       $archivePart=Join-Path $backupRoot ('backup-'+[guid]::NewGuid().ToString('N')+'.partial.7z')
       $created=Invoke-R1PrivateChild $tools.sevenZip.path (Get-R1ArchiveArguments create $archivePart) @{} @($backupSecret,$backupSecret) $privateRoot
       Assert-R1SuccessfulChild $created 'BACKUP_CREATION'

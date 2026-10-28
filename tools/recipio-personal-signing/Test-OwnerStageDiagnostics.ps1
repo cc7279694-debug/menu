@@ -52,10 +52,11 @@ function Test-SyntheticOwnerFailure([string]$FailureStage,[string]$Expected,[swi
     $actual=&$module {
       param($context,$bundle)
       $script:R1StageFixture=$context
-      $replacements=@('Assert-R1PrivateConsole','Assert-R1ReleaseManifest','Get-R1Toolchain','Get-R1ApkInfo','Test-R1ArchiveTransport','Get-R1OwnerPaths','New-R1RestrictedDirectory','Read-R1Secret','Get-R1Certificate','Invoke-R1PrivateChild','Remove-R1OwnedTemporaryDirectory')
+      $replacements=@('Assert-R1StorageRepairVerified','Assert-R1PrivateConsole','Assert-R1ReleaseManifest','Get-R1Toolchain','Get-R1ApkInfo','Test-R1ArchiveTransport','Get-R1OwnerPaths','New-R1RestrictedDirectory','Read-R1Secret','Get-R1Certificate','Invoke-R1PrivateChild','Remove-R1OwnedTemporaryDirectory')
       $originals=@{}
       foreach($name in $replacements){$originals[$name]=(Get-Item ('Function:'+$name)).ScriptBlock}
       try{
+        Set-Item Function:script:Assert-R1StorageRepairVerified { } # Fake failure injection only.
         Set-Item Function:script:Assert-R1PrivateConsole { }
         Set-Item Function:script:Assert-R1ReleaseManifest {param($Manifest,[string]$BundleRoot)}
         Set-Item Function:script:Get-R1Toolchain {param($Manifest);return @{keytool=@{path='PUBLIC_FAKE_NEVER_EXECUTE'};sevenZip=@{path='PUBLIC_FAKE_NEVER_EXECUTE'}}}

@@ -1,5 +1,11 @@
 # RECIPIO R1-P owner-only signing helper
 
+**Experimental repair branch — do not use for signing.** The signing entry
+fails closed with `R1P_STORAGE_REPAIR_NOT_VERIFIED` before owner operations.
+The storage/ACL repair and Windows synthetic verification remain blocked.
+The separate previously delivered E:/RECIPIO-Signing bundle was not changed
+by this branch and must not be run for this review.
+
 This helper implements **route A only** for certificate
 `29ded26bea44f1afe4fe383a302e4b507423d16223469d7da3fe578d9a7f83b9`.
 It does not generate a key or choose another identity after failure.
@@ -37,9 +43,12 @@ testOnly, wrong-package or wrong-version inputs fail closed.
    Existing personal copies are verified/reused, never overwritten/imported
    again. The helper has no literal existing password.
 4. Passwords use masked `Read-Host -AsSecureString`; new passwords require
-   at least16 printable ASCII characters and three character classes. This
-   conservative policy matches tested native-tool encoding. A legacy source
-   password can be shorter. Backup and keystore passwords must differ.
+   at least16 printable ASCII characters and three case-sensitive character
+   classes. Existing source, personal-copy and backup passwords use the prior
+   nonempty printable-ASCII compatibility rule without a new strength limit.
+   Backup and keystore passwords must differ. Existing copies or backups are
+   not reset or overwritten. A change in backup presence stops the flow; it
+   cannot detect replacement by another file at the same path.
 5. The helper imports the existing key into a protected PKCS12 copy with the
    same certificate. The original source is read-only and hash-compared.
 6. AES256 `.7z` backup uses encrypted headers, strict entry allowlist, actual
@@ -101,6 +110,10 @@ Toolchain diagnostics use only the fixed six tool labels and
 exceptions enter the failure category. All six tool pins and the independent
 fixed 7-Zip identity check remain mandatory. This diagnostic refinement does
 not establish or claim to repair the earlier unreplicated toolchain failure.
+Known public failure categories are restricted to an explicit set plus fixed
+tool/stage combinations. Unknown exception text is never accepted as a new
+public category; an external error that exactly matches a known label cannot
+be distinguished by this string-only allowlist.
 Unexpected owner-flow failures now identify only a fixed internal stage, such
 as `R1P_OWNER_STORE_PASSWORD_UNEXPECTED`. Existing exact R1P categories survive.
 Cleanup attempts every owned resource independently; any cleanup failure stops
@@ -124,6 +137,9 @@ pwsh -NoProfile -File tools/recipio-personal-signing/Test-SigningSafetyRepairs.p
 pwsh -NoProfile -File tools/recipio-personal-signing/Test-OwnerAttempt.ps1
 pwsh -NoProfile -File tools/recipio-personal-signing/Test-ToolchainDiagnostics.ps1
 pwsh -NoProfile -File tools/recipio-personal-signing/Test-OwnerStageDiagnostics.ps1
+pwsh -NoProfile -File tools/recipio-personal-signing/Test-PasswordCompatibility.ps1
+pwsh -NoProfile -File tools/recipio-personal-signing/Test-FailureCategoryAllowlist.ps1
+pwsh -NoProfile -File tools/recipio-personal-signing/Test-StorageReleaseGate.ps1
 ```
 
 The first suite includes a real modern7-Zip AES backup of generated ordinary

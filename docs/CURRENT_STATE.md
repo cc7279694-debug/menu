@@ -1,6 +1,16 @@
 # Current State
 
-## R1-P personal Release — OWNER_ACTION_REQUIRED — 2026-10-28
+## R1-P personal Release — STORAGE DIAGNOSTICS BLOCKED — 2026-10-28
+
+**Storage repair is BLOCKED; partial work is isolated on
+`fix/recipio-r1p-storage-diagnostics`.** The branch signing entry deliberately
+fails before any owner operation. In-memory tests verified password-policy
+compatibility, fixed-category filtering and the entry gate; the previously
+delivered signing bundle was not updated. Directory ACL reuse, exclusive safe
+creation, owned-session cleanup and detailed storage stage mapping remain
+unimplemented and unverified; do not run either branch or delivered helper for
+real signing. Windows synthetic storage testing remains blocked by automatic
+approval. The cause of the actual storage failure is UNKNOWN.
 
 Latest owner retry produced `R1P_OWNER_PRIVATE_STORAGE_UNEXPECTED` at
 2026-10-28 01:51:29 UTC. No success receipt or signed APK exists. This is
@@ -16,8 +26,9 @@ approval as blocked by policy; no further reason was provided.
 
 An independent password policy defect was reproduced with synthetic inputs:
 case-insensitive matching accepts two character classes where three are
-required. The defect has not been linked to the storage failure. Do not change
-the policy without preserving access to any existing identity and backup.
+required. The defect has not been linked to the storage failure. This isolated
+branch adjusts new passwords while keeping the previous printable-ASCII policy
+for existing personal copies and backups; only in-memory tests were run.
 
 Previous owner retries had no successful receipt or signed APK. Actual public
 attempts show PASSWORD_STRENGTH followed by two UNEXPECTED_FAILURE records; the

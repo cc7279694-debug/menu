@@ -29,17 +29,18 @@ foreach($cancel in @($true,$false)){
       param($context,$bundle)
       $script:R1FakeLifecycle=$context
       $originals=@{}
-      $replacements=@('Assert-R1PrivateConsole','Get-R1OwnerPaths','Get-R1Toolchain','Get-R1ApkInfo','Read-R1Secret','Get-R1Certificate','Invoke-R1PrivateChild','Invoke-R1SignApk')
+      $replacements=@('Assert-R1StorageRepairVerified','Assert-R1PrivateConsole','Get-R1OwnerPaths','Get-R1Toolchain','Get-R1ApkInfo','Read-R1Secret','Get-R1Certificate','Invoke-R1PrivateChild','Invoke-R1SignApk')
       foreach($name in $replacements){$originals[$name]=(Get-Item ('Function:'+$name)).ScriptBlock}
       $script:R1RealPrivateChild=$originals['Invoke-R1PrivateChild']
       try{
+        Set-Item Function:script:Assert-R1StorageRepairVerified { } # Fake lifecycle only; the real entry remains blocked.
         Set-Item Function:script:Assert-R1PrivateConsole { }
         Set-Item Function:script:Get-R1OwnerPaths {return $script:R1FakeLifecycle.paths}
         Set-Item Function:script:Get-R1Toolchain {param($Manifest);return @{keytool=@{path='PUBLIC_FAKE_KEYTOOL_NEVER_EXECUTED'};sevenZip=@{path=$script:R1FakeLifecycle.sevenZip}}}
         Set-Item Function:script:Get-R1ApkInfo {param($Tools,[string]$Path,$Expected,[switch]$MustBeUnsigned);return @{}}
         Set-Item Function:script:Read-R1Secret {
           param([string]$Prompt,[switch]$Legacy,[switch]$Confirm)
-          if($script:R1FakeLifecycle.cancel){Stop-R1 'OWNER_CANCELLED_SYNTHETIC'}
+          if($script:R1FakeLifecycle.cancel){Stop-R1 'PASSWORD_REQUIRED'}
           if($Legacy){return ConvertTo-SecureString 'PUBLIC-OLD-FAKE' -AsPlainText -Force}
           if($Prompt-like'独立*'){return ConvertTo-SecureString 'PUBLIC-FAKE-BACKUP-9!zR' -AsPlainText -Force}
           return ConvertTo-SecureString 'PUBLIC-FAKE-STORE-9!zR' -AsPlainText -Force
@@ -63,7 +64,7 @@ foreach($cancel in @($true,$false)){
         }
         if((Get-R1OwnerPaths).sourceKey-ne$context.source){throw 'Fake path isolation failed; refusing any owner flow'}
         if($context.cancel){
-          $rejected=$false;try{Invoke-R1OwnerSigning $bundle *> $null}catch{if($_.Exception.Message-eq'R1P_OWNER_CANCELLED_SYNTHETIC'){$rejected=$true}else{throw}}
+          $rejected=$false;try{Invoke-R1OwnerSigning $bundle *> $null}catch{if($_.Exception.Message-eq'R1P_PASSWORD_REQUIRED'){$rejected=$true}else{throw}}
           if(-not$rejected){throw 'Cancellation did not stop the flow'}
         }else{Invoke-R1OwnerSigning $bundle *> $null}
       }finally{
