@@ -5,10 +5,19 @@
 Latest owner retry produced `R1P_OWNER_PRIVATE_STORAGE_UNEXPECTED` at
 2026-10-28 01:51:29 UTC. No success receipt or signed APK exists. This is
 before the password prompts; the specific storage operation and root cause
-remain UNKNOWN. Do not ask for another blind owner retry or inspect actual
-owner keys, backup contents or private directories. A synthetic-only storage
-probe command was rejected by automatic approval as blocked by policy; no
-further reason was provided. Preserve existing identity and files.
+remain UNKNOWN. Following the user's request for autonomous diagnosis without
+further password entry, read-only metadata checks on the two designated
+directories found the current user owns both, with protected ACLs, owner full
+control and no other Allow entries. No files were listed or opened and no
+permissions were changed; those checks do not prove directory creation or
+Set-Acl succeeds. Do not ask for another blind retry or inspect keys or backup
+contents. A synthetic-only storage probe command was rejected by automatic
+approval as blocked by policy; no further reason was provided.
+
+An independent password policy defect was reproduced with synthetic inputs:
+case-insensitive matching accepts two character classes where three are
+required. The defect has not been linked to the storage failure. Do not change
+the policy without preserving access to any existing identity and backup.
 
 Previous owner retries had no successful receipt or signed APK. Actual public
 attempts show PASSWORD_STRENGTH followed by two UNEXPECTED_FAILURE records; the
