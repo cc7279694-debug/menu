@@ -1,4 +1,4 @@
-# Personal official signing — awaiting owner password
+# Personal official signing — signed; Android verification pending
 
 The user authorized a fresh long-term personal identity for the existing package
 `app.recipio.local`; old data migration and old certificate reuse are declined.
@@ -27,15 +27,32 @@ are created in new, exclusive directories under the existing ACL-checked
 
 Disposable-key integration tests checked the actual official tool chain,
 encryption restore, wrong-password rejection, conflict protection, changed
-input, package/debug rejection and certificate mismatch. The actual user
-identity, final signed APK, actual backup, Android installation and launch are
-NOT_RUN until the owner performs the private password step. The backup is on the
-same physical drive and uses the same password, so it is not a substitute for a
-separately stored offline copy. The user should copy it to safe offline media
-and keep the password separately.
+input, package/debug rejection and certificate mismatch. The owner has now
+completed the private signing step. The public receipt reports a verified
+encrypted-backup round trip. Without the password Codex did not independently
+decrypt it. The backup is on the same physical drive and uses the same password,
+so it is not a substitute for a separately stored offline copy. The user should
+copy it to safe offline media and keep the password separately.
 
-After the owner reports completion, inspect only the public `OWNER_RESULT.json`
-and signed APK, independently recheck hash, package, version, signature and
-certificate, and verify installation/startup on an explicitly owned isolated
-test device without touching the user's phone or another project's emulator.
+Independently inspected signed APK:
+`E:/RECIPIO-Signing/recipio-personal-release-v27/recipio-personal-v27.apk`,
+15,190,579 bytes, SHA-256
+`b87edc7b33e19845f417bac3dc98f70ed3c9b1d2824d379e20918db8cca6ab95`.
+`apksigner verify` passed, signer certificate SHA-256
+`5a3f7cb866cdc15d0357e03a49d611204bd2df763c71a3e005656e416adc251d`,
+different from v23. Package is `app.recipio.local`, code 27, name
+`0.11.0-personal.2`, with no debuggable/testOnly manifest flags; zipalign passed.
+All 483 unsigned ZIP entries match the signed APK contents; only signature
+metadata entries were added. No known fixture filenames were found. Installation
+and startup on an owned isolated Android device remain NOT_RUN until verified.
+
+An empty RECIPIO-only AVD was prepared under
+`E:/CODEX/Tools/recipio-personal-test-avd`, using the existing read-only Android
+36 system image. It has not been booted or used for installation. An older
+RECIPIO AVD contains data of unknown origin and must be preserved. The new AVD
+is configured for 2 GiB; at the time of preparation only about 4.9 GiB RAM was
+free, insufficient to retain 4 GiB of headroom while starting it. Wait for
+adequate memory before testing; do not stop other projects. Next verify
+installation/startup on the new isolated AVD without touching the user's phone
+or another project's emulator.
 Do not publish, merge main or begin a new product module.

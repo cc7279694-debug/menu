@@ -1,6 +1,6 @@
 # Current State
 
-## Personal official signing — owner action required — 2026-10-28
+## Personal official signing — signed; Android verification pending — 2026-10-28
 
 The user superseded the old-keystore and Android Studio wizard route: a new
 personal signing identity will use `app.recipio.local`; the user accepts a
@@ -10,10 +10,12 @@ after independent acceptance. No old personal data will be migrated.
 On `chore/recipio-official-signing`, the unsigned v27 Release was built and
 inspected. The user-operated launcher and local script use official Android
 signing tools and create an encrypted 7-Zip backup outside the repository. The
-script has been exercised with disposable test material; the actual personal
-identity and signed APK do not exist yet. The user must run the launcher and
-privately set the password, then Codex must verify the resulting public APK and
-controlled Android installation. No phone or personal data is touched. See
+script has been exercised with disposable test material; the user privately
+completed signing. The resulting APK signature, package, version, alignment and
+hash passed independent static verification. The signing receipt reports an
+encrypted-backup round trip; the backup remains on the same drive. Android
+installation and launch require an explicitly owned controlled device and have
+not yet passed. No phone or personal data is touched. See
 [personal signing checkpoint](r1/PERSONAL_OFFICIAL_SIGNING.md); the earlier
 [Studio checkpoint](r1/OFFICIAL_SIGNING_PREPARATION.md) records the superseded route.
 
