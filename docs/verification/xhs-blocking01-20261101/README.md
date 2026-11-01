@@ -1,5 +1,10 @@
 # Xiaohongshu BLOCKING-01 — targeted review follow-up
 
+**Later outcome:** BLOCKING-01 is independently **CLOSED / PASS WITH NOTES**;
+see the [formal registration](INDEPENDENT_ACCEPTANCE.md). The full module is
+still pending [comprehensive review](../xhs-module-20261101/README.md).
+The original handoff status and all evidence below are preserved as history.
+
 Status: **PATCH READY FOR INDEPENDENT REVIEW**, not ACCEPTED / FROZEN.
 Date: 2026-11-01. Review only this blocker; no new product module.
 

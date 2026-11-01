@@ -1,0 +1,193 @@
+{
+  "source": "eef0bec324a96f5ca97a0e050b30417d39e20448",
+  "runs": [
+    {
+      "kind": "ownership",
+      "count": 9,
+      "source": "eef0bec324a96f5ca97a0e050b30417d39e20448",
+      "jsonFile": "../xhs-blocking01-20261101/browser-ownership.json",
+      "sha256": "ba55d157c9c79c85c4955555aadac763ecf7cdefd0feff05874fcaadb4b4202a"
+    },
+    {
+      "kind": "compatibility",
+      "count": 5,
+      "source": "eef0bec324a96f5ca97a0e050b30417d39e20448",
+      "jsonFile": "../xhs-blocking01-20261101/browser-compatibility.json",
+      "sha256": "cede62e2db1dce9300b69c740f036cef57b818b005fec5bc878bc507b1b2e1b2"
+    }
+  ],
+  "totalExistingCaptures": 14,
+  "newBrowserExecutions": 0,
+  "alreadyDelivered": 7,
+  "additionallyPublished": 7,
+  "images": [
+    {
+      "theme": "warm-ivory",
+      "scenario": "missing-state",
+      "status": "PASS",
+      "file": "../xhs-blocking01-20261101/screenshots/warm-ivory-missing-state.png",
+      "bytes": 67433,
+      "sha256": "b05e5f4757c92b67f4fc0c57f54eb7c46de9b9da49fa1b1a20b1a2317ae574fa",
+      "originalRun": "ownership",
+      "source": "eef0bec324a96f5ca97a0e050b30417d39e20448",
+      "previouslyDelivered": true,
+      "independentVisualReview": "B01_ONLY_AT_B4676FF"
+    },
+    {
+      "theme": "warm-ivory",
+      "scenario": "wrong-target",
+      "status": "PASS",
+      "file": "../xhs-blocking01-20261101/screenshots/warm-ivory-wrong-target.png",
+      "bytes": 67433,
+      "sha256": "b05e5f4757c92b67f4fc0c57f54eb7c46de9b9da49fa1b1a20b1a2317ae574fa",
+      "originalRun": "ownership",
+      "source": "eef0bec324a96f5ca97a0e050b30417d39e20448",
+      "previouslyDelivered": true,
+      "independentVisualReview": "B01_ONLY_AT_B4676FF"
+    },
+    {
+      "theme": "warm-ivory",
+      "scenario": "resolved-unrelated",
+      "status": "PASS",
+      "file": "../xhs-blocking01-20261101/screenshots/warm-ivory-resolved-unrelated.png",
+      "bytes": 63151,
+      "sha256": "930a90dc42242dd138d7d9b1212f51b7b1ebd169e7822d52e3205fc162680507",
+      "originalRun": "ownership",
+      "source": "eef0bec324a96f5ca97a0e050b30417d39e20448",
+      "previouslyDelivered": true,
+      "independentVisualReview": "B01_ONLY_AT_B4676FF"
+    },
+    {
+      "theme": "pure-glass",
+      "scenario": "missing-state",
+      "status": "PASS",
+      "file": "../xhs-blocking01-20261101/screenshots/pure-glass-missing-state.png",
+      "bytes": 67628,
+      "sha256": "55b157fdaf56b2de6f6e205a6fa10133738b7f2b0e64aba4b451357237c46f97",
+      "originalRun": "ownership",
+      "source": "eef0bec324a96f5ca97a0e050b30417d39e20448",
+      "previouslyDelivered": true,
+      "independentVisualReview": "B01_ONLY_AT_B4676FF"
+    },
+    {
+      "theme": "pure-glass",
+      "scenario": "wrong-target",
+      "status": "PASS",
+      "file": "../xhs-blocking01-20261101/screenshots/pure-glass-wrong-target.png",
+      "bytes": 67628,
+      "sha256": "55b157fdaf56b2de6f6e205a6fa10133738b7f2b0e64aba4b451357237c46f97",
+      "originalRun": "ownership",
+      "source": "eef0bec324a96f5ca97a0e050b30417d39e20448",
+      "previouslyDelivered": true,
+      "independentVisualReview": "B01_ONLY_AT_B4676FF"
+    },
+    {
+      "theme": "pure-glass",
+      "scenario": "resolved-unrelated",
+      "status": "PASS",
+      "file": "screenshots/pure-glass-resolved-unrelated.png",
+      "bytes": 63325,
+      "sha256": "c977cfe3cfd69d25dfad53b87308125c49a0fc6c9af84c6c062772e49ab2ead6",
+      "originalRun": "ownership",
+      "source": "eef0bec324a96f5ca97a0e050b30417d39e20448",
+      "previouslyDelivered": false,
+      "independentVisualReview": "NOT_RUN"
+    },
+    {
+      "theme": "soft-sage",
+      "scenario": "missing-state",
+      "status": "PASS",
+      "file": "../xhs-blocking01-20261101/screenshots/soft-sage-missing-state.png",
+      "bytes": 67370,
+      "sha256": "4f952bc41e6e19d52c655171800bd51c66971432c56da4f389640606c0ea330d",
+      "originalRun": "ownership",
+      "source": "eef0bec324a96f5ca97a0e050b30417d39e20448",
+      "previouslyDelivered": true,
+      "independentVisualReview": "B01_ONLY_AT_B4676FF"
+    },
+    {
+      "theme": "soft-sage",
+      "scenario": "wrong-target",
+      "status": "PASS",
+      "file": "../xhs-blocking01-20261101/screenshots/soft-sage-wrong-target.png",
+      "bytes": 67370,
+      "sha256": "4f952bc41e6e19d52c655171800bd51c66971432c56da4f389640606c0ea330d",
+      "originalRun": "ownership",
+      "source": "eef0bec324a96f5ca97a0e050b30417d39e20448",
+      "previouslyDelivered": true,
+      "independentVisualReview": "B01_ONLY_AT_B4676FF"
+    },
+    {
+      "theme": "soft-sage",
+      "scenario": "resolved-unrelated",
+      "status": "PASS",
+      "file": "screenshots/soft-sage-resolved-unrelated.png",
+      "bytes": 63101,
+      "sha256": "94a85e9906b9e8b08f575816cc71c3dc93afb74fa0accd7d62ac63749c37e575",
+      "originalRun": "ownership",
+      "source": "eef0bec324a96f5ca97a0e050b30417d39e20448",
+      "previouslyDelivered": false,
+      "independentVisualReview": "NOT_RUN"
+    },
+    {
+      "theme": "warm-ivory",
+      "scenario": "public-note",
+      "status": "PASS",
+      "file": "screenshots/warm-ivory-public-note.png",
+      "bytes": 63151,
+      "sha256": "930a90dc42242dd138d7d9b1212f51b7b1ebd169e7822d52e3205fc162680507",
+      "originalRun": "compatibility",
+      "source": "eef0bec324a96f5ca97a0e050b30417d39e20448",
+      "previouslyDelivered": false,
+      "independentVisualReview": "NOT_RUN"
+    },
+    {
+      "theme": "warm-ivory",
+      "scenario": "complete",
+      "status": "PASS",
+      "file": "screenshots/warm-ivory-complete.png",
+      "bytes": 111619,
+      "sha256": "33482a1f2225e8f63883072a83374e30569944aa773d9f5695f5d115e2b19dea",
+      "originalRun": "compatibility",
+      "source": "eef0bec324a96f5ca97a0e050b30417d39e20448",
+      "previouslyDelivered": false,
+      "independentVisualReview": "NOT_RUN"
+    },
+    {
+      "theme": "warm-ivory",
+      "scenario": "login",
+      "status": "PASS",
+      "file": "screenshots/warm-ivory-login.png",
+      "bytes": 35395,
+      "sha256": "7975c52cbd49f0d655168381061bcdcb05c5562beb6157de354d3e5fd3758472",
+      "originalRun": "compatibility",
+      "source": "eef0bec324a96f5ca97a0e050b30417d39e20448",
+      "previouslyDelivered": false,
+      "independentVisualReview": "NOT_RUN"
+    },
+    {
+      "theme": "warm-ivory",
+      "scenario": "challenge",
+      "status": "PASS",
+      "file": "screenshots/warm-ivory-challenge.png",
+      "bytes": 34946,
+      "sha256": "5f185216e0fc3da79383cd95d36e6d74286d61de267d6baafdb50809c0e26999",
+      "originalRun": "compatibility",
+      "source": "eef0bec324a96f5ca97a0e050b30417d39e20448",
+      "previouslyDelivered": false,
+      "independentVisualReview": "NOT_RUN"
+    },
+    {
+      "theme": "warm-ivory",
+      "scenario": "video",
+      "status": "PASS",
+      "file": "screenshots/warm-ivory-video.png",
+      "bytes": 64083,
+      "sha256": "74b2f26a4a2330e7f84d8b5e066c7ad3b5a800d46832a1975a1072b55d46f92a",
+      "originalRun": "compatibility",
+      "source": "eef0bec324a96f5ca97a0e050b30417d39e20448",
+      "previouslyDelivered": false,
+      "independentVisualReview": "NOT_RUN"
+    }
+  ]
+}

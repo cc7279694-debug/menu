@@ -1,13 +1,30 @@
 # Current State
 
-## Xiaohongshu BLOCKING-01 — PATCH READY FOR INDEPENDENT REVIEW — 2026-11-01
+## Xiaohongshu module — READY FOR INDEPENDENT COMPREHENSIVE REVIEW — 2026-11-01
+
+The user supplied ChatGPT's independent re-review verdict and authorized its
+registration: **BLOCKING-01 — CLOSED / PASS WITH NOTES**, source
+`eef0bec324a96f5ca97a0e050b30417d39e20448`, evidence
+`b4676ffa8e82d11636c0e3df115882fcc1c99165`. This closes only the ownership
+blocker, not the whole module. [Formal registration and retained notes](verification/xhs-blocking01-20261101/INDEPENDENT_ACCEPTANCE.md).
+
+Bounded whole-module source inspection found no additional confirmed blocker;
+product source remains exactly `eef0bec`. Existing 284 affected JS/TS,25 pure
+JVM,14 browser flows and typecheck/lint/build/isolation evidence is reused without
+retesting. The remaining existing captures are published for full visual review.
+All notes, initial failures/reruns and device/native/TLS/live-platform/real-AI
+NOT_RUN remain. Phone DNS is unconfirmed and login/media-only limits unresolved.
+[Complete module handoff](verification/xhs-module-20261101/README.md).
+No APK, signing change, phone/data operation or main merge. Await ChatGPT review.
+
+## Xiaohongshu BLOCKING-01 — historical repair handoff
 
 ChatGPT blocked delivery `0a78dbc9` for unowned page-shell text and Recipe
 JSON-LD. Source patch `eef0bec324a96f5ca97a0e050b30417d39e20448` closes those
 paths: recognized XHS pages never fall back to generic body text; unowned generic
 JSON-LD is not accepted; unresolved short pages cannot infer identity from one
 note. Valid matched note prose and ordinary recipe-site parsing remain. This is
-a targeted repair, not ACCEPTED/FROZEN. Fresh final checks: 284 affected JS/TS,
+a targeted repair; its later limited closure is registered above. Final source checks: 284 affected JS/TS,
 25 pure JVM and14 synthetic browser flows PASS; typecheck/lint/build/isolation
 PASS. Initial worker-start timeouts and successful reruns remain recorded.
 Device/IME/TalkBack/real AI remain NOT_RUN, real AI calls0; no APK or main merge.
