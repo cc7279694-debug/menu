@@ -1,0 +1,357 @@
+RECIPIO BLOCKING-01 command receipts — 2026-11-01
+Fixed source/tests: eef0bec324a96f5ca97a0e050b30417d39e20448
+Only the absolute repository prefix and trailing whitespace are normalized; no test result text suppressed.
+Initial RED/GREEN/typecheck/lint/JVM ran before source commit with identical final source/test blobs.
+Final affected/build/isolation/browser checks ran at the source commit.
+
+
+== RED expected exit1: npx vitest run src/native/link-import/xhs-page.test.ts src/native/link-import/visible-text.test.ts src/native/link-import/service.test.ts --pool=threads --maxWorkers=1 --no-file-parallelism ==
+
+(!) Your Vite config uses features that are unsupported by `configLoader: 'native'`, which is planned to become the default in a future major version of Vite:
+  - ESM syntax in a file loaded as CommonJS (vitest.config.ts:1:1). Use a `.mjs` extension or set `"type": "module"` in the closest package.json
+Set `VITE_CONFIG_NATIVE_IGNORE_WARNING=true` to suppress this warning.
+
+ RUN  v4.1.11 <repo>
+
+ ❯ src/native/link-import/service.test.ts (29 tests | 3 failed) 601ms
+   × BLOCKING-01: excludes unrelated XHS JSON-LD with absent target state 49ms
+   × BLOCKING-01: excludes unrelated XHS JSON-LD with mismatched target state 10ms
+   × BLOCKING-01: excludes unrelated XHS JSON-LD with resolved target state 13ms
+ ❯ src/native/link-import/xhs-page.test.ts (40 tests | 2 failed) 269ms
+     × does not assume a short page's single note belongs to the unresolved share link 25ms
+     × reports unresolved ownership even when no recognizable state is present 4ms
+ ❯ src/native/link-import/visible-text.test.ts (11 tests | 2 failed) 143ms
+     × does not fall back to main recommendations when XHS target state is absent 24ms
+     × does not fall back to body recommendations when XHS target state is absent 7ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 7 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/native/link-import/service.test.ts > BLOCKING-01: excludes unrelated XHS JSON-LD with absent target state
+ FAIL  src/native/link-import/service.test.ts > BLOCKING-01: excludes unrelated XHS JSON-LD with mismatched target state
+ FAIL  src/native/link-import/service.test.ts > BLOCKING-01: excludes unrelated XHS JSON-LD with resolved target state
+AssertionError: expected { candidates: [ { …(6) } ], …(3) } to match object { candidates: [], …(1) }
+(2 matching properties omitted from actual)
+
+- Expected
++ Received
+
+  {
+-   "candidates": [],
++   "candidates": [
++     {
++       "documentOrder": 0,
++       "id": "candidate-0",
++       "quality": "complete",
++       "recipe": {
++         "caloriesPerServing": null,
++         "coverPath": null,
++         "ingredients": [
++           {
++             "amount": "500克",
++             "name": "五花肉",
++           },
++         ],
++         "keyTips": [],
++         "notes": "",
++         "preparations": [],
++         "servings": null,
++         "steps": [
++           {
++             "imagePath": null,
++             "instruction": "焯水后炖熟。",
++           },
++         ],
++         "title": "推荐红烧肉",
++         "totalMinutes": null,
++       },
++       "score": 40,
++       "warnings": [],
++     },
++   ],
+    "needsSelection": false,
+  }
+
+ ❯ src/native/link-import/service.test.ts:33:37
+
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/7]⎯
+
+ FAIL  src/native/link-import/visible-text.test.ts > visible page blocks > does not fall back to main recommendations when XHS target state is absent
+ FAIL  src/native/link-import/visible-text.test.ts > visible page blocks > does not fall back to body recommendations when XHS target state is absent
+AssertionError: expected { title: '合成目标笔记', …(2) } to deeply equal { title: '合成目标笔记', text: '', …(1) }
+
+- Expected
++ Received
+
+  {
+-   "text": "",
++   "text": "推荐红烧肉
++ 五花肉500克，焯水后炖熟。
++ 打开App查看更多菜谱",
+    "title": "合成目标笔记",
+    "wasTruncated": false,
+  }
+
+ ❯ src/native/link-import/visible-text.test.ts:64:8
+     62|     const source = `<title>合成目标笔记</title><${tag}><h1>推荐红烧肉</h1><p>五花肉5…
+     63|     expect(extractVisibleText(source, "https://www.xiaohongshu.com/exp…
+     64|       .toEqual({ title: "合成目标笔记", text: "", wasTruncated: false });
+       |        ^
+     65|     expect(extractVisibleText(source, "https://recipes.example/dish").…
+     66|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/7]⎯
+
+ FAIL  src/native/link-import/xhs-page.test.ts > bounded inert public Xiaohongshu state > does not assume a short page's single note belongs to the unresolved share link
+AssertionError: expected { title: '合成椰子鸡', …(7) } to match object { statePresent: true, …(3) }
+(4 matching properties omitted from actual)
+
+- Expected
++ Received
+
+  {
+    "statePresent": true,
+-   "targetResolved": false,
+-   "text": "",
+-   "title": "",
++   "targetResolved": true,
++   "text": "食材：鸡肉500克，椰子2个。
++ 做法：焯水，加入椰汁，小火煮20分钟。",
++   "title": "合成椰子鸡",
+  }
+
+ ❯ src/native/link-import/xhs-page.test.ts:44:8
+
+     42|   it("does not assume a short page's single note belongs to the unreso…
+     43|     expect(extractXhsPublicPage(html(state()), "https://xhslink.com/a/…
+     44|       .toMatchObject({ statePresent: true, targetResolved: false, titl…
+       |        ^
+     45|   });
+     46|   it("reports unresolved ownership even when no recognizable state is …
+ Test Files  3 failed (3)
+      Tests  7 failed | 73 passed (80)
+   Start at  22:09:09
+   Duration  25.19s (transform 2.19s, setup 11.81s, import 8.81s, tests 1.01s, environment 1ms)
+
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/7]⎯
+
+ FAIL  src/native/link-import/xhs-page.test.ts > bounded inert public Xiaohongshu state > reports unresolved ownership even when no recognizable state is present
+AssertionError: expected '' to contain '目标笔记正文'
+
+- Expected
++ Received
+
+- 目标笔记正文
+
+ ❯ src/native/link-import/xhs-page.test.ts:49:40
+     47|     const result = extractXhsPublicPage("<title>目标笔记</title><main>推荐菜谱…
+     48|     expect(result).toMatchObject({ statePresent: false, targetResolved…
+     49|     expect(result?.warnings.join(" ")).toContain("目标笔记正文");
+       |                                        ^
+     50|   });
+     51|   it("accepts an application/json state element", () => {
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/7]⎯
+
+
+
+== GREEN exit0: same three-file command ==
+
+(!) Your Vite config uses features that are unsupported by `configLoader: 'native'`, which is planned to become the default in a future major version of Vite:
+  - ESM syntax in a file loaded as CommonJS (vitest.config.ts:1:1). Use a `.mjs` extension or set `"type": "module"` in the closest package.json
+Set `VITE_CONFIG_NATIVE_IGNORE_WARNING=true` to suppress this warning.
+
+ RUN  v4.1.11 <repo>
+
+
+ Test Files  3 passed (3)
+      Tests  80 passed (80)
+   Start at  22:10:02
+   Duration  6.35s (transform 777ms, setup 2.05s, import 1.87s, tests 963ms, environment 1ms)
+
+
+
+== INITIAL NOT PASS exit1: npx vitest run src/native/link-import src/native/intake-review --pool=threads --maxWorkers=1 --no-file-parallelism ==
+
+(!) Your Vite config uses features that are unsupported by `configLoader: 'native'`, which is planned to become the default in a future major version of Vite:
+  - ESM syntax in a file loaded as CommonJS (vitest.config.ts:1:1). Use a `.mjs` extension or set `"type": "module"` in the closest package.json
+Set `VITE_CONFIG_NATIVE_IGNORE_WARNING=true` to suppress this warning.
+
+ RUN  v4.1.11 <repo>
+
+Not implemented: Window's scrollTo() method
+Not implemented: Window's scrollTo() method
+⎯⎯⎯⎯⎯⎯ Unhandled Errors ⎯⎯⎯⎯⎯⎯
+
+Vitest caught 2 unhandled errors during the test run.
+This might cause false positive tests. Resolve unhandled errors to make sure your tests are not affected.
+
+⎯⎯⎯⎯⎯⎯ Unhandled Error ⎯⎯⎯⎯⎯⎯⎯
+Error: [vitest-pool]: Failed to start threads worker for test files <repo>/src/native/intake-review/preview-integration.test.tsx.
+ ❯ ../../VIBE%20CODING/recipe-step-app-g7/node_modules/vitest/dist/chunks/cli-api.CnMVyzaz.js:3532:94
+ ❯ Pool.schedule ../../VIBE%20CODING/recipe-step-app-g7/node_modules/vitest/dist/chunks/cli-api.CnMVyzaz.js:3532:5
+
+Caused by: Error: [vitest-pool-runner]: Timeout waiting for worker to respond
+ ❯ Timeout.<anonymous> ../../VIBE%20CODING/recipe-step-app-g7/node_modules/vitest/dist/chunks/cli-api.CnMVyzaz.js:3108:58
+ ❯ listOnTimeout node:internal/timers:605:17
+ ❯ processTimers node:internal/timers:541:7
+
+
+⎯⎯⎯⎯⎯⎯ Unhandled Error ⎯⎯⎯⎯⎯⎯⎯
+Error: [vitest-pool]: Failed to start threads worker for test files <repo>/src/native/link-import/screen.test.tsx.
+ ❯ ../../VIBE%20CODING/recipe-step-app-g7/node_modules/vitest/dist/chunks/cli-api.CnMVyzaz.js:3532:94
+ ❯ Pool.schedule ../../VIBE%20CODING/recipe-step-app-g7/node_modules/vitest/dist/chunks/cli-api.CnMVyzaz.js:3532:5
+
+Caused by: Error: [vitest-pool-runner]: Timeout waiting for worker to respond
+ ❯ Timeout.<anonymous> ../../VIBE%20CODING/recipe-step-app-g7/node_modules/vitest/dist/chunks/cli-api.CnMVyzaz.js:3108:58
+ ❯ listOnTimeout node:internal/timers:605:17
+ ❯ processTimers node:internal/timers:541:7
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+
+
+ Test Files  14 passed (14)
+      Tests  264 passed (264)
+     Errors  2 errors
+   Start at  22:14:26
+   Duration  288.25s (transform 6.90s, setup 33.46s, import 29.42s, tests 14.34s, environment 83.94s)
+
+
+
+== RETRY exit0: npx vitest run src/native/link-import/screen.test.tsx src/native/intake-review/preview-integration.test.tsx --pool=forks --maxWorkers=1 --no-file-parallelism ==
+
+(!) Your Vite config uses features that are unsupported by `configLoader: 'native'`, which is planned to become the default in a future major version of Vite:
+  - ESM syntax in a file loaded as CommonJS (vitest.config.ts:1:1). Use a `.mjs` extension or set `"type": "module"` in the closest package.json
+Set `VITE_CONFIG_NATIVE_IGNORE_WARNING=true` to suppress this warning.
+
+ RUN  v4.1.11 <repo>
+
+
+ Test Files  2 passed (2)
+      Tests  20 passed (20)
+   Start at  22:20:22
+   Duration  22.00s (transform 1.58s, setup 1.02s, import 3.97s, tests 12.00s, environment 3.83s)
+
+
+
+== FINAL exit0: npx vitest run src/native/link-import src/native/intake-review --pool=forks --maxWorkers=1 --no-file-parallelism ==
+
+(!) Your Vite config uses features that are unsupported by `configLoader: 'native'`, which is planned to become the default in a future major version of Vite:
+  - ESM syntax in a file loaded as CommonJS (vitest.config.ts:1:1). Use a `.mjs` extension or set `"type": "module"` in the closest package.json
+Set `VITE_CONFIG_NATIVE_IGNORE_WARNING=true` to suppress this warning.
+
+ RUN  v4.1.11 <repo>
+
+Not implemented: Window's scrollTo() method
+Not implemented: Window's scrollTo() method
+
+ Test Files  16 passed (16)
+      Tests  284 passed (284)
+   Start at  22:21:11
+   Duration  122.74s (transform 6.74s, setup 14.83s, import 21.43s, tests 35.95s, environment 37.95s)
+
+
+
+== PURE JVM exit0: official JDK21 javac -encoding UTF-8 then java -Xmx256m org.junit.runner.JUnitCore app.recipio.local.WebUrlSafetyTest app.recipio.local.WebImportRequestTest app.recipio.local.SafeWebFetcherTest; production inputs WebImportFailure/WebUrlSafety/WebImportRequest/SafeWebFetcher; JUnit4.13.2/Hamcrest1.3/OkHttp+MockWebServer4.12.0/Okio3.6.0/Kotlin1.8.22/JSON20250517 cached classpath. No Gradle/Android. ==
+
+
+JUnit version 4.13.2
+.........................
+Time: 0.962
+
+OK (25 tests)
+
+
+
+
+== PASS exit0: npm run typecheck ==
+
+
+> recipe-app-foundation-auth@0.1.0 typecheck
+> tsc --noEmit
+
+
+
+== PASS exit0 with 5 existing warnings: npm run lint ==
+
+
+> recipe-app-foundation-auth@0.1.0 lint
+> eslint .
+
+
+<repo>\src\features\cooking-history\components\cooking-photo-picker.tsx
+  81:15  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+<repo>\src\features\recipes\components\image-picker.tsx
+  33:9  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+<repo>\src\features\recipes\components\recipe-card.tsx
+  14:9  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+<repo>\src\features\recipes\components\recipe-detail.tsx
+  53:27  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+  75:37  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+✖ 5 problems (0 errors, 5 warnings)
+
+
+
+== PASS exit0: npm run build:local ==
+
+
+> recipe-app-foundation-auth@0.1.0 build:local
+> vite build --config vite.native.config.mts
+
+vite v8.3.2 building client environment for production...
+transforming...
+✓ 2218 modules transformed.
+rendering chunks...
+computing gzip size...
+dist-native/index.html                          0.90 kB │ gzip:   0.47 kB
+dist-native/assets/index-B-Ij3acy.css         116.58 kB │ gzip:  20.09 kB
+dist-native/assets/native-bridge-CsGGPe-A.js    0.75 kB │ gzip:   0.41 kB
+dist-native/assets/native-bridge-CroiyxFm.js    0.93 kB │ gzip:   0.52 kB
+dist-native/assets/contract-pVYp9FET.js         3.05 kB │ gzip:   1.77 kB
+dist-native/assets/contract-BJQMx4ZE.js         3.55 kB │ gzip:   1.95 kB
+dist-native/assets/service-DNHkLbZD.js          6.52 kB │ gzip:   1.73 kB
+dist-native/assets/dist-B-fBiTU6.js             7.75 kB │ gzip:   3.09 kB
+dist-native/assets/web-BBpQ0mco.js              8.47 kB │ gzip:   2.82 kB
+dist-native/assets/screen-B0zgLdxw.js           8.79 kB │ gzip:   3.27 kB
+dist-native/assets/web-C9D8KBV2.js              9.46 kB │ gzip:   1.31 kB
+dist-native/assets/screen-DqVQW413.js          12.39 kB │ gzip:   4.49 kB
+dist-native/assets/schemas-DmGWAyfG.js         74.45 kB │ gzip:  19.72 kB
+dist-native/assets/service-PYG_44nB.js        136.77 kB │ gzip:  54.47 kB
+dist-native/assets/index-DTCnVGgL.js          600.56 kB │ gzip: 186.11 kB
+
+[plugin builtin:vite-reporter]
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rolldownOptions.output.codeSplitting to improve chunking: https://rolldown.rs/reference/OutputOptions.codeSplitting
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+✓ built in 1m 8s
+
+
+== PASS exit0: node scripts/verify-ui-v2-isolation.mjs ==
+
+vite v8.3.2 building client environment for production...
+transforming...
+✓ 2218 modules transformed.
+rendering chunks...
+✓ built in 14.07s
+[PLUGIN_TIMINGS] JavaScript callbacks ran for 13.2s of this 13.9s build (95%).
+1 callback is listed without a time. Its calls overlapped, so the time inside one call includes work from other calls. To find its cost, profile the build with `node --cpu-prof`:
+  - plugin vite:css transform (8 calls)
+See https://rolldown.rs/reference/InputOptions.checks#bundlertimings for more details.
+
+{"result":"PASS","productionModuleCount":326,"sharedV2Modules":15,"showcaseModules":0,"fixtureAssets":0,"write":false}
+
+
+== PASS exit0: node scripts/verify-xhs-link-browser.mjs --runtime=<existing Playwright1.62.1 runtime> --out=<fresh output directory> --base=http://127.0.0.1:5199/ --scenarios=missing-state,wrong-target,resolved-unrelated ==
+
+{"checks":9,"screenshots":9,"external":0,"errors":0}
+
+
+== PASS exit0: same browser runner --themes=warm-ivory --scenarios=public-note,complete,login,challenge,video ==
+
+{"checks":5,"screenshots":5,"external":0,"errors":0}

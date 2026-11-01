@@ -1,0 +1,7 @@
+55b157fdaf56b2de6f6e205a6fa10133738b7f2b0e64aba4b451357237c46f97  pure-glass-missing-state.png  bytes=67628
+55b157fdaf56b2de6f6e205a6fa10133738b7f2b0e64aba4b451357237c46f97  pure-glass-wrong-target.png  bytes=67628
+4f952bc41e6e19d52c655171800bd51c66971432c56da4f389640606c0ea330d  soft-sage-missing-state.png  bytes=67370
+4f952bc41e6e19d52c655171800bd51c66971432c56da4f389640606c0ea330d  soft-sage-wrong-target.png  bytes=67370
+b05e5f4757c92b67f4fc0c57f54eb7c46de9b9da49fa1b1a20b1a2317ae574fa  warm-ivory-missing-state.png  bytes=67433
+930a90dc42242dd138d7d9b1212f51b7b1ebd169e7822d52e3205fc162680507  warm-ivory-resolved-unrelated.png  bytes=63151
+b05e5f4757c92b67f4fc0c57f54eb7c46de9b9da49fa1b1a20b1a2317ae574fa  warm-ivory-wrong-target.png  bytes=67433

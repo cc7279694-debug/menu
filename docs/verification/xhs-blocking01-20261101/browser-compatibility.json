@@ -1,0 +1,40 @@
+{
+  "source": "eef0bec324a96f5ca97a0e050b30417d39e20448",
+  "checks": [
+    {
+      "theme": "warm-ivory",
+      "scenario": "public-note",
+      "status": "PASS"
+    },
+    {
+      "theme": "warm-ivory",
+      "scenario": "complete",
+      "status": "PASS"
+    },
+    {
+      "theme": "warm-ivory",
+      "scenario": "login",
+      "status": "PASS"
+    },
+    {
+      "theme": "warm-ivory",
+      "scenario": "challenge",
+      "status": "PASS"
+    },
+    {
+      "theme": "warm-ivory",
+      "scenario": "video",
+      "status": "PASS"
+    }
+  ],
+  "screenshots": [
+    "warm-ivory-public-note.png",
+    "warm-ivory-complete.png",
+    "warm-ivory-login.png",
+    "warm-ivory-challenge.png",
+    "warm-ivory-video.png"
+  ],
+  "errors": [],
+  "external": [],
+  "realAiCalls": 0
+}

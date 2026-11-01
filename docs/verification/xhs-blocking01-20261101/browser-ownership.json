@@ -1,0 +1,64 @@
+{
+  "source": "eef0bec324a96f5ca97a0e050b30417d39e20448",
+  "checks": [
+    {
+      "theme": "warm-ivory",
+      "scenario": "missing-state",
+      "status": "PASS"
+    },
+    {
+      "theme": "warm-ivory",
+      "scenario": "wrong-target",
+      "status": "PASS"
+    },
+    {
+      "theme": "warm-ivory",
+      "scenario": "resolved-unrelated",
+      "status": "PASS"
+    },
+    {
+      "theme": "pure-glass",
+      "scenario": "missing-state",
+      "status": "PASS"
+    },
+    {
+      "theme": "pure-glass",
+      "scenario": "wrong-target",
+      "status": "PASS"
+    },
+    {
+      "theme": "pure-glass",
+      "scenario": "resolved-unrelated",
+      "status": "PASS"
+    },
+    {
+      "theme": "soft-sage",
+      "scenario": "missing-state",
+      "status": "PASS"
+    },
+    {
+      "theme": "soft-sage",
+      "scenario": "wrong-target",
+      "status": "PASS"
+    },
+    {
+      "theme": "soft-sage",
+      "scenario": "resolved-unrelated",
+      "status": "PASS"
+    }
+  ],
+  "screenshots": [
+    "warm-ivory-missing-state.png",
+    "warm-ivory-wrong-target.png",
+    "warm-ivory-resolved-unrelated.png",
+    "pure-glass-missing-state.png",
+    "pure-glass-wrong-target.png",
+    "pure-glass-resolved-unrelated.png",
+    "soft-sage-missing-state.png",
+    "soft-sage-wrong-target.png",
+    "soft-sage-resolved-unrelated.png"
+  ],
+  "errors": [],
+  "external": [],
+  "realAiCalls": 0
+}

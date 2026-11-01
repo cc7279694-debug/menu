@@ -1,6 +1,19 @@
 # Current State
 
-## Xiaohongshu link reliability — READY FOR INDEPENDENT REVIEW — 2026-11-01
+## Xiaohongshu BLOCKING-01 — PATCH READY FOR INDEPENDENT REVIEW — 2026-11-01
+
+ChatGPT blocked delivery `0a78dbc9` for unowned page-shell text and Recipe
+JSON-LD. Source patch `eef0bec324a96f5ca97a0e050b30417d39e20448` closes those
+paths: recognized XHS pages never fall back to generic body text; unowned generic
+JSON-LD is not accepted; unresolved short pages cannot infer identity from one
+note. Valid matched note prose and ordinary recipe-site parsing remain. This is
+a targeted repair, not ACCEPTED/FROZEN. Fresh final checks: 284 affected JS/TS,
+25 pure JVM and14 synthetic browser flows PASS; typecheck/lint/build/isolation
+PASS. Initial worker-start timeouts and successful reruns remain recorded.
+Device/IME/TalkBack/real AI remain NOT_RUN, real AI calls0; no APK or main merge.
+[Fresh evidence and limits](verification/xhs-blocking01-20261101/README.md).
+
+The original implementation and evidence below remain historical context.
 
 On `fix/recipio-xhs-link-reliability`, tested source
 `87e3fa6cafa22876d0f5140c8166b9e92fb6d7ca` adds bounded public note-text

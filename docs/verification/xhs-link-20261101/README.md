@@ -1,5 +1,10 @@
 # RECIPIO Xiaohongshu reliability — GitHub review entry
 
+**Superseded for BLOCKING-01 re-review:** ChatGPT found an ownership blocker in
+this original delivery. See the [targeted follow-up](../xhs-blocking01-20261101/README.md),
+source `eef0bec324a96f5ca97a0e050b30417d39e20448`. This original report and its
+screenshots remain historical evidence; they do not prove the blocker repaired.
+
 Review the immutable commit supplied in the review request, rather than a moving
 branch or `main`. No ZIP or local-machine access is needed.
 

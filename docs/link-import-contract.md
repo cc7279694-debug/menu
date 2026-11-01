@@ -55,3 +55,16 @@ AI action, review gate, duplicate check, save UUID and uncertain-save recovery
 remain. Missing steps in an AI result are visibly marked incomplete; no missing
 amount, time or step is filled deterministically from a title or unread media.
 SQLite4, Preview7 and Backup2 remain unchanged.
+
+### BLOCKING-01 follow-up — target ownership, 2026-11-01
+
+The initial platform reader's generic fallback was insufficient. On recognized
+XHS hosts, absence of matching target state now yields no body and never falls
+back to generic HTML or Recipe JSON-LD. A singleton short-page note is not proof
+of target identity: the final note-route ID must match. Valid matched public
+title/description remain available for explicit AI and manual review. Generic
+JSON-LD is conservatively excluded on these hosts even beside valid target
+state; ordinary recipe sites retain the original parser/body path. Sanitized
+document titles and existing supplemental/manual/screenshot paths remain.
+No network, save, storage or data-format contract changes. See the
+[targeted verification](verification/xhs-blocking01-20261101/README.md).
