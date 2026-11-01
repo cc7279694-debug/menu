@@ -13,7 +13,8 @@ const normalize = (text: string) => text.replace(/\s+/gu, " ").trim();
 
 export function extractVisibleText(html: string, finalUrl?: string): VisiblePageText {
   const note = finalUrl ? extractXhsPublicPage(html, finalUrl) : null;
-  if (note && (note.title || note.text || note.statePresent)) return { title: note.title || plainText(load(html)("title").first().text()), text: note.text, wasTruncated: note.wasTruncated };
+  // Recognized platform pages never fall back to an unowned recommendation/app shell.
+  if (note) return { title: note.title || plainText(load(html)("title").first().text()), text: note.text, wasTruncated: note.wasTruncated };
   const $ = load(html); const documentTitle = plainText($("title").first().text());
   $(blocked).remove();
   $("[style]").each((_, node) => { if (/(?:^|;)\s*(?:display\s*:\s*none|visibility\s*:\s*hidden)\s*(?:!important)?\s*(?:;|$)/iu.test(($(node).attr("style") ?? "").replace(/\/\*[\s\S]*?\*\//gu, ""))) $(node).remove(); });

@@ -8,6 +8,10 @@ import { spawnSync } from "node:child_process";
 
 const argument = name => process.argv.find(value => value.startsWith(`--${name}=`))?.slice(name.length + 3);
 const runtime = argument("runtime"), out = argument("out"), base = argument("base") ?? "http://127.0.0.1:5199/";
+const themes = argument("themes")?.split(",") ?? ["warm-ivory", "pure-glass", "soft-sage"];
+const scenarios = argument("scenarios")?.split(",") ?? ["public-note", "title-only", "video", "partial", "login", "challenge", "fake-ip", "complete", "missing-state", "wrong-target", "resolved-unrelated"];
+assert(themes.every(value => ["warm-ivory", "pure-glass", "soft-sage"].includes(value)));
+assert(scenarios.every(value => ["public-note", "title-only", "video", "partial", "login", "challenge", "fake-ip", "complete", "missing-state", "wrong-target", "resolved-unrelated"].includes(value)));
 assert(runtime && out && path.isAbsolute(runtime) && path.isAbsolute(out), "Explicit isolated runtime and output paths required");
 assert.equal(new URL(base).hostname, "127.0.0.1");
 const qaRequire = createRequire(path.join(runtime, "recipio-xhs-qa.cjs"));
@@ -19,8 +23,8 @@ await mkdir(out); // Never overwrite an earlier evidence directory.
 const result = { source: spawnSync("git", ["rev-parse", "HEAD"], { cwd: root, encoding: "utf8" }).stdout.trim(), checks: [], screenshots: [], errors: [], external: [], realAiCalls: 0 };
 const browser = await chromium.launch({ executablePath: process.env.RECIPIO_QA_CHROME || "C:/Program Files/Google/Chrome/Application/chrome.exe", headless: true });
 try {
-  for (const theme of ["warm-ivory", "pure-glass", "soft-sage"]) {
-    for (const scenario of ["public-note", "title-only", "video", "partial", "login", "challenge", "fake-ip", "complete"]) {
+  for (const theme of themes) {
+    for (const scenario of scenarios) {
       const context = await browser.newContext({ viewport: { width: 390, height: 844 }, hasTouch: true, locale: "zh-CN", deviceScaleFactor: 1 });
       await context.addInitScript(value => localStorage.setItem("recipio.ui-v2.theme.v1", value), theme);
       await context.route("**/*", route => {
@@ -49,9 +53,17 @@ try {
       } else if (scenario === "complete") {
         await page.getByRole("heading", { name: "检查网页菜谱", exact: true }).waitFor();
       } else {
-        await page.getByRole("heading", { name: scenario === "title-only" ? "仅获取到标题" : "网页信息不完整", exact: true }).waitFor();
+        const titleOnly = ["title-only", "missing-state", "wrong-target"].includes(scenario);
+        await page.getByRole("heading", { name: titleOnly ? "仅获取到标题" : "网页信息不完整", exact: true }).waitFor();
         if (scenario === "video") assert((await page.getByRole("region", { name: "网页读取结果" }).innerText()).includes("不会读取视频画面或口播"));
-        if (scenario === "title-only") assert.equal(await page.getByRole("button", { name: "使用 AI 继续整理", exact: true }).isEnabled(), false);
+        if (titleOnly) assert.equal(await page.getByRole("button", { name: "使用 AI 继续整理", exact: true }).isEnabled(), false);
+        if (["missing-state", "wrong-target", "resolved-unrelated"].includes(scenario)) {
+          const source = await page.evaluate(() => window.__xhsFixture.snapshot());
+          assert.deepEqual(source.parsed.candidates, []);
+          assert(!/推荐红烧肉|五花肉|打开App/u.test(source.visible.text));
+          assert.equal(await page.getByRole("heading", { name: "检查网页菜谱", exact: true }).count(), 0);
+          assert.equal(await page.getByRole("button", { name: "确认保存菜谱", exact: true }).count(), 0);
+        }
       }
       assert.equal(await page.evaluate(() => window.__xhsFixture.calls.ai), 0);
       assert.equal(await page.evaluate(async () => (await window.__xhsFixture.recipes()).length), 0);

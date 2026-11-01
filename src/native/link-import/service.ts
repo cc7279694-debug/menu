@@ -69,8 +69,12 @@ export class LinkImportService {
     try {
       const result = fetchedPageSchema.safeParse(await this.dependencies.port.read(checked.data)); this.assertCurrent(generation);
       if (!result.success) throw new LinkImportError("page_unreadable");
-      const parsed = parseRecipePage(result.data.html, result.data.finalUrl), visible = extractVisibleText(result.data.html, result.data.finalUrl);
       const source = extractXhsPublicPage(result.data.html, result.data.finalUrl);
+      const visible = extractVisibleText(result.data.html, result.data.finalUrl);
+      // Generic Recipe JSON-LD has no verified note ownership, even alongside a valid target state.
+      // Only the addressed public note's text may feed the explicit AI path on these hosts.
+      const parsed: ParsedPage = source ? { candidates: [], needsSelection: false, title: visible.title, warnings: [] }
+        : parseRecipePage(result.data.html, result.data.finalUrl);
       const restriction = source?.access ?? accessFailure(visible, parsed.candidates.some(candidate => candidate.quality === "complete"));
       if (restriction) throw new LinkImportError(restriction);
       if (source) {

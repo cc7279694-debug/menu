@@ -58,4 +58,10 @@ describe("visible page blocks", () => {
     expect(extractVisibleText(source, "https://www.xiaohongshu.com/explore/missing")).toEqual({ title: "合成目标笔记", text: "", wasTruncated: false });
     expect(extractVisibleText('<title>合成目标笔记</title><script>window.__INITIAL_STATE__=malicious()</script><main>打开App查看更多</main>', "https://www.xiaohongshu.com/explore/target").text).toBe("");
   });
+  it.each(["main", "body"])("does not fall back to %s recommendations when XHS target state is absent", tag => {
+    const source = `<title>合成目标笔记</title><${tag}><h1>推荐红烧肉</h1><p>五花肉500克，焯水后炖熟。</p><p>打开App查看更多菜谱</p></${tag}>`;
+    expect(extractVisibleText(source, "https://www.xiaohongshu.com/explore/target?xsec_token=synthetic"))
+      .toEqual({ title: "合成目标笔记", text: "", wasTruncated: false });
+    expect(extractVisibleText(source, "https://recipes.example/dish").text).toContain("五花肉500克");
+  });
 });

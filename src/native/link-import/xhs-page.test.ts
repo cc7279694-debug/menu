@@ -38,7 +38,15 @@ describe("bounded inert public Xiaohongshu state", () => {
   it("rejects ambiguous short-page records without a target ID", () => {
     const data = { note: { noteDetailMap: { first: { note: note() }, second: { note: note("其他菜") } } } };
     expect(extractXhsPublicPage(html(data), "https://xhslink.cn/a/synthetic")?.text).toBe("");
-    expect(extractXhsPublicPage(html(state()), "https://xhslink.com/a/synthetic")?.title).toBe("合成椰子鸡");
+  });
+  it("does not assume a short page's single note belongs to the unresolved share link", () => {
+    expect(extractXhsPublicPage(html(state()), "https://xhslink.com/a/synthetic"))
+      .toMatchObject({ statePresent: true, targetResolved: false, title: "", text: "" });
+  });
+  it("reports unresolved ownership even when no recognizable state is present", () => {
+    const result = extractXhsPublicPage("<title>目标笔记</title><main>推荐菜谱</main>", url);
+    expect(result).toMatchObject({ statePresent: false, targetResolved: false, text: "" });
+    expect(result?.warnings.join(" ")).toContain("目标笔记正文");
   });
   it("accepts an application/json state element", () => {
     const page = `<script id="__INITIAL_STATE__" type="application/json">${JSON.stringify(state())}</script>`;

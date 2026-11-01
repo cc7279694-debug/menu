@@ -3,6 +3,7 @@ import "fake-indexeddb/auto";
 import { readFileSync } from "node:fs";
 import { afterEach, expect, it, vi } from "vitest";
 import { PreviewRecipeLibrary } from "../preview-store";
+import { emptyDetails } from "../recipe-model";
 import { __resetLocalDatabaseForTests } from "@/features/offline/local-db";
 import { AiIntakeService } from "../ai/service";
 import { deferred, fakeAi, output } from "../ai/service.test-support";
@@ -20,6 +21,38 @@ const setup = () => {
   const service = new LinkImportService({ store, port, ai }); return { store, fake, ai, port, service };
 };
 afterEach(__resetLocalDatabaseForTests);
+it.each(["absent", "mismatched", "resolved"])("BLOCKING-01: excludes unrelated XHS JSON-LD with %s target state", async status => {
+  const { service, port, fake, store } = setup();
+  const unrelated = { "@type": "Recipe", name: "推荐红烧肉", url: "https://www.xiaohongshu.com/explore/other", recipeIngredient: ["五花肉500克"], recipeInstructions: ["焯水后炖熟。"] };
+  const id = status === "resolved" ? "target" : "other";
+  const data = { note: { noteDetailMap: { [id]: { note: { noteId: id, title: status === "resolved" ? "合成目标汤" : "推荐红烧肉", desc: status === "resolved" ? "青菜200克，洗净后煮熟。" : "五花肉500克，焯水后炖熟。" } } } } };
+  const state = status === "absent" ? "" : `<script>window.__INITIAL_STATE__=${JSON.stringify(data)}</script>`;
+  const url = "https://www.xiaohongshu.com/explore/target?xsec_token=synthetic";
+  port.read.mockResolvedValue({ html: `<title>合成目标汤</title>${state}<script type="application/ld+json">${JSON.stringify(unrelated)}</script><main>推荐红烧肉：五花肉500克。打开App查看更多。</main>`, finalUrl: url, contentType: "text/html" });
+  await service.read(url);
+  expect(service.snapshot().parsed).toMatchObject({ candidates: [], needsSelection: false });
+  expect(service.selected()).toBeNull();
+  expect(service.snapshot().visible).toMatchObject({ title: "合成目标汤", text: status === "resolved" ? "青菜200克，洗净后煮熟。" : "" });
+  expect(service.readQuality()).toBe(status === "resolved" ? "partial" : "title_only");
+  await expect(service.saveParser({ ...emptyDetails("推荐红烧肉"), ingredients: [{ name: "五花肉", amount: "500克" }], steps: [{ instruction: "炖熟。", imagePath: null }] })).rejects.toMatchObject({ code: "stale_session" });
+  expect(await store.list()).toEqual([]);
+  expect(fake.bridge.organize).not.toHaveBeenCalled();
+  if (status !== "resolved") await expect(service.useAi()).rejects.toMatchObject({ code: "page_unreadable" });
+  else {
+    await service.useAi();
+    const request = vi.mocked(service.dependencies.ai.bridge.organize).mock.calls[0][0];
+    expect(request.text).toContain("青菜200克");
+    expect(request.text).not.toMatch(/推荐红烧肉|五花肉|打开App/u);
+  }
+});
+it.each([["登录后查看笔记", "login_required"], ["安全验证", "challenge_required"]])("BLOCKING-01: unrelated complete JSON-LD cannot hide XHS %s", async (title, code) => {
+  const { service, port, fake, store } = setup();
+  const unrelated = { "@type": "Recipe", name: "推荐菜", recipeIngredient: ["盐适量"], recipeInstructions: ["煮熟。"] };
+  port.read.mockResolvedValue({ html: `<title>${title}</title><script type="application/ld+json">${JSON.stringify(unrelated)}</script><main>推荐菜</main>`, finalUrl: "https://www.xiaohongshu.com/explore/target", contentType: "text/html" });
+  await expect(service.read("https://www.xiaohongshu.com/explore/target")).rejects.toMatchObject({ code });
+  expect(service.snapshot().parsed).toBeNull(); expect(await store.list()).toEqual([]);
+  expect(fake.bridge.organize).not.toHaveBeenCalled();
+});
 it("keeps title-only pages distinct and requires actual recipe text before AI", async () => {
   const { service, port, fake } = setup();
   port.read.mockResolvedValue({ ...fetched(), html: "<title>合成青菜汤</title>" });

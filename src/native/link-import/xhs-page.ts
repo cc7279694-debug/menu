@@ -48,15 +48,12 @@ function prose(value: unknown, limit: number): string {
   return $.root().text().split(/\r?\n/u).map(line => line.replace(/[\t ]+/gu, " ").trim()).filter(Boolean).join("\n");
 }
 
-function noteFromState(state: unknown, noteId: string | null, allowSingle: boolean): Record<string, unknown> | null {
+function noteFromState(state: unknown, noteId: string | null): Record<string, unknown> | null {
+  // A singleton recommendation on an unresolved short page is not target identity.
+  if (!noteId) return null;
   const notes = object(own(object(own(object(state), "note")), "noteDetailMap"));
   if (!notes) return null;
   const values = Object.values(notes).map(item => object(own(object(item), "note"))).filter((item): item is Record<string, unknown> => item !== null);
-  if (!noteId) {
-    if (!allowSingle || values.length !== 1) return null;
-    const embeddedId = own(values[0], "noteId");
-    return embeddedId === undefined || typeof embeddedId === "string" && /^[a-z\d_-]{1,128}$/iu.test(embeddedId) ? values[0] : null;
-  }
   const direct = object(own(object(own(notes, noteId)), "note"));
   if (direct && (own(direct, "noteId") === undefined || own(direct, "noteId") === noteId)) return direct;
   const matching = values.filter(item => own(item, "noteId") === noteId);
@@ -73,8 +70,6 @@ export function extractXhsPublicPage(html: string, finalUrl: string): XhsPublicP
   if (bytes(html) > MAX_HTML_BYTES) { result.warnings.push("网页超出安全解析上限，请改用文字或截图。"); result.wasTruncated = true; return result; }
   const $ = load(html);
   const noteId = /^\/(?:explore|discovery\/item)\/([a-z\d_-]{1,128})\/?$/iu.exec(url.pathname)?.[1] ?? null;
-  const isNoteRoute = /^\/(?:explore|discovery\/item)(?:\/|$)/iu.test(url.pathname);
-  const shortHost = ["xhslink.cn", "xhslink.com"].some(root => host === root || host.endsWith(`.${root}`));
   const scripts = $("script").toArray();
   let examined = 0;
   for (const element of scripts) {
@@ -87,7 +82,7 @@ export function extractXhsPublicPage(html: string, finalUrl: string): XhsPublicP
     let payload = assignment ? source.slice(assignment[0].length).trim() : source;
     if (assignment && payload.endsWith(";")) payload = payload.slice(0, -1).trimEnd();
     try {
-      const note = noteFromState(readState(payload), noteId, shortHost && !isNoteRoute); if (!note) continue;
+      const note = noteFromState(readState(payload), noteId); if (!note) continue;
       result.targetResolved = true;
       result.title = prose(own(note, "title"), 500);
       const rawText = own(note, "desc"); result.text = prose(rawText, MAX_TEXT);
@@ -99,7 +94,7 @@ export function extractXhsPublicPage(html: string, finalUrl: string): XhsPublicP
       result.warnings.push(limited ? "网页状态超出安全解析上限，请改用文字或截图。" : "网页状态不是可安全读取的资料，请改用文字或截图。");
     }
   }
-  if (result.statePresent && !result.targetResolved) result.warnings.push("未读取到目标笔记正文，请补充文字或截图。");
+  if (!result.targetResolved) result.warnings.push("未读取到目标笔记正文，请补充文字或截图。");
   for (const heading of [prose($("title").first().text(), 500), prose($("h1,h2").first().toString(), 2000)].map(text => text.replace(/\s+/gu, " "))) {
     if (/^(?:(?:登录|请先登录|登录后查看(?:笔记|内容)?|登录小红书|立即登录)(?:\s*[-|·]\s*小红书)?|小红书\s*[-|·]\s*登录)$/u.test(heading)) result.access = "login_required";
     else if (/^(?:安全验证|验证码|访问验证|访问受限|请完成验证|请先完成验证)(?:\s*[-|·]\s*小红书)?$/u.test(heading)) result.access = "challenge_required";
