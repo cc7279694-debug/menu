@@ -60,6 +60,30 @@ public class SafeWebFetcherTest {
             assertEquals("http://another.example/final",page.finalUrl);assertEquals(3,resolves.get());assertEquals(3,sockets.connected.size());
         }
     }
+    @Test public void publicShareRedirectKeepsRequiredQueryAndNeverAddsCredentials()throws Exception {
+        try(MockWebServer server=new MockWebServer()){server.start();server.enqueue(new MockResponse().setResponseCode(302).setHeader("Location","http://www.xiaohongshu.com/explore/synthetic?xsec_token=synthetic%2Btoken&xsec_source=pc_share"));server.enqueue(html("synthetic public note"));
+            TestSockets sockets=new TestSockets(server.getPort());List<String> hosts=new ArrayList<>();
+            SafeWebFetcher.Page page=read(fetcher(server,host->{hosts.add(host);return Collections.singletonList(PUBLIC);},sockets),"http://xhslink.cn/o/synthetic");
+            assertEquals(Arrays.asList("xhslink.cn","www.xiaohongshu.com"),hosts);
+            assertEquals("http://www.xiaohongshu.com/explore/synthetic?xsec_token=synthetic%2Btoken&xsec_source=pc_share",page.finalUrl);
+            server.takeRequest(1,TimeUnit.SECONDS);RecordedRequest redirected=server.takeRequest(1,TimeUnit.SECONDS);assertNotNull(redirected);
+            assertEquals("/explore/synthetic?xsec_token=synthetic%2Btoken&xsec_source=pc_share",redirected.getPath());
+            for(String header:new String[]{"Cookie","Authorization","Referer"})assertNull(redirected.getHeader(header));
+        }
+    }
+    @Test public void fakeIpStopsBeforeConnectionAndRemainsDiagnosableAfterRedirect()throws Exception {
+        for(boolean redirect:new boolean[]{false,true})try(MockWebServer server=new MockWebServer()){server.start();if(redirect)server.enqueue(new MockResponse().setResponseCode(302).setHeader("Location","http://xhslink.com/synthetic"));
+            TestSockets sockets=new TestSockets(server.getPort());Dns dns=host->Collections.singletonList(host.equals("xhslink.com")?InetAddress.getByName("198.18.0.2"):PUBLIC);
+            String url=redirect?"http://xhslink.cn/synthetic":"http://xhslink.com/synthetic";
+            assertEquals("dns_fake_ip",assertThrows(WebImportFailure.class,()->read(fetcher(server,dns,sockets),url)).code);
+            assertEquals(redirect?1:0,sockets.connected.size());
+        }
+    }
+    @Test public void authenticationAndAccessStatusesRemainDistinctFromTransportFailure()throws Exception {
+        for(int status:new int[]{401,403,429})try(MockWebServer server=new MockWebServer()){server.start();server.enqueue(html("not exposed").setResponseCode(status));TestSockets sockets=new TestSockets(server.getPort());
+            assertEquals(status==401?"login_required":"access_restricted",assertThrows(WebImportFailure.class,()->read(fetcher(server,host->Collections.singletonList(PUBLIC),sockets),"http://recipes.example/")).code);
+        }
+    }
     @Test public void localPrivateCredentialPortAndSchemeRedirectsNeverConnect()throws Exception {
         for(String location:new String[]{"http://localhost/","http://127.0.0.1/","http://private.example/","http://user:pass@recipes.example/","https://recipes.example:8443/","file:///private"}) {
             try(MockWebServer server=new MockWebServer()){server.start();server.enqueue(new MockResponse().setResponseCode(302).setHeader("Location",location));TestSockets sockets=new TestSockets(server.getPort());

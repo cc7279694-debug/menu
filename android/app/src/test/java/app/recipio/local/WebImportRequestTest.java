@@ -13,6 +13,10 @@ public class WebImportRequestTest {
     @Test public void headersMethodsAndIpControlsAreRejected()throws Exception {
         for(String field:new String[]{"headers","method","ip","cookie","authorization"})assertThrows(WebImportFailure.class,()->WebImportRequest.read(request().put(field,"arbitrary")));
     }
+    @Test public void publicShareUrlQueryIsNotDroppedByTheNativeRequestBoundary()throws Exception {
+        String url="https://xhslink.com/o/synthetic?xsec_token=synthetic%2Btoken&xsec_source=app_share";
+        assertEquals(url,WebImportRequest.read(request().put("url",url)).url);
+    }
     @Test public void cancellationCannotSmuggleAUrlOrMalformedIdentity()throws Exception {
         assertEquals("a5b44974-7523-4c63-8232-72fe8ae50fca",WebImportRequest.cancel(new JSONObject().put("requestId","a5b44974-7523-4c63-8232-72fe8ae50fca")));
         assertThrows(WebImportFailure.class,()->WebImportRequest.cancel(request()));

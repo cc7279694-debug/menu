@@ -40,4 +40,22 @@ describe("visible page blocks", () => {
     expect(result).not.toContain("http"); expect(result).toContain("牛肉"); expect(result).not.toMatch(/<\w/u);
     expect(Array.from(buildAiText({ title: "菜", text: "😀".repeat(28000), wasTruncated: true }, null)).length).toBeLessThanOrEqual(30000);
   });
+  it("uses only the addressed public note description rather than recommendations or app boilerplate", () => {
+    const state = { note: { noteDetailMap: { target: { note: { title: "合成汤", desc: "鸡肉500克\n先焯水，再小火煮熟。", type: "normal", imageList: [{}] } }, other: { note: { title: "推荐菜", desc: "不相关配方" } } } } };
+    const source = `<title>合成笔记</title><script>window.__INITIAL_STATE__=${JSON.stringify(state)};</script><main>打开App查看推荐菜</main>`;
+    const result = extractVisibleText(source, "https://www.xiaohongshu.com/explore/target");
+    expect(result).toEqual({ title: "合成汤", text: "鸡肉500克\n先焯水，再小火煮熟。", wasTruncated: false });
+    expect(extractVisibleText(source, "https://recipes.example/explore/target").text).not.toContain("鸡肉500克");
+  });
+  it("tells AI not to fill source omissions from dish names or unread media", () => {
+    const input = buildAiText({ title: "合成汤", text: "椰子2个", wasTruncated: false }, null);
+    expect(input).toContain("未提供的用量、耗时和步骤");
+    expect(input).toContain("missing"); expect(input).toContain("图片和视频未被读取");
+  });
+  it("does not read recommendations or shell body when the targeted state is missing or invalid", () => {
+    const data = { note: { noteDetailMap: { recommended: { note: { noteId: "recommended", title: "推荐菜", desc: "不应采集的其他菜谱" } } } } };
+    const source = `<title>合成目标笔记</title><script>window.__INITIAL_STATE__=${JSON.stringify(data)};</script><main>打开App查看推荐菜：不应采集的其他菜谱</main>`;
+    expect(extractVisibleText(source, "https://www.xiaohongshu.com/explore/missing")).toEqual({ title: "合成目标笔记", text: "", wasTruncated: false });
+    expect(extractVisibleText('<title>合成目标笔记</title><script>window.__INITIAL_STATE__=malicious()</script><main>打开App查看更多</main>', "https://www.xiaohongshu.com/explore/target").text).toBe("");
+  });
 });

@@ -20,6 +20,57 @@ const setup = () => {
   const service = new LinkImportService({ store, port, ai }); return { store, fake, ai, port, service };
 };
 afterEach(__resetLocalDatabaseForTests);
+it("keeps title-only pages distinct and requires actual recipe text before AI", async () => {
+  const { service, port, fake } = setup();
+  port.read.mockResolvedValue({ ...fetched(), html: "<title>合成青菜汤</title>" });
+  await service.read("https://recipes.example/dish");
+  expect(service.readQuality()).toBe("title_only");
+  await expect(service.useAi()).rejects.toMatchObject({ code: "page_unreadable" });
+  expect(fake.bridge.organize).not.toHaveBeenCalled();
+  service.addText("青菜200克，水500毫升。1. 洗净青菜。2. 煮熟。https://private.example/token");
+  expect(service.readQuality()).toBe("partial");
+  expect(fake.bridge.organize).not.toHaveBeenCalled();
+  await service.useAi();
+  const request = vi.mocked(service.dependencies.ai.bridge.organize).mock.calls[0][0];
+  expect(request.text).toContain("用户补充文字");
+  expect(request.text).toContain("洗净青菜");
+  expect(request.text).not.toContain("private.example");
+  expect(fake.bridge.organize).toHaveBeenCalledOnce();
+  await service.discard();
+  expect(service.snapshot().visible).toBeNull();
+});
+it.each([
+  ["<title>登录后查看</title><main>请先登录后继续访问</main>", "login_required"],
+  ["<title>安全验证</title><main>请完成验证码</main>", "challenge_required"],
+])("distinguishes a restricted HTML page from readable recipe text", async (html, code) => {
+  const { service, port, fake } = setup(); port.read.mockResolvedValue({ ...fetched(), html });
+  await expect(service.read("https://recipes.example/dish")).rejects.toMatchObject({ code });
+  expect(service.snapshot().parsed).toBeNull(); expect(fake.bridge.organize).not.toHaveBeenCalled();
+});
+it("does not treat a normal login button or recipe prose as an access restriction", async () => {
+  const { service, port } = setup();
+  port.read.mockResolvedValue({ ...fetched(), html: "<title>测试清汤</title><nav>登录</nav><main><h1>测试清汤</h1><p>青菜200克煮熟；登录只是页眉按钮。</p></main>" });
+  await service.read("https://recipes.example/dish"); expect(service.readQuality()).toBe("partial");
+});
+it("does not treat partial recipe metadata as readable access through a login wall", async () => {
+  const { service, port, fake } = setup();
+  const metadata = { "@type": "Recipe", name: "合成汤", recipeIngredient: ["青菜200克"] };
+  port.read.mockResolvedValue({ ...fetched(), html: `<title>登录后查看</title><script type="application/ld+json">${JSON.stringify(metadata)}</script><main>请先登录后查看完整内容</main>` });
+  await expect(service.read("https://recipes.example/dish")).rejects.toMatchObject({ code: "login_required" });
+  expect(fake.bridge.organize).not.toHaveBeenCalled();
+});
+it("reports an ingredient-only recipe as partial and preserves missing steps and time", async () => {
+  const { service, port } = setup(); port.read.mockResolvedValue(fetched("partial-recipe"));
+  await service.read("https://recipes.example/dish");
+  expect(service.readQuality()).toBe("partial"); expect(service.selected()?.recipe.steps).toEqual([]);
+  expect(service.selected()?.recipe.totalMinutes).toBeNull();
+});
+it("rejects oversized supplementary input without changing the current source", async () => {
+  const { service } = setup(); await service.read("https://recipes.example/dish");
+  const source = service.snapshot().visible;
+  expect(() => service.addText("菜".repeat(8001))).toThrow();
+  expect(service.snapshot().visible).toBe(source);
+});
 it("parser complete enters Preview without key access, AI, network images or database writes", async () => {
   const { service, store, fake } = setup(); const create = vi.spyOn(store, "createDetails");
   service.setUrl("https://recipes.example/dish"); await service.read();

@@ -12,6 +12,16 @@ public class WebUrlSafetyTest {
         assertEquals("http://recipes.example:80/dish", WebUrlSafety.parse("http://recipes.example:80/dish").uri.toString());
         WebUrlSafety.parse("https://recipes.example:443/dish");
     }
+    @Test public void publicXhsShareHostsPreserveEscapedQueriesAndRejectLookalikeLocalHosts() throws Exception {
+        for(String host:new String[]{"xhslink.cn","xhslink.com","www.xiaohongshu.com"}) {
+            String url="https://"+host+"/explore/synthetic-note?xsec_token=synthetic%2Btoken&xsec_source=pc_share#comments";
+            WebUrlSafety.Target target=WebUrlSafety.parse(url);
+            assertEquals(host,target.host);
+            assertEquals("xsec_token=synthetic%2Btoken&xsec_source=pc_share",target.uri.getRawQuery());
+            assertNull(target.uri.getRawFragment());
+        }
+        assertThrows(WebImportFailure.class,()->WebUrlSafety.parse("https://xhslink.cn.localhost/o/synthetic"));
+    }
     @Test public void malformedCredentialsLocalNamesSchemesAndPortsAreBlocked() {
         String[] blocked={"not a url","https://","https://user:pass@recipes.example/","https://@recipes.example/","https://recipes.example:8080/","http://recipes.example:443/","file:///data/x","content://private/x","javascript:alert(1)","data:text/html,x","intent://x","ftp://recipes.example/","ws://recipes.example/","http://localhost","https://x.localhost/","https://router.local/","http://LOCALHOST./","http://[fe80::1%25wlan0]/","https://recipes.example\\@127.0.0.1/","https://recipes.example/\nsecret"};
         for(String url:blocked) assertThrows(url, WebImportFailure.class,()->WebUrlSafety.parse(url));
@@ -32,5 +42,17 @@ public class WebUrlSafetyTest {
         assertEquals(Collections.singletonList(good),WebUrlSafety.validatedAddresses(Collections.singletonList(good)));
         assertEquals("dns_blocked",assertThrows(WebImportFailure.class,()->WebUrlSafety.validatedAddresses(Arrays.asList(good,bad))).code);
         assertThrows(WebImportFailure.class,()->WebUrlSafety.validatedAddresses(Collections.emptyList()));
+    }
+    @Test public void benchmarkDnsIsDiagnosedWithoutAllowingItOrHidingMixedPrivateResults() throws Exception {
+        InetAddress good=InetAddress.getByName("93.184.216.34"),fake=InetAddress.getByName("198.18.0.1"),privateIp=InetAddress.getByName("10.0.0.1");
+        assertEquals("dns_fake_ip",assertThrows(WebImportFailure.class,()->WebUrlSafety.validatedAddresses(Arrays.asList(good,fake))).code);
+        assertEquals("dns_fake_ip",assertThrows(WebImportFailure.class,()->WebUrlSafety.validatedAddresses(Collections.singletonList(InetAddress.getByName("198.19.255.255")))).code);
+        byte[] mapped={0,0,0,0,0,0,0,0,0,0,(byte)255,(byte)255,(byte)198,18,0,1};
+        InetAddress mappedFake=java.net.Inet6Address.getByAddress(null,mapped,-1);
+        assertEquals("dns_fake_ip",assertThrows(WebImportFailure.class,()->WebUrlSafety.validatedAddresses(Collections.singletonList(mappedFake))).code);
+        for(java.util.List<InetAddress> result:Arrays.asList(Arrays.asList(fake,privateIp),Arrays.asList(privateIp,fake)))
+            assertEquals("dns_blocked",assertThrows(WebImportFailure.class,()->WebUrlSafety.validatedAddresses(result)).code);
+        assertEquals("dns_blocked",assertThrows(WebImportFailure.class,()->WebUrlSafety.validatedAddresses(Arrays.asList(fake,null))).code);
+        assertFalse(WebUrlSafety.isGlobal(fake));
     }
 }

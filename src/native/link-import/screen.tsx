@@ -1,6 +1,7 @@
 import { useEffect, useId, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogTitle } from "@/components/ui/dialog";
 import { RecipeEditor } from "../recipe-editor";
 import { AiPreview } from "../ai/preview";
@@ -64,11 +65,13 @@ export function LinkImportScreen({ service, active, onSaved, onCancel, onConfigu
   const state = useSyncExternalStore(service.subscribe, service.snapshot, service.snapshot);
   const ai = service.dependencies.ai, aiState = useSyncExternalStore(ai.subscribe, ai.snapshot, ai.snapshot);
   const [parserOpen, setParserOpen] = useState(false), [confirm, setConfirm] = useState(false), [leaving, setLeaving] = useState(false), [localError, setLocalError] = useState("");
+  const [supplement, setSupplement] = useState("");
   const destination = useRef<"back" | "ai" | "manual">("back"); const alive = useRef(true);
   useEffect(() => { alive.current = true; return () => { alive.current = false; }; }, []);
   const uncertain = state.phase === "uncertain" || aiState.phase === "uncertain" && state.phase === "ai-preview";
   const busy = ["reading", "ai-requesting", "saving"].includes(state.phase) || leaving || aiState.phase === "saving";
   const selected = service.selected();
+  const quality = service.readQuality();
   const parserEditing = useIntakeEditingSession(parserOpen ? selected : null, selected?.recipe);
   const review = aiState.draft?.review;
   const reviewIdentity = useMemo(() => review && aiState.operationId ? {} : null, [review, aiState.operationId]);
@@ -87,7 +90,11 @@ export function LinkImportScreen({ service, active, onSaved, onCancel, onConfigu
     };
     window.addEventListener("recipio:back", back); return () => window.removeEventListener("recipio:back", back);
   }, [active, parserOpen, state.phase, aiState.phase, uncertain, leaving]);
-  async function read() { setLocalError(""); setParserOpen(false); try { await service.read(); if (alive.current) setParserOpen(service.selected()?.quality === "complete"); } catch { /* Safe service error stays visible; no automatic retry. */ } }
+  async function read() { setLocalError(""); setSupplement(""); setParserOpen(false); try { await service.read(); if (alive.current) setParserOpen(service.selected()?.quality === "complete"); } catch { /* Safe service error stays visible; no automatic retry. */ } }
+  function addText() {
+    try { service.addText(supplement); setSupplement(""); setLocalError(""); }
+    catch (error) { setLocalError(error instanceof Error ? error.message : "补充文字未加入，请重试。"); }
+  }
   async function leave() {
     if (leaving) return; setLeaving(true);
     try { await service.discard(); if (alive.current) { if (destination.current === "back") onCancel(); else onFallback(destination.current); } }
@@ -99,22 +106,28 @@ export function LinkImportScreen({ service, active, onSaved, onCancel, onConfigu
     catch { setLocalError("仍无法核对保存结果，请稍后重试；不会重新创建菜谱。"); }
   }
   if (uncertain) return <section className="v2-task v2-link-intake"><header className="v2-task-header"><h2 className="v2-page-title">先核对保存结果</h2></header><p className="v2-task-note">为避免重复，新建已暂停；核对只读取原编号，不重新创建。</p>{localError && <p className="v2-task-status" role="alert">{localError}</p>}<div className="v2-task-actions"><Button onClick={() => void recover()}>核对保存结果</Button></div></section>;
-  if (state.phase === "ai-preview" && aiState.draft) return <AiPreview editingSession={aiEditing} sourceContext={aiSource} isCurrent={currentAi} draft={aiState.draft} confirmed={aiState.confirmed} onConfirmedChange={value => ai.setConfirmed(value)} hasExactTitle={title => service.dependencies.store.hasExactTitle(title)} onSave={async input => { onSaved(await service.saveAi(input)); }} onCancel={backToResults} source="web" />;
+  if (state.phase === "ai-preview" && aiState.draft) return <>
+    {(!aiState.draft.recipe.steps.length || !aiState.draft.recipe.ingredients.length) && <section className="v2-task v2-link-intake" role="status"><h2 className="v2-section-title">整理结果仍不完整</h2><p className="v2-task-note">{!aiState.draft.recipe.steps.length ? "本次整理结果没有制作步骤，请补充真实做法；不能从菜名或未读取的图片、视频推测。" : "本次整理结果缺少食材，请核对来源并手动补充。"} 保存前仍需检查推断和缺失内容。</p></section>}
+    <AiPreview editingSession={aiEditing} sourceContext={aiSource} isCurrent={currentAi} draft={aiState.draft} confirmed={aiState.confirmed} onConfirmedChange={value => ai.setConfirmed(value)} hasExactTitle={title => service.dependencies.store.hasExactTitle(title)} onSave={async input => { onSaved(await service.saveAi(input)); }} onCancel={backToResults} source="web" />
+  </>;
   if (parserOpen && selected) return <ParserPreview key={selected.id} editingSession={parserEditing} sourceContext={parserSource} isCurrent={currentParser} service={service} onSaved={onSaved} onBack={backToResults} />;
   return <section className="v2-task v2-link-intake">
     <header className="v2-task-header"><h2 className="v2-page-title">从网页导入</h2><Button variant="outline" disabled={leaving} onClick={() => { destination.current = "back"; setConfirm(true); }}>返回</Button></header>
-    <div className="v2-intake-field"><label className="v2-field-label"><span>网页链接</span><Input type="url" inputMode="url" autoCapitalize="none" autoCorrect="off" placeholder="https://…" aria-describedby={`${descriptionId}${state.error || localError ? ` ${errorId}` : ""}`} aria-invalid={state.phase === "error" && !!state.error} value={state.url} disabled={busy} onChange={event => { setLocalError(""); setParserOpen(false); service.setUrl(event.target.value); }} /></label>
+    <div className="v2-intake-field"><label className="v2-field-label"><span>网页链接</span><Input type="url" inputMode="url" autoCapitalize="none" autoCorrect="off" placeholder="https://…" aria-describedby={`${descriptionId}${state.error || localError ? ` ${errorId}` : ""}`} aria-invalid={state.phase === "error" && !!state.error} value={state.url} disabled={busy} onChange={event => { setLocalError(""); setSupplement(""); setParserOpen(false); service.setUrl(event.target.value); }} /></label>
       <p className="v2-task-note" id={descriptionId}>优先读取网页自带的菜谱信息，不会自动调用 AI。</p></div>
     <div className="v2-task-actions">{state.phase === "reading" ? <><p className="v2-task-status" role="status">正在安全读取网页…</p><Button variant="outline" onClick={() => void service.cancelRead().catch(() => setLocalError("取消读取未完成，请稍后重试。"))}>取消读取</Button></> : <Button disabled={busy || !state.url.trim()} onClick={() => void read()}>{state.phase === "error" ? "重试读取网页" : "读取网页"}</Button>}</div>
     {(state.error || localError) && <p id={errorId} className="v2-task-status" role="alert">{state.error?.message ?? localError}</p>}
     {state.parsed && <section className="v2-task-results" aria-label="网页读取结果">
-      <h3>{state.parsed.needsSelection ? "请选择要导入的菜谱" : service.selected()?.quality === "partial" ? "网页信息不完整" : "网页读取结果"}</h3>
+      <h3>{state.parsed.needsSelection ? "请选择要导入的菜谱" : quality === "title_only" ? "仅获取到标题" : quality === "partial" ? "网页信息不完整" : "网页读取结果"}</h3>
+      {quality === "title_only" && <p className="v2-task-note">{state.visible?.title}。尚未读取到菜谱正文，只有菜名不足以还原做法。请补充文字、使用截图整理或手动录入。</p>}
+      {service.selected()?.quality === "partial" && !service.selected()?.recipe.steps.length && <p className="v2-task-note">尚未读取到制作步骤；食材不等于完整菜谱，用量和耗时缺失时会保持空白。</p>}
       {state.parsed.warnings.map(warning => <p className="v2-task-note" key={warning}>{warning}</p>)}
       {state.visible?.wasTruncated && <p className="v2-task-status" role="status">网页正文过长，已保留部分完整段落；AI 可能缺少信息，请仔细检查。</p>}
       {state.parsed.needsSelection && state.parsed.candidates.map(candidate => <article className="v2-source-card" key={candidate.id}><h4>{candidate.recipe.title}</h4><p className="v2-task-note">{candidate.recipe.ingredients.length} 项食材 · {candidate.recipe.steps.length} 个步骤</p><div className="v2-task-actions"><Button variant="outline" disabled={busy} onClick={() => { service.select(candidate.id); setParserOpen(true); }}>选择 {candidate.recipe.title}</Button></div></article>)}
       {service.selected() && !state.parsed.needsSelection && <div className="v2-task-actions"><Button variant="outline" disabled={busy} onClick={() => setParserOpen(true)}>{service.selected()?.quality === "partial" ? "直接完善菜谱" : "查看网页菜谱"}</Button></div>}
       {!state.parsed.candidates.length && <p className="v2-task-note">没有完整的结构化菜谱；可以主动选择 AI 整理可读正文，或手动录入。</p>}
-      {state.phase === "ai-requesting" ? <p className="v2-task-status" role="status">正在整理网页文字，仍可返回并放弃本轮…</p> : state.visible?.text && <div className="v2-task-actions"><p className="v2-task-note">只有点击下方按钮才会将清洗后的文字发送给当前千问服务，可能产生 API 费用；不会发送网页地址或图片。</p><Button disabled={busy} onClick={() => void service.useAi().catch(() => {})}>使用 AI 继续整理</Button></div>}
+      {state.phase === "ready" && <div className="v2-intake-field"><label className="v2-field-label"><span>补充菜谱文字</span><Textarea value={supplement} maxLength={8000} disabled={busy} placeholder="粘贴原文中缺少的食材或制作步骤" onChange={event => setSupplement(event.target.value)} /></label><div className="v2-task-actions"><Button variant="outline" disabled={busy || !supplement.trim()} onClick={addText}>加入补充文字</Button></div><p className="v2-task-note">补充仅保留在本轮导入中。加入文字不会联网；仍需主动选择 AI 整理或手动录入。</p></div>}
+      {state.phase === "ai-requesting" ? <p className="v2-task-status" role="status">正在整理网页文字，仍可返回并放弃本轮…</p> : state.visible && <div className="v2-task-actions"><p className="v2-task-note">只有点击下方按钮才会将清洗后的文字发送给当前千问服务，可能产生 API 费用；不会发送网页地址或图片。</p><Button disabled={busy || quality === "title_only" || quality === "unreadable"} onClick={() => void service.useAi().catch(() => {})}>使用 AI 继续整理</Button></div>}
       {state.error?.message.includes("配置本机 AI 密钥") && <div className="v2-task-actions"><Button variant="outline" disabled={busy} onClick={onConfigureKey}>前往设置 AI 密钥</Button></div>}
     </section>}
     <p className="v2-task-note">仅读取公开普通网页。需要登录、验证码或视频的网站，请改用文字或截图。</p>

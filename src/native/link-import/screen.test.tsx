@@ -16,6 +16,36 @@ const setup = (page = html) => {
   return { service, store, fake, port, onSaved, onCancel, onConfigureKey, onFallback };
 };
 afterEach(__resetLocalDatabaseForTests);
+it("labels title-only pages honestly and offers local text supplementation before explicit AI", async () => {
+  const { fake, store } = setup("<title>合成青菜汤</title>"); await read();
+  await screen.findByRole("heading", { name: "仅获取到标题" });
+  expect(screen.getByRole("button", { name: "使用 AI 继续整理" })).toBeDisabled();
+  fireEvent.change(screen.getByLabelText("补充菜谱文字"), { target: { value: "青菜200克。洗净后煮熟。" } });
+  fireEvent.click(screen.getByRole("button", { name: "加入补充文字" }));
+  expect(screen.getByRole("button", { name: "使用 AI 继续整理" })).toBeEnabled();
+  expect(fake.bridge.organize).not.toHaveBeenCalled(); expect(await store.list()).toHaveLength(0);
+  fireEvent.click(screen.getByRole("button", { name: "使用 AI 继续整理" }));
+  await screen.findByRole("heading", { name: "整理结果仍不完整" });
+  expect(screen.getByText(/整理结果没有制作步骤/)).toBeInTheDocument();
+  expect(screen.getByRole("button", { name: "确认保存菜谱" })).toBeDisabled();
+  expect(fake.bridge.organize).toHaveBeenCalledOnce(); expect(await store.list()).toHaveLength(0);
+});
+it("explains missing steps in a video note without inventing recipe details or invoking AI", async () => {
+  const state = { note: { noteDetailMap: { testnote: { note: { noteId: "testnote", title: "合成汤", desc: "食材：青菜200克。步骤见视频。", type: "video" } } } } };
+  const { fake, port } = setup();
+  port.read.mockResolvedValue({ html: `<script>window.__INITIAL_STATE__=${JSON.stringify(state)}</script>`, finalUrl: "https://www.xiaohongshu.com/explore/testnote", contentType: "text/html" });
+  await read(); await screen.findByRole("heading", { name: "网页信息不完整" });
+  expect(screen.getByText(/不会读取视频画面或口播/)).toBeInTheDocument();
+  expect(screen.getByRole("button", { name: "改用文字 \/ 截图" })).toBeEnabled();
+  expect(fake.bridge.organize).not.toHaveBeenCalled();
+});
+it("does not present a login interstitial as a recipe result", async () => {
+  const { port, fake } = setup();
+  port.read.mockResolvedValue({ html: "<title>小红书</title><script>window.__INITIAL_STATE__={}</script>", finalUrl: "https://www.xiaohongshu.com/login", contentType: "text/html" });
+  await read(); expect(await screen.findByRole("alert")).toHaveTextContent("目标页面要求登录");
+  expect(screen.queryByRole("region", { name: "网页读取结果" })).not.toBeInTheDocument();
+  expect(fake.bridge.organize).not.toHaveBeenCalled();
+});
 async function read() { fireEvent.change(screen.getByLabelText("网页链接"), { target: { value: "https://recipes.example/dish" } }); fireEvent.click(screen.getByRole("button", { name: "读取网页" })); }
 it("complete parser opens editable source-free Preview and saves without AI checkbox", async () => {
   const { fake, onSaved, store } = setup(); await read(); await screen.findByRole("heading", { name: "检查网页菜谱" });

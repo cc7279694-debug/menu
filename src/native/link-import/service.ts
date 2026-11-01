@@ -5,8 +5,10 @@ import type { AiIntakeService } from "../ai/service";
 import { safeAiError } from "../ai/native-bridge";
 import type { BackupController } from "../backup/backup-controls";
 import { LinkImportError, fetchedPageSchema, linkReadSchema, safeLinkError, type ParsedPage, type VisiblePageText, type WebImportPort } from "./contract";
-import { parseRecipePage } from "./parser";
+import { parseRecipePage, plainText } from "./parser";
 import { buildAiText, extractVisibleText } from "./visible-text";
+import { extractXhsPublicPage } from "./xhs-page";
+import { accessFailure, classifyReadQuality } from "./page-status";
 
 type Phase = "input" | "reading" | "ready" | "ai-requesting" | "ai-preview" | "saving" | "uncertain" | "saved" | "error";
 export type LinkImportState = { phase: Phase; url: string; parsed: ParsedPage | null; visible: VisiblePageText | null; selectedId: string | null; parserDraft: RecipeDetailsInput | null; error: Error | null };
@@ -40,6 +42,20 @@ export class LinkImportService {
   private assertIdle() { if (this.restoreBlocked || ["reading", "ai-requesting", "saving", "uncertain"].includes(this.state.phase) || this.aiOwned && ["saving", "uncertain"].includes(this.dependencies.ai.snapshot().phase)) throw new LinkImportError(this.state.phase === "uncertain" ? "save_uncertain" : "busy"); }
   setUrl(url: string) { this.assertIdle(); this.set({ ...initial(), url }); }
   selected() { return this.state.parsed?.candidates.find(item => item.id === this.state.selectedId) ?? null; }
+  readQuality() {
+    const selected = this.selected();
+    return selected ? selected.quality === "complete" ? "complete" : "partial" : classifyReadQuality(this.state.parsed, this.state.visible);
+  }
+  addText(text: string) {
+    this.assertIdle();
+    if (this.state.phase !== "ready" || !this.state.visible) throw new LinkImportError("stale_session");
+    if (Array.from(text).length > 8000) throw new LinkImportError("supplement_too_large");
+    const clean = text.split(/\r?\n/u).map(plainText).filter(Boolean).join("\n").trim();
+    if (!clean) return;
+    const combined = [this.state.visible.text, `用户补充文字：\n${clean}`].filter(Boolean).join("\n\n");
+    if (Array.from(combined).length > 28000) throw new LinkImportError("supplement_too_large");
+    this.set({ ...this.state, visible: { ...this.state.visible, text: combined }, error: null });
+  }
   select(id: string) {
     this.assertIdle(); if (!this.state.parsed?.candidates.some(item => item.id === id)) throw new LinkImportError("stale_session");
     this.set({ ...this.state, selectedId: id, parserDraft: null });
@@ -53,9 +69,18 @@ export class LinkImportService {
     try {
       const result = fetchedPageSchema.safeParse(await this.dependencies.port.read(checked.data)); this.assertCurrent(generation);
       if (!result.success) throw new LinkImportError("page_unreadable");
-      const parsed = parseRecipePage(result.data.html, result.data.finalUrl), visible = extractVisibleText(result.data.html);
+      const parsed = parseRecipePage(result.data.html, result.data.finalUrl), visible = extractVisibleText(result.data.html, result.data.finalUrl);
+      const source = extractXhsPublicPage(result.data.html, result.data.finalUrl);
+      const restriction = source?.access ?? accessFailure(visible, parsed.candidates.some(candidate => candidate.quality === "complete"));
+      if (restriction) throw new LinkImportError(restriction);
+      if (source) {
+        for (const warning of source.warnings) if (!parsed.warnings.includes(warning)) parsed.warnings.push(warning);
+        if (source.media) parsed.warnings.push(source.media === "video"
+          ? "这是视频笔记：当前只读取网页文字，不会读取视频画面或口播。步骤在视频中时，请补充文字或使用截图整理。"
+          : "当前只读取网页文字，不会读取笔记图片。步骤在图片中时，请补充文字或使用截图整理。");
+      }
       this.assertCurrent(generation);
-      if (!parsed.candidates.length && !visible.text) throw new LinkImportError("page_unreadable");
+      if (!parsed.candidates.length && !visible.text && !visible.title) throw new LinkImportError("page_unreadable");
       this.set({ ...this.state, phase: "ready", parsed, visible, selectedId: parsed.needsSelection ? null : parsed.candidates[0]?.id ?? null });
     } catch (error) {
       if (generation !== this.generation) throw new LinkImportError("stale_session");
@@ -68,7 +93,8 @@ export class LinkImportService {
     try { await this.dependencies.port.cancel(requestId); } finally { if (generation === this.generation) this.set({ ...initial(), url: this.state.url }); }
   }
   async useAi(): Promise<void> {
-    this.assertIdle(); const visible = this.state.visible; if (!visible?.text) throw new LinkImportError("page_unreadable");
+    this.assertIdle(); const visible = this.state.visible;
+    if (!visible || ["title_only", "unreadable"].includes(this.readQuality())) throw new LinkImportError("page_unreadable");
     const generation = ++this.generation;
     const text = buildAiText(visible, this.selected()?.recipe ?? null);
     this.set({ ...this.state, phase: "ai-requesting", error: null });

@@ -39,8 +39,25 @@ final class WebUrlSafety {
     }
     static List<InetAddress> validatedAddresses(List<InetAddress> addresses) throws WebImportFailure {
         if(addresses==null || addresses.isEmpty() || addresses.size()>64) throw new WebImportFailure("dns_blocked");
-        for(InetAddress address:addresses) if(address==null || !isGlobal(address)) throw new WebImportFailure("dns_blocked");
+        boolean benchmark=false;
+        for(InetAddress address:addresses) {
+            if(address==null) throw new WebImportFailure("dns_blocked");
+            if(isBenchmark(address)) benchmark=true;
+            else if(!isGlobal(address)) throw new WebImportFailure("dns_blocked");
+        }
+        // This range can be supplied by Fake-IP DNS, but the category does not prove a VPN is active.
+        // A mixed result containing any other unsafe address retains the general safety refusal.
+        if(benchmark) throw new WebImportFailure("dns_fake_ip");
         return Collections.unmodifiableList(new ArrayList<>(addresses));
+    }
+    private static boolean isBenchmark(InetAddress address) {
+        byte[] b=address.getAddress();int offset=0;
+        if(b.length==16) {
+            for(int i=0;i<10;i++) if(b[i]!=0) return false;
+            if((b[10]&255)!=255 || (b[11]&255)!=255) return false;
+            offset=12;
+        } else if(b.length!=4) return false;
+        return (b[offset]&255)==198 && ((b[offset+1]&255)==18 || (b[offset+1]&255)==19);
     }
     static boolean isGlobal(InetAddress address) {
         byte[] b=address.getAddress();

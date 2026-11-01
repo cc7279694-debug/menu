@@ -24,4 +24,8 @@ describe("link native boundary", () => {
     expect(safeLinkError({ code: "dns_blocked", message: "private IP and stack" }).code).toBe("dns_blocked");
     expect(safeLinkError({ code: "unknown", message: "private URL and stack" }).message).not.toContain("private");
   });
+  it.each(["dns_fake_ip", "login_required", "access_restricted", "challenge_required"])("preserves the safe %s diagnostic without exposing remote details", code => {
+    const result = safeLinkError({ code, message: "private URL/token/raw response" });
+    expect(result.code).toBe(code); expect(result.message).not.toMatch(/private|token|raw response/iu);
+  });
 });

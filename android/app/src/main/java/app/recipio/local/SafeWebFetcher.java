@@ -94,6 +94,8 @@ final class SafeWebFetcher {
                     if(enteredHttps && !checked.secure)throw new WebImportFailure("redirect_blocked");
                     enteredHttps|=checked.secure;target=checked;redirects++;continue;
                 }
+                if(status==401)throw new WebImportFailure("login_required");
+                if(status==403||status==429)throw new WebImportFailure("access_restricted");
                 if(status<200||status>=300)throw new WebImportFailure("http_error");
                 ResponseBody body=response.body();if(body==null)throw new WebImportFailure("page_unreadable");
                 MediaType type=body.contentType();String mime=type==null?"":type.type()+"/"+type.subtype();
