@@ -1,0 +1,157 @@
+{
+  "source": "87e3fa6cafa22876d0f5140c8166b9e92fb6d7ca",
+  "checks": [
+    {
+      "theme": "warm-ivory",
+      "scenario": "public-note",
+      "status": "PASS"
+    },
+    {
+      "theme": "warm-ivory",
+      "scenario": "title-only",
+      "status": "PASS"
+    },
+    {
+      "theme": "warm-ivory",
+      "scenario": "video",
+      "status": "PASS"
+    },
+    {
+      "theme": "warm-ivory",
+      "scenario": "partial",
+      "status": "PASS"
+    },
+    {
+      "theme": "warm-ivory",
+      "scenario": "login",
+      "status": "PASS"
+    },
+    {
+      "theme": "warm-ivory",
+      "scenario": "challenge",
+      "status": "PASS"
+    },
+    {
+      "theme": "warm-ivory",
+      "scenario": "fake-ip",
+      "status": "PASS"
+    },
+    {
+      "theme": "warm-ivory",
+      "scenario": "complete",
+      "status": "PASS"
+    },
+    {
+      "theme": "pure-glass",
+      "scenario": "public-note",
+      "status": "PASS"
+    },
+    {
+      "theme": "pure-glass",
+      "scenario": "title-only",
+      "status": "PASS"
+    },
+    {
+      "theme": "pure-glass",
+      "scenario": "video",
+      "status": "PASS"
+    },
+    {
+      "theme": "pure-glass",
+      "scenario": "partial",
+      "status": "PASS"
+    },
+    {
+      "theme": "pure-glass",
+      "scenario": "login",
+      "status": "PASS"
+    },
+    {
+      "theme": "pure-glass",
+      "scenario": "challenge",
+      "status": "PASS"
+    },
+    {
+      "theme": "pure-glass",
+      "scenario": "fake-ip",
+      "status": "PASS"
+    },
+    {
+      "theme": "pure-glass",
+      "scenario": "complete",
+      "status": "PASS"
+    },
+    {
+      "theme": "soft-sage",
+      "scenario": "public-note",
+      "status": "PASS"
+    },
+    {
+      "theme": "soft-sage",
+      "scenario": "title-only",
+      "status": "PASS"
+    },
+    {
+      "theme": "soft-sage",
+      "scenario": "video",
+      "status": "PASS"
+    },
+    {
+      "theme": "soft-sage",
+      "scenario": "partial",
+      "status": "PASS"
+    },
+    {
+      "theme": "soft-sage",
+      "scenario": "login",
+      "status": "PASS"
+    },
+    {
+      "theme": "soft-sage",
+      "scenario": "challenge",
+      "status": "PASS"
+    },
+    {
+      "theme": "soft-sage",
+      "scenario": "fake-ip",
+      "status": "PASS"
+    },
+    {
+      "theme": "soft-sage",
+      "scenario": "complete",
+      "status": "PASS"
+    }
+  ],
+  "screenshots": [
+    "warm-ivory-public-note.png",
+    "warm-ivory-title-only.png",
+    "warm-ivory-incomplete-ai.png",
+    "warm-ivory-video.png",
+    "warm-ivory-partial.png",
+    "warm-ivory-login.png",
+    "warm-ivory-challenge.png",
+    "warm-ivory-fake-ip.png",
+    "warm-ivory-complete.png",
+    "pure-glass-public-note.png",
+    "pure-glass-title-only.png",
+    "pure-glass-incomplete-ai.png",
+    "pure-glass-video.png",
+    "pure-glass-partial.png",
+    "pure-glass-login.png",
+    "pure-glass-challenge.png",
+    "pure-glass-fake-ip.png",
+    "pure-glass-complete.png",
+    "soft-sage-public-note.png",
+    "soft-sage-title-only.png",
+    "soft-sage-incomplete-ai.png",
+    "soft-sage-video.png",
+    "soft-sage-partial.png",
+    "soft-sage-login.png",
+    "soft-sage-challenge.png",
+    "soft-sage-fake-ip.png",
+    "soft-sage-complete.png"
+  ],
+  "errors": [],
+  "external": [],
+  "realAiCalls": 0
+}

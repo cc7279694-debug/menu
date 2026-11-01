@@ -5,7 +5,7 @@
 Branch: `fix/recipio-xhs-link-reliability`.
 Tested implementation: `87e3fa6cafa22876d0f5140c8166b9e92fb6d7ca`.
 Base: `6c580bf0d00ff3162a965d53ce7835ca4484b27c`.
-The following delivery commit only records documentation/evidence. It does not
+The subsequent delivery commits only record documentation/evidence. It does not
 alter the tested product or test code. Independent ChatGPT acceptance is pending.
 
 Only public link reading, bounded text extraction, diagnostic categories and
@@ -106,19 +106,21 @@ Any future APK must use versionCode>27 and the existing signing identity.
 
 ## Screenshot evidence
 
-Only generated recipes and synthetic URLs appear in the screenshots. The
-separate visual evidence archive contains the selected files and SHA-256 sums;
-the source packet contains text/source files only. Full browser results record
-the tested implementation SHA above. No real note/media is distributed.
+Only generated recipes and synthetic URLs appear in the screenshots. The nine selected screenshots are now versioned in
+[xhs-link-20261101/screenshots](xhs-link-20261101/screenshots), with hashes below.
+[Browser results](xhs-link-20261101/browser-results.json) record 24 flows and
+27 captures; the remaining 18 local captures are not part of GitHub evidence.
+No real note/media is distributed. Review can use a pinned GitHub commit
+directly, without downloading or uploading a ZIP.
 
 | Actual screenshot | SHA-256 |
 | --- | --- |
-| `warm-ivory-public-note.png` | `930a90dc42242dd138d7d9b1212f51b7b1ebd169e7822d52e3205fc162680507` |
-| `warm-ivory-title-only.png` | `3daa7409e5041876b82bfae2636c460c4a36c01611b73ada9e2705cc0c2f335e` |
-| `warm-ivory-video.png` | `74b2f26a4a2330e7f84d8b5e066c7ad3b5a800d46832a1975a1072b55d46f92a` |
-| `warm-ivory-login.png` | `1fd93f1f4dd09a5be2e7056b7132a7f81b432f2d8fa911b4bd3ae98ebc52f700` |
-| `warm-ivory-fake-ip.png` | `ef73f7bd1531a5c3285c149a11ec83a7fee03a837035be34d8b7554ec813a392` |
-| `warm-ivory-partial.png` | `2ff8c99ffecdfed266f85070849fc0e589c9407455b316ca06b38bf8f7786bd8` |
-| `warm-ivory-incomplete-ai.png` | `9e01008e33725c9a9be2279643277d6669e92ed39fe5160c4e5aaaf5b378be52` |
-| `pure-glass-video.png` | `3297b4940ee9e752b77cb261b1b23ab708e6f9547a5a342b57552a666989a4eb` |
-| `soft-sage-video.png` | `ccd0208b82094cce3db2b7f7db91200c78b92674743068e44e265ddecd3098d1` |
+| [warm-ivory-public-note.png](xhs-link-20261101/screenshots/warm-ivory-public-note.png) | `930a90dc42242dd138d7d9b1212f51b7b1ebd169e7822d52e3205fc162680507` |
+| [warm-ivory-title-only.png](xhs-link-20261101/screenshots/warm-ivory-title-only.png) | `3daa7409e5041876b82bfae2636c460c4a36c01611b73ada9e2705cc0c2f335e` |
+| [warm-ivory-video.png](xhs-link-20261101/screenshots/warm-ivory-video.png) | `74b2f26a4a2330e7f84d8b5e066c7ad3b5a800d46832a1975a1072b55d46f92a` |
+| [warm-ivory-login.png](xhs-link-20261101/screenshots/warm-ivory-login.png) | `1fd93f1f4dd09a5be2e7056b7132a7f81b432f2d8fa911b4bd3ae98ebc52f700` |
+| [warm-ivory-fake-ip.png](xhs-link-20261101/screenshots/warm-ivory-fake-ip.png) | `ef73f7bd1531a5c3285c149a11ec83a7fee03a837035be34d8b7554ec813a392` |
+| [warm-ivory-partial.png](xhs-link-20261101/screenshots/warm-ivory-partial.png) | `2ff8c99ffecdfed266f85070849fc0e589c9407455b316ca06b38bf8f7786bd8` |
+| [warm-ivory-incomplete-ai.png](xhs-link-20261101/screenshots/warm-ivory-incomplete-ai.png) | `9e01008e33725c9a9be2279643277d6669e92ed39fe5160c4e5aaaf5b378be52` |
+| [pure-glass-video.png](xhs-link-20261101/screenshots/pure-glass-video.png) | `3297b4940ee9e752b77cb261b1b23ab708e6f9547a5a342b57552a666989a4eb` |
+| [soft-sage-video.png](xhs-link-20261101/screenshots/soft-sage-video.png) | `ccd0208b82094cce3db2b7f7db91200c78b92674743068e44e265ddecd3098d1` |
