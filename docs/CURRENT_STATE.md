@@ -1,5 +1,24 @@
 # Current State
 
+## Xiaohongshu link reliability — READY FOR INDEPENDENT REVIEW — 2026-11-01
+
+On `fix/recipio-xhs-link-reliability`, tested source
+`87e3fa6cafa22876d0f5140c8166b9e92fb6d7ca` adds bounded public note-text
+extraction, safe DNS/access diagnostics, title-only/partial-result explanations,
+local text supplementation and an incomplete-AI-result warning. Explicit AI,
+review and existing save/recovery contracts remain. Fresh checks:275 scoped
+JS/TS tests,25 pure JVM tests, typecheck/lint/build/isolation and24 synthetic
+three-theme browser flows PASS. These are not Android or real-AI results.
+
+The supplied real sample ended at a platform login page during an independent
+safe diagnostic; desktop system DNS separately returned Fake-IP addresses. The
+user's phone DNS cause is unconfirmed. No DNS exceptions or production DoH were
+added. Image/video steps and restricted pages remain unsupported by webpage
+reading; Xiaomi/IME/TalkBack and native device execution remain NOT_RUN.
+SQLite4 / Preview7 / Backup2, the signed v27 APK and signing identity are
+unchanged. No main merge, new APK or phone operation. See
+[bounded review evidence](verification/2026-11-01-xhs-link-reliability.md).
+
 ## Search focus B1 — ACCEPTED / FROZEN — PASS WITH NOTES — 2026-10-28
 
 ChatGPT's independent review accepted the B1 follow-up on

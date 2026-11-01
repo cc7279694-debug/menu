@@ -21,3 +21,37 @@ Android cleartext policy explicitly permits the approved HTTP page input. This i
 ## Stable error categories
 
 invalid_url, unsafe_url, unsupported_scheme, unsupported_port, dns_blocked, redirect_blocked, too_many_redirects, network_unavailable, timeout, http_error, unsupported_content, page_too_large, page_unreadable, recipe_not_found, parser_partial, ai_key_missing, ai_failed, invalid_ai_output. Lifecycle adds busy/cancelled/stale_session/native_unavailable/storage_error/save_uncertain. UI never exposes raw exception messages or remote source data.
+
+## 2026-11-01 — Public Xiaohongshu reading and diagnostic refinement
+
+The existing URL parser already accepts `xhslink.cn`, `xhslink.com` and
+`xiaohongshu.com`, including valid share queries. No domain-specific IP exception
+or production DNS fallback is added. All addresses on every redirect still must
+pass the same public-address validation and remain pinned to the checked set.
+`dns_fake_ip` diagnoses a refused 198.18.0.0/15 address, without claiming that a
+VPN is active. Other unsafe/mixed private results remain refused. HTTP 401 maps
+to `login_required`; 403/429 to `access_restricted`. Explicit HTML interstitials
+can report `login_required` or `challenge_required`, including the platform's
+final `/login` route. None is treated as a usable recipe source.
+
+Generic visible-text and JSON-LD behavior remains. On those precise platform
+host boundaries only, an additional inert reader recognizes public
+`__INITIAL_STATE__` JSON and the target note's `note.noteDetailMap` entry. It
+reads only title, description and media kind. No script execution, API calls,
+cookies, signatures or media downloads. The only serialization extension is a
+lexical conversion of bare JSON-value `undefined` to null, outside quoted
+strings; all other executable syntax fails closed. Limits: 2MiB HTML, 256KiB per
+state, depth32, 4000 nodes, at most4 state elements, and 28000 text code points.
+Wrong/ambiguous note IDs, oversized states and malformed states do not fall back
+to recommended notes or shell text. Hidden/executable content is excluded.
+
+Reading is distinguished as complete (the original title+ingredient+step rule),
+partial, title-only or unreadable. Title-only cannot initiate AI until actual
+text is supplied. A local, explicit text supplement is capped at8000 code
+points per addition and28000 total; it is part of this memory-only source and
+released by the same session lifecycle. Adding text never initiates AI.
+`supplement_too_large` leaves the prior source unchanged. The existing explicit
+AI action, review gate, duplicate check, save UUID and uncertain-save recovery
+remain. Missing steps in an AI result are visibly marked incomplete; no missing
+amount, time or step is filled deterministically from a title or unread media.
+SQLite4, Preview7 and Backup2 remain unchanged.
