@@ -1,0 +1,10 @@
+{
+  "result": "PASS",
+  "source": "cf806554ac38346644613dd8b3bf700aeb48b14f",
+  "versionName": "0.11.1-personal.1",
+  "copiedWebFiles": 16,
+  "versionInBundle": true,
+  "oldVersionAbsent": true,
+  "fixtureMarkersAbsent": true,
+  "localCapacitorConfig": true
+}

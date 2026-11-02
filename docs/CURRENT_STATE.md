@@ -1,6 +1,31 @@
 # Current State
 
+## V28-A1 — READY FOR INDEPENDENT REVIEW, unsigned build only — 2026-11-02
+
+On isolated `integration/recipio-v28-a1`, source
+`cf806554ac38346644613dd8b3bf700aeb48b14f` inherits fixed main19bb5c9,
+B1 registration6c580bf and XHS sourceeef0bec/evidenceae14346 by ancestry;
+no repeated merge/cherry-pick or moving-main replacement. Only version defaults
+change to code28/name0.11.1-personal.1; original app.recipio.local and all accepted
+business/storage/theme/security blobs are preserved. XHS's independent scoped
+freeze is [registered](verification/xhs-module-20261101/INDEPENDENT_ACCEPTANCE.md);
+its live-platform/device limits remain.
+
+Fresh integrated421 JS/TS (30files),25 pure JVM, typecheck/lint/versioned Web
+build/isolation/Capacitor sync and16 copied-asset identity checks PASS. Initial
+memory admission3.214GiB blocked Gradle; later6.376GiB allowed unsigned Release
+compilation. Final assembleRelease/aapt2/ZIP/asset/unsigned/zipalign checks PASS:
+app.recipio.local,code28/name0.11.1-personal.1,15,148,384bytes,SHA e8969bd0…9837e6a.
+Initial CLI argument failure and corrected successful build are retained; five
+lint and Vite/JSDOM/Gradle warnings remain. This is not installable signed output.
+No signing/key access, phone/data operation, upgrade or main merge. v27 artifacts
+and untracked android/.idea/ preserved. [A1 full report and next-stage safety](v28/V28_A1_REVIEW.md).
+Await independent review; Android runtime/IME/TalkBack/real AI/signing and same-key
+upgrade/data retention remain NOT_RUN, not inferred from compilation/static checks.
+
 ## Xiaohongshu module — READY FOR INDEPENDENT COMPREHENSIVE REVIEW — 2026-11-01
+
+Historical handoff below; later scoped acceptance is registered for V28-A1 above.
 
 The user supplied ChatGPT's independent re-review verdict and authorized its
 registration: **BLOCKING-01 — CLOSED / PASS WITH NOTES**, source

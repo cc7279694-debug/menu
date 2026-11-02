@@ -1,0 +1,23 @@
+{
+  "source": "cf806554ac38346644613dd8b3bf700aeb48b14f",
+  "artifact": "E:\\CODEX\\Tools\\recipio-v28-a1-20261102\\recipio-v28-a1-unsigned.apk",
+  "bytes": 15148384,
+  "sha256": "e8969bd0d18af8c34fe8472d8bd96d162b51216a8fc1a15ef8f8c5c5d9837e6a",
+  "package": "app.recipio.local",
+  "versionCode": 28,
+  "versionName": "0.11.1-personal.1",
+  "debuggable": false,
+  "testOnly": false,
+  "allowBackup": false,
+  "signature": "ABSENT_EXPLICITLY_VERIFIED",
+  "signingCertificate": null,
+  "alignment": "PASS_OFFICIAL_ZIPALIGN",
+  "webFilesMatched": 16,
+  "permissionsEqualToV27": true,
+  "testAssetsAbsent": true,
+  "keyAndDatabaseArchiveFilesAbsent": true,
+  "versionInPackagedBundle": true,
+  "runtimeInstallation": "NOT_RUN",
+  "upgradeDataRetention": "NOT_RUN",
+  "installableDeliverable": false
+}

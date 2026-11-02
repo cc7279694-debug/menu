@@ -1,7 +1,9 @@
 # V28-A1 integration and unsigned build preflight
 
 Authorized: 2026-11-02. Branch: `integration/recipio-v28-a1`.
-Status: IN PROGRESS; this is not a release or installation authorization.
+Plan recorded with the integration source. Execution results are in
+[the A1 review handoff](V28_A1_REVIEW.md); this is not release acceptance or
+signing/installation authorization.
 
 ## Fixed inheritance
 

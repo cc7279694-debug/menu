@@ -1,0 +1,29 @@
+{
+  "source": "cf806554ac38346644613dd8b3bf700aeb48b14f",
+  "acceptedInput": "ae1434601a2ddf2212fb05460efcabb3d969ab1e",
+  "fixedMain": "19bb5c9dc5642edb27203e6c5c0b95d7977ff2fe",
+  "ancestorChecks": "PASS",
+  "onlyVersionAndDocsDelta": "PASS",
+  "acceptedBusinessSourceUnchanged": "PASS",
+  "storageAiThemesMainBlobsUnchanged": "PASS",
+  "releaseStaticIdentity": "app.recipio.local",
+  "versionCode": 28,
+  "versionName": "0.11.1-personal.1",
+  "releaseSigningConfig": "ABSENT",
+  "schema": 4,
+  "preview": 7,
+  "backup": 2,
+  "v27SignedSha256Unchanged": "b87edc7b33e19845f417bac3dc98f70ed3c9b1d2824d379e20918db8cca6ab95",
+  "preservedPriorUnsigned": {
+    "bytes": 15145012,
+    "sha256": "e07565397555df9cd95cdbc6c79a8b9c5075bc92ab4ca663b657232234b0df0e"
+  },
+  "freshTests": {
+    "files": 30,
+    "jsTs": 421,
+    "pureJvm": 25,
+    "failures": 0
+  },
+  "realAiCalls": 0,
+  "deviceOperations": 0
+}
