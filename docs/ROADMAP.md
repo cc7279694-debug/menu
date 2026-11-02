@@ -24,6 +24,8 @@
 | UI V2 G5 | Accepted / Frozen — PASS WITH NOTES | 独立验收cb40a9fb，测试源码e5fbe1b；限定日常体验，不等于G4冻结/R1完成；见 g5/G5_INDEPENDENT_ACCEPTANCE.md |
 | UI V2 G6 | Accepted / Frozen — PASS WITH NOTES | ChatGPT 独立验收 G6-A～E；源码 d8f2e3a、交付 e295dd2、CI40440306979；1381JS/189JVM/23云端Android/33浏览器组PASS。保留明确数量单位/复杂原文回退、极窄大字观察和全部NOT_RUN；见 g6/G6_INDEPENDENT_ACCEPTANCE.md，不构成G4冻结或R1完成 |
 | UI V2 G7 | Accepted / Frozen — PASS WITH NOTES | ChatGPT 独立验收G7-A～E，用户授权登记；源码e8c2f948、交付6f1df128、CI40460260275：1503JS/189JVM/25云端Android、G7浏览器29及G6厨房回归33组PASS，保留5项Lint警告。当前草稿检查/会话来源/稳定行映射/审核同名恢复保护限定冻结；SQLite4/Preview7/Backup2不变，真实AI0。真机/OEM/TalkBack/系统字号/性能/飞行模式进程冷启动/原生临时图片像素呈现/未执行历史connected项目仍NOT_RUN。G4 PENDING、R1延期，不构成整体发布，不进入G8；见 g7/G7_INDEPENDENT_ACCEPTANCE.md |
+| V28-A2 | Accepted / Frozen — PASS WITH NOTES | 用户于2026-11-02确认ChatGPT限定独立验收；A1源码cf806554、A2证据081f98f8。接受既有同证书候选与隔离模拟器升级/业务内容及媒体对照，不是小米14或正式发布验收。原始ANR、失败尝试及全部NOT_RUN保留；见 v28/V28_A2_INDEPENDENT_ACCEPTANCE.md |
+| V28-A3 | Owner phone upgrade gate ready; not executed | 仅验收登记、现有唯一APK只读交付核验及用户指南；不重建/重签/造APK，不操作手机或个人备份，不合main。真实升级与XHS/AI测试须后续明确授权；见 v28/V28_A3_XIAOMI14_OWNER_GUIDE.md |
 
 APK-6历史证据见 verification/find-recipe-rc2*.md 与原checkpoint，441项是1029项的子集，不能重复相加。当前Logo集成证据见checkpoints/2026-10-06-logo-integration.md：纯资源任务未重复全仓/connected/Provider测试，完成构建和窄模拟器视觉/数据保留验证；手机视觉验收独立。用户APK-6确认不是Codex重新调用AI的证据。不恢复收藏、购物、菜单、Timer或云同步；任何后续模块或main收口需另行批准。
 此前浏览器 Dexie Repository 与 `/offline/app` 纵切是可复用资产，不是 Android SQLite 验收证据。

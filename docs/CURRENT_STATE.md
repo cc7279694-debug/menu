@@ -1,6 +1,31 @@
 # Current State
 
-## V28-A2 — READY_FOR_INDEPENDENT_REVIEW — 2026-11-02
+## V28-A3 — V28_A3_OWNER_PHONE_UPGRADE_GATE_READY — 2026-11-02
+
+User supplied ChatGPT's scoped A2 independent verdict: **ACCEPTED / FROZEN —
+PASS WITH NOTES**, frozen sourcecf806554 and evidence081f98f8. Registration:
+[A2 independent acceptance](v28/V28_A2_INDEPENDENT_ACCEPTANCE.md). Historical
+reports, ANR logs, failed attempts and NOT_RUN remain unchanged at that commit.
+
+Existing unique v28 APK passed fresh read-only official apksigner/aapt2/zipalign
+checks: app.recipio.local,code28/name0.11.1-personal.1,15,194,675bytes,
+SHA52dfed4e…3d94b59b, actual single certificate5a3f7cb8…adc251d. Before/after
+hash/size/last-write unchanged. [A3 read-only receipt](v28/a3-evidence/read-only-apk-verification.json).
+No build, signing/key/password access, APK creation/copy, ADB, device operation,
+personal-backup access/upload or real AI call in A3. Frozen product/data contracts
+and existing untracked android/.idea/ remain protected.
+
+[Owner-only Xiaomi14 upgrade guide and blank checklist](v28/V28_A3_XIAOMI14_OWNER_GUIDE.md)
+are prepared, not executed. Stop for ChatGPT/user authorization before any
+phone operation. Xiaomi/OEM/TalkBack/real AI quality and actual phone upgrade
+remain NOT_RUN; original phone dns_blocked cause UNKNOWN. A2 is limited emulator
+and artifact acceptance, not phone/whole-product release. G4 PENDING and R1
+broader signing/personal-migration DEFERRED_BY_USER remain unchanged.
+
+## V28-A2 — ACCEPTED / FROZEN — PASS WITH NOTES — 2026-11-02
+
+User-authorized independent registration is linked above. The following retains
+the submitter's actual scope and limits; no A2 test was rerun or promoted in A3.
 
 User accepted/froze A1 sourcecf80655/evidence07f9437 with notes, and authorized
 same-existing-key signing plus a new isolated synthetic-data upgrade test.
@@ -30,7 +55,8 @@ Current unique APK moved with its directory to
 `E:/CODEX/RECIPIO-Signing/recipio-personal-release-v28/recipio-personal-v28.apk`;
 same bytes/hash/certificate rechecked. Dedicated AVD stopped gracefully with
 data preserved. No phone, key or product change; no new signing/password step.
-[A2 final handoff](v28/V28_A2_REVIEW.md). Await ChatGPT review; no release approval.
+[A2 historical handoff](v28/V28_A2_REVIEW.md). Scoped acceptance registered;
+no phone or release approval.
 
 ## V28-A1 — READY FOR INDEPENDENT REVIEW, unsigned build only — 2026-11-02
 

@@ -1,0 +1,77 @@
+{
+  "status": "PASS_READ_ONLY_DELIVERY_IDENTITY",
+  "checkedAt": "2026-11-02T15:39:00.516019+08:00",
+  "a1Source": "cf806554ac38346644613dd8b3bf700aeb48b14f",
+  "a2AcceptedEvidence": "081f98f8e31c9d280fc68388c760635a8d1e446d",
+  "apkPath": "E:\\CODEX\\RECIPIO-Signing\\recipio-personal-release-v28\\recipio-personal-v28.apk",
+  "package": "app.recipio.local",
+  "versionCode": 28,
+  "versionName": "0.11.1-personal.1",
+  "sha256": "52dfed4ef23afb5aa0dc6fb2b6089921af240993627aec9479ff69ea3d94b59b",
+  "certificateSha256": "5a3f7cb866cdc15d0357e03a49d611204bd2df763c71a3e005656e416adc251d",
+  "bytes": 15194675,
+  "actualCertificateSha256": "5a3f7cb866cdc15d0357e03a49d611204bd2df763c71a3e005656e416adc251d",
+  "numberOfSigners": 1,
+  "apksignerV2Verified": true,
+  "apksignerV3Verified": true,
+  "debuggable": false,
+  "testOnly": false,
+  "beforeAfterSha256Equal": true,
+  "beforeAfterBytesEqual": true,
+  "lastWriteTimeUnchanged": true,
+  "commands": {
+    "apksigner": {
+      "tool": "E:\\CODEX\\Tools\\recipio-official-signing-sdk36\\build-tools\\36.0.0\\apksigner.bat",
+      "arguments": [
+        "verify",
+        "--verbose",
+        "--print-certs",
+        "E:\\CODEX\\RECIPIO-Signing\\recipio-personal-release-v28\\recipio-personal-v28.apk"
+      ],
+      "exitCode": 0,
+      "outputFile": "apksigner.txt"
+    },
+    "apk-badging": {
+      "tool": "E:\\CODEX\\Tools\\recipio-official-signing-sdk36\\build-tools\\36.0.0\\aapt2.exe",
+      "arguments": [
+        "dump",
+        "badging",
+        "E:\\CODEX\\RECIPIO-Signing\\recipio-personal-release-v28\\recipio-personal-v28.apk"
+      ],
+      "exitCode": 0,
+      "outputFile": "apk-badging.txt"
+    },
+    "apk-manifest": {
+      "tool": "E:\\CODEX\\Tools\\recipio-official-signing-sdk36\\build-tools\\36.0.0\\aapt2.exe",
+      "arguments": [
+        "dump",
+        "xmltree",
+        "--file",
+        "AndroidManifest.xml",
+        "E:\\CODEX\\RECIPIO-Signing\\recipio-personal-release-v28\\recipio-personal-v28.apk"
+      ],
+      "exitCode": 0,
+      "outputFile": "apk-manifest.txt"
+    },
+    "zipalign": {
+      "tool": "E:\\CODEX\\Tools\\recipio-official-signing-sdk36\\build-tools\\36.0.0\\zipalign.exe",
+      "arguments": [
+        "-c",
+        "-P",
+        "16",
+        "4",
+        "E:\\CODEX\\RECIPIO-Signing\\recipio-personal-release-v28\\recipio-personal-v28.apk"
+      ],
+      "exitCode": 0,
+      "outputFile": "zipalign.txt"
+    }
+  },
+  "apkCreatedRebuiltResignedOrCopied": false,
+  "privateKeyOrPasswordRead": false,
+  "adbCommandsRun": 0,
+  "phoneOperations": 0,
+  "personalBackupReadOrUploaded": false,
+  "realAiCalls": 0,
+  "physicalUpgrade": "NOT_RUN",
+  "acceptanceBoundary": "Existing APK identity only; not phone release approval"
+}
