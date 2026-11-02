@@ -1,12 +1,40 @@
 # V28-A2 same-identity signing and isolated upgrade checkpoint
 
 Date: 2026-11-02. Branch: `verification/recipio-v28-a2`.
-**BLOCKED — ANDROID_ENVIRONMENT_LIMIT.** Owner signing is complete and the
-actual signed v28 APK passed independent static verification. Isolated
-v27→v28 upgrade/data-retention verification remains NOT_RUN: measured free
-physical memory2.578GiB is below the authorized4GiB admission threshold.
+**READY_FOR_INDEPENDENT_REVIEW.** Owner signing and the isolated real
+v27→v28 upgrade checks are complete. No product change or release approval.
 
-## Signed candidate verified — 2026-11-02
+## Android continuation — completed 2026-11-02
+
+- Fresh admission5.335GiB passed the4GiB threshold. Created only
+  `Recipio_V28_A2_API36` / `emulator-5684`, Android16/API36, RAM2560MiB,
+  new data directory under `E:/CODEX/Tools/recipio-v28-a2-20261102/avd`.
+- User relocated the signing directory to `E:/CODEX/RECIPIO-Signing`.
+  Actual v27/v28 hashes and same certificate matched again; no re-signing.
+- Real signed v27 installation, normal synthetic Backup v2 restore, non-default
+  Soft Sage UI selection and process cold start completed. Actual v27 export
+  is the baseline, not the seed archive.
+- Normal `install -r` v28 succeeded without uninstall/data clear. AppId10216
+  and firstInstallTime remained; version27→28 and lastUpdateTime advanced.
+- Actual v28 export: all7 collections, IDs/times/positions/order and data.json
+  raw bytes identical; all3 images byte/SHA-identical, including shared and
+  history-only references. Theme visual/cold-start checks passed separately.
+- Offline cold start, ingredient search/clear/IME Back, local step/Focus,
+  cooking/change history/images, one explicit edit with cold-start persistence,
+  XHS-shaped controlled URL entry/cancel completed. No webpage read or AI call.
+- Final export: only intended title/update-time and one new change record;
+  recipe IDs and all other entities/media retained, cooking count remains1.
+- Initial5 system ANRs occurred before v27 install. Logs/screenshot and one
+  Wait recovery retained; no subsequent ANR/crash events. Test-harness/Android
+  accessibility-cache limits retained. No raw SQLite/private-path assertion.
+- Gracefully stopped this dedicated AVD, preserving disk/data. No other AVD,
+  shared ADB-server restart, phone, personal data, private key or password action.
+
+[Final report, exact inputs, actual receipts, screenshots and NOT_RUN](V28_A2_REVIEW.md).
+The original signing-only/preparation history below is retained and superseded
+where it says Android work was pending. Await ChatGPT independent review.
+
+## Historical signing-only verification — 2026-11-02
 
 - APK: `E:/RECIPIO-Signing/recipio-personal-release-v28/recipio-personal-v28.apk`.
 - Size:15,194,675bytes. SHA-256:
@@ -24,8 +52,9 @@ physical memory2.578GiB is below the authorized4GiB admission threshold.
   emulator creation/start, installation or phone operation in this verification.
 
 [Actual checks, receipts and remaining limits](V28_A2_SIGNED_VERIFICATION.md).
-The signed file is a candidate, not a phone-installation or data-retention
-approval. Resume at the resource/device gate below; do not sign again.
+The signed file remains a candidate awaiting independent review. Its actual
+current path is in the final report; the historical path above predates the
+user's directory move. Do not sign again.
 
 ## Historical preparation — owner gate below is superseded
 
@@ -84,6 +113,8 @@ Preserve failed files and stop; do not overwrite or automatically retry.
 
 ## Resume after signing verification
 
+Historical runbook, now completed by the Android continuation above.
+
 1. **Completed:** read only the public receipt and independently verify the actual candidate
    using official apksigner/aapt2/zipalign, hash and ZIP payload checks. Require
    the fixed unsigned source, exact v27 signer, package/version and unchanged
@@ -118,12 +149,11 @@ Preserve failed files and stop; do not overwrite or automatically retry.
 
 ## Current NOT_RUN and stop
 
-New AVD setup, install/upgrade, data/image/theme comparison, cold-start/offline/
-UI/IME and B1/XHS Android smoke remain NOT_RUN. Signing and independent static
-certificate/hash/identity/payload inspection are PASS, not upgrade evidence.
-Physical Xiaomi/TalkBack/real AI remain NOT_RUN; real AI calls0.
+Physical Xiaomi/OEM/TalkBack/system-font/performance, raw SQLite file bytes and
+private paths, real XHS requests and real AI remain NOT_RUN. Controlled Android
+upgrade/export comparison and listed UI checks completed; they do not promote
+these outside-scope items to PASS. Real AI calls0.
 No main merge, Release/publication, phone operation or next module.
 
-Stop at the Android resource gate. No new password operation is needed. Final A2 status can become
-READY_FOR_INDEPENDENT_REVIEW only after real same-key signing and the executable
-isolated upgrade checks/evidence complete; preparation alone is BLOCKED.
+Stop at ChatGPT independent review. No password, install, signing, publication
+or next-module action remains authorized automatically.

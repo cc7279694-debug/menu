@@ -1,0 +1,127 @@
+{
+  "status": "PASS_SAME_KEY_UPGRADE_PORTABLE_CONTENT",
+  "checkedAtUtc": "2026-11-02T06:00:41.419145+00:00",
+  "before": {
+    "path": "E:\\CODEX\\Tools\\recipio-v28-a2-20261102\\android-upgrade\\before-v27.recipio",
+    "bytes": 2961,
+    "sha256": "5aa88e3b092d044bae7aa3506d9cbdb064397ad463e32e8a3c6c61e8e6be0bd9",
+    "counts": {
+      "recipes": 2,
+      "ingredients": 3,
+      "steps": 3,
+      "preparations": 2,
+      "keyTips": 2,
+      "changes": 1,
+      "cookingRecords": 1,
+      "media": 3
+    }
+  },
+  "after": {
+    "path": "E:\\CODEX\\Tools\\recipio-v28-a2-20261102\\android-upgrade\\after-v28.recipio",
+    "bytes": 2960,
+    "sha256": "fa22a703950b69f4b1d228cb2bca4e9eeee6c30a17bbfe352c7fea0e653809eb",
+    "counts": {
+      "recipes": 2,
+      "ingredients": 3,
+      "steps": 3,
+      "preparations": 2,
+      "keyTips": 2,
+      "changes": 1,
+      "cookingRecords": 1,
+      "media": 3
+    }
+  },
+  "actualUiExportInputsNotSeedArchives": true,
+  "zipCrcAndDuplicateChecks": "PASS",
+  "allSevenCollectionsStrictFieldTypeValueAndArrayOrderEqual": true,
+  "collectionChecks": {
+    "recipes": {
+      "count": 2,
+      "allIdsUtcTimesPositionsAndValuesEqual": true
+    },
+    "ingredients": {
+      "count": 3,
+      "allIdsUtcTimesPositionsAndValuesEqual": true
+    },
+    "steps": {
+      "count": 3,
+      "allIdsUtcTimesPositionsAndValuesEqual": true
+    },
+    "preparations": {
+      "count": 2,
+      "allIdsUtcTimesPositionsAndValuesEqual": true
+    },
+    "keyTips": {
+      "count": 2,
+      "allIdsUtcTimesPositionsAndValuesEqual": true
+    },
+    "changes": {
+      "count": 1,
+      "allIdsUtcTimesPositionsAndValuesEqual": true
+    },
+    "cookingRecords": {
+      "count": 1,
+      "allIdsUtcTimesPositionsAndValuesEqual": true
+    }
+  },
+  "settingsEqual": true,
+  "canonicalDataSha256": "d7ed2999e2d83f4dc18730517808676cc186afbfc8b1befb4ce6d10d70daaeb8",
+  "rawDataBytesExactlyEqual": true,
+  "manifestCountsSchemaDataFileAndMediaEqual": true,
+  "allowedManifestChanges": {
+    "appVersionCode": {
+      "before": 27,
+      "after": 28
+    },
+    "appVersionName": {
+      "before": "0.11.0-personal.2",
+      "after": "0.11.1-personal.1"
+    },
+    "createdAt": {
+      "before": "2026-11-02T05:53:17.252Z",
+      "after": "2026-11-02T05:59:32.371Z"
+    }
+  },
+  "mediaChecks": [
+    {
+      "assetId": "26e702e7909cb0f5707584554c4e6b816d94179ee925d39592866466243bf7e1",
+      "path": "media/26e702e7909cb0f5707584554c4e6b816d94179ee925d39592866466243bf7e1.png",
+      "beforeBytes": 181,
+      "afterBytes": 181,
+      "beforeSha256": "26e702e7909cb0f5707584554c4e6b816d94179ee925d39592866466243bf7e1",
+      "afterSha256": "26e702e7909cb0f5707584554c4e6b816d94179ee925d39592866466243bf7e1",
+      "actualBytesExactlyEqual": true
+    },
+    {
+      "assetId": "65c57e1accec7e5a1a4511f8a523bdc5611d20dcde66b53835728d579089d70b",
+      "path": "media/65c57e1accec7e5a1a4511f8a523bdc5611d20dcde66b53835728d579089d70b.png",
+      "beforeBytes": 182,
+      "afterBytes": 182,
+      "beforeSha256": "65c57e1accec7e5a1a4511f8a523bdc5611d20dcde66b53835728d579089d70b",
+      "afterSha256": "65c57e1accec7e5a1a4511f8a523bdc5611d20dcde66b53835728d579089d70b",
+      "actualBytesExactlyEqual": true
+    },
+    {
+      "assetId": "84149814c27c727a0bbee6be9957b23a8a958198d6d07e1ffd0e11eb60cb1aa6",
+      "path": "media/84149814c27c727a0bbee6be9957b23a8a958198d6d07e1ffd0e11eb60cb1aa6.png",
+      "beforeBytes": 183,
+      "afterBytes": 183,
+      "beforeSha256": "84149814c27c727a0bbee6be9957b23a8a958198d6d07e1ffd0e11eb60cb1aa6",
+      "afterSha256": "84149814c27c727a0bbee6be9957b23a8a958198d6d07e1ffd0e11eb60cb1aa6",
+      "actualBytesExactlyEqual": true
+    }
+  ],
+  "blockers": [],
+  "limits": {
+    "rawSqliteFileAndPrivatePhysicalPaths": "NOT_CHECKED",
+    "theme": "OUTSIDE_BACKUP_V2; separate controlled UI and cold-start evidence required",
+    "installAndSourceOfExports": "Recorded by root actual Android UI/installation evidence, not inferred solely from ZIP bytes",
+    "deviceOemTalkBackImeRealPersonalData": "NOT_CHECKED_BY_THIS_COMPARISON"
+  },
+  "actions": {
+    "adbCalls": 0,
+    "signingCalls": 0,
+    "realAiCalls": 0,
+    "productSourceChanges": 0
+  }
+}

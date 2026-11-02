@@ -1,0 +1,8 @@
+{
+  "requestedAt": "2026-11-02T14:13:29.973558+08:00",
+  "serial": "emulator-5684",
+  "avd": "Recipio_V28_A2_API36",
+  "gracefulEmuKill": true,
+  "dataDirectoryPreserved": true,
+  "otherDevicesOrAdbServerStopped": false
+}

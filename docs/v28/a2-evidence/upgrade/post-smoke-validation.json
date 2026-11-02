@@ -1,0 +1,22 @@
+{
+  "status": "PASS",
+  "sameRecipeIds": true,
+  "recipes": 2,
+  "editedRecipeIds": [
+    "28a20000-0000-4000-8000-000000000001"
+  ],
+  "intentionalRecipeFieldChanges": [
+    "title",
+    "updatedAt"
+  ],
+  "existingHistoryUnchanged": true,
+  "intentionalNewChangeRecords": 1,
+  "cookingRecordsUnchanged": true,
+  "cookingRecords": 1,
+  "allThreeMediaBytesUnchanged": true,
+  "formatVersion": 2,
+  "databaseSchemaVersionInExport": 4,
+  "postSmokeArchiveBytes": 3058,
+  "postSmokeSha256": "15ed4330aee7ba40653d74d5feef6fa2cf0ea98fee4795e3064728cbd0756213",
+  "comparisonBoundary": "After strict before/after upgrade baseline passed; then one explicit editor save"
+}

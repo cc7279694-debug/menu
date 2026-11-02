@@ -1,0 +1,10 @@
+{
+  "theme": "soft-sage",
+  "method": "Actual cold-start and post-upgrade screenshots visually inspected; radio and background pixel regions compared",
+  "visualRegionsEqual": {
+    "background": true,
+    "radio": true
+  },
+  "rawPreferenceFileRead": false,
+  "uiautomatorCheckedState": "UNRELIABLE_ALL_FALSE_NOT_USED"
+}

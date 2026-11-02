@@ -1,5 +1,9 @@
 # V28-A2 actual signed candidate verification
 
+Historical signing-only snapshot. Android continuation subsequently completed;
+the current status/path/evidence are in [V28-A2 final handoff](V28_A2_REVIEW.md).
+The original blocked snapshot and old path below are retained as history.
+
 Date:2026-11-02. Branch:`verification/recipio-v28-a2`.
 Result: **BLOCKED — ANDROID_ENVIRONMENT_LIMIT**. Signing/static inspection PASS;
 required isolated upgrade verification NOT_RUN. This is not release approval.

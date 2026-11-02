@@ -1,0 +1,23 @@
+{
+  "appId": {
+    "before": "10216",
+    "after": "10216"
+  },
+  "firstInstallTime": {
+    "before": "2026-11-02 05:47:30",
+    "after": "2026-11-02 05:47:30"
+  },
+  "lastUpdateTime": {
+    "before": "2026-11-02 05:47:30",
+    "after": "2026-11-02 05:57:39"
+  },
+  "versionCode": {
+    "before": "27 minSdk=24 targetSdk=36",
+    "after": "28 minSdk=24 targetSdk=36"
+  },
+  "versionName": {
+    "before": "0.11.0-personal.2",
+    "after": "0.11.1-personal.1"
+  },
+  "normalInPlaceUpgrade": "PASS"
+}

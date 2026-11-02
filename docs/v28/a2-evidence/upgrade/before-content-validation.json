@@ -1,0 +1,132 @@
+{
+  "status": "PASS_BEFORE_EXPORT_CONTENT",
+  "checkedAtUtc": "2026-11-02T05:57:56.202339+00:00",
+  "beforeArtifact": {
+    "path": "E:\\CODEX\\Tools\\recipio-v28-a2-20261102\\android-upgrade\\before-v27.recipio",
+    "bytes": 2961,
+    "sha256": "5aa88e3b092d044bae7aa3506d9cbdb064397ad463e32e8a3c6c61e8e6be0bd9",
+    "notTheSeedArchive": true,
+    "zipCRC": "PASS",
+    "duplicateEntries": 0,
+    "entries": 5
+  },
+  "originEvidence": "Parent recorded normal v27 UI export; this checker read before-v27.recipio itself, not the generated fixture as before evidence. ZIP bytes alone do not cryptographically attest UI provenance.",
+  "manifest": {
+    "format": "recipio-backup",
+    "formatVersion": 2,
+    "databaseSchemaVersion": 4,
+    "appVersionName": "0.11.0-personal.2",
+    "appVersionCode": 27,
+    "createdAt": "2026-11-02T05:53:17.252Z",
+    "dataFile": {
+      "path": "data.json",
+      "size": 4819,
+      "sha256": "d43f1ab104ed1a103271266813e4fd929d9761804a92d379411f23bb0cb39836"
+    },
+    "counts": {
+      "recipes": 2,
+      "ingredients": 3,
+      "steps": 3,
+      "preparations": 2,
+      "keyTips": 2,
+      "changes": 1,
+      "cookingRecords": 1,
+      "media": 3
+    },
+    "allInternalSizeHashAndCountChecks": "PASS"
+  },
+  "collections": {
+    "recipes": {
+      "count": 2,
+      "allFieldsIdsTimestampsPositionsAndArrayOrderEqualToExpected": true
+    },
+    "ingredients": {
+      "count": 3,
+      "allFieldsIdsTimestampsPositionsAndArrayOrderEqualToExpected": true
+    },
+    "steps": {
+      "count": 3,
+      "allFieldsIdsTimestampsPositionsAndArrayOrderEqualToExpected": true
+    },
+    "preparations": {
+      "count": 2,
+      "allFieldsIdsTimestampsPositionsAndArrayOrderEqualToExpected": true
+    },
+    "keyTips": {
+      "count": 2,
+      "allFieldsIdsTimestampsPositionsAndArrayOrderEqualToExpected": true
+    },
+    "changes": {
+      "count": 1,
+      "allFieldsIdsTimestampsPositionsAndArrayOrderEqualToExpected": true
+    },
+    "cookingRecords": {
+      "count": 1,
+      "allFieldsIdsTimestampsPositionsAndArrayOrderEqualToExpected": true
+    }
+  },
+  "settingsEqual": true,
+  "strictParsedContentEqualityToSeedAndExpected": true,
+  "canonicalDataSha256": "d7ed2999e2d83f4dc18730517808676cc186afbfc8b1befb4ce6d10d70daaeb8",
+  "mediaChecks": [
+    {
+      "assetId": "26e702e7909cb0f5707584554c4e6b816d94179ee925d39592866466243bf7e1",
+      "path": "media/26e702e7909cb0f5707584554c4e6b816d94179ee925d39592866466243bf7e1.png",
+      "bytes": 181,
+      "sha256": "26e702e7909cb0f5707584554c4e6b816d94179ee925d39592866466243bf7e1",
+      "manifestSizeAndHash": "PASS",
+      "byteIdenticalToSeed": "PASS",
+      "pngChunkCRCAndPixelDecode": "PASS",
+      "width": 64,
+      "height": 64
+    },
+    {
+      "assetId": "65c57e1accec7e5a1a4511f8a523bdc5611d20dcde66b53835728d579089d70b",
+      "path": "media/65c57e1accec7e5a1a4511f8a523bdc5611d20dcde66b53835728d579089d70b.png",
+      "bytes": 182,
+      "sha256": "65c57e1accec7e5a1a4511f8a523bdc5611d20dcde66b53835728d579089d70b",
+      "manifestSizeAndHash": "PASS",
+      "byteIdenticalToSeed": "PASS",
+      "pngChunkCRCAndPixelDecode": "PASS",
+      "width": 64,
+      "height": 64
+    },
+    {
+      "assetId": "84149814c27c727a0bbee6be9957b23a8a958198d6d07e1ffd0e11eb60cb1aa6",
+      "path": "media/84149814c27c727a0bbee6be9957b23a8a958198d6d07e1ffd0e11eb60cb1aa6.png",
+      "bytes": 183,
+      "sha256": "84149814c27c727a0bbee6be9957b23a8a958198d6d07e1ffd0e11eb60cb1aa6",
+      "manifestSizeAndHash": "PASS",
+      "byteIdenticalToSeed": "PASS",
+      "pngChunkCRCAndPixelDecode": "PASS",
+      "width": 64,
+      "height": 64
+    }
+  ],
+  "allMediaReferencesPresentNoUnreferencedMedia": "PASS",
+  "sharedCoverAndCookingPhotoReference": "PASS",
+  "historyOnlyMediaPreserved": "PASS",
+  "serializationDifference": {
+    "seedDataBytes": 4820,
+    "beforeDataBytes": 4819,
+    "seedDataSha256": "0025904d8ccbccf7b5aae9af9b20c225d3e36d3d3ce3de1ff7389ddb2b46a9b3",
+    "beforeDataSha256": "d43f1ab104ed1a103271266813e4fd929d9761804a92d379411f23bb0cb39836",
+    "dictionaryPropertyOrderChanged": true,
+    "seedTrailingNewline": true,
+    "beforeTrailingNewline": false,
+    "semanticDataDifference": false,
+    "collectionArrayOrderDifference": false,
+    "note": "JSON object property order and trailing newline are serialization differences; collection array order, positions, values, IDs and times are identical. Export manifest createdAt and ZIP metadata are expected to differ."
+  },
+  "limitations": {
+    "rawSqliteBytesAndPhysicalPaths": "NOT_CHECKED",
+    "theme": "OUTSIDE_BACKUP_V2; parent UI/cold-start screenshot evidence required; uiautomator checked=false is not a machine PASS",
+    "upgrade": "NOT_YET_CHECKED_BY_THIS_BEFORE_RECEIPT"
+  },
+  "actions": {
+    "adbCalls": 0,
+    "signingCalls": 0,
+    "realAiCalls": 0,
+    "productSourceChanges": 0
+  }
+}

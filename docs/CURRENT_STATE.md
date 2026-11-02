@@ -1,6 +1,6 @@
 # Current State
 
-## V28-A2 — BLOCKED / ANDROID_ENVIRONMENT_LIMIT — 2026-11-02
+## V28-A2 — READY_FOR_INDEPENDENT_REVIEW — 2026-11-02
 
 User accepted/froze A1 sourcecf80655/evidence07f9437 with notes, and authorized
 same-existing-key signing plus a new isolated synthetic-data upgrade test.
@@ -12,13 +12,25 @@ same v27 certificate5a3f7cb8…adc251d, app.recipio.local,code28,
 unchanged. APK15,194,675bytes, SHA-25652dfed4e…3d94b59b. No product/schema/version
 change, key generation, Codex password/key-content access or old launcher use.
 
-Free physical memory2.578GiB is below the4GiB admission gate. No ADB command,
-emulator creation/start, install or phone operation; isolated upgrade, business
-data/image/theme preservation and Android runtime checks remain NOT_RUN. The
-signed candidate is not yet approved for phone installation. Do not sign again.
-[Signed evidence](v28/V28_A2_SIGNED_VERIFICATION.md) and
-[checkpoint/safe resume](v28/V28_A2_CHECKPOINT.md). Await safe resources before
-continuing only the isolated synthetic-data v27→v28 verification.
+Later resource admission5.335GiB passed. On a new dedicated API36 AVD,
+actual signed v27 was seeded through normal Backup v2 restore UI, then v28
+installed with `install -r`, preserving appId/firstInstallTime. Actual before/
+after native exports have byte-identical data.json and all3 images: all7
+collections/IDs/UTC times/order preserved. Soft Sage survives cold start and
+upgrade. Offline search/IME Back/Focus/history, explicit edit persistence and
+the XHS intake entry/cancel passed controlled UI checks; real web/AI calls0.
+Post-smoke export confirms only the intentional title/update-time/history
+change, cooking count still1 and all3 media unchanged.
+
+Initial system ANRs preceded v27 installation; logs retained, one Wait recovery,
+no later ANR/crash events. UI-automation stale/empty-tree and checked-state
+limitations are retained, not represented as accessibility PASS. Raw SQLite
+file/paths, Xiaomi/OEM/TalkBack/performance/real XHS/AI remain NOT_RUN.
+Current unique APK moved with its directory to
+`E:/CODEX/RECIPIO-Signing/recipio-personal-release-v28/recipio-personal-v28.apk`;
+same bytes/hash/certificate rechecked. Dedicated AVD stopped gracefully with
+data preserved. No phone, key or product change; no new signing/password step.
+[A2 final handoff](v28/V28_A2_REVIEW.md). Await ChatGPT review; no release approval.
 
 ## V28-A1 — READY FOR INDEPENDENT REVIEW, unsigned build only — 2026-11-02
 

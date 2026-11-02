@@ -1,0 +1,14 @@
+{
+  "startedAt": "2026-11-02T13:43:12.1043239+08:00",
+  "freeGiBBeforeStart": 5.335,
+  "thresholdGiB": 4,
+  "pid": 13496,
+  "avdName": "Recipio_V28_A2_API36",
+  "serial": "emulator-5684",
+  "ramMiB": 2560,
+  "newDedicatedDataDirectory": true,
+  "v27Path": "E:\\CODEX\\RECIPIO-Signing\\recipio-personal-release-v27\\recipio-personal-v27.apk",
+  "v28Path": "E:\\CODEX\\RECIPIO-Signing\\recipio-personal-release-v28\\recipio-personal-v28.apk",
+  "bothApkHashesMatch": true,
+  "bothSignersMatch": true
+}

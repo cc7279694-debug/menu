@@ -1,0 +1,15 @@
+{
+  "at": "2026-11-02T13:57:41.094680+08:00",
+  "command": [
+    "E:\\CODEX\\Tools\\recipio-official-signing-sdk36\\platform-tools\\adb.exe",
+    "-s",
+    "emulator-5684",
+    "install",
+    "-r",
+    "E:\\CODEX\\RECIPIO-Signing\\recipio-personal-release-v28\\recipio-personal-v28.apk"
+  ],
+  "exitCode": 0,
+  "stdout": "Performing Streamed Install\nSuccess\n",
+  "stderr": "",
+  "uninstallOrDataClear": false
+}

@@ -1,0 +1,8 @@
+{
+  "theme": "soft-sage",
+  "afterProcessColdStart": true,
+  "method": "Actual screenshot visually inspected: Soft Sage selected and green page; accessibility dump checked attributes unreliable",
+  "screenshot": "v27-theme-before-upgrade.png",
+  "screenshotSha256": "df4ad4948d10fb62cd3cebe8027e5ef12d55ba4d8707e96f471291ff89d04dfb",
+  "initialCheckedAttributeAssertion": "FAILED_ALL_THREE_FALSE; not used as a theme PASS"
+}

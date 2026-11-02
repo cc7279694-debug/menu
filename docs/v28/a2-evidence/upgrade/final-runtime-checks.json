@@ -1,0 +1,19 @@
+{
+  "checkedAt": "2026-11-02T14:13:29.588080+08:00",
+  "installedBaseApkSha256": "52dfed4ef23afb5aa0dc6fb2b6089921af240993627aec9479ff69ea3d94b59b",
+  "sameAsSignedCandidate": true,
+  "package": "app.recipio.local",
+  "emulatorAvd": "Recipio_V28_A2_API36",
+  "api": 36,
+  "airplaneMode": "1",
+  "initialSystemAnrCount": 5,
+  "allInitialSystemAnrsBeforeV27Install": true,
+  "newAnrsAfterInitialBoot": 0,
+  "appAnrEventsObserved": 0,
+  "appCrashEventsObserved": 0,
+  "crashBufferEmpty": true,
+  "rootUsed": false,
+  "rawDatabaseFilesRead": false,
+  "phoneOperations": 0,
+  "realAiCalls": 0
+}

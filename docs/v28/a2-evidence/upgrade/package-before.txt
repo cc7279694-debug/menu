@@ -1,0 +1,212 @@
+Activity Resolver Table:
+  Full MIME Types:
+      text/plain:
+        907e9f app.recipio.local/.MainActivity filter 9e9abb5
+          Action: "android.intent.action.SEND"
+          Category: "android.intent.category.DEFAULT"
+          StaticType: "text/plain"
+      image/*:
+        907e9f app.recipio.local/.MainActivity filter dcd724a
+          Action: "android.intent.action.SEND"
+          Action: "android.intent.action.SEND_MULTIPLE"
+          Category: "android.intent.category.DEFAULT"
+          StaticType: "image"
+          mPriority=0, mOrder=0, mHasStaticPartialTypes=true, mHasDynamicPartialTypes=false
+
+  Base MIME Types:
+      text:
+        907e9f app.recipio.local/.MainActivity filter 9e9abb5
+          Action: "android.intent.action.SEND"
+          Category: "android.intent.category.DEFAULT"
+          StaticType: "text/plain"
+
+  Wild MIME Types:
+      image:
+        907e9f app.recipio.local/.MainActivity filter dcd724a
+          Action: "android.intent.action.SEND"
+          Action: "android.intent.action.SEND_MULTIPLE"
+          Category: "android.intent.category.DEFAULT"
+          StaticType: "image"
+          mPriority=0, mOrder=0, mHasStaticPartialTypes=true, mHasDynamicPartialTypes=false
+
+  Non-Data Actions:
+      android.intent.action.MAIN:
+        907e9f app.recipio.local/.MainActivity filter 2148bec
+          Action: "android.intent.action.MAIN"
+          Category: "android.intent.category.LAUNCHER"
+
+  MIME Typed Actions:
+      android.intent.action.SEND:
+        907e9f app.recipio.local/.MainActivity filter 9e9abb5
+          Action: "android.intent.action.SEND"
+          Category: "android.intent.category.DEFAULT"
+          StaticType: "text/plain"
+        907e9f app.recipio.local/.MainActivity filter dcd724a
+          Action: "android.intent.action.SEND"
+          Action: "android.intent.action.SEND_MULTIPLE"
+          Category: "android.intent.category.DEFAULT"
+          StaticType: "image"
+          mPriority=0, mOrder=0, mHasStaticPartialTypes=true, mHasDynamicPartialTypes=false
+      android.intent.action.SEND_MULTIPLE:
+        907e9f app.recipio.local/.MainActivity filter dcd724a
+          Action: "android.intent.action.SEND"
+          Action: "android.intent.action.SEND_MULTIPLE"
+          Category: "android.intent.category.DEFAULT"
+          StaticType: "image"
+          mPriority=0, mOrder=0, mHasStaticPartialTypes=true, mHasDynamicPartialTypes=false
+
+Receiver Resolver Table:
+  Non-Data Actions:
+      androidx.profileinstaller.action.SAVE_PROFILE:
+        88865bb app.recipio.local/androidx.profileinstaller.ProfileInstallReceiver filter 6786916
+          Action: "androidx.profileinstaller.action.SAVE_PROFILE"
+      androidx.profileinstaller.action.INSTALL_PROFILE:
+        88865bb app.recipio.local/androidx.profileinstaller.ProfileInstallReceiver filter ab47ad8
+          Action: "androidx.profileinstaller.action.INSTALL_PROFILE"
+      androidx.profileinstaller.action.SKIP_FILE:
+        88865bb app.recipio.local/androidx.profileinstaller.ProfileInstallReceiver filter 7564e31
+          Action: "androidx.profileinstaller.action.SKIP_FILE"
+      androidx.profileinstaller.action.BENCHMARK_OPERATION:
+        88865bb app.recipio.local/androidx.profileinstaller.ProfileInstallReceiver filter e4da297
+          Action: "androidx.profileinstaller.action.BENCHMARK_OPERATION"
+
+Domain verification status:
+
+Permissions:
+  Permission [app.recipio.local.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION] (e1b66f1):
+    sourcePackage=app.recipio.local
+    uid=10216 gids=[] type=0 prot=signature
+    perm=PermissionInfo{36c93e5 app.recipio.local.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION}
+    flags=0x0
+
+Registered ContentProviders:
+  app.recipio.local/androidx.startup.InitializationProvider:
+    Provider{47dd336 app.recipio.local/androidx.startup.InitializationProvider}
+  app.recipio.local/androidx.core.content.FileProvider:
+    Provider{1b19237 app.recipio.local/androidx.core.content.FileProvider}
+
+ContentProvider Authorities:
+  [app.recipio.local.fileprovider]:
+    Provider{1b19237 app.recipio.local/androidx.core.content.FileProvider}
+      applicationInfo=ApplicationInfo{a6e72d6 app.recipio.local}
+  [app.recipio.local.androidx-startup]:
+    Provider{47dd336 app.recipio.local/androidx.startup.InitializationProvider}
+      applicationInfo=ApplicationInfo{f884957 app.recipio.local}
+
+Key Set Manager:
+  [app.recipio.local]
+      Signing KeySets: 61
+
+Packages:
+  Package [app.recipio.local] (95d199):
+    appId=10216
+    pkg=Package{6456b7d app.recipio.local}
+    codePath=/data/app/~~j5UkoJVz08yGwzAjFtY2XA==/app.recipio.local-_kzRbfU4RM9aHl1fkJz5Tw==
+    resourcePath=/data/app/~~j5UkoJVz08yGwzAjFtY2XA==/app.recipio.local-_kzRbfU4RM9aHl1fkJz5Tw==
+    legacyNativeLibraryDir=/data/app/~~j5UkoJVz08yGwzAjFtY2XA==/app.recipio.local-_kzRbfU4RM9aHl1fkJz5Tw==/lib
+    extractNativeLibs=false
+    primaryCpuAbi=x86_64
+    secondaryCpuAbi=null
+    cpuAbiOverride=null
+    versionCode=27 minSdk=24 targetSdk=36
+    minExtensionVersions=[]
+    versionName=0.11.0-personal.2
+    hiddenApiEnforcementPolicy=2
+    usesNonSdkApi=false
+    splits=[base]
+    apkSigningVersion=3
+    flags=[ HAS_CODE ALLOW_CLEAR_USER_DATA ]
+    privateFlags=[ PRIVATE_FLAG_ACTIVITIES_RESIZE_MODE_RESIZEABLE_VIA_SDK_VERSION ALLOW_AUDIO_PLAYBACK_CAPTURE PARTIALLY_DIRECT_BOOT_AWARE PRIVATE_FLAG_ALLOW_NATIVE_HEAP_POINTER_TAGGING ]
+    forceQueryable=false
+    pageSizeCompat=0
+    scannedAsStoppedSystemApp=false
+    supportsScreens=[small, medium, large, xlarge, resizeable, anyDensity]
+    timeStamp=2026-11-02 05:47:30
+    lastUpdateTime=2026-11-02 05:47:30
+    installerPackageName=null
+    installerPackageUid=-1
+    initiatingPackageName=com.android.shell
+    originatingPackageName=null
+    packageSource=1
+    appMetadataFilePath=null
+    appMetadataSource=0
+    signatures=PackageSignatures{1fd0a72 version:3, signatures:[b4c184ca], past signatures:[]}
+    installPermissionsFixed=false
+    pkgFlags=[ HAS_CODE ALLOW_CLEAR_USER_DATA ]
+    privatePkgFlags=[ PRIVATE_FLAG_ACTIVITIES_RESIZE_MODE_RESIZEABLE_VIA_SDK_VERSION ALLOW_AUDIO_PLAYBACK_CAPTURE PARTIALLY_DIRECT_BOOT_AWARE PRIVATE_FLAG_ALLOW_NATIVE_HEAP_POINTER_TAGGING ]
+    apexModuleName=null
+    declared permissions:
+      app.recipio.local.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION: prot=signature
+    requested permissions:
+      android.permission.INTERNET
+      android.permission.USE_FINGERPRINT
+      app.recipio.local.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION
+      android.permission.USE_BIOMETRIC
+    install permissions:
+      android.permission.INTERNET: granted=true
+      android.permission.USE_FINGERPRINT: granted=true
+      app.recipio.local.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION: granted=true
+      android.permission.USE_BIOMETRIC: granted=true
+    User 0: ceDataInode=352708 deDataInode=65954 installed=true hidden=false suspended=false distractionFlags=0 stopped=false notLaunched=false enabled=0 instant=false virtual=false quarantined=false
+      installReason=0
+      dataDir=/data/user/0/app.recipio.local
+      firstInstallTime=2026-11-02 05:47:30
+      uninstallReason=0
+      overlay paths:
+        /product/overlay/NavigationBarModeGestural/NavigationBarModeGesturalOverlay.apk
+        /data/resource-cache/com.android.systemui-neutral-jmyR.frro
+        /data/resource-cache/com.android.systemui-accent-2ql7.frro
+        /data/resource-cache/com.android.systemui-dynamic-6tte.frro
+      legacy overlay paths:
+        /product/overlay/NavigationBarModeGestural/NavigationBarModeGesturalOverlay.apk
+      gids=[3003]
+      runtime permissions:
+
+Queries:
+  system apps queryable: false
+  queries via forceQueryable:
+  queries via package name:
+  queries via component:
+    com.google.android.settings.intelligence:
+      app.recipio.local
+    com.google.android.as:
+      app.recipio.local
+    com.google.android.apps.accessibility.voiceaccess:
+      app.recipio.local
+    com.google.android.apps.youtube.music:
+      app.recipio.local
+    com.google.android.youtube:
+      app.recipio.local
+    com.google.android.apps.maps:
+      app.recipio.local
+    com.google.android.apps.photos:
+      app.recipio.local
+  queryable via interaction:
+    User 0:
+      [com.android.localtransport,com.android.settings,com.android.dynsystem,com.android.providers.settings,com.android.keychain,com.android.DeviceAsWebcam,android,com.android.server.telecom,com.android.location.fused,com.android.emulator.multidisplay,com.android.inputdevices]:
+        app.recipio.local
+      com.google.android.documentsui:
+        app.recipio.local
+      [com.android.soundpicker,com.android.providers.downloads,com.android.providers.media,com.android.providers.downloads.ui,com.android.mtp]:
+        app.recipio.local
+      com.google.android.gms:
+        app.recipio.local
+      com.google.android.inputmethod.latin:
+        app.recipio.local
+      com.google.android.webview:
+        app.recipio.local
+      app.recipio.local:
+        com.google.android.webview
+      app.recipio.local:
+        [com.android.soundpicker,com.android.providers.downloads,com.android.providers.media,com.android.providers.downloads.ui,com.android.mtp]
+  queryable via uses-library:
+
+Dexopt state:
+  [app.recipio.local]
+    path: /data/app/~~j5UkoJVz08yGwzAjFtY2XA==/app.recipio.local-_kzRbfU4RM9aHl1fkJz5Tw==/base.apk
+      x86_64: [status=verify] [reason=install] [primary-abi]
+        [location is /data/app/~~j5UkoJVz08yGwzAjFtY2XA==/app.recipio.local-_kzRbfU4RM9aHl1fkJz5Tw==/oat/x86_64/base.odex]
+
+Compiler stats:
+  [app.recipio.local]
+     base.apk - 2967

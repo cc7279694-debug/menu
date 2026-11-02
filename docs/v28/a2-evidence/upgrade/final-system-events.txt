@@ -1,0 +1,6 @@
+--------- beginning of events
+11-02 05:47:01.553   702  1799 I am_anr  : [0,1318,com.android.phone,952647245,Broadcast of Intent { act=android.safetycenter.action.REFRESH_SAFETY_SOURCES flg=0x10000010 xflg=0x4 pkg=com.android.phone cmp=com.android.phone/.security.SafetySourceReceiver (has extras) }]
+11-02 05:47:08.259   702  1991 I am_anr  : [0,1129,com.android.systemui,550026765,executing service com.android.systemui/.keyguard.KeyguardService, waited 20168ms]
+11-02 05:47:13.088   702  1991 I am_anr  : [0,1479,com.google.android.gms.persistent,-1597325755,Process ProcessRecord{276c712 1479:com.google.android.gms.persistent/u0a144} failed to complete startup]
+11-02 05:47:15.315   702  1991 I am_anr  : [0,1518,com.google.android.inputmethod.latin,550157893,Process ProcessRecord{e116cc9 1518:com.google.android.inputmethod.latin/u0a153} failed to complete startup]
+11-02 05:47:17.816   702  2175 I am_anr  : [0,1784,com.google.android.gms,-1597325755,Process ProcessRecord{be23634 1784:com.google.android.gms/u0a144} failed to complete startup]
