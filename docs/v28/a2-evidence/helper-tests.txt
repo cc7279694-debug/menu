@@ -1,0 +1,87 @@
+V28-A2 helper only; no real key generation or signing. Source files under scripts/v28-a2-signing.
+Command: python -m unittest discover -s scripts/v28-a2-signing -p test_sign_existing.py
+RED expected exit1, helper absent (assertion failures):
+FFFFFFFFF
+======================================================================
+FAIL: test_changed_payload_never_publishes (test_sign_existing.SameIdentitySigningTests.test_changed_payload_never_publishes)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "<repo>\scripts\v28-a2-signing\test_sign_existing.py", line 18, in setUp
+    self.assertIsNotNone(signing, 'The existing-identity-only helper is not implemented')
+AssertionError: unexpectedly None : The existing-identity-only helper is not implemented
+
+======================================================================
+FAIL: test_changed_unsigned_stops_before_signing (test_sign_existing.SameIdentitySigningTests.test_changed_unsigned_stops_before_signing)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "<repo>\scripts\v28-a2-signing\test_sign_existing.py", line 18, in setUp
+    self.assertIsNotNone(signing, 'The existing-identity-only helper is not implemented')
+AssertionError: unexpectedly None : The existing-identity-only helper is not implemented
+
+======================================================================
+FAIL: test_existing_delivery_is_preserved (test_sign_existing.SameIdentitySigningTests.test_existing_delivery_is_preserved)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "<repo>\scripts\v28-a2-signing\test_sign_existing.py", line 18, in setUp
+    self.assertIsNotNone(signing, 'The existing-identity-only helper is not implemented')
+AssertionError: unexpectedly None : The existing-identity-only helper is not implemented
+
+======================================================================
+FAIL: test_newline_password_stops_without_tool_calls (test_sign_existing.SameIdentitySigningTests.test_newline_password_stops_without_tool_calls)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "<repo>\scripts\v28-a2-signing\test_sign_existing.py", line 18, in setUp
+    self.assertIsNotNone(signing, 'The existing-identity-only helper is not implemented')
+AssertionError: unexpectedly None : The existing-identity-only helper is not implemented
+
+======================================================================
+FAIL: test_password_is_only_in_child_stdin_and_never_persisted (test_sign_existing.SameIdentitySigningTests.test_password_is_only_in_child_stdin_and_never_persisted)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "<repo>\scripts\v28-a2-signing\test_sign_existing.py", line 18, in setUp
+    self.assertIsNotNone(signing, 'The existing-identity-only helper is not implemented')
+AssertionError: unexpectedly None : The existing-identity-only helper is not implemented
+
+======================================================================
+FAIL: test_success_publishes_one_candidate_and_public_receipt_with_unchanged_input (test_sign_existing.SameIdentitySigningTests.test_success_publishes_one_candidate_and_public_receipt_with_unchanged_input)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "<repo>\scripts\v28-a2-signing\test_sign_existing.py", line 18, in setUp
+    self.assertIsNotNone(signing, 'The existing-identity-only helper is not implemented')
+AssertionError: unexpectedly None : The existing-identity-only helper is not implemented
+
+======================================================================
+FAIL: test_tool_failure_cannot_expose_password_in_error_or_output (test_sign_existing.SameIdentitySigningTests.test_tool_failure_cannot_expose_password_in_error_or_output)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "<repo>\scripts\v28-a2-signing\test_sign_existing.py", line 18, in setUp
+    self.assertIsNotNone(signing, 'The existing-identity-only helper is not implemented')
+AssertionError: unexpectedly None : The existing-identity-only helper is not implemented
+
+======================================================================
+FAIL: test_wrong_certificate_never_publishes (test_sign_existing.SameIdentitySigningTests.test_wrong_certificate_never_publishes)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "<repo>\scripts\v28-a2-signing\test_sign_existing.py", line 18, in setUp
+    self.assertIsNotNone(signing, 'The existing-identity-only helper is not implemented')
+AssertionError: unexpectedly None : The existing-identity-only helper is not implemented
+
+======================================================================
+FAIL: test_wrong_version_stops_before_signing (test_sign_existing.SameIdentitySigningTests.test_wrong_version_stops_before_signing)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "<repo>\scripts\v28-a2-signing\test_sign_existing.py", line 18, in setUp
+    self.assertIsNotNone(signing, 'The existing-identity-only helper is not implemented')
+AssertionError: unexpectedly None : The existing-identity-only helper is not implemented
+
+----------------------------------------------------------------------
+Ran 9 tests in 0.006s
+
+FAILED (failures=9)
+
+GREEN exit0,9 Fake tool/fixture cases:
+.........
+----------------------------------------------------------------------
+Ran 9 tests in 0.880s
+
+OK

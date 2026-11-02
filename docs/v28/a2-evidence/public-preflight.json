@@ -1,0 +1,11 @@
+{
+  "status": "PUBLIC_PREFLIGHT_PASS",
+  "unsignedSha256": "e8969bd0d18af8c34fe8472d8bd96d162b51216a8fc1a15ef8f8c5c5d9837e6a",
+  "package": "app.recipio.local",
+  "versionCode": 28,
+  "versionName": "0.11.1-personal.1",
+  "v27CertificateSha256": "5a3f7cb866cdc15d0357e03a49d611204bd2df763c71a3e005656e416adc251d",
+  "privateKeyContentReadByCodex": false,
+  "passwordRequested": false,
+  "signedCandidateCreated": false
+}

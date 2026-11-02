@@ -1,6 +1,23 @@
 # Current State
 
+## V28-A2 — BLOCKED / OWNER_ACTION_REQUIRED — 2026-11-02
+
+User accepted/froze A1 sourcecf80655/evidence07f9437 with notes, and authorized
+same-existing-key signing plus a new isolated synthetic-data upgrade test.
+On `verification/recipio-v28-a2`, frozen unsigned hash/package/version and actual
+v27 public certificate reverified PASS. A minimal existing-identity-only helper
+and9 Fake tests are prepared; no business/schema/version change, old launcher
+execution, key generation, password capture, signing or installation by Codex.
+
+Owner must privately enter the existing v27 key password once in the new helper.
+There is not yet a signed v28 candidate, actual v28 signer/hash or upgrade proof.
+Current emulator memory admission is below4GiB, so no AVD/device operation.
+All signature/runtime/upgrade/data-preservation checks remain NOT_RUN until
+their gates actually pass. [A2 checkpoint and safe resume](v28/V28_A2_CHECKPOINT.md).
+
 ## V28-A1 — READY FOR INDEPENDENT REVIEW, unsigned build only — 2026-11-02
+
+Historical handoff below; user-confirmed A1 acceptance is the frozen A2 input.
 
 On isolated `integration/recipio-v28-a1`, source
 `cf806554ac38346644613dd8b3bf700aeb48b14f` inherits fixed main19bb5c9,
