@@ -1,0 +1,7 @@
+{
+  "tool": "Android SDK 36 zipalign",
+  "arguments": "-c -P 16 4",
+  "target": "E:\\RECIPIO-Signing\\recipio-personal-release-v28\\recipio-personal-v28.apk",
+  "exitCode": 0,
+  "verifiedAt": "2026-11-02T10:54:07.0466068+08:00"
+}

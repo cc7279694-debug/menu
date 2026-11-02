@@ -1,0 +1,4 @@
+Signer #1 certificate DN: CN=RECIPIO Personal, O=Personal, C=CN
+Signer #1 certificate SHA-256 digest: 5a3f7cb866cdc15d0357e03a49d611204bd2df763c71a3e005656e416adc251d
+Signer #1 certificate SHA-1 digest: 2105271beab1900608fe50d17543642c6587d01e
+Signer #1 certificate MD5 digest: cc02a2159dc78c1aa2f27942361da10e

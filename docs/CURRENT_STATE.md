@@ -1,19 +1,24 @@
 # Current State
 
-## V28-A2 — BLOCKED / OWNER_ACTION_REQUIRED — 2026-11-02
+## V28-A2 — BLOCKED / ANDROID_ENVIRONMENT_LIMIT — 2026-11-02
 
 User accepted/froze A1 sourcecf80655/evidence07f9437 with notes, and authorized
 same-existing-key signing plus a new isolated synthetic-data upgrade test.
 On `verification/recipio-v28-a2`, frozen unsigned hash/package/version and actual
-v27 public certificate reverified PASS. A minimal existing-identity-only helper
-and9 Fake tests are prepared; no business/schema/version change, old launcher
-execution, key generation, password capture, signing or installation by Codex.
+v27 public certificate reverified PASS. Owner completed private signing with
+the existing v27 identity. Actual signed v28 verification PASS: apksigner v2/v3,
+same v27 certificate5a3f7cb8…adc251d, app.recipio.local,code28,
+0.11.1-personal.1, non-debug/non-testOnly, zipalign and all483 original payloads
+unchanged. APK15,194,675bytes, SHA-25652dfed4e…3d94b59b. No product/schema/version
+change, key generation, Codex password/key-content access or old launcher use.
 
-Owner must privately enter the existing v27 key password once in the new helper.
-There is not yet a signed v28 candidate, actual v28 signer/hash or upgrade proof.
-Current emulator memory admission is below4GiB, so no AVD/device operation.
-All signature/runtime/upgrade/data-preservation checks remain NOT_RUN until
-their gates actually pass. [A2 checkpoint and safe resume](v28/V28_A2_CHECKPOINT.md).
+Free physical memory2.578GiB is below the4GiB admission gate. No ADB command,
+emulator creation/start, install or phone operation; isolated upgrade, business
+data/image/theme preservation and Android runtime checks remain NOT_RUN. The
+signed candidate is not yet approved for phone installation. Do not sign again.
+[Signed evidence](v28/V28_A2_SIGNED_VERIFICATION.md) and
+[checkpoint/safe resume](v28/V28_A2_CHECKPOINT.md). Await safe resources before
+continuing only the isolated synthetic-data v27→v28 verification.
 
 ## V28-A1 — READY FOR INDEPENDENT REVIEW, unsigned build only — 2026-11-02
 

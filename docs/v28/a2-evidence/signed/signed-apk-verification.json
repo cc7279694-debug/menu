@@ -1,0 +1,32 @@
+{
+  "status": "SIGNED_APK_STATIC_VERIFIED",
+  "source": "cf806554ac38346644613dd8b3bf700aeb48b14f",
+  "a1Evidence": "07f9437377df96687b7545d88f16fa6fdff872b6",
+  "apk": "E:\\RECIPIO-Signing\\recipio-personal-release-v28\\recipio-personal-v28.apk",
+  "bytes": 15194675,
+  "sha256": "52dfed4ef23afb5aa0dc6fb2b6089921af240993627aec9479ff69ea3d94b59b",
+  "certificateSha256": "5a3f7cb866cdc15d0357e03a49d611204bd2df763c71a3e005656e416adc251d",
+  "sameSignerAsActualV27": true,
+  "package": "app.recipio.local",
+  "versionCode": 28,
+  "versionName": "0.11.1-personal.1",
+  "debuggable": false,
+  "testOnly": false,
+  "officialApksigner": "PASS_V2_V3",
+  "officialZipalign": "PASS",
+  "originalZipEntries": 483,
+  "signedZipEntries": 486,
+  "allOriginalPayloadBytesUnchanged": true,
+  "additionalEntries": [
+    "META-INF/MANIFEST.MF",
+    "META-INF/RECIPIO-.RSA",
+    "META-INF/RECIPIO-.SF"
+  ],
+  "v27ApkHashUnchanged": true,
+  "ownerReceiptMatchesRealFile": true,
+  "privatePasswordOrKeyReadByCodex": false,
+  "upgradeInstall": "NOT_RUN",
+  "upgradeDataRetention": "NOT_RUN",
+  "physicalPhone": "NOT_RUN",
+  "realAiCalls": 0
+}
