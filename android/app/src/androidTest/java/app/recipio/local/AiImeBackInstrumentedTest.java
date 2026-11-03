@@ -426,11 +426,22 @@ public class AiImeBackInstrumentedTest {
         // local schema/review and SQLite saving remain real installed app paths.
         js("(()=>{const c=window.Capacitor,o=c.nativePromise;c.nativePromise=function(...a){if(a[0]==='LocalWebImport'&&a[1]==='read')return Promise.resolve({finalUrl:'https://www.xiaohongshu.com/explore/n1-synthetic?source=not-for-ai',contentType:'text/html',html:'<title>N1 来源提示</title>'});return Reflect.apply(o,this,a)};return true})()");
         click("新增菜谱");click("从网页链接导入");
+        until("!!document.querySelector('input[type=url]')");
         js("(()=>{const e=document.querySelector('input[type=url]');Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,'value').set.call(e,'https://xhslink.cn/o/n1-synthetic');e.dispatchEvent(new Event('input',{bubbles:true}));return true})()");
         click("读取网页");click("添加菜谱截图并用 AI 整理");until("!!document.querySelector('.v2-ai-intake')");
         assertEquals("",js("document.querySelector('textarea').value"));assertEquals(0,posts.get());
     }
     private void n1Capture(String name)throws Exception {
+        if(!name.equals("picker-open")){
+            String target=name.equals("review-unconfirmed")?"input[type=checkbox]":name.equals("multi-preview")?"img[alt=\"截图 2\"]":"img[alt=\"截图 1\"]";
+            js("document.querySelector('"+target+"')?.scrollIntoView({block:'center'})");
+            CountDownLatch presented=new CountDownLatch(1);
+            instrumentation.runOnMainSync(()->web.postVisualStateCallback(android.os.SystemClock.uptimeMillis(),new WebView.VisualStateCallback(){
+                @Override public void onComplete(long requestId){web.postOnAnimation(()->web.postOnAnimation(presented::countDown));}
+            }));
+            assertTrue("WebView visual state did not reach a rendered frame",presented.await(8,TimeUnit.SECONDS));
+        }
+        instrumentation.waitForIdleSync();
         File directory=new File(instrumentation.getTargetContext().getExternalFilesDir(null),"xhs-r2-n1-ui");assertTrue(directory.isDirectory()||directory.mkdirs());
         File file=new File(directory,name+"-"+UUID.randomUUID()+".png");Bitmap screenshot=instrumentation.getUiAutomation().takeScreenshot();assertNotNull(screenshot);
         try(OutputStream output=new FileOutputStream(file)){assertTrue(screenshot.compress(Bitmap.CompressFormat.PNG,100,output));}finally{screenshot.recycle();}
@@ -461,7 +472,10 @@ public class AiImeBackInstrumentedTest {
         n1Capture("review-unconfirmed");
         assertEquals("true",js("[...document.querySelectorAll('button')].filter(b=>b.textContent.trim()==='确认保存菜谱').every(b=>b.disabled)"));
         js("document.querySelector('form').dispatchEvent(new Event('submit',{bubbles:true,cancelable:true}))");until("document.body.innerText.includes('检查整理结果')");
-        js("document.querySelector('input[type=checkbox]').click()");click("确认保存菜谱");until("!document.body.innerText.includes('检查整理结果')");
+        js("document.querySelector('input[type=checkbox]').click()");click("确认保存菜谱");
+        until("document.querySelector('[role=dialog]')?.innerText.includes('已存在同名菜谱')||!document.body.innerText.includes('检查整理结果')");
+        if("true".equals(js("!!document.querySelector('[role=dialog]')?.innerText.includes('已存在同名菜谱')")))click("仍然新建菜谱");
+        until("!document.body.innerText.includes('检查整理结果')");
         until("[...document.querySelectorAll('h1,h2')].some(e=>e.textContent.trim()==='APK4 IME GENERATED 中文 🍚')");
         assertEquals("true",js("document.body.innerText.includes('先焯水')"));
         assertEquals(1,posts.get());
