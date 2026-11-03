@@ -21,6 +21,63 @@ const setup = () => {
   const service = new LinkImportService({ store, port, ai }); return { store, fake, ai, port, service };
 };
 afterEach(__resetLocalDatabaseForTests);
+it("XHS-R2 distinguishes absent public state from an unsupported serialization shape", async () => {
+  const { service, port, fake } = setup();
+  port.read.mockResolvedValue({ ...fetched(), finalUrl: "https://www.xiaohongshu.com/explore/synthetic", html: "<title>合成菜</title>" });
+  await service.read("https://xhslink.cn/o/synthetic");
+  expect(service.snapshot().parsed?.warnings.join(" ")).toContain("未找到可读取的公开笔记状态");
+  port.read.mockResolvedValue({ ...fetched(), finalUrl: "https://www.xiaohongshu.com/explore/synthetic", html: '<title>合成菜</title><script>window.__INITIAL_STATE__={"unknown":{}}</script>' });
+  await service.read();
+  expect(service.snapshot().parsed?.warnings.join(" ")).toContain("公开状态格式暂不支持");
+  expect(fake.bridge.organize).not.toHaveBeenCalled();
+});
+it("XHS-R2 screenshot intake keeps title as UI hint, sends only chosen inputs and retains review/save cleanup", async () => {
+  const { service, port, fake, ai, store } = setup();
+  port.read.mockResolvedValue({ ...fetched(), html: "<title>合成长图菜</title>" });
+  await service.read("https://recipes.example/dish?source=synthetic");
+  await service.beginScreenshotIntake();
+  expect(service.snapshot().phase).toBe("screenshot-input");
+  expect(service.snapshot().visible?.title).toBe("合成长图菜");
+  expect(ai.snapshot().input.text).toBe("");
+  expect(fake.bridge.organize).not.toHaveBeenCalled();
+  await ai.pickImage();
+  await ai.organize(ai.snapshot().input);
+  service.showScreenshotPreview();
+  expect(service.snapshot().phase).toBe("ai-preview");
+  const request = vi.mocked(ai.bridge.organize).mock.calls[0][0];
+  expect(request).toMatchObject({ text: "", imageIds: ai.snapshot().input.imageIds });
+  expect(JSON.stringify(request)).not.toMatch(/合成长图菜|recipes\.example|source=synthetic/u);
+  await expect(service.saveAi(ai.snapshot().draft!.recipe)).rejects.toMatchObject({ code: "review_required" });
+  ai.setConfirmed(true);
+  await service.saveAi(ai.snapshot().draft!.recipe);
+  expect(await store.list()).toHaveLength(1);
+  expect(ai.snapshot().images).toEqual([]);
+  expect(fake.bridge.discardSession).toHaveBeenCalled();
+});
+it("XHS-R2 cancelled screenshot input cleans its session and returns to original title-only result", async () => {
+  const { service, port, fake, ai } = setup();
+  port.read.mockResolvedValue({ ...fetched(), html: "<title>合成长图菜</title>" });
+  await service.read("https://recipes.example/dish");
+  await service.beginScreenshotIntake();
+  await ai.pickImage(); await ai.discard(); service.returnToResults();
+  expect(service.readQuality()).toBe("title_only");
+  expect(service.snapshot().visible?.title).toBe("合成长图菜");
+  expect(ai.snapshot().images).toEqual([]);
+  expect(fake.bridge.organize).not.toHaveBeenCalled();
+});
+it("XHS-R2 repeated screenshot entry and abandonment cannot start duplicate sessions or resurrect stale content", async () => {
+  const { service, port, fake, ai } = setup();
+  port.read.mockResolvedValue({ ...fetched(), html: "<title>合成长图菜</title>" });
+  await service.read("https://recipes.example/dish");
+  const session = deferred<{ operationId: string }>(); fake.bridge.createSession.mockReturnValueOnce(session.promise);
+  const opening = service.beginScreenshotIntake().catch(error => error);
+  await expect(service.beginScreenshotIntake()).rejects.toMatchObject({ code: "busy" });
+  await Promise.resolve(); await Promise.resolve();
+  await service.discard(); session.resolve({ operationId: crypto.randomUUID() });
+  expect(await opening).toMatchObject({ code: "stale_session" });
+  expect(service.snapshot().phase).toBe("input"); expect(ai.snapshot().images).toEqual([]);
+  expect(fake.bridge.organize).not.toHaveBeenCalled();
+});
 it.each(["absent", "mismatched", "resolved"])("BLOCKING-01: excludes unrelated XHS JSON-LD with %s target state", async status => {
   const { service, port, fake, store } = setup();
   const unrelated = { "@type": "Recipe", name: "推荐红烧肉", url: "https://www.xiaohongshu.com/explore/other", recipeIngredient: ["五花肉500克"], recipeInstructions: ["焯水后炖熟。"] };

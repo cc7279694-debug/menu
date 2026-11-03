@@ -5,11 +5,12 @@ import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogTitle } from "@/components/ui/dialog";
 import { RecipeEditor } from "../recipe-editor";
 import { AiPreview } from "../ai/preview";
+import { AiIntakeScreen } from "../ai/intake-screen";
 import type { RecipeDetails, RecipeDetailsInput } from "../recipe-model";
 import type { LinkImportService } from "./service";
 import { useV2DialogAppearance } from "../ui-v2/appearance";
 import { useIntakeEditingSession, type IntakeEditingSession } from "../intake-review/editor-session";
-import { webIntakeSource, type IntakeSourceContext } from "../intake-review/source-context";
+import { aiInputSource, webIntakeSource, type IntakeSourceContext } from "../intake-review/source-context";
 import { buildIntakeQualityReport } from "../intake-review/quality";
 import { IntakeQualityPanel } from "../intake-review/review-panel";
 
@@ -69,7 +70,7 @@ export function LinkImportScreen({ service, active, onSaved, onCancel, onConfigu
   const destination = useRef<"back" | "ai" | "manual">("back"); const alive = useRef(true);
   useEffect(() => { alive.current = true; return () => { alive.current = false; }; }, []);
   const uncertain = state.phase === "uncertain" || aiState.phase === "uncertain" && state.phase === "ai-preview";
-  const busy = ["reading", "ai-requesting", "saving"].includes(state.phase) || leaving || aiState.phase === "saving";
+  const busy = ["reading", "preparing-images", "ai-requesting", "saving"].includes(state.phase) || leaving || aiState.phase === "saving";
   const selected = service.selected();
   const quality = service.readQuality();
   const parserEditing = useIntakeEditingSession(parserOpen ? selected : null, selected?.recipe);
@@ -79,9 +80,10 @@ export function LinkImportScreen({ service, active, onSaved, onCancel, onConfigu
   const currentParser = () => active && alive.current && !leaving && service.snapshot().phase === "ready" && service.snapshot().parsed === state.parsed && service.selected() === selected;
   const currentAi = () => active && alive.current && !leaving && service.snapshot().phase === "ai-preview" && service.snapshot().parsed === state.parsed && ai.snapshot().phase === "preview" && ai.snapshot().operationId === aiState.operationId && ai.snapshot().draft?.review === aiState.draft?.review;
   const parserSource = webIntakeSource(state, selected, null, currentParser);
-  const aiSource = webIntakeSource(state, selected, aiState.draft, currentAi);
+  const screenshots = state.aiInputKind === "screenshots";
+  const aiSource = screenshots ? aiInputSource(aiState, currentAi) : webIntakeSource(state, selected, aiState.draft, currentAi);
   useEffect(() => {
-    if (!active) return;
+    if (!active || state.phase === "screenshot-input") return;
     const back = (event: Event) => {
       if (event.defaultPrevented) return;
       if (uncertain || leaving || state.phase === "saving" || aiState.phase === "saving") { event.preventDefault(); return; }
@@ -106,9 +108,10 @@ export function LinkImportScreen({ service, active, onSaved, onCancel, onConfigu
     catch { setLocalError("仍无法核对保存结果，请稍后重试；不会重新创建菜谱。"); }
   }
   if (uncertain) return <section className="v2-task v2-link-intake"><header className="v2-task-header"><h2 className="v2-page-title">先核对保存结果</h2></header><p className="v2-task-note">为避免重复，新建已暂停；核对只读取原编号，不重新创建。</p>{localError && <p className="v2-task-status" role="alert">{localError}</p>}<div className="v2-task-actions"><Button onClick={() => void recover()}>核对保存结果</Button></div></section>;
+  if (state.phase === "screenshot-input") return <AiIntakeScreen service={ai} active={active} sourceHint={state.visible?.title.slice(0, 500)} onPreview={() => service.showScreenshotPreview()} onCancel={() => service.returnToResults()} onConfigureKey={onConfigureKey} />;
   if (state.phase === "ai-preview" && aiState.draft) return <>
     {(!aiState.draft.recipe.steps.length || !aiState.draft.recipe.ingredients.length) && <section className="v2-task v2-link-intake" role="status"><h2 className="v2-section-title">整理结果仍不完整</h2><p className="v2-task-note">{!aiState.draft.recipe.steps.length ? "本次整理结果没有制作步骤，请补充真实做法；不能从菜名或未读取的图片、视频推测。" : "本次整理结果缺少食材，请核对来源并手动补充。"} 保存前仍需检查推断和缺失内容。</p></section>}
-    <AiPreview editingSession={aiEditing} sourceContext={aiSource} isCurrent={currentAi} draft={aiState.draft} confirmed={aiState.confirmed} onConfirmedChange={value => ai.setConfirmed(value)} hasExactTitle={title => service.dependencies.store.hasExactTitle(title)} onSave={async input => { onSaved(await service.saveAi(input)); }} onCancel={backToResults} source="web" />
+    <AiPreview editingSession={aiEditing} sourceContext={aiSource} isCurrent={currentAi} draft={aiState.draft} confirmed={aiState.confirmed} onConfirmedChange={value => ai.setConfirmed(value)} hasExactTitle={title => service.dependencies.store.hasExactTitle(title)} onSave={async input => { onSaved(await service.saveAi(input)); }} onCancel={screenshots ? () => service.editScreenshotInput() : backToResults} source={screenshots ? undefined : "web"} />
   </>;
   if (parserOpen && selected) return <ParserPreview key={selected.id} editingSession={parserEditing} sourceContext={parserSource} isCurrent={currentParser} service={service} onSaved={onSaved} onBack={backToResults} />;
   return <section className="v2-task v2-link-intake">
@@ -122,6 +125,7 @@ export function LinkImportScreen({ service, active, onSaved, onCancel, onConfigu
       {quality === "title_only" && <p className="v2-task-note">{state.visible?.title}。尚未读取到菜谱正文，只有菜名不足以还原做法。请补充文字、使用截图整理或手动录入。</p>}
       {service.selected()?.quality === "partial" && !service.selected()?.recipe.steps.length && <p className="v2-task-note">尚未读取到制作步骤；食材不等于完整菜谱，用量和耗时缺失时会保持空白。</p>}
       {state.parsed.warnings.map(warning => <p className="v2-task-note" key={warning}>{warning}</p>)}
+      <div className="v2-task-actions"><Button variant="outline" disabled={busy} onClick={() => void service.beginScreenshotIntake().catch(() => {})}>添加菜谱截图并用 AI 整理</Button></div>
       {state.visible?.wasTruncated && <p className="v2-task-status" role="status">网页正文过长，已保留部分完整段落；AI 可能缺少信息，请仔细检查。</p>}
       {state.parsed.needsSelection && state.parsed.candidates.map(candidate => <article className="v2-source-card" key={candidate.id}><h4>{candidate.recipe.title}</h4><p className="v2-task-note">{candidate.recipe.ingredients.length} 项食材 · {candidate.recipe.steps.length} 个步骤</p><div className="v2-task-actions"><Button variant="outline" disabled={busy} onClick={() => { service.select(candidate.id); setParserOpen(true); }}>选择 {candidate.recipe.title}</Button></div></article>)}
       {service.selected() && !state.parsed.needsSelection && <div className="v2-task-actions"><Button variant="outline" disabled={busy} onClick={() => setParserOpen(true)}>{service.selected()?.quality === "partial" ? "直接完善菜谱" : "查看网页菜谱"}</Button></div>}

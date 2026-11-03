@@ -7,12 +7,26 @@ import type { BackupController } from "../backup/backup-controls";
 import { LinkImportError, fetchedPageSchema, linkReadSchema, safeLinkError, type ParsedPage, type VisiblePageText, type WebImportPort } from "./contract";
 import { parseRecipePage, plainText } from "./parser";
 import { buildAiText, extractVisibleText } from "./visible-text";
-import { extractXhsPublicPage } from "./xhs-page";
+import { extractXhsPublicPage, type XhsPageDiagnostic } from "./xhs-page";
 import { accessFailure, classifyReadQuality } from "./page-status";
 
-type Phase = "input" | "reading" | "ready" | "ai-requesting" | "ai-preview" | "saving" | "uncertain" | "saved" | "error";
-export type LinkImportState = { phase: Phase; url: string; parsed: ParsedPage | null; visible: VisiblePageText | null; selectedId: string | null; parserDraft: RecipeDetailsInput | null; error: Error | null };
-const initial = (): LinkImportState => ({ phase: "input", url: "", parsed: null, visible: null, selectedId: null, parserDraft: null, error: null });
+const diagnosticMessages = {
+  target_text: "已读取目标笔记的公开正文；这不代表食材、用量和步骤完整。",
+  target_empty: "已确认目标笔记，但公开状态中没有可读取的正文。",
+  media_only: "已确认目标笔记，但公开正文为空；笔记包含图片或视频，网页读取不会识别其中的菜谱。",
+  unresolved_link: "最终网页地址未能确认目标笔记编号，无法将页面内容归属到该笔记。",
+  state_missing: "未找到可读取的公开笔记状态；无法确认是页面未提供正文还是使用了其他格式。",
+  state_unsupported: "公开状态格式暂不支持或不是安全 JSON，未读取正文。",
+  target_missing: "公开状态中没有可确认属于目标笔记的资料，已忽略推荐内容。",
+  invalid_content: "已找到目标笔记，但正文字段格式无法安全读取。",
+  safety_limit: "网页资料超过安全解析上限，已停止读取超限内容。",
+  login_required: "目标页面要求登录，当前无法读取正文。",
+  challenge_required: "目标页面要求安全验证，当前无法读取正文。",
+} satisfies Record<XhsPageDiagnostic, string>;
+
+type Phase = "input" | "reading" | "ready" | "preparing-images" | "screenshot-input" | "ai-requesting" | "ai-preview" | "saving" | "uncertain" | "saved" | "error";
+export type LinkImportState = { phase: Phase; url: string; parsed: ParsedPage | null; visible: VisiblePageText | null; selectedId: string | null; parserDraft: RecipeDetailsInput | null; error: Error | null; aiInputKind: "web" | "screenshots" };
+const initial = (): LinkImportState => ({ phase: "input", url: "", parsed: null, visible: null, selectedId: null, parserDraft: null, error: null, aiInputKind: "web" });
 export class LinkImportService {
   private state = initial();
   private listeners = new Set<() => void>();
@@ -39,7 +53,7 @@ export class LinkImportService {
   subscribe = (listener: () => void) => { this.listeners.add(listener); return () => { this.listeners.delete(listener); }; };
   private set(state: LinkImportState) { this.state = state; this.listeners.forEach(fn => fn()); }
   private assertCurrent(generation: number) { if (generation !== this.generation || this.restoreBlocked) throw new LinkImportError("stale_session"); }
-  private assertIdle() { if (this.restoreBlocked || ["reading", "ai-requesting", "saving", "uncertain"].includes(this.state.phase) || this.aiOwned && ["saving", "uncertain"].includes(this.dependencies.ai.snapshot().phase)) throw new LinkImportError(this.state.phase === "uncertain" ? "save_uncertain" : "busy"); }
+  private assertIdle() { if (this.restoreBlocked || ["reading", "preparing-images", "ai-requesting", "saving", "uncertain"].includes(this.state.phase) || this.aiOwned && ["requesting", "saving", "uncertain"].includes(this.dependencies.ai.snapshot().phase)) throw new LinkImportError(this.state.phase === "uncertain" ? "save_uncertain" : "busy"); }
   setUrl(url: string) { this.assertIdle(); this.set({ ...initial(), url }); }
   selected() { return this.state.parsed?.candidates.find(item => item.id === this.state.selectedId) ?? null; }
   readQuality() {
@@ -61,6 +75,31 @@ export class LinkImportService {
     this.set({ ...this.state, selectedId: id, parserDraft: null });
   }
   returnToResults() { this.assertIdle(); this.set({ ...this.state, phase: "ready", error: null }); }
+  async beginScreenshotIntake(): Promise<void> {
+    this.assertIdle();
+    if (this.state.phase !== "ready") throw new LinkImportError("stale_session");
+    const generation = ++this.generation;
+    this.set({ ...this.state, phase: "preparing-images", error: null });
+    try {
+      await this.dependencies.ai.discard(); this.assertCurrent(generation); this.aiOwned = true;
+      await this.dependencies.ai.startSession(); this.assertCurrent(generation);
+      // The unverified webpage title stays only in this in-memory UI state.
+      // The existing intake screen collects the user's actual text/images.
+      this.set({ ...this.state, phase: "screenshot-input", aiInputKind: "screenshots" });
+    } catch (error) {
+      this.assertCurrent(generation);
+      const safe = safeAiError(error); this.set({ ...this.state, phase: "ready", error: safe }); throw safe;
+    }
+  }
+  showScreenshotPreview() {
+    if (this.restoreBlocked || this.state.phase !== "screenshot-input" || this.dependencies.ai.snapshot().phase !== "preview") throw new LinkImportError("stale_session");
+    this.set({ ...this.state, phase: "ai-preview", error: null });
+  }
+  editScreenshotInput() {
+    this.assertIdle();
+    if (this.state.phase !== "ai-preview" || this.state.aiInputKind !== "screenshots") throw new LinkImportError("stale_session");
+    this.set({ ...this.state, phase: "screenshot-input", error: null });
+  }
   async read(url = this.state.url): Promise<void> {
     this.assertIdle(); const generation = ++this.generation, requestId = crypto.randomUUID();
     const checked = linkReadSchema.safeParse({ requestId, url: url.trim() });
@@ -78,6 +117,7 @@ export class LinkImportService {
       const restriction = source?.access ?? accessFailure(visible, parsed.candidates.some(candidate => candidate.quality === "complete"));
       if (restriction) throw new LinkImportError(restriction);
       if (source) {
+        parsed.warnings.push(diagnosticMessages[source.diagnostic]);
         for (const warning of source.warnings) if (!parsed.warnings.includes(warning)) parsed.warnings.push(warning);
         if (source.media) parsed.warnings.push(source.media === "video"
           ? "这是视频笔记：当前只读取网页文字，不会读取视频画面或口播。步骤在视频中时，请补充文字或使用截图整理。"
@@ -101,7 +141,7 @@ export class LinkImportService {
     if (!visible || ["title_only", "unreadable"].includes(this.readQuality())) throw new LinkImportError("page_unreadable");
     const generation = ++this.generation;
     const text = buildAiText(visible, this.selected()?.recipe ?? null);
-    this.set({ ...this.state, phase: "ai-requesting", error: null });
+    this.set({ ...this.state, phase: "ai-requesting", aiInputKind: "web", error: null });
     try {
       await this.dependencies.ai.discard(); this.assertCurrent(generation); this.aiOwned = true;
       await this.dependencies.ai.startSession(); this.assertCurrent(generation);

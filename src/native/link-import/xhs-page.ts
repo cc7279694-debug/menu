@@ -1,6 +1,7 @@
 import { load } from "cheerio/slim";
 
-export type XhsPublicPage = { title: string; text: string; media: "image" | "video" | null; access: "login_required" | "challenge_required" | null; warnings: string[]; wasTruncated: boolean; statePresent: boolean; targetResolved: boolean };
+export type XhsPageDiagnostic = "target_text" | "target_empty" | "media_only" | "unresolved_link" | "state_missing" | "state_unsupported" | "target_missing" | "invalid_content" | "safety_limit" | "login_required" | "challenge_required";
+export type XhsPublicPage = { title: string; text: string; media: "image" | "video" | null; access: "login_required" | "challenge_required" | null; warnings: string[]; wasTruncated: boolean; statePresent: boolean; targetResolved: boolean; diagnostic: XhsPageDiagnostic };
 const MAX_HTML_BYTES = 2 * 1024 * 1024, MAX_STATE_BYTES = 256 * 1024, MAX_DEPTH = 32, MAX_NODES = 4000, MAX_TEXT = 28000;
 const object = (value: unknown): Record<string, unknown> | null => value !== null && typeof value === "object" && !Array.isArray(value) ? value as Record<string, unknown> : null;
 const own = (value: Record<string, unknown> | null, key: string): unknown => value && Object.hasOwn(value, key) ? value[key] : undefined;
@@ -48,16 +49,24 @@ function prose(value: unknown, limit: number): string {
   return $.root().text().split(/\r?\n/u).map(line => line.replace(/[\t ]+/gu, " ").trim()).filter(Boolean).join("\n");
 }
 
-function noteFromState(state: unknown, noteId: string | null): Record<string, unknown> | null {
+function noteFromEntry(value: unknown): Record<string, unknown> | null {
+  const entry = object(value);
+  if (!entry) return null;
+  // Only two inert record shapes are accepted; never recursively search recommendations.
+  if (Object.hasOwn(entry, "note")) return object(own(entry, "note"));
+  return ["noteId", "title", "desc", "type", "imageList"].some(key => Object.hasOwn(entry, key)) ? entry : null;
+}
+
+function noteFromState(state: unknown, noteId: string | null): { note: Record<string, unknown> | null; supported: boolean } {
   // A singleton recommendation on an unresolved short page is not target identity.
-  if (!noteId) return null;
   const notes = object(own(object(own(object(state), "note")), "noteDetailMap"));
-  if (!notes) return null;
-  const values = Object.values(notes).map(item => object(own(object(item), "note"))).filter((item): item is Record<string, unknown> => item !== null);
-  const direct = object(own(object(own(notes, noteId)), "note"));
-  if (direct && (own(direct, "noteId") === undefined || own(direct, "noteId") === noteId)) return direct;
+  if (!notes) return { note: null, supported: false };
+  if (!noteId) return { note: null, supported: true };
+  const values = Object.values(notes).map(noteFromEntry).filter((item): item is Record<string, unknown> => item !== null);
+  const direct = noteFromEntry(own(notes, noteId));
+  if (direct && (own(direct, "noteId") === undefined || own(direct, "noteId") === noteId)) return { note: direct, supported: true };
   const matching = values.filter(item => own(item, "noteId") === noteId);
-  return matching.length === 1 ? matching[0] : null;
+  return { note: matching.length === 1 ? matching[0] : null, supported: true };
 }
 
 export function extractXhsPublicPage(html: string, finalUrl: string): XhsPublicPage | null {
@@ -65,40 +74,45 @@ export function extractXhsPublicPage(html: string, finalUrl: string): XhsPublicP
   try { url = new URL(finalUrl); } catch { return null; }
   const host = url.hostname.toLowerCase().replace(/\.$/u, "");
   if (!["http:", "https:"].includes(url.protocol) || !["xiaohongshu.com", "xhslink.cn", "xhslink.com"].some(root => host === root || host.endsWith(`.${root}`))) return null;
-  const result: XhsPublicPage = { title: "", text: "", media: null, access: null, warnings: [], wasTruncated: false, statePresent: false, targetResolved: false };
-  if (/^\/login(?:\/|$)/iu.test(url.pathname)) { result.access = "login_required"; return result; }
-  if (bytes(html) > MAX_HTML_BYTES) { result.warnings.push("网页超出安全解析上限，请改用文字或截图。"); result.wasTruncated = true; return result; }
+  const result: XhsPublicPage = { title: "", text: "", media: null, access: null, warnings: [], wasTruncated: false, statePresent: false, targetResolved: false, diagnostic: "state_missing" };
+  if (/^\/login(?:\/|$)/iu.test(url.pathname)) { result.access = "login_required"; result.diagnostic = result.access; return result; }
+  if (bytes(html) > MAX_HTML_BYTES) { result.warnings.push("网页超出安全解析上限，请改用文字或截图。"); result.wasTruncated = true; result.diagnostic = "safety_limit"; return result; }
   const $ = load(html);
   const noteId = /^\/(?:explore|discovery\/item)\/([a-z\d_-]{1,128})\/?$/iu.exec(url.pathname)?.[1] ?? null;
   const scripts = $("script").toArray();
-  let examined = 0;
+  let examined = 0, supportedState = false;
   for (const element of scripts) {
     const source = $(element).text().trim();
     const assignment = /^(?:window\.)?__INITIAL_STATE__\s*=\s*/u.exec(source);
     const jsonElement = $(element).attr("id") === "__INITIAL_STATE__" && $(element).attr("type")?.toLowerCase() === "application/json";
     if (!assignment && !jsonElement) continue;
     result.statePresent = true;
-    if (++examined > 4) { result.wasTruncated = true; result.warnings.push("网页状态超出安全解析上限，请检查缺失内容。"); break; }
+    if (++examined > 4) { result.wasTruncated = true; result.diagnostic = "safety_limit"; result.warnings.push("网页状态超出安全解析上限，请检查缺失内容。"); break; }
     let payload = assignment ? source.slice(assignment[0].length).trim() : source;
     if (assignment && payload.endsWith(";")) payload = payload.slice(0, -1).trimEnd();
     try {
-      const note = noteFromState(readState(payload), noteId); if (!note) continue;
+      const candidate = noteFromState(readState(payload), noteId);
+      supportedState ||= candidate.supported;
+      const note = candidate.note; if (!note) continue;
       result.targetResolved = true;
       result.title = prose(own(note, "title"), 500);
       const rawText = own(note, "desc"); result.text = prose(rawText, MAX_TEXT);
       if (typeof rawText === "string" && Array.from(rawText).length > MAX_TEXT) { result.wasTruncated = true; result.warnings.push("笔记正文超出安全解析上限，请补充缺失内容。"); }
       result.media = own(note, "type") === "video" ? "video" : Array.isArray(own(note, "imageList")) && (own(note, "imageList") as unknown[]).length > 0 ? "image" : null;
+      result.diagnostic = result.wasTruncated ? "safety_limit" : rawText !== undefined && rawText !== null && typeof rawText !== "string" ? "invalid_content" : result.text ? "target_text" : result.media ? "media_only" : "target_empty";
       break;
     } catch (error) {
       const limited = error instanceof RangeError; result.wasTruncated ||= limited;
+      if (limited) result.diagnostic = "safety_limit";
       result.warnings.push(limited ? "网页状态超出安全解析上限，请改用文字或截图。" : "网页状态不是可安全读取的资料，请改用文字或截图。");
     }
   }
+  if (!result.targetResolved && result.diagnostic !== "safety_limit") result.diagnostic = !noteId ? "unresolved_link" : !result.statePresent ? "state_missing" : supportedState ? "target_missing" : "state_unsupported";
   if (!result.targetResolved) result.warnings.push("未读取到目标笔记正文，请补充文字或截图。");
   for (const heading of [prose($("title").first().text(), 500), prose($("h1,h2").first().toString(), 2000)].map(text => text.replace(/\s+/gu, " "))) {
     if (/^(?:(?:登录|请先登录|登录后查看(?:笔记|内容)?|登录小红书|立即登录)(?:\s*[-|·]\s*小红书)?|小红书\s*[-|·]\s*登录)$/u.test(heading)) result.access = "login_required";
     else if (/^(?:安全验证|验证码|访问验证|访问受限|请完成验证|请先完成验证)(?:\s*[-|·]\s*小红书)?$/u.test(heading)) result.access = "challenge_required";
   }
-  if (result.access) result.text = "";
+  if (result.access) { result.text = ""; result.diagnostic = result.access; }
   return result;
 }

@@ -16,6 +16,39 @@ const setup = (page = html) => {
   return { service, store, fake, port, onSaved, onCancel, onConfigureKey, onFallback };
 };
 afterEach(__resetLocalDatabaseForTests);
+it("XHS-R2 opens the existing screenshot intake in place without discarding the title or auto AI", async () => {
+  const { fake, service, onFallback } = setup("<title>合成长图菜</title>"); await read();
+  fireEvent.click(await screen.findByRole("button", { name: "添加菜谱截图并用 AI 整理" }));
+  await screen.findByRole("heading", { name: "整理菜谱" });
+  expect(screen.getByText(/来源提示：合成长图菜/)).toBeInTheDocument();
+  expect(screen.getByLabelText("菜谱文字")).toHaveValue("");
+  expect(screen.getByText(/可能产生 API 费用/)).toBeInTheDocument();
+  expect(screen.getByRole("button", { name: "开始 AI 整理" })).toBeDisabled();
+  expect(onFallback).not.toHaveBeenCalled(); expect(fake.bridge.organize).not.toHaveBeenCalled();
+  fireEvent.click(screen.getByRole("button", { name: "添加截图" }));
+  await screen.findByRole("button", { name: "预览截图 1" });
+  await waitFor(() => expect(screen.getByRole("button", { name: "开始 AI 整理" })).toBeEnabled());
+  expect(fake.bridge.organize).not.toHaveBeenCalled();
+  fireEvent.click(screen.getByRole("button", { name: "开始 AI 整理" }));
+  await screen.findByRole("heading", { name: /检查.*整理结果/ });
+  expect(screen.getByRole("button", { name: "确认保存菜谱" })).toBeDisabled();
+  expect(service.snapshot().visible?.title).toBe("合成长图菜");
+});
+it("XHS-R2 cancelling the picker or input preserves the title and clears only temporary screenshot data", async () => {
+  const { fake, service, onCancel } = setup("<title>合成长图菜</title>"); await read();
+  fake.bridge.pickImage.mockResolvedValueOnce({ cancelled: true });
+  fireEvent.click(await screen.findByRole("button", { name: "添加菜谱截图并用 AI 整理" }));
+  await screen.findByRole("heading", { name: "整理菜谱" });
+  await waitFor(() => expect(screen.getByRole("button", { name: "添加截图" })).toBeEnabled());
+  fireEvent.click(screen.getByRole("button", { name: "添加截图" }));
+  await waitFor(() => expect(fake.bridge.pickImage).toHaveBeenCalledOnce());
+  expect(service.snapshot().visible?.title).toBe("合成长图菜");
+  expect(screen.queryByRole("button", { name: "预览截图 1" })).not.toBeInTheDocument();
+  fireEvent.click(screen.getByRole("button", { name: "返回" }));
+  fireEvent.click(await screen.findByRole("button", { name: "放弃本轮整理" }));
+  await screen.findByRole("heading", { name: "仅获取到标题" });
+  expect(onCancel).not.toHaveBeenCalled(); expect(fake.bridge.organize).not.toHaveBeenCalled();
+});
 it("labels title-only pages honestly and offers local text supplementation before explicit AI", async () => {
   const { fake, store } = setup("<title>合成青菜汤</title>"); await read();
   await screen.findByRole("heading", { name: "仅获取到标题" });

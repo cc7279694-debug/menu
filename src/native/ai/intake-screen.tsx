@@ -8,9 +8,10 @@ import { useV2DialogAppearance } from "../ui-v2/appearance";
 import { NativeV2Sheet } from "../ui-v2/native-sheet";
 import { V2Image } from "../ui-v2/components";
 
-export function AiIntakeScreen({ service, onPreview, onCancel, onConfigureKey, onManual }: {
+export function AiIntakeScreen({ service, onPreview, onCancel, onConfigureKey, onManual, sourceHint, active = true }: {
   service: AiIntakeService; onPreview: () => void; onCancel: () => void;
   onConfigureKey: () => void; onManual?: () => void;
+  sourceHint?: string; active?: boolean;
 }) {
   const state = useSyncExternalStore(service.subscribe, service.snapshot, service.snapshot);
   const dialogAppearance = useV2DialogAppearance("v2");
@@ -20,16 +21,18 @@ export function AiIntakeScreen({ service, onPreview, onCancel, onConfigureKey, o
   const [previewId, setPreviewId] = useState<string | null>(null);
   const alive = useRef(true), destination = useRef<"back" | "manual">("back");
   useEffect(() => {
+    if (!active) return;
     alive.current = true; let current = true;
     void service.startSession().then(() => service.refreshKey()).then(value => { if (current) setConfigured(value); })
       .catch(e => { if (current) { const safe = safeAiError(e); setLocalError(safe.message); if (safe.code === "key_unavailable") setConfigured(false); } });
     return () => { current = false; alive.current = false; };
-  }, [service]);
+  }, [service, active]);
   useEffect(() => {
+    if (!active) return;
     const back = (event: Event) => { if (event.defaultPrevented) return; event.preventDefault(); setConfirm(true); };
     window.addEventListener("recipio:back", back);
     return () => window.removeEventListener("recipio:back", back);
-  }, []);
+  }, [active]);
   async function send() {
     try { await service.organize(state.input); if (alive.current) onPreview(); }
     catch { /* Safe service error remains visible; never an automatic retry. */ }
@@ -52,6 +55,7 @@ export function AiIntakeScreen({ service, onPreview, onCancel, onConfigureKey, o
     <header className="v2-task-header"><h2 className="v2-page-title">整理菜谱</h2>
       <Button variant="outline" disabled={discarding || cancelling} onClick={() => { destination.current = "back"; setConfirm(true); }}>返回</Button>
     </header>
+    {sourceHint && <p className="v2-task-note">来源提示：{sourceHint}。标题尚未核实，仅供对照，不会自动发送给 AI。请自行选择包含食材、用量和完整步骤的截图或长图；过长而字迹不清时可分成多张。缺失内容不会按菜名补全。</p>}
     <p className="v2-intake-lead">粘贴已有做法，或添加最多 {AI_LIMITS.imageCount} 张截图。整理后先检查，再保存到自己的菜谱。</p>
     <div className="v2-intake-field">
       <label className="v2-field-label"><span>菜谱文字</span>

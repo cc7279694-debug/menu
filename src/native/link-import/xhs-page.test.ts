@@ -52,6 +52,42 @@ describe("bounded inert public Xiaohongshu state", () => {
     const page = `<script id="__INITIAL_STATE__" type="application/json">${JSON.stringify(state())}</script>`;
     expect(extractXhsPublicPage(page, url)?.title).toBe("合成椰子鸡");
   });
+  it("reads a target-keyed direct note record without a wrapper", () => {
+    const page = html({ note: { noteDetailMap: { "test-note": note() } } });
+    expect(extractXhsPublicPage(page, url)).toMatchObject({ targetResolved: true, diagnostic: "target_text", title: "合成椰子鸡", text: note().desc });
+  });
+  it("reads an aliased direct record only with an explicit matching noteId", () => {
+    const page = html({ note: { noteDetailMap: { aliased: note(), recommended: { ...note("其他菜", "其他步骤"), noteId: "other" } } } });
+    expect(extractXhsPublicPage(page, url)).toMatchObject({ diagnostic: "target_text", text: note().desc });
+    expect(extractXhsPublicPage(page, url.replace("test-note?", "missing?"))).toMatchObject({ diagnostic: "target_missing", text: "", targetResolved: false });
+  });
+  it("rejects a direct record whose embedded ID conflicts with the target map key", () => {
+    expect(extractXhsPublicPage(html({ note: { noteDetailMap: { "test-note": { ...note(), noteId: "other" } } } }), url))
+      .toMatchObject({ diagnostic: "target_missing", text: "", targetResolved: false });
+  });
+  it("rejects ambiguous alias records even when each claims the target ID", () => {
+    expect(extractXhsPublicPage(html({ note: { noteDetailMap: { first: note(), second: note("其他菜") } } }), url))
+      .toMatchObject({ diagnostic: "target_missing", text: "", targetResolved: false });
+  });
+  it("diagnoses missing, incompatible, mismatched, invalid and unresolved public data separately", () => {
+    expect(extractXhsPublicPage("<title>标题</title><main>推荐菜谱</main>", url)).toMatchObject({ diagnostic: "state_missing", text: "" });
+    expect(extractXhsPublicPage(html({ unknownShape: state() }), url)).toMatchObject({ diagnostic: "state_unsupported", text: "" });
+    expect(extractXhsPublicPage(html(state({ ...note(), noteId: "other" })), url)).toMatchObject({ diagnostic: "target_missing", text: "" });
+    expect(extractXhsPublicPage(html(state({ ...note(), desc: { text: "不得猜测这个新结构" } })), url)).toMatchObject({ diagnostic: "invalid_content", text: "" });
+    expect(extractXhsPublicPage(html(state()), "https://xhslink.cn/o/synthetic")).toMatchObject({ diagnostic: "unresolved_link", text: "" });
+    expect(extractXhsPublicPage('<script>window.__INITIAL_STATE__=JSON.parse("{}");</script>', url)).toMatchObject({ diagnostic: "state_unsupported", text: "" });
+  });
+  it("distinguishes media-only, empty and safely readable target prose without claiming image understanding", () => {
+    expect(extractXhsPublicPage(html(state(note("图文菜", ""))), url)).toMatchObject({ diagnostic: "media_only", text: "", media: "image" });
+    expect(extractXhsPublicPage(html(state({ ...note("空菜名", ""), imageList: [] })), url)).toMatchObject({ diagnostic: "target_empty", text: "" });
+    expect(extractXhsPublicPage(html(state()), url)).toMatchObject({ diagnostic: "target_text", text: note().desc });
+  });
+  it.each([["登录后查看笔记", "login_required"], ["安全验证", "challenge_required"]])("gives access restrictions priority over state diagnostics: %s", (title, diagnostic) => {
+    expect(extractXhsPublicPage(`<title>${title}</title>${html(state())}`, url)).toMatchObject({ diagnostic, text: "" });
+  });
+  it("exposes a bounded safety diagnostic for oversized or deep state", () => {
+    expect(extractXhsPublicPage(html({ ...state(), huge: "x".repeat(270000) }), url)).toMatchObject({ diagnostic: "safety_limit", text: "" });
+  });
   it("converts only bare undefined JSON values while preserving quoted text", () => {
     const source = html(state(note("undefined 字样", '先说 "undefined"，再煮熟。'))).replace('"type":"normal"', '"extra":undefined,"type":"normal"');
     expect(extractXhsPublicPage(source, url)).toMatchObject({ title: "undefined 字样", text: '先说 "undefined"，再煮熟。' });

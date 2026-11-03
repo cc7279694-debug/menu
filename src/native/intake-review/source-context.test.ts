@@ -12,7 +12,7 @@ function aiSnapshot(): AiIntakeState {
 }
 function webSnapshot(): LinkImportState {
   const candidate = { id: "candidate-0", recipe: reviewDraft().recipe, quality: "partial" as const, score: 5, documentOrder: 0, warnings: ["来源缺少步骤"] };
-  return { phase: "ready", url: "https://recipes.example/dish", parsed: { title: "网页标题", candidates: [candidate], needsSelection: false, warnings: [] }, selectedId: candidate.id, visible: { title: "清洗网页标题", text: "清洗后的做法\n姜适量", wasTruncated: true }, parserDraft: null, error: null };
+  return { phase: "ready", url: "https://recipes.example/dish", parsed: { title: "网页标题", candidates: [candidate], needsSelection: false, warnings: [] }, selectedId: candidate.id, visible: { title: "清洗网页标题", text: "清洗后的做法\n姜适量", wasTruncated: true }, parserDraft: null, error: null, aiInputKind: "web" };
 }
 function findSnapshot(): FindState {
   const selected: FinderCandidate = { id: "finder-1", title: "本轮选定汤", sourceHost: "cook.example.org", sourceUrl: "https://cook.example.org/soup", summary: "候选摘要，并非完整原文", highlights: ["简单"], totalMinutes: 10, preparationHint: "" };

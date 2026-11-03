@@ -6,6 +6,23 @@ import { AiIntakeScreen } from "./intake-screen";
 import { PreviewRecipeLibrary } from "../preview-store";
 import { deferred,fakeAi } from "./service.test-support";
 function setup(configured=true){const fake=fakeAi();fake.keys.hasAiKey.mockResolvedValue({configured});const service=new AiIntakeService(fake.keys,fake.bridge,{store:new PreviewRecipeLibrary()}),props={service,onPreview:vi.fn(),onCancel:vi.fn(),onConfigureKey:vi.fn()};return {...fake,service,props};}
+it("XHS-R2 settings return refreshes key availability without remounting or losing input/images", async () => {
+  const { props, service, bridge, keys } = setup(false);
+  const view = render(<AiIntakeScreen {...props} active />);
+  await screen.findByRole("button", { name: "前往设置 AI 密钥" });
+  fireEvent.change(screen.getByLabelText("菜谱文字"), { target: { value: "保留的真实补充" } });
+  fireEvent.click(screen.getByRole("button", { name: "添加截图" }));
+  await screen.findByRole("button", { name: "预览截图 1" });
+  view.rerender(<AiIntakeScreen {...props} active={false} />);
+  fireEvent(window, new Event("recipio:back", { cancelable: true }));
+  expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+  keys.hasAiKey.mockResolvedValue({ configured: true });
+  view.rerender(<AiIntakeScreen {...props} active />);
+  await waitFor(() => expect(screen.getByRole("button", { name: "开始 AI 整理" })).toBeEnabled());
+  expect(screen.getByLabelText("菜谱文字")).toHaveValue("保留的真实补充");
+  expect(service.snapshot().images).toHaveLength(1);
+  expect(bridge.organize).not.toHaveBeenCalled();
+});
 it("explicit send only; unmount for Preview leaves valid draft in App service",async()=>{
   const {props,service,bridge}=setup();const view=render(<AiIntakeScreen {...props}/>);await screen.findByLabelText("菜谱文字");fireEvent.change(screen.getByLabelText("菜谱文字"),{target:{value:"啤酒鸭"}});expect(bridge.organize).not.toHaveBeenCalled();fireEvent.click(screen.getByRole("button",{name:"开始 AI 整理"}));await waitFor(()=>expect(props.onPreview).toHaveBeenCalledTimes(1));view.unmount();expect(service.snapshot().draft?.recipe.title).toBe("啤酒鸭");expect(bridge.discardSession).not.toHaveBeenCalled();
 });
