@@ -462,6 +462,8 @@ public class AiImeBackInstrumentedTest {
         assertEquals("true",js("[...document.querySelectorAll('button')].filter(b=>b.textContent.trim()==='确认保存菜谱').every(b=>b.disabled)"));
         js("document.querySelector('form').dispatchEvent(new Event('submit',{bubbles:true,cancelable:true}))");until("document.body.innerText.includes('检查整理结果')");
         js("document.querySelector('input[type=checkbox]').click()");click("确认保存菜谱");until("!document.body.innerText.includes('检查整理结果')");
+        until("[...document.querySelectorAll('h1,h2')].some(e=>e.textContent.trim()==='APK4 IME GENERATED 中文 🍚')");
+        assertEquals("true",js("document.body.innerText.includes('先焯水')"));
         assertEquals(1,posts.get());
         assertEquals(0,new File(instrumentation.getTargetContext().getCacheDir(),"ai-import").listFiles((dir,name)->name.matches("[0-9a-f-]{36}")).length);
     }
