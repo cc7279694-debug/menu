@@ -1,0 +1,4 @@
+--------- beginning of events
+11-03 04:54:33.333   696  2088 I am_anr  : [0,1477,com.google.android.gms.persistent,-1597325755,Process ProcessRecord{d50ccf6 1477:com.google.android.gms.persistent/u0a141} failed to complete startup]
+11-03 04:54:34.973   696  2133 I am_anr  : [0,1520,com.google.android.inputmethod.latin,550157893,Process ProcessRecord{e5ed38f 1520:com.google.android.inputmethod.latin/u0a154} failed to complete startup]
+11-03 04:54:40.351   696  2255 I am_anr  : [0,1892,com.google.android.gms,-1597325755,Process ProcessRecord{d883716 1892:com.google.android.gms/u0a141} failed to complete startup]

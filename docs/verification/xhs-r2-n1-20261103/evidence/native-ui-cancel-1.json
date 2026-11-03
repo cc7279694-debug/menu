@@ -1,0 +1,10 @@
+{
+  "startedAt": "2026-11-03T04:55:46.279324+00:00",
+  "test": "app.recipio.local.AiImeBackInstrumentedTest#xhsR2NativePickerCancelLongImageAndBackKeepSourceSafe",
+  "serial": "emulator-5686",
+  "exitCode": 0,
+  "passed": false,
+  "provider": "FAKE_HTTP_ONLY",
+  "realAiCalls": 0,
+  "output": "native-ui-cancel-1.txt"
+}

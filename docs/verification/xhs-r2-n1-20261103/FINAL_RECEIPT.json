@@ -1,0 +1,85 @@
+{
+  "createdAt": "2026-11-03T05:16:00.155150+00:00",
+  "sourceCommit": "b38f82d7f005f28c3af3ef0fbd934b8d162f0b08",
+  "productFrozenSource": "c2c55d21c8328e6f78aa7f738bf9d1eba9f1423d",
+  "sourceBlobs": {
+    "android/app/src/androidTest/java/app/recipio/local/AiImeBackInstrumentedTest.java": "7e4d5d6630e7ec060c819569a3d5bfa3e5c2f27a",
+    "android/app/src/androidTest/java/app/recipio/local/XhsR2LongImageInstrumentedTest.java": "683acee370f5920ea929f231c76febdc4abfa363"
+  },
+  "productDiffAgainstFrozen": "EMPTY",
+  "sourceChanges": "ANDROID_TESTS_ONLY",
+  "device": {
+    "serial": "emulator-5686",
+    "avd": "Recipio_XHS_R2_N1_API36",
+    "api": 36,
+    "android": "16",
+    "hardware": "ranchu",
+    "ramMiB": 2560,
+    "webview": "com.google.android.webview 133.0.6943.137",
+    "airplaneModeDuringTests": true,
+    "ownedAvdStopped": true,
+    "dataDirectoryPreserved": true
+  },
+  "apks": {
+    "test-app-debug.apk": {
+      "path": "E:\\CODEX\\Tools\\recipio-xhs-r2-n1-20261103\\test-app-debug.apk",
+      "bytes": 17276763,
+      "sha256": "bba8be2609a3a71904a03ca7a9c34d32620b232f8a8cd657bcdf3f48ceb26579"
+    },
+    "test-instrumentation-final.apk": {
+      "path": "E:\\CODEX\\Tools\\recipio-xhs-r2-n1-20261103\\test-instrumentation-final.apk",
+      "bytes": 834807,
+      "sha256": "fed6684ba61a0a61989f9205a2f45c86a9940881da05bcd71d7104c9253eb7d9"
+    }
+  },
+  "kind": "DEBUG_TEST_ONLY_NOT_FORMAL_SIGNED_RELEASE",
+  "testRuns": {
+    "native-ui-cancel-final": {
+      "passed": 1,
+      "tests": [
+        "xhsR2NativePickerCancelLongImageAndBackKeepSourceSafe"
+      ]
+    },
+    "native-ui-save-final": {
+      "passed": 1,
+      "tests": [
+        "xhsR2NativeImagesReorderRemoveReviewAndSaveCleanOwnedCache"
+      ]
+    },
+    "native-regression-final": {
+      "passed": 10,
+      "tests": [
+        "actualByteAndPixelLimitsRejectWithoutRegisteringOrRetainingSources",
+        "generatedNormalAndLongRecipesExportActualGeometryAndTextCrops",
+        "orderedPinnedReadRemoveReselectAndDiscardOnlyAffectOwnedImages",
+        "falseMimeBadUriAndOwnFileProviderAreRejected",
+        "exifRotateFlipAndTransposeUseRealSampleGeometry",
+        "boundsAndDownsampleUseRealLargeBitmap",
+        "symlinkToOtherFolderIsNeverFollowedAndBlocksCleanupSafely",
+        "transparentPngBecomesWhiteJpegWithoutPersistingSource",
+        "rootSymlinkIsRejectedWithoutTouchingTarget",
+        "selectedTempImages_surviveImeBack"
+      ]
+    }
+  },
+  "uniqueAndroidPassed": 12,
+  "jsTsPassed": 51,
+  "jsTsFiles": 3,
+  "realAiCalls": 0,
+  "realXhsRequests": 0,
+  "phoneOperations": 0,
+  "frozenSignedV28": {
+    "path": "E:\\CODEX\\RECIPIO-Signing\\recipio-personal-release-v28\\recipio-personal-v28.apk",
+    "bytes": 15194675,
+    "sha256": "52dfed4ef23afb5aa0dc6fb2b6089921af240993627aec9479ff69ea3d94b59b",
+    "unchanged": true
+  },
+  "visualEvidence": "Generated samples only; UI screenshot via native screencap; no fabricated app images",
+  "tallReadability": "1080x7200 -> 307x2048: 14px unreadable, 24px degraded; not clarity PASS",
+  "earlierBuildReceipt": "evidence/build-receipt.json is historical, superseded only for final test APK/source by this receipt",
+  "inputDirectoryNames": {
+    "geometry": "generatedNormalAndLongRecipesExportActualGeometryAndTextCrops-9ef5ed2c-ca8a-4847-8873-8d0cda423ac2",
+    "limits": "actualByteAndPixelLimitsRejectWithoutRegisteringOrRetainingSources-550ec3d9-346a-4011-ba94-e91f68edf810",
+    "ordering": "orderedPinnedReadRemoveReselectAndDiscardOnlyAffectOwnedImages-70c4bd2e-8485-4358-b019-3e103b7990bc"
+  }
+}

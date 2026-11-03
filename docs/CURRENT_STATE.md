@@ -1,16 +1,21 @@
 # Current State
 
-## XHS-R2-N1 — BLOCKED: memory admission — 2026-11-03
+## XHS-R2-N1 — READY_FOR_INDEPENDENT_REVIEW — 2026-11-03
 
-XHS-R2 scoped acceptance is registered below. On
-`verification/recipio-xhs-r2-n1`,5 native generated-image/real-Picker tests are
-prepared but NOT_COMPILED / NOT_RUN. Initial free4.78GiB fell to2.4–2.6GiB as
-other tasks started Java; latest check1.944GiB, below the existing4GiB emulator gate. No N1 AVD,
-build/install or device image evidence was produced. Other processes/data and
-old A2 AVD remain untouched. [Checkpoint](verification/xhs-r2-n1-20261103/CHECKPOINT.md).
-Resume only after fresh resource admission; no background polling. Tall-image
-readability risk is static inference, not measured PASS/FAIL. Production source,
-signed V28,Native network/codec,SQLite4/Preview7/Backup2/Key/themes remain frozen.
+On `verification/recipio-xhs-r2-n1`, fresh5.996GiB admission allowed a new,
+owned API36 AVD. Final test sourceb38f82d7:12 unique Android tests and51 scoped
+JS/TS tests PASS; actual Picker/codec/temp/review/save and relevant IME Back
+verified offline with generated data/Fake HTTP, real AI/XHS/phone calls0.
+600×1800 keeps readable test text;1080×7200 actually becomes307×2048 and
+14px text is not reliably readable/24px degraded. This is a recorded clarity
+limitation, not all-long-image PASS or model accuracy proof. [Report and evidence](verification/xhs-r2-n1-20261103/ANDROID_VERIFICATION.md).
+Web/sync and scoped debug builds PASS; original failures,3system-startup ANRs
+and [earlier memory blocker](verification/xhs-r2-n1-20261103/CHECKPOINT.md) remain.
+Only androidTest/docs changed; production sourcec2c55d21, signedV28,
+Native network/codec,SQLite4/Preview7/Backup2/Key/themes are unchanged.
+Owned AVD stopped/data preserved; other projects and android/.idea/ untouched.
+Xiaomi/OEM/TalkBack/real XHS/AI/full historical connected and other unrun items
+remain NOT_RUN. Stop for independent review; no signing/phone/main/new module.
 
 ## XHS-R2 — ACCEPTED / FROZEN — PASS WITH NOTES — 2026-11-03
 

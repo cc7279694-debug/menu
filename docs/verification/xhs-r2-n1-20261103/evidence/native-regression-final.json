@@ -1,0 +1,10 @@
+{
+  "startedAt": "2026-11-03T05:07:31.493261+00:00",
+  "test": "app.recipio.local.XhsR2LongImageInstrumentedTest,app.recipio.local.AiTemporaryImagesInstrumentedTest,app.recipio.local.AiImeBackInstrumentedTest#selectedTempImages_surviveImeBack",
+  "serial": "emulator-5686",
+  "exitCode": 0,
+  "passed": true,
+  "provider": "FAKE_HTTP_ONLY",
+  "realAiCalls": 0,
+  "output": "native-regression-final.txt"
+}

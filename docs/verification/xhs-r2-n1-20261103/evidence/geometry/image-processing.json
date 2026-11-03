@@ -1,0 +1,80 @@
+{
+  "samples": [
+    {
+      "sample": "normal",
+      "before": "normal-before.png",
+      "beforeWidth": 1080,
+      "beforeHeight": 1440,
+      "beforeBytes": 126794,
+      "beforeSha256": "737e03acef2aaea726f5e407a8fbc83c5b96713c7e1751844982f4741809290c",
+      "after": "normal-after.jpg",
+      "afterWidth": 1080,
+      "afterHeight": 1440,
+      "afterBytes": 72063,
+      "afterSha256": "b5916f5022c064778ebf1613f18ba42150c5a05d300fba5f55ec49ee202c4f8b",
+      "sourceFontPixels": [
+        14,
+        24,
+        36
+      ],
+      "estimatedScaledFontPixelsNotOcrMeasurement": [
+        14,
+        24,
+        36
+      ],
+      "automaticReadabilityVerdict": "NOT_ASSESSED_REQUIRES_VISUAL_REVIEW",
+      "geometryAndByteLimits": "PASS"
+    },
+    {
+      "sample": "long-600x1800",
+      "before": "long-600x1800-before.png",
+      "beforeWidth": 600,
+      "beforeHeight": 1800,
+      "beforeBytes": 121989,
+      "beforeSha256": "a2c70bd6c615e6c91d6b1386126487a1dc386ad75e94747b560dd89402da3a0b",
+      "after": "long-600x1800-after.jpg",
+      "afterWidth": 600,
+      "afterHeight": 1800,
+      "afterBytes": 68644,
+      "afterSha256": "e3daf5aeed0eb2f6eba47eb0c03c4e0ecdd224bd9a48f94bd9afcfb73a58775e",
+      "sourceFontPixels": [
+        14,
+        24,
+        36
+      ],
+      "estimatedScaledFontPixelsNotOcrMeasurement": [
+        14,
+        24,
+        36
+      ],
+      "automaticReadabilityVerdict": "NOT_ASSESSED_REQUIRES_VISUAL_REVIEW",
+      "geometryAndByteLimits": "PASS"
+    },
+    {
+      "sample": "tall-1080x7200",
+      "before": "tall-1080x7200-before.png",
+      "beforeWidth": 1080,
+      "beforeHeight": 7200,
+      "beforeBytes": 168286,
+      "beforeSha256": "635bf926f60c60247703d2e3130263226d2ab762c2d6cee8a45aaa8d25f56a2a",
+      "after": "tall-1080x7200-after.jpg",
+      "afterWidth": 307,
+      "afterHeight": 2048,
+      "afterBytes": 15519,
+      "afterSha256": "95801a582eb06454fd2a4992f2d8acb6cb21a95940b0afa8bee2e07a261059f8",
+      "sourceFontPixels": [
+        14,
+        24,
+        36
+      ],
+      "estimatedScaledFontPixelsNotOcrMeasurement": [
+        3.982222318649292,
+        6.826666831970215,
+        10.240000247955322
+      ],
+      "automaticReadabilityVerdict": "NOT_ASSESSED_REQUIRES_VISUAL_REVIEW",
+      "geometryAndByteLimits": "PASS"
+    }
+  ],
+  "readability": "NOT_ASSESSED_AUTOMATICALLY"
+}

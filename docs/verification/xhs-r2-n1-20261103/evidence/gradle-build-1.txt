@@ -1,0 +1,394 @@
+To honour the JVM settings for this build a single-use Daemon process will be forked. For more on this, please refer to https://docs.gradle.org/8.14.3/userguide/gradle_daemon.html#sec:disabling_the_daemon in the Gradle documentation.
+Daemon will be stopped at the end of the build 
+
+> Configure project :app
+WARNING: Using flatDir should be avoided because it doesn't support any meta-data formats.
+
+> Configure project :capacitor-cordova-android-plugins
+WARNING: Using flatDir should be avoided because it doesn't support any meta-data formats.
+Warning: SDK processing. This version only understands SDK XML versions up to 3 but an SDK XML file of version 4 was encountered. This can happen if you use versions of Android Studio and the command-line tools that were released at different times.
+
+> Task :app:preBuild UP-TO-DATE
+> Task :app:preDebugBuild UP-TO-DATE
+> Task :app:mergeDebugNativeDebugMetadata NO-SOURCE
+> Task :app:javaPreCompileDebug
+> Task :capacitor-android:preBuild UP-TO-DATE
+> Task :capacitor-android:preDebugBuild UP-TO-DATE
+> Task :capacitor-android:writeDebugAarMetadata
+> Task :capacitor-community-sqlite:preBuild UP-TO-DATE
+> Task :capacitor-community-sqlite:preDebugBuild UP-TO-DATE
+> Task :capacitor-community-sqlite:writeDebugAarMetadata
+> Task :capacitor-cordova-android-plugins:preBuild UP-TO-DATE
+> Task :capacitor-cordova-android-plugins:preDebugBuild UP-TO-DATE
+> Task :capacitor-cordova-android-plugins:writeDebugAarMetadata
+> Task :capacitor-filesystem:preBuild UP-TO-DATE
+> Task :capacitor-filesystem:preDebugBuild UP-TO-DATE
+> Task :capacitor-filesystem:writeDebugAarMetadata
+> Task :app:checkDebugAarMetadata
+> Task :capacitor-android:processDebugNavigationResources
+> Task :capacitor-community-sqlite:processDebugNavigationResources
+> Task :capacitor-cordova-android-plugins:processDebugNavigationResources
+> Task :capacitor-filesystem:processDebugNavigationResources
+> Task :app:processDebugNavigationResources
+> Task :app:compileDebugNavigationResources
+> Task :app:generateDebugResValues
+> Task :capacitor-android:generateDebugResValues
+> Task :capacitor-android:generateDebugResources
+> Task :capacitor-android:packageDebugResources
+> Task :capacitor-community-sqlite:generateDebugResValues
+> Task :capacitor-community-sqlite:generateDebugResources
+> Task :capacitor-community-sqlite:packageDebugResources
+> Task :capacitor-cordova-android-plugins:generateDebugResValues
+> Task :capacitor-cordova-android-plugins:generateDebugResources
+> Task :capacitor-cordova-android-plugins:packageDebugResources
+> Task :capacitor-filesystem:generateDebugResValues
+> Task :capacitor-filesystem:generateDebugResources
+> Task :capacitor-filesystem:packageDebugResources
+> Task :app:mapDebugSourceSetPaths
+> Task :app:generateDebugResources
+> Task :app:mergeDebugResources
+> Task :app:packageDebugResources
+> Task :app:parseDebugLocalResources
+> Task :app:createDebugCompatibleScreenManifests
+> Task :app:extractDeepLinksDebug
+> Task :capacitor-android:extractDeepLinksDebug
+> Task :capacitor-android:processDebugManifest
+> Task :capacitor-community-sqlite:extractDeepLinksDebug
+> Task :capacitor-community-sqlite:processDebugManifest
+> Task :capacitor-cordova-android-plugins:extractDeepLinksDebug
+> Task :capacitor-cordova-android-plugins:processDebugManifest
+> Task :capacitor-filesystem:extractDeepLinksDebug
+> Task :capacitor-filesystem:processDebugManifest
+> Task :app:processDebugMainManifest
+> Task :app:processDebugManifest
+> Task :app:processDebugManifestForPackage
+> Task :capacitor-android:compileDebugLibraryResources
+> Task :capacitor-android:parseDebugLocalResources
+> Task :capacitor-android:generateDebugRFile
+> Task :capacitor-community-sqlite:compileDebugLibraryResources
+> Task :capacitor-community-sqlite:parseDebugLocalResources
+> Task :capacitor-community-sqlite:generateDebugRFile
+> Task :capacitor-cordova-android-plugins:compileDebugLibraryResources
+> Task :capacitor-cordova-android-plugins:parseDebugLocalResources
+> Task :capacitor-cordova-android-plugins:generateDebugRFile
+> Task :capacitor-filesystem:compileDebugLibraryResources
+> Task :capacitor-filesystem:parseDebugLocalResources
+> Task :capacitor-filesystem:generateDebugRFile
+> Task :app:processDebugResources
+> Task :capacitor-android:javaPreCompileDebug
+
+> Task :capacitor-android:compileDebugJavaWithJavac
+注: 某些输入文件使用了未经检查或不安全的操作。
+注: 有关详细信息, 请使用 -Xlint:unchecked 重新编译。
+
+> Task :capacitor-android:bundleLibCompileToJarDebug
+> Task :capacitor-community-sqlite:javaPreCompileDebug
+
+> Task :capacitor-community-sqlite:compileDebugJavaWithJavac
+注: 某些输入文件使用了未经检查或不安全的操作。
+注: 有关详细信息, 请使用 -Xlint:unchecked 重新编译。
+
+> Task :capacitor-community-sqlite:bundleLibCompileToJarDebug
+> Task :capacitor-cordova-android-plugins:javaPreCompileDebug
+> Task :capacitor-cordova-android-plugins:compileDebugJavaWithJavac NO-SOURCE
+> Task :capacitor-cordova-android-plugins:bundleLibCompileToJarDebug
+> Task :capacitor-filesystem:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :capacitor-filesystem:compileDebugKotlin
+> Task :capacitor-filesystem:javaPreCompileDebug
+> Task :capacitor-filesystem:compileDebugJavaWithJavac NO-SOURCE
+> Task :capacitor-filesystem:bundleLibCompileToJarDebug
+
+注: 某些输入文件使用或覆盖了已过时的 API。
+注: 有关详细信息, 请使用 -Xlint:deprecation 重新编译。
+> Task :app:compileDebugJavaWithJavac
+
+> Task :app:mergeDebugShaders
+> Task :app:compileDebugShaders NO-SOURCE
+> Task :app:generateDebugAssets UP-TO-DATE
+> Task :capacitor-android:mergeDebugShaders
+> Task :capacitor-android:compileDebugShaders NO-SOURCE
+> Task :capacitor-android:generateDebugAssets UP-TO-DATE
+> Task :capacitor-android:mergeDebugAssets
+> Task :capacitor-community-sqlite:mergeDebugShaders
+> Task :capacitor-community-sqlite:compileDebugShaders NO-SOURCE
+> Task :capacitor-community-sqlite:generateDebugAssets UP-TO-DATE
+> Task :capacitor-community-sqlite:mergeDebugAssets
+> Task :capacitor-cordova-android-plugins:mergeDebugShaders
+> Task :capacitor-cordova-android-plugins:compileDebugShaders NO-SOURCE
+> Task :capacitor-cordova-android-plugins:generateDebugAssets UP-TO-DATE
+> Task :capacitor-cordova-android-plugins:mergeDebugAssets
+> Task :capacitor-filesystem:mergeDebugShaders
+> Task :capacitor-filesystem:compileDebugShaders NO-SOURCE
+> Task :capacitor-filesystem:generateDebugAssets UP-TO-DATE
+> Task :capacitor-filesystem:mergeDebugAssets
+> Task :app:mergeDebugAssets
+> Task :app:compressDebugAssets
+> Task :capacitor-community-sqlite:bundleLibRuntimeToJarDebug
+> Task :capacitor-filesystem:bundleLibRuntimeToJarDebug
+> Task :capacitor-android:bundleLibRuntimeToJarDebug
+> Task :capacitor-cordova-android-plugins:bundleLibRuntimeToJarDebug
+> Task :app:desugarDebugFileDependencies
+> Task :app:dexBuilderDebug
+> Task :app:mergeDebugGlobalSynthetics
+> Task :app:processDebugJavaRes NO-SOURCE
+> Task :capacitor-android:processDebugJavaRes NO-SOURCE
+> Task :capacitor-community-sqlite:processDebugJavaRes
+> Task :capacitor-cordova-android-plugins:processDebugJavaRes NO-SOURCE
+> Task :capacitor-filesystem:processDebugJavaRes
+> Task :app:mergeDebugJavaResource
+> Task :app:checkDebugDuplicateClasses
+> Task :app:mergeExtDexDebug
+> Task :capacitor-community-sqlite:bundleLibRuntimeToDirDebug
+> Task :capacitor-filesystem:bundleLibRuntimeToDirDebug
+> Task :capacitor-android:bundleLibRuntimeToDirDebug
+> Task :capacitor-cordova-android-plugins:bundleLibRuntimeToDirDebug
+> Task :app:mergeLibDexDebug
+> Task :app:mergeProjectDexDebug
+> Task :app:mergeDebugJniLibFolders
+> Task :capacitor-android:mergeDebugJniLibFolders
+> Task :capacitor-android:mergeDebugNativeLibs NO-SOURCE
+> Task :capacitor-android:copyDebugJniLibsProjectOnly
+> Task :capacitor-community-sqlite:mergeDebugJniLibFolders
+> Task :capacitor-community-sqlite:mergeDebugNativeLibs NO-SOURCE
+> Task :capacitor-community-sqlite:copyDebugJniLibsProjectOnly
+> Task :capacitor-cordova-android-plugins:mergeDebugJniLibFolders
+> Task :capacitor-cordova-android-plugins:mergeDebugNativeLibs NO-SOURCE
+> Task :capacitor-cordova-android-plugins:copyDebugJniLibsProjectOnly
+> Task :capacitor-filesystem:mergeDebugJniLibFolders
+> Task :capacitor-filesystem:mergeDebugNativeLibs NO-SOURCE
+> Task :capacitor-filesystem:copyDebugJniLibsProjectOnly
+> Task :app:mergeDebugNativeLibs
+
+> Task :app:stripDebugDebugSymbols
+Unable to strip the following libraries, packaging them as they are: libsqlcipher.so. Run with --info option to learn more.
+
+> Task :app:validateSigningDebug
+> Task :app:writeDebugAppMetadata
+> Task :app:writeDebugSigningConfigVersions
+> Task :app:packageDebug
+> Task :app:createDebugApkListingFileRedirect
+> Task :app:assembleDebug
+> Task :capacitor-android:checkDebugAarMetadata
+> Task :capacitor-android:stripDebugDebugSymbols NO-SOURCE
+> Task :capacitor-android:copyDebugJniLibsProjectAndLocalJars
+> Task :capacitor-android:extractDebugAnnotations
+> Task :capacitor-android:extractDeepLinksForAarDebug
+> Task :capacitor-android:mergeDebugGeneratedProguardFiles
+> Task :capacitor-android:mergeDebugConsumerProguardFiles
+> Task :capacitor-android:prepareDebugArtProfile
+> Task :capacitor-android:prepareLintJarForPublish UP-TO-DATE
+> Task :capacitor-android:mergeDebugJavaResource
+> Task :capacitor-android:syncDebugLibJars
+> Task :capacitor-android:bundleDebugAar
+> Task :capacitor-android:assembleDebug
+> Task :capacitor-community-sqlite:checkDebugAarMetadata
+> Task :capacitor-community-sqlite:stripDebugDebugSymbols NO-SOURCE
+> Task :capacitor-community-sqlite:copyDebugJniLibsProjectAndLocalJars
+> Task :capacitor-community-sqlite:extractDebugAnnotations
+> Task :capacitor-community-sqlite:extractDeepLinksForAarDebug
+> Task :capacitor-community-sqlite:mergeDebugGeneratedProguardFiles
+> Task :capacitor-community-sqlite:mergeDebugConsumerProguardFiles
+> Task :capacitor-community-sqlite:prepareDebugArtProfile
+> Task :capacitor-community-sqlite:prepareLintJarForPublish UP-TO-DATE
+> Task :capacitor-community-sqlite:mergeDebugJavaResource
+> Task :capacitor-community-sqlite:syncDebugLibJars
+> Task :capacitor-community-sqlite:bundleDebugAar
+> Task :capacitor-community-sqlite:assembleDebug
+> Task :capacitor-cordova-android-plugins:checkDebugAarMetadata
+> Task :capacitor-cordova-android-plugins:stripDebugDebugSymbols NO-SOURCE
+> Task :capacitor-cordova-android-plugins:copyDebugJniLibsProjectAndLocalJars
+> Task :capacitor-cordova-android-plugins:extractDebugAnnotations
+> Task :capacitor-cordova-android-plugins:extractDeepLinksForAarDebug
+> Task :capacitor-cordova-android-plugins:mergeDebugGeneratedProguardFiles
+> Task :capacitor-cordova-android-plugins:mergeDebugConsumerProguardFiles
+> Task :capacitor-cordova-android-plugins:prepareDebugArtProfile
+> Task :capacitor-cordova-android-plugins:prepareLintJarForPublish UP-TO-DATE
+> Task :capacitor-cordova-android-plugins:mergeDebugJavaResource
+> Task :capacitor-cordova-android-plugins:syncDebugLibJars
+> Task :capacitor-cordova-android-plugins:bundleDebugAar
+> Task :capacitor-cordova-android-plugins:assembleDebug
+> Task :capacitor-filesystem:checkDebugAarMetadata
+> Task :capacitor-filesystem:stripDebugDebugSymbols NO-SOURCE
+> Task :capacitor-filesystem:copyDebugJniLibsProjectAndLocalJars
+> Task :capacitor-filesystem:extractDebugAnnotations
+> Task :capacitor-filesystem:extractDeepLinksForAarDebug
+> Task :capacitor-filesystem:mergeDebugGeneratedProguardFiles
+> Task :capacitor-filesystem:mergeDebugConsumerProguardFiles
+> Task :capacitor-filesystem:prepareDebugArtProfile
+> Task :capacitor-filesystem:prepareLintJarForPublish UP-TO-DATE
+> Task :capacitor-filesystem:mergeDebugJavaResource
+> Task :capacitor-filesystem:syncDebugLibJars
+> Task :capacitor-filesystem:bundleDebugAar
+> Task :capacitor-filesystem:assembleDebug
+> Task :app:bundleDebugClassesToCompileJar
+> Task :app:preDebugAndroidTestBuild SKIPPED
+> Task :app:javaPreCompileDebugAndroidTest
+> Task :app:checkDebugAndroidTestAarMetadata
+> Task :app:processDebugAndroidTestNavigationResources
+> Task :app:compileDebugAndroidTestNavigationResources
+> Task :app:generateDebugAndroidTestResValues
+> Task :app:mapDebugAndroidTestSourceSetPaths
+> Task :app:generateDebugAndroidTestResources
+> Task :app:mergeDebugAndroidTestResources
+> Task :app:processDebugAndroidTestManifest
+> Task :app:processDebugAndroidTestResources
+
+> Task :app:compileDebugAndroidTestJavaWithJavac
+注: E:\CODEX\VIBE CODING\recipe-step-app-g7\android\app\src\androidTest\java\app\recipio\local\ShareMediaInboxInstrumentedTest.java使用或覆盖了已过时的 API。
+注: 有关详细信息, 请使用 -Xlint:deprecation 重新编译。
+
+> Task :app:mergeDebugAndroidTestShaders
+> Task :app:compileDebugAndroidTestShaders NO-SOURCE
+> Task :app:generateDebugAndroidTestAssets UP-TO-DATE
+> Task :app:mergeDebugAndroidTestAssets
+> Task :app:compressDebugAndroidTestAssets
+> Task :app:desugarDebugAndroidTestFileDependencies
+> Task :app:dexBuilderDebugAndroidTest
+> Task :app:mergeDebugAndroidTestGlobalSynthetics
+> Task :app:processDebugAndroidTestJavaRes NO-SOURCE
+> Task :app:mergeDebugAndroidTestJavaResource
+> Task :app:checkDebugAndroidTestDuplicateClasses
+> Task :app:mergeExtDexDebugAndroidTest
+> Task :app:mergeLibDexDebugAndroidTest
+> Task :app:mergeProjectDexDebugAndroidTest
+> Task :app:mergeDebugAndroidTestJniLibFolders
+> Task :app:mergeDebugAndroidTestNativeLibs NO-SOURCE
+> Task :app:stripDebugAndroidTestDebugSymbols NO-SOURCE
+> Task :app:validateSigningDebugAndroidTest
+> Task :app:writeDebugAndroidTestSigningConfigVersions
+> Task :app:packageDebugAndroidTest
+> Task :app:createDebugAndroidTestApkListingFileRedirect
+> Task :app:assembleDebugAndroidTest
+> Task :capacitor-android:preDebugAndroidTestBuild UP-TO-DATE
+> Task :capacitor-android:javaPreCompileDebugAndroidTest
+> Task :capacitor-android:checkDebugAndroidTestAarMetadata
+> Task :capacitor-android:processDebugAndroidTestNavigationResources
+> Task :capacitor-android:compileDebugAndroidTestNavigationResources
+> Task :capacitor-android:generateDebugAndroidTestResValues
+> Task :capacitor-android:mapDebugAndroidTestSourceSetPaths
+> Task :capacitor-android:generateDebugAndroidTestResources
+> Task :capacitor-android:mergeDebugAndroidTestResources
+> Task :capacitor-android:processDebugAndroidTestManifest
+> Task :capacitor-android:processDebugAndroidTestResources
+> Task :capacitor-android:compileDebugAndroidTestJavaWithJavac NO-SOURCE
+> Task :capacitor-android:mergeDebugAndroidTestShaders
+> Task :capacitor-android:compileDebugAndroidTestShaders NO-SOURCE
+> Task :capacitor-android:generateDebugAndroidTestAssets UP-TO-DATE
+> Task :capacitor-android:mergeDebugAndroidTestAssets
+> Task :capacitor-android:compressDebugAndroidTestAssets
+> Task :capacitor-android:desugarDebugAndroidTestFileDependencies
+> Task :capacitor-android:dexBuilderDebugAndroidTest
+> Task :capacitor-android:mergeDebugAndroidTestGlobalSynthetics
+> Task :capacitor-android:processDebugAndroidTestJavaRes NO-SOURCE
+> Task :capacitor-android:mergeDebugAndroidTestJavaResource
+> Task :capacitor-android:checkDebugAndroidTestDuplicateClasses
+> Task :capacitor-android:mergeExtDexDebugAndroidTest
+> Task :capacitor-android:mergeLibDexDebugAndroidTest
+> Task :capacitor-android:mergeProjectDexDebugAndroidTest
+> Task :capacitor-android:mergeDebugAndroidTestJniLibFolders
+> Task :capacitor-android:mergeDebugAndroidTestNativeLibs NO-SOURCE
+> Task :capacitor-android:stripDebugAndroidTestDebugSymbols NO-SOURCE
+> Task :capacitor-android:validateSigningDebugAndroidTest
+> Task :capacitor-android:writeDebugAndroidTestSigningConfigVersions
+> Task :capacitor-android:packageDebugAndroidTest
+> Task :capacitor-android:createDebugAndroidTestApkListingFileRedirect
+> Task :capacitor-android:assembleDebugAndroidTest
+> Task :capacitor-community-sqlite:preDebugAndroidTestBuild UP-TO-DATE
+> Task :capacitor-community-sqlite:javaPreCompileDebugAndroidTest
+> Task :capacitor-community-sqlite:checkDebugAndroidTestAarMetadata
+> Task :capacitor-community-sqlite:processDebugAndroidTestNavigationResources
+> Task :capacitor-community-sqlite:compileDebugAndroidTestNavigationResources
+> Task :capacitor-community-sqlite:generateDebugAndroidTestResValues
+> Task :capacitor-community-sqlite:mapDebugAndroidTestSourceSetPaths
+> Task :capacitor-community-sqlite:generateDebugAndroidTestResources
+> Task :capacitor-community-sqlite:mergeDebugAndroidTestResources
+> Task :capacitor-community-sqlite:processDebugAndroidTestManifest
+> Task :capacitor-community-sqlite:processDebugAndroidTestResources
+> Task :capacitor-community-sqlite:compileDebugAndroidTestJavaWithJavac NO-SOURCE
+> Task :capacitor-community-sqlite:mergeDebugAndroidTestShaders
+> Task :capacitor-community-sqlite:compileDebugAndroidTestShaders NO-SOURCE
+> Task :capacitor-community-sqlite:generateDebugAndroidTestAssets UP-TO-DATE
+> Task :capacitor-community-sqlite:mergeDebugAndroidTestAssets
+> Task :capacitor-community-sqlite:compressDebugAndroidTestAssets
+> Task :capacitor-community-sqlite:desugarDebugAndroidTestFileDependencies
+> Task :capacitor-community-sqlite:dexBuilderDebugAndroidTest
+> Task :capacitor-community-sqlite:mergeDebugAndroidTestGlobalSynthetics
+> Task :capacitor-community-sqlite:processDebugAndroidTestJavaRes NO-SOURCE
+> Task :capacitor-community-sqlite:mergeDebugAndroidTestJavaResource
+> Task :capacitor-community-sqlite:checkDebugAndroidTestDuplicateClasses
+> Task :capacitor-community-sqlite:mergeExtDexDebugAndroidTest
+> Task :capacitor-community-sqlite:mergeLibDexDebugAndroidTest
+> Task :capacitor-community-sqlite:mergeProjectDexDebugAndroidTest
+> Task :capacitor-community-sqlite:mergeDebugAndroidTestJniLibFolders
+> Task :capacitor-community-sqlite:mergeDebugAndroidTestNativeLibs
+
+> Task :capacitor-community-sqlite:stripDebugAndroidTestDebugSymbols
+Unable to strip the following libraries, packaging them as they are: libsqlcipher.so. Run with --info option to learn more.
+
+> Task :capacitor-community-sqlite:validateSigningDebugAndroidTest
+> Task :capacitor-community-sqlite:writeDebugAndroidTestSigningConfigVersions
+> Task :capacitor-community-sqlite:packageDebugAndroidTest
+> Task :capacitor-community-sqlite:createDebugAndroidTestApkListingFileRedirect
+> Task :capacitor-community-sqlite:assembleDebugAndroidTest
+> Task :capacitor-cordova-android-plugins:preDebugAndroidTestBuild UP-TO-DATE
+> Task :capacitor-cordova-android-plugins:javaPreCompileDebugAndroidTest
+> Task :capacitor-cordova-android-plugins:checkDebugAndroidTestAarMetadata
+> Task :capacitor-cordova-android-plugins:processDebugAndroidTestNavigationResources
+> Task :capacitor-cordova-android-plugins:compileDebugAndroidTestNavigationResources
+> Task :capacitor-cordova-android-plugins:generateDebugAndroidTestResValues
+> Task :capacitor-cordova-android-plugins:mapDebugAndroidTestSourceSetPaths
+> Task :capacitor-cordova-android-plugins:generateDebugAndroidTestResources
+> Task :capacitor-cordova-android-plugins:mergeDebugAndroidTestResources
+> Task :capacitor-cordova-android-plugins:processDebugAndroidTestManifest
+> Task :capacitor-cordova-android-plugins:processDebugAndroidTestResources
+> Task :capacitor-cordova-android-plugins:compileDebugAndroidTestJavaWithJavac NO-SOURCE
+> Task :capacitor-cordova-android-plugins:mergeDebugAndroidTestShaders
+> Task :capacitor-cordova-android-plugins:compileDebugAndroidTestShaders NO-SOURCE
+> Task :capacitor-cordova-android-plugins:generateDebugAndroidTestAssets UP-TO-DATE
+> Task :capacitor-cordova-android-plugins:mergeDebugAndroidTestAssets
+> Task :capacitor-cordova-android-plugins:compressDebugAndroidTestAssets
+> Task :capacitor-cordova-android-plugins:desugarDebugAndroidTestFileDependencies
+> Task :capacitor-cordova-android-plugins:dexBuilderDebugAndroidTest
+> Task :capacitor-cordova-android-plugins:mergeDebugAndroidTestGlobalSynthetics
+> Task :capacitor-cordova-android-plugins:processDebugAndroidTestJavaRes NO-SOURCE
+> Task :capacitor-cordova-android-plugins:mergeDebugAndroidTestJavaResource
+> Task :capacitor-cordova-android-plugins:checkDebugAndroidTestDuplicateClasses FAILED
+
+[Incubating] Problems report is available at: file:///E:/CODEX/VIBE%20CODING/recipe-step-app-g7/android/build/reports/problems/problems-report.html
+
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+Execution failed for task ':capacitor-cordova-android-plugins:checkDebugAndroidTestDuplicateClasses'.
+> A failure occurred while executing com.android.build.gradle.internal.tasks.CheckDuplicatesRunnable
+   > Duplicate class kotlin.collections.jdk8.CollectionsJDK8Kt found in modules kotlin-stdlib-1.8.22.jar -> kotlin-stdlib-1.8.22 (org.jetbrains.kotlin:kotlin-stdlib:1.8.22) and kotlin-stdlib-jdk8-1.6.21.jar -> kotlin-stdlib-jdk8-1.6.21 (org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.6.21)
+     Duplicate class kotlin.internal.jdk7.JDK7PlatformImplementations found in modules kotlin-stdlib-1.8.22.jar -> kotlin-stdlib-1.8.22 (org.jetbrains.kotlin:kotlin-stdlib:1.8.22) and kotlin-stdlib-jdk7-1.6.21.jar -> kotlin-stdlib-jdk7-1.6.21 (org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.6.21)
+     Duplicate class kotlin.internal.jdk7.JDK7PlatformImplementations$ReflectSdkVersion found in modules kotlin-stdlib-1.8.22.jar -> kotlin-stdlib-1.8.22 (org.jetbrains.kotlin:kotlin-stdlib:1.8.22) and kotlin-stdlib-jdk7-1.6.21.jar -> kotlin-stdlib-jdk7-1.6.21 (org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.6.21)
+     Duplicate class kotlin.internal.jdk8.JDK8PlatformImplementations found in modules kotlin-stdlib-1.8.22.jar -> kotlin-stdlib-1.8.22 (org.jetbrains.kotlin:kotlin-stdlib:1.8.22) and kotlin-stdlib-jdk8-1.6.21.jar -> kotlin-stdlib-jdk8-1.6.21 (org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.6.21)
+     Duplicate class kotlin.internal.jdk8.JDK8PlatformImplementations$ReflectSdkVersion found in modules kotlin-stdlib-1.8.22.jar -> kotlin-stdlib-1.8.22 (org.jetbrains.kotlin:kotlin-stdlib:1.8.22) and kotlin-stdlib-jdk8-1.6.21.jar -> kotlin-stdlib-jdk8-1.6.21 (org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.6.21)
+     Duplicate class kotlin.io.path.ExperimentalPathApi found in modules kotlin-stdlib-1.8.22.jar -> kotlin-stdlib-1.8.22 (org.jetbrains.kotlin:kotlin-stdlib:1.8.22) and kotlin-stdlib-jdk7-1.6.21.jar -> kotlin-stdlib-jdk7-1.6.21 (org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.6.21)
+     Duplicate class kotlin.io.path.PathRelativizer found in modules kotlin-stdlib-1.8.22.jar -> kotlin-stdlib-1.8.22 (org.jetbrains.kotlin:kotlin-stdlib:1.8.22) and kotlin-stdlib-jdk7-1.6.21.jar -> kotlin-stdlib-jdk7-1.6.21 (org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.6.21)
+     Duplicate class kotlin.io.path.PathsKt found in modules kotlin-stdlib-1.8.22.jar -> kotlin-stdlib-1.8.22 (org.jetbrains.kotlin:kotlin-stdlib:1.8.22) and kotlin-stdlib-jdk7-1.6.21.jar -> kotlin-stdlib-jdk7-1.6.21 (org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.6.21)
+     Duplicate class kotlin.io.path.PathsKt__PathReadWriteKt found in modules kotlin-stdlib-1.8.22.jar -> kotlin-stdlib-1.8.22 (org.jetbrains.kotlin:kotlin-stdlib:1.8.22) and kotlin-stdlib-jdk7-1.6.21.jar -> kotlin-stdlib-jdk7-1.6.21 (org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.6.21)
+     Duplicate class kotlin.io.path.PathsKt__PathUtilsKt found in modules kotlin-stdlib-1.8.22.jar -> kotlin-stdlib-1.8.22 (org.jetbrains.kotlin:kotlin-stdlib:1.8.22) and kotlin-stdlib-jdk7-1.6.21.jar -> kotlin-stdlib-jdk7-1.6.21 (org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.6.21)
+     Duplicate class kotlin.jdk7.AutoCloseableKt found in modules kotlin-stdlib-1.8.22.jar -> kotlin-stdlib-1.8.22 (org.jetbrains.kotlin:kotlin-stdlib:1.8.22) and kotlin-stdlib-jdk7-1.6.21.jar -> kotlin-stdlib-jdk7-1.6.21 (org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.6.21)
+     Duplicate class kotlin.jvm.jdk8.JvmRepeatableKt found in modules kotlin-stdlib-1.8.22.jar -> kotlin-stdlib-1.8.22 (org.jetbrains.kotlin:kotlin-stdlib:1.8.22) and kotlin-stdlib-jdk8-1.6.21.jar -> kotlin-stdlib-jdk8-1.6.21 (org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.6.21)
+     Duplicate class kotlin.random.jdk8.PlatformThreadLocalRandom found in modules kotlin-stdlib-1.8.22.jar -> kotlin-stdlib-1.8.22 (org.jetbrains.kotlin:kotlin-stdlib:1.8.22) and kotlin-stdlib-jdk8-1.6.21.jar -> kotlin-stdlib-jdk8-1.6.21 (org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.6.21)
+     Duplicate class kotlin.streams.jdk8.StreamsKt found in modules kotlin-stdlib-1.8.22.jar -> kotlin-stdlib-1.8.22 (org.jetbrains.kotlin:kotlin-stdlib:1.8.22) and kotlin-stdlib-jdk8-1.6.21.jar -> kotlin-stdlib-jdk8-1.6.21 (org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.6.21)
+     Duplicate class kotlin.streams.jdk8.StreamsKt$asSequence$$inlined$Sequence$1 found in modules kotlin-stdlib-1.8.22.jar -> kotlin-stdlib-1.8.22 (org.jetbrains.kotlin:kotlin-stdlib:1.8.22) and kotlin-stdlib-jdk8-1.6.21.jar -> kotlin-stdlib-jdk8-1.6.21 (org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.6.21)
+     Duplicate class kotlin.streams.jdk8.StreamsKt$asSequence$$inlined$Sequence$2 found in modules kotlin-stdlib-1.8.22.jar -> kotlin-stdlib-1.8.22 (org.jetbrains.kotlin:kotlin-stdlib:1.8.22) and kotlin-stdlib-jdk8-1.6.21.jar -> kotlin-stdlib-jdk8-1.6.21 (org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.6.21)
+     Duplicate class kotlin.streams.jdk8.StreamsKt$asSequence$$inlined$Sequence$3 found in modules kotlin-stdlib-1.8.22.jar -> kotlin-stdlib-1.8.22 (org.jetbrains.kotlin:kotlin-stdlib:1.8.22) and kotlin-stdlib-jdk8-1.6.21.jar -> kotlin-stdlib-jdk8-1.6.21 (org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.6.21)
+     Duplicate class kotlin.streams.jdk8.StreamsKt$asSequence$$inlined$Sequence$4 found in modules kotlin-stdlib-1.8.22.jar -> kotlin-stdlib-1.8.22 (org.jetbrains.kotlin:kotlin-stdlib:1.8.22) and kotlin-stdlib-jdk8-1.6.21.jar -> kotlin-stdlib-jdk8-1.6.21 (org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.6.21)
+     Duplicate class kotlin.text.jdk8.RegexExtensionsJDK8Kt found in modules kotlin-stdlib-1.8.22.jar -> kotlin-stdlib-1.8.22 (org.jetbrains.kotlin:kotlin-stdlib:1.8.22) and kotlin-stdlib-jdk8-1.6.21.jar -> kotlin-stdlib-jdk8-1.6.21 (org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.6.21)
+     Duplicate class kotlin.time.jdk8.DurationConversionsJDK8Kt found in modules kotlin-stdlib-1.8.22.jar -> kotlin-stdlib-1.8.22 (org.jetbrains.kotlin:kotlin-stdlib:1.8.22) and kotlin-stdlib-jdk8-1.6.21.jar -> kotlin-stdlib-jdk8-1.6.21 (org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.6.21)
+     
+     Learn how to fix dependency resolution errors at https://d.android.com/r/tools/classpath-sync-errors
+
+* Try:
+> Run with --stacktrace option to get the stack trace.
+> Run with --info or --debug option to get more log output.
+> Run with --scan to get full insights.
+> Get more help at https://help.gradle.org.
+
+BUILD FAILED in 3m 39s
+257 actionable tasks: 253 executed, 4 up-to-date

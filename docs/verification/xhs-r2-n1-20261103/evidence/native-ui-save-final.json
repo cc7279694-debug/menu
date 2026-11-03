@@ -1,0 +1,10 @@
+{
+  "startedAt": "2026-11-03T05:07:06.447348+00:00",
+  "test": "app.recipio.local.AiImeBackInstrumentedTest#xhsR2NativeImagesReorderRemoveReviewAndSaveCleanOwnedCache",
+  "serial": "emulator-5686",
+  "exitCode": 0,
+  "passed": true,
+  "provider": "FAKE_HTTP_ONLY",
+  "realAiCalls": 0,
+  "output": "native-ui-save-final.txt"
+}

@@ -1,0 +1,12 @@
+{
+  "newDataDirectory": "E:\\CODEX\\Tools\\recipio-xhs-r2-n1-20261103\\avd",
+  "pid": 25552,
+  "otherDeviceOperations": 0,
+  "serial": "emulator-5686",
+  "freeGiBBeforeStart": 5.996,
+  "avd": "Recipio_XHS_R2_N1_API36",
+  "phoneOperations": 0,
+  "startedAt": "2026-11-03T12:51:14.7000031+08:00",
+  "thresholdGiB": 4,
+  "ramMiB": 2560
+}

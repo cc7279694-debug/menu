@@ -1,0 +1,10 @@
+{
+  "pixelInputWidth": 8001,
+  "pixelInputHeight": 4000,
+  "pixelInputBytes": 93393,
+  "pixelError": "image_too_large",
+  "byteInputLength": 15728641,
+  "byteInputKind": "generated zero stream; rejected before container decoding",
+  "byteError": "image_too_large",
+  "onlySessionMarkerRemains": true
+}

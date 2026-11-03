@@ -1,0 +1,10 @@
+{
+  "kind": "GENERATED_NATIVE_CODEC_TEST_ONLY",
+  "test": "generatedNormalAndLongRecipesExportActualGeometryAndTextCrops",
+  "androidSdk": 36,
+  "hardware": "ranchu",
+  "package": "app.recipio.local",
+  "realAiCalls": 0,
+  "nativePicker": "NOT_TESTED_BY_THIS_CLASS",
+  "automaticReadabilityVerdict": "NOT_ASSESSED"
+}

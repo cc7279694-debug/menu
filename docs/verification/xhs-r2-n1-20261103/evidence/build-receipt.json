@@ -1,0 +1,25 @@
+{
+  "sourceCommit": "582e841c5c2289c9438eab7ba9fb63ede6b91c4d",
+  "productFrozenSource": "c2c55d21c8328e6f78aa7f738bf9d1eba9f1423d",
+  "kind": "DEBUG_TEST_ONLY_NOT_RELEASE",
+  "package": "app.recipio.local",
+  "versionCode": 28,
+  "versionName": "0.11.1-personal.1",
+  "targetSdk": 36,
+  "debugApk": {
+    "bytes": 17276763,
+    "path": "E:\\CODEX\\Tools\\recipio-xhs-r2-n1-20261103\\test-app-debug.apk",
+    "sha256": "bba8be2609a3a71904a03ca7a9c34d32620b232f8a8cd657bcdf3f48ceb26579"
+  },
+  "instrumentationApk": {
+    "bytes": 697759,
+    "path": "E:\\CODEX\\Tools\\recipio-xhs-r2-n1-20261103\\test-instrumentation.apk",
+    "sha256": "dde942dad91a9131669ff0a4a6e5704bdfc667fc0ff07a26130306148f2570b0"
+  },
+  "webSync": "PASS",
+  "buildCommand": ":app:assembleDebug :app:assembleDebugAndroidTest --offline --no-daemon --max-workers=1",
+  "build": "PASS",
+  "previousFailure": "Unqualified task also built unrelated Capacitor Cordova plugin AndroidTest; Kotlin duplicate classes there. No app dependency/configuration changes.",
+  "jsSaveRecoveryTests": 51,
+  "realAiCalls": 0
+}
