@@ -4,7 +4,8 @@
 
 | Module | Status | Scope |
 | --- | --- | --- |
-| XHS-R2 | Ready for independent review | 保持目标归属/网络安全，有限静态状态兼容、诊断区分、原页面截图AI补救；真实平台原因UNKNOWN，无真实网络/AI/手机/APK，见 verification/xhs-r2-20261103/REVIEW.md。不是正式版本发布或G8 |
+| XHS-R2 | Accepted / Frozen — PASS WITH NOTES（限定范围） | 用户转达ChatGPT验收：源码c2c55d21、脚本cb4d5e86、证据28b1a6bf；全部NOTES/NOT_RUN保留，见 verification/xhs-r2-20261103/INDEPENDENT_ACCEPTANCE.md。不是Android/真实AI/真实平台或发布验收 |
+| XHS-R2-N1 | Blocked — Android memory admission | 原生生成图/Picker测试已准备但未编译或运行；最终空闲1.944GiB低于4GiB门槛，未创建/启动AVD，尺寸/清晰度/清理仍NOT_RUN，见 verification/xhs-r2-n1-20261103/CHECKPOINT.md |
 | APK-0 | Implemented; awaiting acceptance | 本地 Android + SQLite；菜名 CRUD/search/5 秒撤销；构建、离线、重启、覆盖升级已在模拟器验证 |
 | APK-1 | Native verified; initial user experience accepted | 日常库已实现；622 项回归与 6 项 Java 测试通过；原生图片、取消、离线 CRUD、重启、排序、返回键、v5→v6 覆盖升级验证通过；用户目前未发现问题 |
 | APK-2 | Accepted baseline | .recipio Format v1、完整当前/历史图片、安全 Replace；v10 与原 Golden 保留，历史验证数字不复用为 APK-3 结果 |

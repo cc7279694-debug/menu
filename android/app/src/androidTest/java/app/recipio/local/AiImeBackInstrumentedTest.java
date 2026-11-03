@@ -49,6 +49,8 @@ public class AiImeBackInstrumentedTest {
     private LocalAiIntakePlugin intake;
     private ExecutorService worker;
     private Uri generatedImage;
+    private final java.util.List<Uri> n1GeneratedImages=new java.util.ArrayList<>();
+    private volatile String n1LastRequest;
     private final AtomicInteger posts=new AtomicInteger();
     private JSONObject generatedDocumentSelection;
     private JSONObject generatedDocumentLayout;
@@ -74,6 +76,7 @@ public class AiImeBackInstrumentedTest {
         field(runtime,"images",AiTemporaryImages.forContext(target));
         intake=(LocalAiIntakePlugin)activity.getBridge().getPlugin("LocalAiIntake").getInstance();field(intake,"runtime",runtime);
         try(InputStream asset=target.getAssets().open("recipio-ai-intake-contract.json")){field(intake,"client",new QwenClient(new AiIntakeContract(asset),(request,cancel)->{
+            n1LastRequest=new String(request.body,StandardCharsets.UTF_8);
             posts.incrementAndGet();httpEntered.countDown();while(holdHttp&&!httpRelease.await(100,TimeUnit.MILLISECONDS))cancel.check();cancel.check();
             String body=new JSONObject().put("choices",new JSONArray().put(new JSONObject().put("finish_reason","stop").put("message",new JSONObject().put("content",fakeDraft())))).toString();
             return new QwenClient.HttpReply(200,new ByteArrayInputStream(body.getBytes(StandardCharsets.UTF_8)),()->{});
@@ -135,6 +138,7 @@ public class AiImeBackInstrumentedTest {
         if(scenario!=null)scenario.close();
         if(worker!=null)assertTrue(worker.awaitTermination(10,TimeUnit.SECONDS));
         if(generatedImage!=null)instrumentation.getTargetContext().getContentResolver().delete(generatedImage,null,null);
+        for(Uri uri:n1GeneratedImages)if(!uri.equals(generatedImage))instrumentation.getTargetContext().getContentResolver().delete(uri,null,null);
         if(runtime!=null)runtime.secrets.delete();
         if(alias!=null){KeyStore keys=KeyStore.getInstance("AndroidKeyStore");keys.load(null);if(keys.containsAlias(alias))keys.deleteEntry(alias);}
         if(root!=null)LocalBackupArchive.deleteOwnedTree(root);
@@ -351,10 +355,15 @@ public class AiImeBackInstrumentedTest {
         } catch(RuntimeException ignored) { /* Preserve the original failure, even if diagnostic delivery fails. */ }
     }
     private void pickGeneratedImage()throws Exception {
+        pickGeneratedImage(64,64);
+    }
+    private void pickGeneratedImage(int width,int height)throws Exception {
         Context context=instrumentation.getTargetContext();String name="recipio-ime-"+UUID.randomUUID()+".png";
         ContentValues values=new ContentValues();values.put(MediaStore.Downloads.DISPLAY_NAME,name);values.put(MediaStore.Downloads.MIME_TYPE,"image/png");values.put(MediaStore.Downloads.RELATIVE_PATH,"Download/");values.put(MediaStore.Downloads.IS_PENDING,1);
         generatedImage=context.getContentResolver().insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI,values);assertNotNull(generatedImage);
-        Bitmap bitmap=Bitmap.createBitmap(64,64,Bitmap.Config.ARGB_8888);bitmap.eraseColor(android.graphics.Color.WHITE);
+        n1GeneratedImages.add(generatedImage);
+        Bitmap bitmap=Bitmap.createBitmap(width,height,Bitmap.Config.ARGB_8888);bitmap.eraseColor(android.graphics.Color.WHITE);
+        if(width>64){android.graphics.Canvas canvas=new android.graphics.Canvas(bitmap);android.graphics.Paint paint=new android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG);paint.setColor(android.graphics.Color.BLACK);paint.setTextSize(24);canvas.drawText("N1 GENERATED 青菜200克 盐适量",20,60,paint);for(int i=1;i<=8;i++)canvas.drawText(i+". 合成步骤：洗净切段，煮熟装盘。",20,100+i*(height-180)/8f,paint);}
         try(OutputStream output=context.getContentResolver().openOutputStream(generatedImage)){assertTrue(bitmap.compress(Bitmap.CompressFormat.PNG,100,output));}finally{bitmap.recycle();}
         ContentValues published=new ContentValues();published.put(MediaStore.Downloads.IS_PENDING,0);
         assertEquals(1,context.getContentResolver().update(generatedImage,published,null,null));
@@ -410,5 +419,50 @@ public class AiImeBackInstrumentedTest {
         holdHttp=true;click("开始 AI 整理");assertTrue(httpEntered.await(8,TimeUnit.SECONDS));back();back();until("!!document.querySelector('[role=dialog]')");
         assertEquals(1,posts.get());click("继续整理");assertEquals("true",js("document.body.innerText.includes('正在整理')"));
         httpRelease.countDown();until("document.body.innerText.includes('检查整理结果')");assertEquals(1,posts.get());
+    }
+    private void n1LinkScreenshotInput()throws Exception {
+        click("返回");click("放弃本轮整理");until("!document.body.innerText.includes('整理菜谱')");
+        // Only the public web read is replaced. Picker, decoding, cache, AI bridge,
+        // local schema/review and SQLite saving remain real installed app paths.
+        js("(()=>{const c=window.Capacitor,o=c.nativePromise;c.nativePromise=function(...a){if(a[0]==='LocalWebImport'&&a[1]==='read')return Promise.resolve({finalUrl:'https://www.xiaohongshu.com/explore/n1-synthetic?source=not-for-ai',contentType:'text/html',html:'<title>N1 来源提示</title>'});return Reflect.apply(o,this,a)};return true})()");
+        click("新增菜谱");click("从网页链接导入");
+        js("(()=>{const e=document.querySelector('input[type=url]');Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,'value').set.call(e,'https://xhslink.cn/o/n1-synthetic');e.dispatchEvent(new Event('input',{bubbles:true}));return true})()");
+        click("读取网页");click("添加菜谱截图并用 AI 整理");until("!!document.querySelector('.v2-ai-intake')");
+        assertEquals("",js("document.querySelector('textarea').value"));assertEquals(0,posts.get());
+    }
+    private void n1Capture(String name)throws Exception {
+        File directory=new File(instrumentation.getTargetContext().getExternalFilesDir(null),"xhs-r2-n1-ui");assertTrue(directory.isDirectory()||directory.mkdirs());
+        File file=new File(directory,name+"-"+UUID.randomUUID()+".png");Bitmap screenshot=instrumentation.getUiAutomation().takeScreenshot();assertNotNull(screenshot);
+        try(OutputStream output=new FileOutputStream(file)){assertTrue(screenshot.compress(Bitmap.CompressFormat.PNG,100,output));}finally{screenshot.recycle();}
+    }
+    @Test public void xhsR2NativePickerCancelLongImageAndBackKeepSourceSafe()throws Exception {
+        n1LinkScreenshotInput();click("添加截图");
+        long deadline=android.os.SystemClock.elapsedRealtime()+10000;
+        while(android.os.SystemClock.elapsedRealtime()<deadline){AccessibilityNodeInfo node=instrumentation.getUiAutomation().getRootInActiveWindow();if(node!=null&&systemPicker(String.valueOf(node.getPackageName())))break;Thread.sleep(100);}
+        AccessibilityNodeInfo foreground=instrumentation.getUiAutomation().getRootInActiveWindow();assertNotNull(foreground);assertTrue(systemPicker(String.valueOf(foreground.getPackageName())));
+        n1Capture("picker-open");
+        back();until("document.body.innerText.includes('来源提示：N1 来源提示')");
+        assertEquals("0",js("document.querySelectorAll('.v2-intake-image-grid li').length"));assertEquals(0,posts.get());
+        pickGeneratedImage(600,1800);
+        until("document.querySelector('img[alt=\"截图 1\"]')?.naturalHeight===1800");
+        n1Capture("long-600-preview");
+        openIme();back();awaitIme(false);assertEquals("false",js("!!document.querySelector('[role=dialog]')"));assertEquals(0,posts.get());
+        click("返回");click("放弃本轮整理");until("document.body.innerText.includes('仅获取到标题')");assertEquals(0,posts.get());
+        assertEquals(0,new File(instrumentation.getTargetContext().getCacheDir(),"ai-import").listFiles((dir,name)->name.matches("[0-9a-f-]{36}")).length);
+    }
+    @Test public void xhsR2NativeImagesReorderRemoveReviewAndSaveCleanOwnedCache()throws Exception {
+        n1LinkScreenshotInput();pickGeneratedImage(600,1800);String first=js("document.querySelector('img[alt=\"截图 1\"]').src");
+        pickGeneratedImage(1080,1440);click("前移截图 2");assertEquals(first,js("document.querySelector('img[alt=\"截图 2\"]').src"));
+        click("移除截图 1");until("document.querySelectorAll('.v2-intake-image-grid li').length===1");
+        pickGeneratedImage(1080,7200);until("document.querySelector('img[alt=\"截图 2\"]')?.naturalHeight===2048");assertEquals(0,posts.get());
+        n1Capture("multi-preview");
+        preview();assertFalse(n1LastRequest.contains("N1 来源提示"));assertFalse(n1LastRequest.contains("xhslink.cn"));assertFalse(n1LastRequest.contains("not-for-ai"));
+        assertEquals("false",js("document.querySelector('input[type=checkbox]').checked"));
+        n1Capture("review-unconfirmed");
+        assertEquals("true",js("[...document.querySelectorAll('button')].filter(b=>b.textContent.trim()==='确认保存菜谱').every(b=>b.disabled)"));
+        js("document.querySelector('form').dispatchEvent(new Event('submit',{bubbles:true,cancelable:true}))");until("document.body.innerText.includes('检查整理结果')");
+        js("document.querySelector('input[type=checkbox]').click()");click("确认保存菜谱");until("!document.body.innerText.includes('检查整理结果')");
+        assertEquals(1,posts.get());
+        assertEquals(0,new File(instrumentation.getTargetContext().getCacheDir(),"ai-import").listFiles((dir,name)->name.matches("[0-9a-f-]{36}")).length);
     }
 }

@@ -1,0 +1,52 @@
+{
+  "capturedAt": "2026-11-03T11:05:12.8025559+08:00",
+  "task": "XHS-R2-N1",
+  "initialFreeGiB": 4.78,
+  "observedLaterFreeGiB": [
+    2.4,
+    2.56,
+    2.6
+  ],
+  "latestFreeGiB": 1.944,
+  "minimumFreeGiB": 4,
+  "admission": "BLOCKED_INSUFFICIENT_MEMORY",
+  "processes": [
+    {
+      "pid": 7220,
+      "name": "java.exe",
+      "ownership": "OTHER_OR_UNKNOWN_NOT_OPERATED"
+    },
+    {
+      "pid": 29088,
+      "name": "java.exe",
+      "ownership": "OTHER_OR_UNKNOWN_NOT_OPERATED"
+    }
+  ],
+  "disks": [
+    {
+      "drive": "C:",
+      "freeGiB": 13.71
+    },
+    {
+      "drive": "D:",
+      "freeGiB": 50.12
+    },
+    {
+      "drive": "E:",
+      "freeGiB": 30.5
+    }
+  ],
+  "compileSdk": "E:/CODEX/Tools/recipio-official-signing-sdk36",
+  "jdk": "E:/CODEX/Tools/recipio-official-signing-jdk21",
+  "emulatorTools": "C:/Users/CDD/AppData/Local/MirraAndroid/sdk",
+  "plannedAvd": "Recipio_XHS_R2_N1_API36",
+  "avdCreated": false,
+  "emulatorStarted": false,
+  "androidBuild": "NOT_RUN",
+  "androidTests": "NOT_RUN",
+  "imageReadability": "NOT_RUN",
+  "providerCalls": 0,
+  "phoneOperations": 0,
+  "otherTaskProcessesStopped": 0,
+  "frozenV28ApkSha256": "52dfed4ef23afb5aa0dc6fb2b6089921af240993627aec9479ff69ea3d94b59b"
+}

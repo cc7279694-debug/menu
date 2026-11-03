@@ -1,5 +1,24 @@
 # Current State
 
+## XHS-R2-N1 — BLOCKED: memory admission — 2026-11-03
+
+XHS-R2 scoped acceptance is registered below. On
+`verification/recipio-xhs-r2-n1`,5 native generated-image/real-Picker tests are
+prepared but NOT_COMPILED / NOT_RUN. Initial free4.78GiB fell to2.4–2.6GiB as
+other tasks started Java; latest check1.944GiB, below the existing4GiB emulator gate. No N1 AVD,
+build/install or device image evidence was produced. Other processes/data and
+old A2 AVD remain untouched. [Checkpoint](verification/xhs-r2-n1-20261103/CHECKPOINT.md).
+Resume only after fresh resource admission; no background polling. Tall-image
+readability risk is static inference, not measured PASS/FAIL. Production source,
+signed V28,Native network/codec,SQLite4/Preview7/Backup2/Key/themes remain frozen.
+
+## XHS-R2 — ACCEPTED / FROZEN — PASS WITH NOTES — 2026-11-03
+
+User supplied ChatGPT's limited independent acceptance for sourcec2c55d21,
+browsercb4d5e86,evidence28b1a6bf. [Registration](verification/xhs-r2-20261103/INDEPENDENT_ACCEPTANCE.md).
+Original notes, failures and NOT_RUN are preserved. The historical submission
+below is not new Android,real-platform or Provider proof.
+
 ## XHS-R2 — READY_FOR_INDEPENDENT_REVIEW — 2026-11-03
 
 On `fix/recipio-xhs-r2`, product repair `c2c55d21` inherits A3 `54607862` and
