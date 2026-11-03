@@ -1,0 +1,36 @@
+
+> recipe-app-foundation-auth@0.1.0 build:local
+> vite build --config vite.native.config.mts --outDir E:/CODEX/Tools/recipio-xhs-r2-web-20261103
+
+vite v8.3.2 building client environment for production...
+transforming...
+✓ 2218 modules transformed.
+rendering chunks...
+computing gzip size...
+../../Tools/recipio-xhs-r2-web-20261103/index.html                          0.90 kB │ gzip:   0.47 kB
+../../Tools/recipio-xhs-r2-web-20261103/assets/index-B-Ij3acy.css         116.58 kB │ gzip:  20.09 kB
+../../Tools/recipio-xhs-r2-web-20261103/assets/native-bridge-CsGGPe-A.js    0.75 kB │ gzip:   0.41 kB
+../../Tools/recipio-xhs-r2-web-20261103/assets/native-bridge-CroiyxFm.js    0.93 kB │ gzip:   0.52 kB
+../../Tools/recipio-xhs-r2-web-20261103/assets/contract-pVYp9FET.js         3.05 kB │ gzip:   1.77 kB
+../../Tools/recipio-xhs-r2-web-20261103/assets/contract-BJQMx4ZE.js         3.55 kB │ gzip:   1.95 kB
+../../Tools/recipio-xhs-r2-web-20261103/assets/service-DNHkLbZD.js          6.52 kB │ gzip:   1.73 kB
+../../Tools/recipio-xhs-r2-web-20261103/assets/dist-B-fBiTU6.js             7.75 kB │ gzip:   3.09 kB
+../../Tools/recipio-xhs-r2-web-20261103/assets/web-DOsgAnv6.js              8.47 kB │ gzip:   2.82 kB
+../../Tools/recipio-xhs-r2-web-20261103/assets/screen-BEVEEopA.js           8.79 kB │ gzip:   3.27 kB
+../../Tools/recipio-xhs-r2-web-20261103/assets/web-C9D8KBV2.js              9.46 kB │ gzip:   1.31 kB
+../../Tools/recipio-xhs-r2-web-20261103/assets/screen-D7HFV-rj.js          12.94 kB │ gzip:   4.66 kB
+../../Tools/recipio-xhs-r2-web-20261103/assets/schemas-DmGWAyfG.js         74.45 kB │ gzip:  19.72 kB
+../../Tools/recipio-xhs-r2-web-20261103/assets/service-YW6eCw88.js        139.59 kB │ gzip:  55.32 kB
+../../Tools/recipio-xhs-r2-web-20261103/assets/index-DK1mpSSk.js          600.94 kB │ gzip: 186.27 kB
+
+[plugin builtin:vite-reporter]
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rolldownOptions.output.codeSplitting to improve chunking: https://rolldown.rs/reference/OutputOptions.codeSplitting
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+✓ built in 8.54s
+[PLUGIN_TIMINGS] JavaScript callbacks ran for 7.4s of this 8.5s build (87%).
+The slowest callbacks, timed inside each callback (the wait before a callback starts is excluded, the time it awaits is included):
+  - plugin vite:css transform (83%, 7.1s, 8 calls)
+Additional callback time came from callbacks under 1s.
+See https://rolldown.rs/reference/InputOptions.checks#bundlertimings for more details.

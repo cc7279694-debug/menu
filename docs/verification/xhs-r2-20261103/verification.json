@@ -1,0 +1,160 @@
+{
+  "date": "2026-11-03",
+  "status": "READY_FOR_INDEPENDENT_REVIEW",
+  "baseline": "54607862839c9f0d7b05643121f565f527a1b3de",
+  "productSource": "c2c55d21c8328e6f78aa7f738bf9d1eba9f1423d",
+  "browserHarness": "cb4d5e864e6d4f51febcc7ac9acbf7c9c1bf6f85",
+  "jsTests": 444,
+  "jsFiles": 39,
+  "jvmTests": 25,
+  "browserChecks": 27,
+  "screenshots": [
+    {
+      "file": "screenshots/pure-glass-direct-note.png",
+      "bytes": 71340,
+      "sha256": "a0246244a94305d915ab57eb369025b2cc13cf29ece594847638f8ab791e30d0"
+    },
+    {
+      "file": "screenshots/pure-glass-missing-state.png",
+      "bytes": 76979,
+      "sha256": "d1f34e57f2aa00ac01c0d60d18f60053c122692f9e89d8dc67b40fcf00c97bc6"
+    },
+    {
+      "file": "screenshots/pure-glass-screenshot-input.png",
+      "bytes": 62391,
+      "sha256": "48b902bf64c2119f1d26c12824cfab356ea320ea9404edf31d0ee9e85c786418"
+    },
+    {
+      "file": "screenshots/pure-glass-screenshot-review.png",
+      "bytes": 203328,
+      "sha256": "03d9a1dabe0b3723538df00df0eced0b08804ec055787f0bfe3a129ca7c3b756"
+    },
+    {
+      "file": "screenshots/soft-sage-direct-note.png",
+      "bytes": 71062,
+      "sha256": "d27ebe795744fa89ab750bf5b09fd4916cb9586a3680edb0e536ed208a1ff086"
+    },
+    {
+      "file": "screenshots/soft-sage-missing-state.png",
+      "bytes": 76649,
+      "sha256": "7e5851ef3cdeeed04bb3ceaee3083757b9c75ef0e1851949fc4fea0f247f9e71"
+    },
+    {
+      "file": "screenshots/soft-sage-screenshot-input.png",
+      "bytes": 62063,
+      "sha256": "1afd9ac49c4c99430c87ba47c04fe1e293d811d8a6d6797c1c6ae5c6532923e3"
+    },
+    {
+      "file": "screenshots/soft-sage-screenshot-review.png",
+      "bytes": 204039,
+      "sha256": "b2ba18ba05e4d672700521bbe94a3898dae8925c0b1cb8c713bd0d74cf8f3160"
+    },
+    {
+      "file": "screenshots/warm-ivory-direct-note.png",
+      "bytes": 71135,
+      "sha256": "ec31b1115343d1c40471159432b4cfec49966b2760b56a712073e31dcc46c260"
+    },
+    {
+      "file": "screenshots/warm-ivory-missing-state.png",
+      "bytes": 76754,
+      "sha256": "7fc37661bd8d3932fb0cccf82d108fe7a1cb9138b2c856479bb255dd08cb30f8"
+    },
+    {
+      "file": "screenshots/warm-ivory-screenshot-input.png",
+      "bytes": 62248,
+      "sha256": "fcdd921c287f676b65c4633407a4059c68b04057dbd211c999db0f630a847e36"
+    },
+    {
+      "file": "screenshots/warm-ivory-screenshot-review.png",
+      "bytes": 202755,
+      "sha256": "5c1937e494f2d0269ad92658c703718bd938714f9086db75a15b6bb0d27791f5"
+    }
+  ],
+  "sourceBlobs": [
+    {
+      "file": "scripts/fixtures/xhs-r2.tsx",
+      "sourceBlob": "9c8f24b67501d4882fb61950afb30718cf601f60",
+      "currentBlob": "9c8f24b67501d4882fb61950afb30718cf601f60"
+    },
+    {
+      "file": "scripts/verify-xhs-r2-browser.mjs",
+      "sourceBlob": "5ce39ac1aaa6897111a6c2adfd18dd9757875a98",
+      "currentBlob": "61fbaa8bdbc9816c2efaaa36831c79b92e7ad82a"
+    },
+    {
+      "file": "src/native/ai/intake-screen.test.tsx",
+      "sourceBlob": "619dea86851f8306be0a68f438451cda152415aa",
+      "currentBlob": "619dea86851f8306be0a68f438451cda152415aa"
+    },
+    {
+      "file": "src/native/ai/intake-screen.tsx",
+      "sourceBlob": "dcda8df522d114de0fd7c2621d85f9b6ce92e5e8",
+      "currentBlob": "dcda8df522d114de0fd7c2621d85f9b6ce92e5e8"
+    },
+    {
+      "file": "src/native/intake-review/source-context.test.ts",
+      "sourceBlob": "697cadf74f1f964035db4490c3e43c1a25967cdf",
+      "currentBlob": "697cadf74f1f964035db4490c3e43c1a25967cdf"
+    },
+    {
+      "file": "src/native/link-import/screen.test.tsx",
+      "sourceBlob": "9c69ac7f7e2ab77b2ac0c975f2f5cf9db8a8e7d7",
+      "currentBlob": "9c69ac7f7e2ab77b2ac0c975f2f5cf9db8a8e7d7"
+    },
+    {
+      "file": "src/native/link-import/screen.tsx",
+      "sourceBlob": "f70e819a825a15e32e73d25aeb036dfe28115fd1",
+      "currentBlob": "f70e819a825a15e32e73d25aeb036dfe28115fd1"
+    },
+    {
+      "file": "src/native/link-import/service.test.ts",
+      "sourceBlob": "d4c6d4509d4ce2fff8f143c983538bbdafea563b",
+      "currentBlob": "d4c6d4509d4ce2fff8f143c983538bbdafea563b"
+    },
+    {
+      "file": "src/native/link-import/service.ts",
+      "sourceBlob": "230024dd785fd27c53ce135783d3bc4abcbdda0b",
+      "currentBlob": "230024dd785fd27c53ce135783d3bc4abcbdda0b"
+    },
+    {
+      "file": "src/native/link-import/xhs-page.test.ts",
+      "sourceBlob": "c4b3ccc8f224dbf22ae81c4fb70d80de6fa38366",
+      "currentBlob": "c4b3ccc8f224dbf22ae81c4fb70d80de6fa38366"
+    },
+    {
+      "file": "src/native/link-import/xhs-page.ts",
+      "sourceBlob": "8d0c66b13a884ef9d3a4b992403302259803f638",
+      "currentBlob": "8d0c66b13a884ef9d3a4b992403302259803f638"
+    }
+  ],
+  "realAiCalls": 0,
+  "realPlatformRequests": 0,
+  "apk": {
+    "path": "E:\\CODEX\\RECIPIO-Signing\\recipio-personal-release-v28\\recipio-personal-v28.apk",
+    "sha256": "52dfed4ef23afb5aa0dc6fb2b6089921af240993627aec9479ff69ea3d94b59b",
+    "bytes": 15194675,
+    "operation": "read-only hash check; no build, signing or install"
+  },
+  "unchanged": [
+    "Native networking",
+    "SQLite4",
+    "Preview7",
+    "Backup2",
+    "AI Native Bridge/Provider/Key",
+    "Logo and theme tokens"
+  ],
+  "notRun": [
+    "real XHS HTTP/redirect/body diagnosis",
+    "actual phone dns_blocked diagnosis",
+    "real AI and recognition quality",
+    "Xiaomi14/OEM/TalkBack/IME/Back",
+    "Native Picker and long-image decode/compression/pixels",
+    "Gradle/connected/APK install"
+  ],
+  "historicalBrowserHarnessFailure": {
+    "commit": "14e342cb76747121f6dc61e3314d3dcf6f7e130c",
+    "nativeOrProductFailure": false,
+    "fixedBy": "cb4d5e864e6d4f51febcc7ac9acbf7c9c1bf6f85",
+    "category": "test locator inspected background checkbox while modal open"
+  }
+}

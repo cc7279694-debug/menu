@@ -1,0 +1,158 @@
+{
+  "source": "cb4d5e864e6d4f51febcc7ac9acbf7c9c1bf6f85",
+  "checks": [
+    {
+      "theme": "warm-ivory",
+      "scenario": "missing-state",
+      "status": "PASS"
+    },
+    {
+      "theme": "warm-ivory",
+      "scenario": "unsupported-state",
+      "status": "PASS"
+    },
+    {
+      "theme": "warm-ivory",
+      "scenario": "wrong-target",
+      "status": "PASS"
+    },
+    {
+      "theme": "warm-ivory",
+      "scenario": "unresolved-link",
+      "status": "PASS"
+    },
+    {
+      "theme": "warm-ivory",
+      "scenario": "media-only",
+      "status": "PASS"
+    },
+    {
+      "theme": "warm-ivory",
+      "scenario": "direct-note",
+      "status": "PASS"
+    },
+    {
+      "theme": "warm-ivory",
+      "scenario": "generic",
+      "status": "PASS"
+    },
+    {
+      "theme": "warm-ivory",
+      "scenario": "login",
+      "status": "PASS"
+    },
+    {
+      "theme": "warm-ivory",
+      "scenario": "challenge",
+      "status": "PASS"
+    },
+    {
+      "theme": "pure-glass",
+      "scenario": "missing-state",
+      "status": "PASS"
+    },
+    {
+      "theme": "pure-glass",
+      "scenario": "unsupported-state",
+      "status": "PASS"
+    },
+    {
+      "theme": "pure-glass",
+      "scenario": "wrong-target",
+      "status": "PASS"
+    },
+    {
+      "theme": "pure-glass",
+      "scenario": "unresolved-link",
+      "status": "PASS"
+    },
+    {
+      "theme": "pure-glass",
+      "scenario": "media-only",
+      "status": "PASS"
+    },
+    {
+      "theme": "pure-glass",
+      "scenario": "direct-note",
+      "status": "PASS"
+    },
+    {
+      "theme": "pure-glass",
+      "scenario": "generic",
+      "status": "PASS"
+    },
+    {
+      "theme": "pure-glass",
+      "scenario": "login",
+      "status": "PASS"
+    },
+    {
+      "theme": "pure-glass",
+      "scenario": "challenge",
+      "status": "PASS"
+    },
+    {
+      "theme": "soft-sage",
+      "scenario": "missing-state",
+      "status": "PASS"
+    },
+    {
+      "theme": "soft-sage",
+      "scenario": "unsupported-state",
+      "status": "PASS"
+    },
+    {
+      "theme": "soft-sage",
+      "scenario": "wrong-target",
+      "status": "PASS"
+    },
+    {
+      "theme": "soft-sage",
+      "scenario": "unresolved-link",
+      "status": "PASS"
+    },
+    {
+      "theme": "soft-sage",
+      "scenario": "media-only",
+      "status": "PASS"
+    },
+    {
+      "theme": "soft-sage",
+      "scenario": "direct-note",
+      "status": "PASS"
+    },
+    {
+      "theme": "soft-sage",
+      "scenario": "generic",
+      "status": "PASS"
+    },
+    {
+      "theme": "soft-sage",
+      "scenario": "login",
+      "status": "PASS"
+    },
+    {
+      "theme": "soft-sage",
+      "scenario": "challenge",
+      "status": "PASS"
+    }
+  ],
+  "screenshots": [
+    "warm-ivory-missing-state.png",
+    "warm-ivory-screenshot-input.png",
+    "warm-ivory-screenshot-review.png",
+    "warm-ivory-direct-note.png",
+    "pure-glass-missing-state.png",
+    "pure-glass-screenshot-input.png",
+    "pure-glass-screenshot-review.png",
+    "pure-glass-direct-note.png",
+    "soft-sage-missing-state.png",
+    "soft-sage-screenshot-input.png",
+    "soft-sage-screenshot-review.png",
+    "soft-sage-direct-note.png"
+  ],
+  "external": [],
+  "errors": [],
+  "realAiCalls": 0,
+  "nativePicker": "NOT_RUN"
+}

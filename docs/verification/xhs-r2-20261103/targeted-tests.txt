@@ -1,0 +1,13 @@
+(!) Your Vite config uses features that are unsupported by `configLoader: 'native'`, which is planned to become the default in a future major version of Vite:
+  - ESM syntax in a file loaded as CommonJS (vitest.config.ts:1:1). Use a `.mjs` extension or set `"type": "module"` in the closest package.json
+Set `VITE_CONFIG_NATIVE_IGNORE_WARNING=true` to suppress this warning.
+
+ RUN  v4.1.11 E:/CODEX/VIBE CODING/recipe-step-app-g7
+
+Not implemented: Window's scrollTo() method
+Not implemented: Window's scrollTo() method
+
+ Test Files  39 passed (39)
+      Tests  444 passed (444)
+   Start at  10:25:27
+   Duration  94.19s (transform 1.48s, setup 11.36s, import 13.52s, tests 25.63s, environment 36.05s)

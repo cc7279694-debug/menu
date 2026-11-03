@@ -1,5 +1,23 @@
 # Current State
 
+## XHS-R2 — READY_FOR_INDEPENDENT_REVIEW — 2026-11-03
+
+On `fix/recipio-xhs-r2`, product repair `c2c55d21` inherits A3 `54607862` and
+A1 `cf806554`. Strict target ownership remains; bounded direct note records
+and non-sensitive read diagnostics are added. The link screen opens the existing
+screenshot intake in place, preserving the unverified title only as a UI hint;
+only chosen text/images go to explicitly triggered AI. Review/save/temp cleanup
+remain on existing services. Active settings return refreshes key availability.
+
+Fresh scoped444 JS/TS,25 pure JVM, typecheck, lint(5 existing warnings), isolated
+Web build and production isolation PASS. Final browser harness `cb4d5e86`:
+27 synthetic flows/12 actual screenshots/0 external requests. No real XHS/AI,
+phone/Native Picker/IME/TalkBack or APK/connected verification. Exact live failure
+cause remains UNKNOWN. [Review and evidence](verification/xhs-r2-20261103/REVIEW.md).
+Existing signed V28 hash unchanged; Native/SQLite4/Preview7/Backup2/Key/Provider
+unchanged. No new APK/main merge/release; awaiting independent review. Prior
+acceptances, ANRs and NOT_RUN below remain historical evidence, not rerun claims.
+
 ## V28-A3 — V28_A3_OWNER_PHONE_UPGRADE_GATE_READY — 2026-11-02
 
 User supplied ChatGPT's scoped A2 independent verdict: **ACCEPTED / FROZEN —

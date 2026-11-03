@@ -1,0 +1,662 @@
+diff --git a/scripts/fixtures/xhs-r2.tsx b/scripts/fixtures/xhs-r2.tsx
+new file mode 100644
+index 0000000..9c8f24b
+--- /dev/null
++++ b/scripts/fixtures/xhs-r2.tsx
+@@ -0,0 +1,61 @@
++// Synthetic browser adapter only; excluded by the production isolation gate.
++import { Capacitor } from "@capacitor/core";
++import { createRoot } from "react-dom/client";
++import { LibraryApp } from "../../src/native/library-app";
++import { PreviewRecipeLibrary } from "../../src/native/preview-store";
++import { emptyDetails } from "../../src/native/recipe-model";
++import { AiIntakeService } from "../../src/native/ai/service";
++import type { AiBridge, AiKeyPort } from "../../src/native/ai/native-bridge";
++import { LinkImportService } from "../../src/native/link-import/service";
++
++export type R2Scenario = "missing-state" | "unsupported-state" | "wrong-target" | "unresolved-link" | "media-only" | "direct-note" | "generic" | "login" | "challenge";
++export async function renderR2Fixture(target: HTMLElement, scenario: R2Scenario) {
++  const store = new PreviewRecipeLibrary(), calls = { ai: 0, picks: 0, discarded: 0, read: 0, requests: [] as { text: string; imageIds: string[] }[] };
++  const canvas = document.createElement("canvas"); canvas.width = 600; canvas.height = 1800;
++  const drawing = canvas.getContext("2d"); if (!drawing) throw new Error("Canvas unavailable");
++  drawing.fillStyle = "#f8f3e9"; drawing.fillRect(0, 0, 600, 1800);
++  drawing.fillStyle = "#30382e"; drawing.font = "28px sans-serif";
++  drawing.fillText("合成长图饭 · 仅供测试", 30, 80);
++  drawing.fillText("青菜 200克 / 米饭 1碗 / 盐 适量", 30, 170);
++  const steps = ["洗净青菜。", "将青菜切段。", "锅内放少量水。", "加入青菜。", "翻拌均匀。", "加盐适量。", "加入米饭炒匀。", "装盘。"];
++  steps.forEach((step, i) => drawing.fillText(`${i + 1}. ${step}`, 30, 300 + i * 160));
++  const media = canvas.toDataURL("image/jpeg", .8), uris = new Map<string, string>(), convert = Capacitor.convertFileSrc;
++  Capacitor.convertFileSrc = uri => uris.get(uri) ?? convert(uri);
++  const keys: AiKeyPort = { hasAiKey: async () => ({ configured: true }), saveAiKey: async () => { throw new Error("No credentials in QA"); }, deleteAiKey: async () => {} };
++  const bridge: AiBridge = {
++    createSession: async () => ({ operationId: crypto.randomUUID() }), cleanupExpired: async () => ({ pendingCleanup: false }),
++    discardSession: async () => { calls.discarded++; uris.clear(); }, cancel: async () => {}, removeImage: async () => {},
++    preflight: async () => { throw new Error("Provider preflight forbidden in QA"); },
++    pickImage: async ({ operationId }) => {
++      calls.picks++; const id = crypto.randomUUID(), previewUri = `file:///data/user/0/app.recipio.local/cache/ai-import/${operationId}/${id}.jpg`;
++      uris.set(previewUri, media);
++      return { cancelled: false, image: { id, previewUri, mimeType: "image/jpeg", byteSize: Math.floor(media.length * .75), width: 600, height: 1800 } };
++    },
++    organize: async ({ text, imageIds }) => {
++      calls.ai++; calls.requests.push({ text, imageIds });
++      return { rawJson: JSON.stringify({ recipe: { ...emptyDetails("合成长图饭"), ingredients: [{ name: "青菜", amount: "200克" }, { name: "米饭", amount: "1碗" }, { name: "盐", amount: "适量" }], steps: steps.map(instruction => ({ instruction, imagePath: null })) }, fieldChecks: [{ path: "servings", label: "份数", status: "missing", message: "合成截图未提供" }], warnings: [] }) };
++    },
++  };
++  const ai = new AiIntakeService(keys, bridge, { store });
++  const link = new LinkImportService({ store, ai, port: { cancel: async () => {}, read: async () => {
++    calls.read++;
++    const note = { noteId: "target", title: "合成来源标题", desc: scenario === "media-only" ? "" : "青菜200克，洗净后煮熟。", imageList: [{}] };
++    let html = "<title>合成来源标题</title>", finalUrl = "https://www.xiaohongshu.com/explore/target?source=synthetic";
++    if (scenario === "login") html = "<title>登录后查看笔记</title>";
++    else if (scenario === "challenge") html = "<title>安全验证</title>";
++    else if (scenario === "generic") {
++      finalUrl = "https://recipes.example/synthetic";
++      html += '<script type="application/ld+json">{"@type":"Recipe","name":"合成清汤","recipeIngredient":["青菜200克"],"recipeInstructions":["煮熟。"]}</script>';
++    } else if (scenario === "unsupported-state") html += '<script>window.__INITIAL_STATE__={"unknownShape":{}}</script>';
++    else if (scenario !== "missing-state") {
++      if (scenario === "unresolved-link") finalUrl = "https://xhslink.cn/o/synthetic";
++      const record = scenario === "wrong-target" ? { noteDetailMap: { other: { note: { ...note, noteId: "other" } } } }
++        : { noteDetailMap: { target: scenario === "direct-note" ? note : { note } } };
++      html += `<script>window.__INITIAL_STATE__=${JSON.stringify({ note: record })}</script>`;
++    }
++    html += "<main>推荐菜：肉500克炖熟。打开App查看更多。</main>";
++    return { html, finalUrl, contentType: "text/html" };
++  } } });
++  const root = createRoot(target); root.render(<LibraryApp store={store} ai={ai} aiKeys={keys} link={link} />);
++  return { calls, snapshot: () => ({ link: link.snapshot(), ai: ai.snapshot() }), recipes: async () => Promise.all((await store.list()).map(recipe => store.getDetails(recipe.id))), unmount: () => { root.unmount(); Capacitor.convertFileSrc = convert; uris.clear(); } };
++}
+diff --git a/scripts/verify-xhs-r2-browser.mjs b/scripts/verify-xhs-r2-browser.mjs
+new file mode 100644
+index 0000000..5ce39ac
+--- /dev/null
++++ b/scripts/verify-xhs-r2-browser.mjs
+@@ -0,0 +1,93 @@
++// Local-only real browser UI checks. No target website, Native picker or real AI.
++import assert from "node:assert/strict";
++import { createRequire } from "node:module";
++import { mkdir, writeFile } from "node:fs/promises";
++import path from "node:path";
++import { fileURLToPath } from "node:url";
++import { spawnSync } from "node:child_process";
++const arg = name => process.argv.find(value => value.startsWith(`--${name}=`))?.slice(name.length + 3);
++const runtime = arg("runtime"), out = arg("out"), base = arg("base") ?? "http://127.0.0.1:5203/";
++assert(runtime && out && path.isAbsolute(runtime) && path.isAbsolute(out));
++assert.equal(new URL(base).hostname, "127.0.0.1");
++const qaRequire = createRequire(path.join(runtime, "r2-qa.cjs"));
++const { chromium } = qaRequire("playwright");
++const root = fileURLToPath(new URL("../", import.meta.url)), moduleBase = `/@fs/${root.replaceAll("\\", "/").replace(/\/$/, "")}/`;
++await mkdir(out);
++const results = { source: spawnSync("git", ["rev-parse", "HEAD"], { cwd: root, encoding: "utf8" }).stdout.trim(), checks: [], screenshots: [], external: [], errors: [], realAiCalls: 0, nativePicker: "NOT_RUN" };
++const browser = await chromium.launch({ executablePath: "C:/Program Files/Google/Chrome/Application/chrome.exe", headless: true });
++try {
++  for (const theme of ["warm-ivory", "pure-glass", "soft-sage"]) {
++    for (const scenario of ["missing-state", "unsupported-state", "wrong-target", "unresolved-link", "media-only", "direct-note", "generic", "login", "challenge"]) {
++      const context = await browser.newContext({ viewport: { width: 390, height: 844 }, hasTouch: true, locale: "zh-CN" });
++      await context.addInitScript(value => localStorage.setItem("recipio.ui-v2.theme.v1", value), theme);
++      await context.route("**/*", route => {
++        const url = new URL(route.request().url());
++        if (url.origin === new URL(base).origin) return route.continue();
++        results.external.push(url.origin); return route.abort();
++      });
++      const page = await context.newPage(); page.setDefaultTimeout(15000);
++      page.on("pageerror", error => results.errors.push(error.message));
++      page.on("console", message => { if (message.type() === "error") results.errors.push(message.text()); });
++      await page.goto(base); await page.getByRole("button", { name: "新增菜谱", exact: true }).waitFor();
++      await page.evaluate(async ({ moduleBase, scenario }) => {
++        const old = document.getElementById("root"); old.hidden = true; old.id = "qa-original-root";
++        const target = document.createElement("div"); target.id = "root"; document.body.append(target);
++        const { renderR2Fixture } = await import(moduleBase + "scripts/fixtures/xhs-r2.tsx");
++        window.__r2 = await renderR2Fixture(target, scenario);
++      }, { moduleBase, scenario });
++      await page.getByRole("button", { name: "新增菜谱", exact: true }).click();
++      await page.getByRole("button", { name: "从网页链接导入", exact: true }).click();
++      await page.getByLabel("网页链接", { exact: true }).fill("https://xhslink.cn/o/synthetic");
++      await page.getByRole("button", { name: "读取网页", exact: true }).click();
++      if (["login", "challenge"].includes(scenario)) await page.getByRole("alert").waitFor();
++      else if (scenario === "generic") await page.getByRole("heading", { name: "检查网页菜谱", exact: true }).waitFor();
++      else {
++        await page.getByRole("heading", { name: scenario === "direct-note" ? "网页信息不完整" : "仅获取到标题", exact: true }).waitFor();
++        const state = await page.evaluate(() => window.__r2.snapshot());
++        assert.equal(state.link.parsed.candidates.length, 0);
++        assert(!state.link.visible.text.includes("推荐菜"));
++        if (scenario !== "direct-note") assert.equal(state.link.visible.text, "");
++        assert.equal(await page.getByRole("button", { name: "使用 AI 继续整理", exact: true }).isEnabled(), scenario === "direct-note");
++      }
++      assert.equal(await page.evaluate(() => window.__r2.calls.ai), 0);
++      assert.equal(await page.evaluate(async () => (await window.__r2.recipes()).length), 0);
++      if (["missing-state", "direct-note"].includes(scenario)) {
++        const file = `${theme}-${scenario}.png`; await page.screenshot({ path: path.join(out, file), fullPage: true }); results.screenshots.push(file);
++      }
++      if (scenario === "missing-state") {
++        await page.getByRole("button", { name: "添加菜谱截图并用 AI 整理", exact: true }).click();
++        await page.getByRole("heading", { name: "整理菜谱", exact: true }).waitFor();
++        assert((await page.locator("body").innerText()).includes("来源提示：合成来源标题"));
++        assert.equal(await page.getByLabel("菜谱文字", { exact: true }).inputValue(), "");
++        await page.getByRole("button", { name: "添加截图", exact: true }).click();
++        await page.getByRole("button", { name: "预览截图 1", exact: true }).waitFor();
++        assert.equal(await page.evaluate(() => window.__r2.calls.ai), 0);
++        const image = page.getByRole("img", { name: "截图 1", exact: true });
++        await image.evaluate(img => img.decode());
++        assert.equal(await image.evaluate(img => img.naturalHeight), 1800);
++        const capture = `${theme}-screenshot-input.png`; await page.screenshot({ path: path.join(out, capture), fullPage: true }); results.screenshots.push(capture);
++        await page.getByRole("button", { name: "开始 AI 整理", exact: true }).click();
++        await page.getByRole("heading", { name: "检查整理结果", exact: true }).waitFor();
++        const requests = await page.evaluate(() => window.__r2.calls.requests);
++        assert.equal(requests.length, 1); assert.equal(requests[0].text, ""); assert.equal(requests[0].imageIds.length, 1);
++        assert.equal(await page.getByRole("button", { name: "确认保存菜谱", exact: true }).isEnabled(), false);
++        await page.getByLabel("菜名", { exact: true }).fill("我校对的合成长图饭");
++        const review = `${theme}-screenshot-review.png`; await page.screenshot({ path: path.join(out, review), fullPage: true }); results.screenshots.push(review);
++        await page.getByRole("checkbox", { name: "我已检查以上 AI 推断和缺失内容", exact: true }).check();
++        await page.getByRole("button", { name: "确认保存菜谱", exact: true }).click();
++        await page.getByRole("heading", { name: "我校对的合成长图饭", exact: true }).waitFor();
++        const recipes = await page.evaluate(() => window.__r2.recipes());
++        assert.equal(recipes.length, 1); assert.equal(recipes[0].steps.length, 8); assert.equal(recipes[0].coverPath, null);
++        assert(recipes[0].steps.every(step => step.imagePath === null));
++        assert(!JSON.stringify(recipes).includes("合成来源标题")); assert(!JSON.stringify(recipes).includes("xhslink.cn"));
++        assert.equal(await page.evaluate(() => window.__r2.snapshot().ai.images.length), 0);
++        assert.equal(await page.evaluate(() => window.__r2.snapshot().link.visible), null);
++      }
++      results.checks.push({ theme, scenario, status: "PASS" }); await context.close();
++    }
++  }
++  assert.deepEqual(results.external, []); assert.deepEqual(results.errors, []);
++} finally {
++  await browser.close(); await writeFile(path.join(out, "results.json"), JSON.stringify(results, null, 2));
++}
++console.log(JSON.stringify({ checks: results.checks.length, screenshots: results.screenshots.length, errors: results.errors.length, external: results.external.length }));
+diff --git a/src/native/ai/intake-screen.test.tsx b/src/native/ai/intake-screen.test.tsx
+index 5501ef6..619dea8 100644
+--- a/src/native/ai/intake-screen.test.tsx
++++ b/src/native/ai/intake-screen.test.tsx
+@@ -6,6 +6,23 @@ import { AiIntakeScreen } from "./intake-screen";
+ import { PreviewRecipeLibrary } from "../preview-store";
+ import { deferred,fakeAi } from "./service.test-support";
+ function setup(configured=true){const fake=fakeAi();fake.keys.hasAiKey.mockResolvedValue({configured});const service=new AiIntakeService(fake.keys,fake.bridge,{store:new PreviewRecipeLibrary()}),props={service,onPreview:vi.fn(),onCancel:vi.fn(),onConfigureKey:vi.fn()};return {...fake,service,props};}
++it("XHS-R2 settings return refreshes key availability without remounting or losing input/images", async () => {
++  const { props, service, bridge, keys } = setup(false);
++  const view = render(<AiIntakeScreen {...props} active />);
++  await screen.findByRole("button", { name: "前往设置 AI 密钥" });
++  fireEvent.change(screen.getByLabelText("菜谱文字"), { target: { value: "保留的真实补充" } });
++  fireEvent.click(screen.getByRole("button", { name: "添加截图" }));
++  await screen.findByRole("button", { name: "预览截图 1" });
++  view.rerender(<AiIntakeScreen {...props} active={false} />);
++  fireEvent(window, new Event("recipio:back", { cancelable: true }));
++  expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
++  keys.hasAiKey.mockResolvedValue({ configured: true });
++  view.rerender(<AiIntakeScreen {...props} active />);
++  await waitFor(() => expect(screen.getByRole("button", { name: "开始 AI 整理" })).toBeEnabled());
++  expect(screen.getByLabelText("菜谱文字")).toHaveValue("保留的真实补充");
++  expect(service.snapshot().images).toHaveLength(1);
++  expect(bridge.organize).not.toHaveBeenCalled();
++});
+ it("explicit send only; unmount for Preview leaves valid draft in App service",async()=>{
+   const {props,service,bridge}=setup();const view=render(<AiIntakeScreen {...props}/>);await screen.findByLabelText("菜谱文字");fireEvent.change(screen.getByLabelText("菜谱文字"),{target:{value:"啤酒鸭"}});expect(bridge.organize).not.toHaveBeenCalled();fireEvent.click(screen.getByRole("button",{name:"开始 AI 整理"}));await waitFor(()=>expect(props.onPreview).toHaveBeenCalledTimes(1));view.unmount();expect(service.snapshot().draft?.recipe.title).toBe("啤酒鸭");expect(bridge.discardSession).not.toHaveBeenCalled();
+ });
+diff --git a/src/native/ai/intake-screen.tsx b/src/native/ai/intake-screen.tsx
+index 1f2d4b9..dcda8df 100644
+--- a/src/native/ai/intake-screen.tsx
++++ b/src/native/ai/intake-screen.tsx
+@@ -8,9 +8,10 @@ import { useV2DialogAppearance } from "../ui-v2/appearance";
+ import { NativeV2Sheet } from "../ui-v2/native-sheet";
+ import { V2Image } from "../ui-v2/components";
+ 
+-export function AiIntakeScreen({ service, onPreview, onCancel, onConfigureKey, onManual }: {
++export function AiIntakeScreen({ service, onPreview, onCancel, onConfigureKey, onManual, sourceHint, active = true }: {
+   service: AiIntakeService; onPreview: () => void; onCancel: () => void;
+   onConfigureKey: () => void; onManual?: () => void;
++  sourceHint?: string; active?: boolean;
+ }) {
+   const state = useSyncExternalStore(service.subscribe, service.snapshot, service.snapshot);
+   const dialogAppearance = useV2DialogAppearance("v2");
+@@ -20,16 +21,18 @@ export function AiIntakeScreen({ service, onPreview, onCancel, onConfigureKey, o
+   const [previewId, setPreviewId] = useState<string | null>(null);
+   const alive = useRef(true), destination = useRef<"back" | "manual">("back");
+   useEffect(() => {
++    if (!active) return;
+     alive.current = true; let current = true;
+     void service.startSession().then(() => service.refreshKey()).then(value => { if (current) setConfigured(value); })
+       .catch(e => { if (current) { const safe = safeAiError(e); setLocalError(safe.message); if (safe.code === "key_unavailable") setConfigured(false); } });
+     return () => { current = false; alive.current = false; };
+-  }, [service]);
++  }, [service, active]);
+   useEffect(() => {
++    if (!active) return;
+     const back = (event: Event) => { if (event.defaultPrevented) return; event.preventDefault(); setConfirm(true); };
+     window.addEventListener("recipio:back", back);
+     return () => window.removeEventListener("recipio:back", back);
+-  }, []);
++  }, [active]);
+   async function send() {
+     try { await service.organize(state.input); if (alive.current) onPreview(); }
+     catch { /* Safe service error remains visible; never an automatic retry. */ }
+@@ -52,6 +55,7 @@ export function AiIntakeScreen({ service, onPreview, onCancel, onConfigureKey, o
+     <header className="v2-task-header"><h2 className="v2-page-title">整理菜谱</h2>
+       <Button variant="outline" disabled={discarding || cancelling} onClick={() => { destination.current = "back"; setConfirm(true); }}>返回</Button>
+     </header>
++    {sourceHint && <p className="v2-task-note">来源提示：{sourceHint}。标题尚未核实，仅供对照，不会自动发送给 AI。请自行选择包含食材、用量和完整步骤的截图或长图；过长而字迹不清时可分成多张。缺失内容不会按菜名补全。</p>}
+     <p className="v2-intake-lead">粘贴已有做法，或添加最多 {AI_LIMITS.imageCount} 张截图。整理后先检查，再保存到自己的菜谱。</p>
+     <div className="v2-intake-field">
+       <label className="v2-field-label"><span>菜谱文字</span>
+diff --git a/src/native/intake-review/source-context.test.ts b/src/native/intake-review/source-context.test.ts
+index 1af76fd..697cadf 100644
+--- a/src/native/intake-review/source-context.test.ts
++++ b/src/native/intake-review/source-context.test.ts
+@@ -12,7 +12,7 @@ function aiSnapshot(): AiIntakeState {
+ }
+ function webSnapshot(): LinkImportState {
+   const candidate = { id: "candidate-0", recipe: reviewDraft().recipe, quality: "partial" as const, score: 5, documentOrder: 0, warnings: ["来源缺少步骤"] };
+-  return { phase: "ready", url: "https://recipes.example/dish", parsed: { title: "网页标题", candidates: [candidate], needsSelection: false, warnings: [] }, selectedId: candidate.id, visible: { title: "清洗网页标题", text: "清洗后的做法\n姜适量", wasTruncated: true }, parserDraft: null, error: null };
++  return { phase: "ready", url: "https://recipes.example/dish", parsed: { title: "网页标题", candidates: [candidate], needsSelection: false, warnings: [] }, selectedId: candidate.id, visible: { title: "清洗网页标题", text: "清洗后的做法\n姜适量", wasTruncated: true }, parserDraft: null, error: null, aiInputKind: "web" };
+ }
+ function findSnapshot(): FindState {
+   const selected: FinderCandidate = { id: "finder-1", title: "本轮选定汤", sourceHost: "cook.example.org", sourceUrl: "https://cook.example.org/soup", summary: "候选摘要，并非完整原文", highlights: ["简单"], totalMinutes: 10, preparationHint: "" };
+diff --git a/src/native/link-import/screen.test.tsx b/src/native/link-import/screen.test.tsx
+index b57d7d8..9c69ac7 100644
+--- a/src/native/link-import/screen.test.tsx
++++ b/src/native/link-import/screen.test.tsx
+@@ -16,6 +16,39 @@ const setup = (page = html) => {
+   return { service, store, fake, port, onSaved, onCancel, onConfigureKey, onFallback };
+ };
+ afterEach(__resetLocalDatabaseForTests);
++it("XHS-R2 opens the existing screenshot intake in place without discarding the title or auto AI", async () => {
++  const { fake, service, onFallback } = setup("<title>合成长图菜</title>"); await read();
++  fireEvent.click(await screen.findByRole("button", { name: "添加菜谱截图并用 AI 整理" }));
++  await screen.findByRole("heading", { name: "整理菜谱" });
++  expect(screen.getByText(/来源提示：合成长图菜/)).toBeInTheDocument();
++  expect(screen.getByLabelText("菜谱文字")).toHaveValue("");
++  expect(screen.getByText(/可能产生 API 费用/)).toBeInTheDocument();
++  expect(screen.getByRole("button", { name: "开始 AI 整理" })).toBeDisabled();
++  expect(onFallback).not.toHaveBeenCalled(); expect(fake.bridge.organize).not.toHaveBeenCalled();
++  fireEvent.click(screen.getByRole("button", { name: "添加截图" }));
++  await screen.findByRole("button", { name: "预览截图 1" });
++  await waitFor(() => expect(screen.getByRole("button", { name: "开始 AI 整理" })).toBeEnabled());
++  expect(fake.bridge.organize).not.toHaveBeenCalled();
++  fireEvent.click(screen.getByRole("button", { name: "开始 AI 整理" }));
++  await screen.findByRole("heading", { name: /检查.*整理结果/ });
++  expect(screen.getByRole("button", { name: "确认保存菜谱" })).toBeDisabled();
++  expect(service.snapshot().visible?.title).toBe("合成长图菜");
++});
++it("XHS-R2 cancelling the picker or input preserves the title and clears only temporary screenshot data", async () => {
++  const { fake, service, onCancel } = setup("<title>合成长图菜</title>"); await read();
++  fake.bridge.pickImage.mockResolvedValueOnce({ cancelled: true });
++  fireEvent.click(await screen.findByRole("button", { name: "添加菜谱截图并用 AI 整理" }));
++  await screen.findByRole("heading", { name: "整理菜谱" });
++  await waitFor(() => expect(screen.getByRole("button", { name: "添加截图" })).toBeEnabled());
++  fireEvent.click(screen.getByRole("button", { name: "添加截图" }));
++  await waitFor(() => expect(fake.bridge.pickImage).toHaveBeenCalledOnce());
++  expect(service.snapshot().visible?.title).toBe("合成长图菜");
++  expect(screen.queryByRole("button", { name: "预览截图 1" })).not.toBeInTheDocument();
++  fireEvent.click(screen.getByRole("button", { name: "返回" }));
++  fireEvent.click(await screen.findByRole("button", { name: "放弃本轮整理" }));
++  await screen.findByRole("heading", { name: "仅获取到标题" });
++  expect(onCancel).not.toHaveBeenCalled(); expect(fake.bridge.organize).not.toHaveBeenCalled();
++});
+ it("labels title-only pages honestly and offers local text supplementation before explicit AI", async () => {
+   const { fake, store } = setup("<title>合成青菜汤</title>"); await read();
+   await screen.findByRole("heading", { name: "仅获取到标题" });
+diff --git a/src/native/link-import/screen.tsx b/src/native/link-import/screen.tsx
+index 8086e90..f70e819 100644
+--- a/src/native/link-import/screen.tsx
++++ b/src/native/link-import/screen.tsx
+@@ -5,11 +5,12 @@ import { Textarea } from "@/components/ui/textarea";
+ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogTitle } from "@/components/ui/dialog";
+ import { RecipeEditor } from "../recipe-editor";
+ import { AiPreview } from "../ai/preview";
++import { AiIntakeScreen } from "../ai/intake-screen";
+ import type { RecipeDetails, RecipeDetailsInput } from "../recipe-model";
+ import type { LinkImportService } from "./service";
+ import { useV2DialogAppearance } from "../ui-v2/appearance";
+ import { useIntakeEditingSession, type IntakeEditingSession } from "../intake-review/editor-session";
+-import { webIntakeSource, type IntakeSourceContext } from "../intake-review/source-context";
++import { aiInputSource, webIntakeSource, type IntakeSourceContext } from "../intake-review/source-context";
+ import { buildIntakeQualityReport } from "../intake-review/quality";
+ import { IntakeQualityPanel } from "../intake-review/review-panel";
+ 
+@@ -69,7 +70,7 @@ export function LinkImportScreen({ service, active, onSaved, onCancel, onConfigu
+   const destination = useRef<"back" | "ai" | "manual">("back"); const alive = useRef(true);
+   useEffect(() => { alive.current = true; return () => { alive.current = false; }; }, []);
+   const uncertain = state.phase === "uncertain" || aiState.phase === "uncertain" && state.phase === "ai-preview";
+-  const busy = ["reading", "ai-requesting", "saving"].includes(state.phase) || leaving || aiState.phase === "saving";
++  const busy = ["reading", "preparing-images", "ai-requesting", "saving"].includes(state.phase) || leaving || aiState.phase === "saving";
+   const selected = service.selected();
+   const quality = service.readQuality();
+   const parserEditing = useIntakeEditingSession(parserOpen ? selected : null, selected?.recipe);
+@@ -79,9 +80,10 @@ export function LinkImportScreen({ service, active, onSaved, onCancel, onConfigu
+   const currentParser = () => active && alive.current && !leaving && service.snapshot().phase === "ready" && service.snapshot().parsed === state.parsed && service.selected() === selected;
+   const currentAi = () => active && alive.current && !leaving && service.snapshot().phase === "ai-preview" && service.snapshot().parsed === state.parsed && ai.snapshot().phase === "preview" && ai.snapshot().operationId === aiState.operationId && ai.snapshot().draft?.review === aiState.draft?.review;
+   const parserSource = webIntakeSource(state, selected, null, currentParser);
+-  const aiSource = webIntakeSource(state, selected, aiState.draft, currentAi);
++  const screenshots = state.aiInputKind === "screenshots";
++  const aiSource = screenshots ? aiInputSource(aiState, currentAi) : webIntakeSource(state, selected, aiState.draft, currentAi);
+   useEffect(() => {
+-    if (!active) return;
++    if (!active || state.phase === "screenshot-input") return;
+     const back = (event: Event) => {
+       if (event.defaultPrevented) return;
+       if (uncertain || leaving || state.phase === "saving" || aiState.phase === "saving") { event.preventDefault(); return; }
+@@ -106,9 +108,10 @@ export function LinkImportScreen({ service, active, onSaved, onCancel, onConfigu
+     catch { setLocalError("仍无法核对保存结果，请稍后重试；不会重新创建菜谱。"); }
+   }
+   if (uncertain) return <section className="v2-task v2-link-intake"><header className="v2-task-header"><h2 className="v2-page-title">先核对保存结果</h2></header><p className="v2-task-note">为避免重复，新建已暂停；核对只读取原编号，不重新创建。</p>{localError && <p className="v2-task-status" role="alert">{localError}</p>}<div className="v2-task-actions"><Button onClick={() => void recover()}>核对保存结果</Button></div></section>;
++  if (state.phase === "screenshot-input") return <AiIntakeScreen service={ai} active={active} sourceHint={state.visible?.title.slice(0, 500)} onPreview={() => service.showScreenshotPreview()} onCancel={() => service.returnToResults()} onConfigureKey={onConfigureKey} />;
+   if (state.phase === "ai-preview" && aiState.draft) return <>
+     {(!aiState.draft.recipe.steps.length || !aiState.draft.recipe.ingredients.length) && <section className="v2-task v2-link-intake" role="status"><h2 className="v2-section-title">整理结果仍不完整</h2><p className="v2-task-note">{!aiState.draft.recipe.steps.length ? "本次整理结果没有制作步骤，请补充真实做法；不能从菜名或未读取的图片、视频推测。" : "本次整理结果缺少食材，请核对来源并手动补充。"} 保存前仍需检查推断和缺失内容。</p></section>}
+-    <AiPreview editingSession={aiEditing} sourceContext={aiSource} isCurrent={currentAi} draft={aiState.draft} confirmed={aiState.confirmed} onConfirmedChange={value => ai.setConfirmed(value)} hasExactTitle={title => service.dependencies.store.hasExactTitle(title)} onSave={async input => { onSaved(await service.saveAi(input)); }} onCancel={backToResults} source="web" />
++    <AiPreview editingSession={aiEditing} sourceContext={aiSource} isCurrent={currentAi} draft={aiState.draft} confirmed={aiState.confirmed} onConfirmedChange={value => ai.setConfirmed(value)} hasExactTitle={title => service.dependencies.store.hasExactTitle(title)} onSave={async input => { onSaved(await service.saveAi(input)); }} onCancel={screenshots ? () => service.editScreenshotInput() : backToResults} source={screenshots ? undefined : "web"} />
+   </>;
+   if (parserOpen && selected) return <ParserPreview key={selected.id} editingSession={parserEditing} sourceContext={parserSource} isCurrent={currentParser} service={service} onSaved={onSaved} onBack={backToResults} />;
+   return <section className="v2-task v2-link-intake">
+@@ -122,6 +125,7 @@ export function LinkImportScreen({ service, active, onSaved, onCancel, onConfigu
+       {quality === "title_only" && <p className="v2-task-note">{state.visible?.title}。尚未读取到菜谱正文，只有菜名不足以还原做法。请补充文字、使用截图整理或手动录入。</p>}
+       {service.selected()?.quality === "partial" && !service.selected()?.recipe.steps.length && <p className="v2-task-note">尚未读取到制作步骤；食材不等于完整菜谱，用量和耗时缺失时会保持空白。</p>}
+       {state.parsed.warnings.map(warning => <p className="v2-task-note" key={warning}>{warning}</p>)}
++      <div className="v2-task-actions"><Button variant="outline" disabled={busy} onClick={() => void service.beginScreenshotIntake().catch(() => {})}>添加菜谱截图并用 AI 整理</Button></div>
+       {state.visible?.wasTruncated && <p className="v2-task-status" role="status">网页正文过长，已保留部分完整段落；AI 可能缺少信息，请仔细检查。</p>}
+       {state.parsed.needsSelection && state.parsed.candidates.map(candidate => <article className="v2-source-card" key={candidate.id}><h4>{candidate.recipe.title}</h4><p className="v2-task-note">{candidate.recipe.ingredients.length} 项食材 · {candidate.recipe.steps.length} 个步骤</p><div className="v2-task-actions"><Button variant="outline" disabled={busy} onClick={() => { service.select(candidate.id); setParserOpen(true); }}>选择 {candidate.recipe.title}</Button></div></article>)}
+       {service.selected() && !state.parsed.needsSelection && <div className="v2-task-actions"><Button variant="outline" disabled={busy} onClick={() => setParserOpen(true)}>{service.selected()?.quality === "partial" ? "直接完善菜谱" : "查看网页菜谱"}</Button></div>}
+diff --git a/src/native/link-import/service.test.ts b/src/native/link-import/service.test.ts
+index 56a5615..d4c6d45 100644
+--- a/src/native/link-import/service.test.ts
++++ b/src/native/link-import/service.test.ts
+@@ -21,6 +21,63 @@ const setup = () => {
+   const service = new LinkImportService({ store, port, ai }); return { store, fake, ai, port, service };
+ };
+ afterEach(__resetLocalDatabaseForTests);
++it("XHS-R2 distinguishes absent public state from an unsupported serialization shape", async () => {
++  const { service, port, fake } = setup();
++  port.read.mockResolvedValue({ ...fetched(), finalUrl: "https://www.xiaohongshu.com/explore/synthetic", html: "<title>合成菜</title>" });
++  await service.read("https://xhslink.cn/o/synthetic");
++  expect(service.snapshot().parsed?.warnings.join(" ")).toContain("未找到可读取的公开笔记状态");
++  port.read.mockResolvedValue({ ...fetched(), finalUrl: "https://www.xiaohongshu.com/explore/synthetic", html: '<title>合成菜</title><script>window.__INITIAL_STATE__={"unknown":{}}</script>' });
++  await service.read();
++  expect(service.snapshot().parsed?.warnings.join(" ")).toContain("公开状态格式暂不支持");
++  expect(fake.bridge.organize).not.toHaveBeenCalled();
++});
++it("XHS-R2 screenshot intake keeps title as UI hint, sends only chosen inputs and retains review/save cleanup", async () => {
++  const { service, port, fake, ai, store } = setup();
++  port.read.mockResolvedValue({ ...fetched(), html: "<title>合成长图菜</title>" });
++  await service.read("https://recipes.example/dish?source=synthetic");
++  await service.beginScreenshotIntake();
++  expect(service.snapshot().phase).toBe("screenshot-input");
++  expect(service.snapshot().visible?.title).toBe("合成长图菜");
++  expect(ai.snapshot().input.text).toBe("");
++  expect(fake.bridge.organize).not.toHaveBeenCalled();
++  await ai.pickImage();
++  await ai.organize(ai.snapshot().input);
++  service.showScreenshotPreview();
++  expect(service.snapshot().phase).toBe("ai-preview");
++  const request = vi.mocked(ai.bridge.organize).mock.calls[0][0];
++  expect(request).toMatchObject({ text: "", imageIds: ai.snapshot().input.imageIds });
++  expect(JSON.stringify(request)).not.toMatch(/合成长图菜|recipes\.example|source=synthetic/u);
++  await expect(service.saveAi(ai.snapshot().draft!.recipe)).rejects.toMatchObject({ code: "review_required" });
++  ai.setConfirmed(true);
++  await service.saveAi(ai.snapshot().draft!.recipe);
++  expect(await store.list()).toHaveLength(1);
++  expect(ai.snapshot().images).toEqual([]);
++  expect(fake.bridge.discardSession).toHaveBeenCalled();
++});
++it("XHS-R2 cancelled screenshot input cleans its session and returns to original title-only result", async () => {
++  const { service, port, fake, ai } = setup();
++  port.read.mockResolvedValue({ ...fetched(), html: "<title>合成长图菜</title>" });
++  await service.read("https://recipes.example/dish");
++  await service.beginScreenshotIntake();
++  await ai.pickImage(); await ai.discard(); service.returnToResults();
++  expect(service.readQuality()).toBe("title_only");
++  expect(service.snapshot().visible?.title).toBe("合成长图菜");
++  expect(ai.snapshot().images).toEqual([]);
++  expect(fake.bridge.organize).not.toHaveBeenCalled();
++});
++it("XHS-R2 repeated screenshot entry and abandonment cannot start duplicate sessions or resurrect stale content", async () => {
++  const { service, port, fake, ai } = setup();
++  port.read.mockResolvedValue({ ...fetched(), html: "<title>合成长图菜</title>" });
++  await service.read("https://recipes.example/dish");
++  const session = deferred<{ operationId: string }>(); fake.bridge.createSession.mockReturnValueOnce(session.promise);
++  const opening = service.beginScreenshotIntake().catch(error => error);
++  await expect(service.beginScreenshotIntake()).rejects.toMatchObject({ code: "busy" });
++  await Promise.resolve(); await Promise.resolve();
++  await service.discard(); session.resolve({ operationId: crypto.randomUUID() });
++  expect(await opening).toMatchObject({ code: "stale_session" });
++  expect(service.snapshot().phase).toBe("input"); expect(ai.snapshot().images).toEqual([]);
++  expect(fake.bridge.organize).not.toHaveBeenCalled();
++});
+ it.each(["absent", "mismatched", "resolved"])("BLOCKING-01: excludes unrelated XHS JSON-LD with %s target state", async status => {
+   const { service, port, fake, store } = setup();
+   const unrelated = { "@type": "Recipe", name: "推荐红烧肉", url: "https://www.xiaohongshu.com/explore/other", recipeIngredient: ["五花肉500克"], recipeInstructions: ["焯水后炖熟。"] };
+diff --git a/src/native/link-import/service.ts b/src/native/link-import/service.ts
+index e6898d8..230024d 100644
+--- a/src/native/link-import/service.ts
++++ b/src/native/link-import/service.ts
+@@ -7,12 +7,26 @@ import type { BackupController } from "../backup/backup-controls";
+ import { LinkImportError, fetchedPageSchema, linkReadSchema, safeLinkError, type ParsedPage, type VisiblePageText, type WebImportPort } from "./contract";
+ import { parseRecipePage, plainText } from "./parser";
+ import { buildAiText, extractVisibleText } from "./visible-text";
+-import { extractXhsPublicPage } from "./xhs-page";
++import { extractXhsPublicPage, type XhsPageDiagnostic } from "./xhs-page";
+ import { accessFailure, classifyReadQuality } from "./page-status";
+ 
+-type Phase = "input" | "reading" | "ready" | "ai-requesting" | "ai-preview" | "saving" | "uncertain" | "saved" | "error";
+-export type LinkImportState = { phase: Phase; url: string; parsed: ParsedPage | null; visible: VisiblePageText | null; selectedId: string | null; parserDraft: RecipeDetailsInput | null; error: Error | null };
+-const initial = (): LinkImportState => ({ phase: "input", url: "", parsed: null, visible: null, selectedId: null, parserDraft: null, error: null });
++const diagnosticMessages = {
++  target_text: "已读取目标笔记的公开正文；这不代表食材、用量和步骤完整。",
++  target_empty: "已确认目标笔记，但公开状态中没有可读取的正文。",
++  media_only: "已确认目标笔记，但公开正文为空；笔记包含图片或视频，网页读取不会识别其中的菜谱。",
++  unresolved_link: "最终网页地址未能确认目标笔记编号，无法将页面内容归属到该笔记。",
++  state_missing: "未找到可读取的公开笔记状态；无法确认是页面未提供正文还是使用了其他格式。",
++  state_unsupported: "公开状态格式暂不支持或不是安全 JSON，未读取正文。",
++  target_missing: "公开状态中没有可确认属于目标笔记的资料，已忽略推荐内容。",
++  invalid_content: "已找到目标笔记，但正文字段格式无法安全读取。",
++  safety_limit: "网页资料超过安全解析上限，已停止读取超限内容。",
++  login_required: "目标页面要求登录，当前无法读取正文。",
++  challenge_required: "目标页面要求安全验证，当前无法读取正文。",
++} satisfies Record<XhsPageDiagnostic, string>;
++
++type Phase = "input" | "reading" | "ready" | "preparing-images" | "screenshot-input" | "ai-requesting" | "ai-preview" | "saving" | "uncertain" | "saved" | "error";
++export type LinkImportState = { phase: Phase; url: string; parsed: ParsedPage | null; visible: VisiblePageText | null; selectedId: string | null; parserDraft: RecipeDetailsInput | null; error: Error | null; aiInputKind: "web" | "screenshots" };
++const initial = (): LinkImportState => ({ phase: "input", url: "", parsed: null, visible: null, selectedId: null, parserDraft: null, error: null, aiInputKind: "web" });
+ export class LinkImportService {
+   private state = initial();
+   private listeners = new Set<() => void>();
+@@ -39,7 +53,7 @@ export class LinkImportService {
+   subscribe = (listener: () => void) => { this.listeners.add(listener); return () => { this.listeners.delete(listener); }; };
+   private set(state: LinkImportState) { this.state = state; this.listeners.forEach(fn => fn()); }
+   private assertCurrent(generation: number) { if (generation !== this.generation || this.restoreBlocked) throw new LinkImportError("stale_session"); }
+-  private assertIdle() { if (this.restoreBlocked || ["reading", "ai-requesting", "saving", "uncertain"].includes(this.state.phase) || this.aiOwned && ["saving", "uncertain"].includes(this.dependencies.ai.snapshot().phase)) throw new LinkImportError(this.state.phase === "uncertain" ? "save_uncertain" : "busy"); }
++  private assertIdle() { if (this.restoreBlocked || ["reading", "preparing-images", "ai-requesting", "saving", "uncertain"].includes(this.state.phase) || this.aiOwned && ["requesting", "saving", "uncertain"].includes(this.dependencies.ai.snapshot().phase)) throw new LinkImportError(this.state.phase === "uncertain" ? "save_uncertain" : "busy"); }
+   setUrl(url: string) { this.assertIdle(); this.set({ ...initial(), url }); }
+   selected() { return this.state.parsed?.candidates.find(item => item.id === this.state.selectedId) ?? null; }
+   readQuality() {
+@@ -61,6 +75,31 @@ export class LinkImportService {
+     this.set({ ...this.state, selectedId: id, parserDraft: null });
+   }
+   returnToResults() { this.assertIdle(); this.set({ ...this.state, phase: "ready", error: null }); }
++  async beginScreenshotIntake(): Promise<void> {
++    this.assertIdle();
++    if (this.state.phase !== "ready") throw new LinkImportError("stale_session");
++    const generation = ++this.generation;
++    this.set({ ...this.state, phase: "preparing-images", error: null });
++    try {
++      await this.dependencies.ai.discard(); this.assertCurrent(generation); this.aiOwned = true;
++      await this.dependencies.ai.startSession(); this.assertCurrent(generation);
++      // The unverified webpage title stays only in this in-memory UI state.
++      // The existing intake screen collects the user's actual text/images.
++      this.set({ ...this.state, phase: "screenshot-input", aiInputKind: "screenshots" });
++    } catch (error) {
++      this.assertCurrent(generation);
++      const safe = safeAiError(error); this.set({ ...this.state, phase: "ready", error: safe }); throw safe;
++    }
++  }
++  showScreenshotPreview() {
++    if (this.restoreBlocked || this.state.phase !== "screenshot-input" || this.dependencies.ai.snapshot().phase !== "preview") throw new LinkImportError("stale_session");
++    this.set({ ...this.state, phase: "ai-preview", error: null });
++  }
++  editScreenshotInput() {
++    this.assertIdle();
++    if (this.state.phase !== "ai-preview" || this.state.aiInputKind !== "screenshots") throw new LinkImportError("stale_session");
++    this.set({ ...this.state, phase: "screenshot-input", error: null });
++  }
+   async read(url = this.state.url): Promise<void> {
+     this.assertIdle(); const generation = ++this.generation, requestId = crypto.randomUUID();
+     const checked = linkReadSchema.safeParse({ requestId, url: url.trim() });
+@@ -78,6 +117,7 @@ export class LinkImportService {
+       const restriction = source?.access ?? accessFailure(visible, parsed.candidates.some(candidate => candidate.quality === "complete"));
+       if (restriction) throw new LinkImportError(restriction);
+       if (source) {
++        parsed.warnings.push(diagnosticMessages[source.diagnostic]);
+         for (const warning of source.warnings) if (!parsed.warnings.includes(warning)) parsed.warnings.push(warning);
+         if (source.media) parsed.warnings.push(source.media === "video"
+           ? "这是视频笔记：当前只读取网页文字，不会读取视频画面或口播。步骤在视频中时，请补充文字或使用截图整理。"
+@@ -101,7 +141,7 @@ export class LinkImportService {
+     if (!visible || ["title_only", "unreadable"].includes(this.readQuality())) throw new LinkImportError("page_unreadable");
+     const generation = ++this.generation;
+     const text = buildAiText(visible, this.selected()?.recipe ?? null);
+-    this.set({ ...this.state, phase: "ai-requesting", error: null });
++    this.set({ ...this.state, phase: "ai-requesting", aiInputKind: "web", error: null });
+     try {
+       await this.dependencies.ai.discard(); this.assertCurrent(generation); this.aiOwned = true;
+       await this.dependencies.ai.startSession(); this.assertCurrent(generation);
+diff --git a/src/native/link-import/xhs-page.test.ts b/src/native/link-import/xhs-page.test.ts
+index 8bc8d84..c4b3ccc 100644
+--- a/src/native/link-import/xhs-page.test.ts
++++ b/src/native/link-import/xhs-page.test.ts
+@@ -52,6 +52,42 @@ describe("bounded inert public Xiaohongshu state", () => {
+     const page = `<script id="__INITIAL_STATE__" type="application/json">${JSON.stringify(state())}</script>`;
+     expect(extractXhsPublicPage(page, url)?.title).toBe("合成椰子鸡");
+   });
++  it("reads a target-keyed direct note record without a wrapper", () => {
++    const page = html({ note: { noteDetailMap: { "test-note": note() } } });
++    expect(extractXhsPublicPage(page, url)).toMatchObject({ targetResolved: true, diagnostic: "target_text", title: "合成椰子鸡", text: note().desc });
++  });
++  it("reads an aliased direct record only with an explicit matching noteId", () => {
++    const page = html({ note: { noteDetailMap: { aliased: note(), recommended: { ...note("其他菜", "其他步骤"), noteId: "other" } } } });
++    expect(extractXhsPublicPage(page, url)).toMatchObject({ diagnostic: "target_text", text: note().desc });
++    expect(extractXhsPublicPage(page, url.replace("test-note?", "missing?"))).toMatchObject({ diagnostic: "target_missing", text: "", targetResolved: false });
++  });
++  it("rejects a direct record whose embedded ID conflicts with the target map key", () => {
++    expect(extractXhsPublicPage(html({ note: { noteDetailMap: { "test-note": { ...note(), noteId: "other" } } } }), url))
++      .toMatchObject({ diagnostic: "target_missing", text: "", targetResolved: false });
++  });
++  it("rejects ambiguous alias records even when each claims the target ID", () => {
++    expect(extractXhsPublicPage(html({ note: { noteDetailMap: { first: note(), second: note("其他菜") } } }), url))
++      .toMatchObject({ diagnostic: "target_missing", text: "", targetResolved: false });
++  });
++  it("diagnoses missing, incompatible, mismatched, invalid and unresolved public data separately", () => {
++    expect(extractXhsPublicPage("<title>标题</title><main>推荐菜谱</main>", url)).toMatchObject({ diagnostic: "state_missing", text: "" });
++    expect(extractXhsPublicPage(html({ unknownShape: state() }), url)).toMatchObject({ diagnostic: "state_unsupported", text: "" });
++    expect(extractXhsPublicPage(html(state({ ...note(), noteId: "other" })), url)).toMatchObject({ diagnostic: "target_missing", text: "" });
++    expect(extractXhsPublicPage(html(state({ ...note(), desc: { text: "不得猜测这个新结构" } })), url)).toMatchObject({ diagnostic: "invalid_content", text: "" });
++    expect(extractXhsPublicPage(html(state()), "https://xhslink.cn/o/synthetic")).toMatchObject({ diagnostic: "unresolved_link", text: "" });
++    expect(extractXhsPublicPage('<script>window.__INITIAL_STATE__=JSON.parse("{}");</script>', url)).toMatchObject({ diagnostic: "state_unsupported", text: "" });
++  });
++  it("distinguishes media-only, empty and safely readable target prose without claiming image understanding", () => {
++    expect(extractXhsPublicPage(html(state(note("图文菜", ""))), url)).toMatchObject({ diagnostic: "media_only", text: "", media: "image" });
++    expect(extractXhsPublicPage(html(state({ ...note("空菜名", ""), imageList: [] })), url)).toMatchObject({ diagnostic: "target_empty", text: "" });
++    expect(extractXhsPublicPage(html(state()), url)).toMatchObject({ diagnostic: "target_text", text: note().desc });
++  });
++  it.each([["登录后查看笔记", "login_required"], ["安全验证", "challenge_required"]])("gives access restrictions priority over state diagnostics: %s", (title, diagnostic) => {
++    expect(extractXhsPublicPage(`<title>${title}</title>${html(state())}`, url)).toMatchObject({ diagnostic, text: "" });
++  });
++  it("exposes a bounded safety diagnostic for oversized or deep state", () => {
++    expect(extractXhsPublicPage(html({ ...state(), huge: "x".repeat(270000) }), url)).toMatchObject({ diagnostic: "safety_limit", text: "" });
++  });
+   it("converts only bare undefined JSON values while preserving quoted text", () => {
+     const source = html(state(note("undefined 字样", '先说 "undefined"，再煮熟。'))).replace('"type":"normal"', '"extra":undefined,"type":"normal"');
+     expect(extractXhsPublicPage(source, url)).toMatchObject({ title: "undefined 字样", text: '先说 "undefined"，再煮熟。' });
+diff --git a/src/native/link-import/xhs-page.ts b/src/native/link-import/xhs-page.ts
+index 73170e0..8d0c66b 100644
+--- a/src/native/link-import/xhs-page.ts
++++ b/src/native/link-import/xhs-page.ts
+@@ -1,6 +1,7 @@
+ import { load } from "cheerio/slim";
+ 
+-export type XhsPublicPage = { title: string; text: string; media: "image" | "video" | null; access: "login_required" | "challenge_required" | null; warnings: string[]; wasTruncated: boolean; statePresent: boolean; targetResolved: boolean };
++export type XhsPageDiagnostic = "target_text" | "target_empty" | "media_only" | "unresolved_link" | "state_missing" | "state_unsupported" | "target_missing" | "invalid_content" | "safety_limit" | "login_required" | "challenge_required";
++export type XhsPublicPage = { title: string; text: string; media: "image" | "video" | null; access: "login_required" | "challenge_required" | null; warnings: string[]; wasTruncated: boolean; statePresent: boolean; targetResolved: boolean; diagnostic: XhsPageDiagnostic };
+ const MAX_HTML_BYTES = 2 * 1024 * 1024, MAX_STATE_BYTES = 256 * 1024, MAX_DEPTH = 32, MAX_NODES = 4000, MAX_TEXT = 28000;
+ const object = (value: unknown): Record<string, unknown> | null => value !== null && typeof value === "object" && !Array.isArray(value) ? value as Record<string, unknown> : null;
+ const own = (value: Record<string, unknown> | null, key: string): unknown => value && Object.hasOwn(value, key) ? value[key] : undefined;
+@@ -48,16 +49,24 @@ function prose(value: unknown, limit: number): string {
+   return $.root().text().split(/\r?\n/u).map(line => line.replace(/[\t ]+/gu, " ").trim()).filter(Boolean).join("\n");
+ }
+ 
+-function noteFromState(state: unknown, noteId: string | null): Record<string, unknown> | null {
++function noteFromEntry(value: unknown): Record<string, unknown> | null {
++  const entry = object(value);
++  if (!entry) return null;
++  // Only two inert record shapes are accepted; never recursively search recommendations.
++  if (Object.hasOwn(entry, "note")) return object(own(entry, "note"));
++  return ["noteId", "title", "desc", "type", "imageList"].some(key => Object.hasOwn(entry, key)) ? entry : null;
++}
++
++function noteFromState(state: unknown, noteId: string | null): { note: Record<string, unknown> | null; supported: boolean } {
+   // A singleton recommendation on an unresolved short page is not target identity.
+-  if (!noteId) return null;
+   const notes = object(own(object(own(object(state), "note")), "noteDetailMap"));
+-  if (!notes) return null;
+-  const values = Object.values(notes).map(item => object(own(object(item), "note"))).filter((item): item is Record<string, unknown> => item !== null);
+-  const direct = object(own(object(own(notes, noteId)), "note"));
+-  if (direct && (own(direct, "noteId") === undefined || own(direct, "noteId") === noteId)) return direct;
++  if (!notes) return { note: null, supported: false };
++  if (!noteId) return { note: null, supported: true };
++  const values = Object.values(notes).map(noteFromEntry).filter((item): item is Record<string, unknown> => item !== null);
++  const direct = noteFromEntry(own(notes, noteId));
++  if (direct && (own(direct, "noteId") === undefined || own(direct, "noteId") === noteId)) return { note: direct, supported: true };
+   const matching = values.filter(item => own(item, "noteId") === noteId);
+-  return matching.length === 1 ? matching[0] : null;
++  return { note: matching.length === 1 ? matching[0] : null, supported: true };
+ }
+ 
+ export function extractXhsPublicPage(html: string, finalUrl: string): XhsPublicPage | null {
+@@ -65,40 +74,45 @@ export function extractXhsPublicPage(html: string, finalUrl: string): XhsPublicP
+   try { url = new URL(finalUrl); } catch { return null; }
+   const host = url.hostname.toLowerCase().replace(/\.$/u, "");
+   if (!["http:", "https:"].includes(url.protocol) || !["xiaohongshu.com", "xhslink.cn", "xhslink.com"].some(root => host === root || host.endsWith(`.${root}`))) return null;
+-  const result: XhsPublicPage = { title: "", text: "", media: null, access: null, warnings: [], wasTruncated: false, statePresent: false, targetResolved: false };
+-  if (/^\/login(?:\/|$)/iu.test(url.pathname)) { result.access = "login_required"; return result; }
+-  if (bytes(html) > MAX_HTML_BYTES) { result.warnings.push("网页超出安全解析上限，请改用文字或截图。"); result.wasTruncated = true; return result; }
++  const result: XhsPublicPage = { title: "", text: "", media: null, access: null, warnings: [], wasTruncated: false, statePresent: false, targetResolved: false, diagnostic: "state_missing" };
++  if (/^\/login(?:\/|$)/iu.test(url.pathname)) { result.access = "login_required"; result.diagnostic = result.access; return result; }
++  if (bytes(html) > MAX_HTML_BYTES) { result.warnings.push("网页超出安全解析上限，请改用文字或截图。"); result.wasTruncated = true; result.diagnostic = "safety_limit"; return result; }
+   const $ = load(html);
+   const noteId = /^\/(?:explore|discovery\/item)\/([a-z\d_-]{1,128})\/?$/iu.exec(url.pathname)?.[1] ?? null;
+   const scripts = $("script").toArray();
+-  let examined = 0;
++  let examined = 0, supportedState = false;
+   for (const element of scripts) {
+     const source = $(element).text().trim();
+     const assignment = /^(?:window\.)?__INITIAL_STATE__\s*=\s*/u.exec(source);
+     const jsonElement = $(element).attr("id") === "__INITIAL_STATE__" && $(element).attr("type")?.toLowerCase() === "application/json";
+     if (!assignment && !jsonElement) continue;
+     result.statePresent = true;
+-    if (++examined > 4) { result.wasTruncated = true; result.warnings.push("网页状态超出安全解析上限，请检查缺失内容。"); break; }
++    if (++examined > 4) { result.wasTruncated = true; result.diagnostic = "safety_limit"; result.warnings.push("网页状态超出安全解析上限，请检查缺失内容。"); break; }
+     let payload = assignment ? source.slice(assignment[0].length).trim() : source;
+     if (assignment && payload.endsWith(";")) payload = payload.slice(0, -1).trimEnd();
+     try {
+-      const note = noteFromState(readState(payload), noteId); if (!note) continue;
++      const candidate = noteFromState(readState(payload), noteId);
++      supportedState ||= candidate.supported;
++      const note = candidate.note; if (!note) continue;
+       result.targetResolved = true;
+       result.title = prose(own(note, "title"), 500);
+       const rawText = own(note, "desc"); result.text = prose(rawText, MAX_TEXT);
+       if (typeof rawText === "string" && Array.from(rawText).length > MAX_TEXT) { result.wasTruncated = true; result.warnings.push("笔记正文超出安全解析上限，请补充缺失内容。"); }
+       result.media = own(note, "type") === "video" ? "video" : Array.isArray(own(note, "imageList")) && (own(note, "imageList") as unknown[]).length > 0 ? "image" : null;
++      result.diagnostic = result.wasTruncated ? "safety_limit" : rawText !== undefined && rawText !== null && typeof rawText !== "string" ? "invalid_content" : result.text ? "target_text" : result.media ? "media_only" : "target_empty";
+       break;
+     } catch (error) {
+       const limited = error instanceof RangeError; result.wasTruncated ||= limited;
++      if (limited) result.diagnostic = "safety_limit";
+       result.warnings.push(limited ? "网页状态超出安全解析上限，请改用文字或截图。" : "网页状态不是可安全读取的资料，请改用文字或截图。");
+     }
+   }
++  if (!result.targetResolved && result.diagnostic !== "safety_limit") result.diagnostic = !noteId ? "unresolved_link" : !result.statePresent ? "state_missing" : supportedState ? "target_missing" : "state_unsupported";
+   if (!result.targetResolved) result.warnings.push("未读取到目标笔记正文，请补充文字或截图。");
+   for (const heading of [prose($("title").first().text(), 500), prose($("h1,h2").first().toString(), 2000)].map(text => text.replace(/\s+/gu, " "))) {
+     if (/^(?:(?:登录|请先登录|登录后查看(?:笔记|内容)?|登录小红书|立即登录)(?:\s*[-|·]\s*小红书)?|小红书\s*[-|·]\s*登录)$/u.test(heading)) result.access = "login_required";
+     else if (/^(?:安全验证|验证码|访问验证|访问受限|请完成验证|请先完成验证)(?:\s*[-|·]\s*小红书)?$/u.test(heading)) result.access = "challenge_required";
+   }
+-  if (result.access) result.text = "";
++  if (result.access) { result.text = ""; result.diagnostic = result.access; }
+   return result;
+ }
