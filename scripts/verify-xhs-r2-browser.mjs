@@ -83,9 +83,9 @@ try {
         const sourceImage = source.getByRole("img", { name: "本轮截图 1", exact: true });
         await sourceImage.evaluate(img => img.decode());
         assert.equal(await sourceImage.evaluate(img => img.naturalHeight), 1800);
-        assert.equal(await page.getByRole("checkbox", { name: "我已检查以上 AI 推断和缺失内容", exact: true }).isChecked(), false);
         await source.getByRole("button", { name: "关闭本轮来源", exact: true }).click();
         await source.waitFor({ state: "hidden" });
+        assert.equal(await page.getByRole("checkbox", { name: "我已检查以上 AI 推断和缺失内容", exact: true }).isChecked(), false);
         await page.getByRole("checkbox", { name: "我已检查以上 AI 推断和缺失内容", exact: true }).check();
         await page.getByRole("button", { name: "确认保存菜谱", exact: true }).click();
         await page.getByRole("heading", { name: "我校对的合成长图饭", exact: true }).waitFor();
