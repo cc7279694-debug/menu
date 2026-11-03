@@ -15,6 +15,10 @@ const root = fileURLToPath(new URL("../", import.meta.url)), moduleBase = `/@fs/
 await mkdir(out);
 const results = { source: spawnSync("git", ["rev-parse", "HEAD"], { cwd: root, encoding: "utf8" }).stdout.trim(), checks: [], screenshots: [], external: [], errors: [], realAiCalls: 0, nativePicker: "NOT_RUN" };
 const browser = await chromium.launch({ executablePath: "C:/Program Files/Google/Chrome/Application/chrome.exe", headless: true });
+async function capture(page, file) {
+  await page.evaluate(() => { if (document.activeElement instanceof HTMLElement) document.activeElement.blur(); window.scrollTo(0, 0); });
+  await page.screenshot({ path: path.join(out, file), fullPage: true }); results.screenshots.push(file);
+}
 try {
   for (const theme of ["warm-ivory", "pure-glass", "soft-sage"]) {
     for (const scenario of ["missing-state", "unsupported-state", "wrong-target", "unresolved-link", "media-only", "direct-note", "generic", "login", "challenge"]) {
@@ -52,7 +56,7 @@ try {
       assert.equal(await page.evaluate(() => window.__r2.calls.ai), 0);
       assert.equal(await page.evaluate(async () => (await window.__r2.recipes()).length), 0);
       if (["missing-state", "direct-note"].includes(scenario)) {
-        const file = `${theme}-${scenario}.png`; await page.screenshot({ path: path.join(out, file), fullPage: true }); results.screenshots.push(file);
+        await capture(page, `${theme}-${scenario}.png`);
       }
       if (scenario === "missing-state") {
         await page.getByRole("button", { name: "添加菜谱截图并用 AI 整理", exact: true }).click();
@@ -65,14 +69,23 @@ try {
         const image = page.getByRole("img", { name: "截图 1", exact: true });
         await image.evaluate(img => img.decode());
         assert.equal(await image.evaluate(img => img.naturalHeight), 1800);
-        const capture = `${theme}-screenshot-input.png`; await page.screenshot({ path: path.join(out, capture), fullPage: true }); results.screenshots.push(capture);
+        await capture(page, `${theme}-screenshot-input.png`);
         await page.getByRole("button", { name: "开始 AI 整理", exact: true }).click();
         await page.getByRole("heading", { name: "检查整理结果", exact: true }).waitFor();
         const requests = await page.evaluate(() => window.__r2.calls.requests);
         assert.equal(requests.length, 1); assert.equal(requests[0].text, ""); assert.equal(requests[0].imageIds.length, 1);
         assert.equal(await page.getByRole("button", { name: "确认保存菜谱", exact: true }).isEnabled(), false);
         await page.getByLabel("菜名", { exact: true }).fill("我校对的合成长图饭");
-        const review = `${theme}-screenshot-review.png`; await page.screenshot({ path: path.join(out, review), fullPage: true }); results.screenshots.push(review);
+        await capture(page, `${theme}-screenshot-review.png`);
+        await page.getByRole("button", { name: "查看本轮来源", exact: true }).click();
+        const source = page.getByRole("dialog", { name: "本轮来源", exact: true });
+        await source.waitFor();
+        const sourceImage = source.getByRole("img", { name: "本轮截图 1", exact: true });
+        await sourceImage.evaluate(img => img.decode());
+        assert.equal(await sourceImage.evaluate(img => img.naturalHeight), 1800);
+        assert.equal(await page.getByRole("checkbox", { name: "我已检查以上 AI 推断和缺失内容", exact: true }).isChecked(), false);
+        await source.getByRole("button", { name: "关闭本轮来源", exact: true }).click();
+        await source.waitFor({ state: "hidden" });
         await page.getByRole("checkbox", { name: "我已检查以上 AI 推断和缺失内容", exact: true }).check();
         await page.getByRole("button", { name: "确认保存菜谱", exact: true }).click();
         await page.getByRole("heading", { name: "我校对的合成长图饭", exact: true }).waitFor();
