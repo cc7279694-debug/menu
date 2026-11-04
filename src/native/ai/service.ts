@@ -6,7 +6,7 @@ import type { AiReviewDraft, AiSourceContext } from "./contract";
 import { AI_LIMITS,requiresAiReview } from "./contract";
 import { parseAiDraft } from "./normalize";
 import { z } from "zod";
-import { AiIntakeError, safeAiError, type AiBridge, type AiKeyPort, type AiTemporaryImage } from "./native-bridge";
+import { AiIntakeError, parseTransferredAiImages, safeAiError, type AiBridge, type AiKeyPort, type AiTemporaryImage } from "./native-bridge";
 export type AiInput={text:string;imageIds:string[]};
 export type AiIntakeState={phase:"input"|"requesting"|"preview"|"error"|"saving"|"saved"|"uncertain";input:AiInput;operationId:string|null;requestId:string|null;draft:AiReviewDraft|null;confirmed:boolean;error:AiIntakeError|null;images:AiTemporaryImage[];imageBusy:boolean;pendingCleanup:boolean;savedRecipe:RecipeDetails|null};
 export class AiIntakeService {
@@ -114,6 +114,24 @@ export class AiIntakeService {
     const operationId=this.state.operationId!,generation=this.generation;this.set({...this.state,imageBusy:true,error:null});
     try{const reply=await this.bridge.pickImage({operationId});if(generation!==this.generation||operationId!==this.state.operationId)throw new AiIntakeError("stale_session");if(!reply.cancelled&&reply.image){const images=[...this.state.images,reply.image];this.set({...this.state,images,input:{...this.state.input,imageIds:images.map(image=>image.id)},phase:"input",draft:null,confirmed:false});}}
     catch(error){const safe=safeAiError(error);if(generation===this.generation)this.set({...this.state,error:safe});throw safe;}
+    finally{if(generation===this.generation&&operationId===this.state.operationId)this.set({...this.state,imageBusy:false});}
+  }
+  async pickLongImage():Promise<void>{
+    this.assertInputEditable();
+    if(this.state.images.length>=AI_LIMITS.imageCount)throw new AiIntakeError("image_too_large");
+    if(!this.bridge.pickLongImage)throw new AiIntakeError("native_unavailable");
+    const operationId=this.state.operationId!,generation=this.generation;
+    this.set({...this.state,imageBusy:true,error:null});
+    try{
+      const reply=await this.bridge.pickLongImage({operationId});
+      if(generation!==this.generation||operationId!==this.state.operationId)throw new AiIntakeError("stale_session");
+      if(reply.cancelled){if(reply.images.length)throw new AiIntakeError("invalid_output");return;}
+      const batch=parseTransferredAiImages({images:reply.images},operationId),images=[...this.state.images,...batch];
+      if(images.length>AI_LIMITS.imageCount||new Set(images.map(image=>image.id)).size!==images.length||images.reduce((sum,image)=>sum+image.byteSize,0)>AI_LIMITS.totalImageBytes)throw new AiIntakeError("invalid_output");
+      // Native commits all segments together. Publish the validated batch in one
+      // state update; a failed/late result must never appear as a partial import.
+      this.set({...this.state,images,input:{...this.state.input,imageIds:images.map(image=>image.id)},phase:"input",draft:null,confirmed:false});
+    }catch(error){const safe=safeAiError(error);if(generation===this.generation)this.set({...this.state,error:safe});throw safe;}
     finally{if(generation===this.generation&&operationId===this.state.operationId)this.set({...this.state,imageBusy:false});}
   }
   async removeImage(id:string):Promise<void>{

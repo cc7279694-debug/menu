@@ -9,3 +9,9 @@ it("unsupported browser action is rejected before any native registration",async
   const {createAiKeyPort}=await import("./native-bridge");
   await expect(createAiKeyPort().hasAiKey()).rejects.toMatchObject({code:"native_unavailable"});expect(register).not.toHaveBeenCalled();
 });
+it("long-image selection stays lazy and unavailable browser never registers Native",async()=>{
+  const {createAiBridge}=await import("./native-bridge");
+  const bridge=createAiBridge();expect(register).not.toHaveBeenCalled();
+  await expect(bridge.pickLongImage!({operationId:crypto.randomUUID()})).rejects.toMatchObject({code:"native_unavailable"});
+  expect(register).not.toHaveBeenCalled();
+});

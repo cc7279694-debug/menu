@@ -65,6 +65,15 @@ public class LocalAiIntakePlugin extends Plugin {
         }catch(Exception e){reject(call,e);}
     }
     @PluginMethod public synchronized void pickImage(PluginCall call){try{keys(call,"operationId");operation(call);if(picking||activeToken!=null)throw new AiFailure("busy");picking=true;Intent intent=new Intent(Intent.ACTION_OPEN_DOCUMENT);intent.addCategory(Intent.CATEGORY_OPENABLE);intent.setType("image/*");intent.putExtra(Intent.EXTRA_MIME_TYPES,new String[]{"image/jpeg","image/png","image/webp"});intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);try{startActivityForResult(call,intent,"imageSelected");}catch(RuntimeException ignored){picking=false;throw new AiFailure("image_invalid");}}catch(Exception e){reject(call,e);}}
+    @PluginMethod public synchronized void pickLongImage(PluginCall call){try{keys(call,"operationId");operation(call);if(picking||activeToken!=null)throw new AiFailure("busy");picking=true;Intent intent=new Intent(Intent.ACTION_OPEN_DOCUMENT);intent.addCategory(Intent.CATEGORY_OPENABLE);intent.setType("image/*");intent.putExtra(Intent.EXTRA_MIME_TYPES,new String[]{"image/jpeg","image/png","image/webp"});intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);try{startActivityForResult(call,intent,"longImageSelected");}catch(RuntimeException ignored){picking=false;throw new AiFailure("image_invalid");}}catch(Exception e){reject(call,e);}}
+    @ActivityCallback private void longImageSelected(PluginCall call,ActivityResult result){
+        if(call==null){synchronized(this){picking=false;}return;}
+        if(result.getResultCode()!=Activity.RESULT_OK){synchronized(this){picking=false;}call.resolve(new JSObject().put("cancelled",true).put("images",new JSArray()));return;}
+        Uri uri=result.getData()==null?null:result.getData().getData();
+        submit(call,()->{try{String id=operation(call);List<AiTemporaryImages.Image> images=runtime.images(getContext()).importLongSelectedUri(getContext(),UUID.fromString(id),uri,()->operation(call));
+            operation(call);JSArray resultImages=new JSArray();for(AiTemporaryImages.Image image:images)resultImages.put(new JSObject().put("id",image.id).put("mimeType","image/jpeg").put("byteSize",image.byteSize).put("width",image.width).put("height",image.height).put("previewUri",image.previewUri));
+            call.resolve(new JSObject().put("cancelled",false).put("images",resultImages));}finally{synchronized(this){picking=false;}}});
+    }
     @ActivityCallback private void imageSelected(PluginCall call,ActivityResult result){
         if(call==null){synchronized(this){picking=false;}return;}
         if(result.getResultCode()!=Activity.RESULT_OK){synchronized(this){picking=false;}call.resolve(new JSObject().put("cancelled",true));return;}

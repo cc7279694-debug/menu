@@ -358,6 +358,9 @@ public class AiImeBackInstrumentedTest {
         pickGeneratedImage(64,64);
     }
     private void pickGeneratedImage(int width,int height)throws Exception {
+        pickGeneratedImage(width,height,false);
+    }
+    private void pickGeneratedImage(int width,int height,boolean longText)throws Exception {
         Context context=instrumentation.getTargetContext();String name="recipio-ime-"+UUID.randomUUID()+".png";
         ContentValues values=new ContentValues();values.put(MediaStore.Downloads.DISPLAY_NAME,name);values.put(MediaStore.Downloads.MIME_TYPE,"image/png");values.put(MediaStore.Downloads.RELATIVE_PATH,"Download/");values.put(MediaStore.Downloads.IS_PENDING,1);
         generatedImage=context.getContentResolver().insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI,values);assertNotNull(generatedImage);
@@ -378,7 +381,7 @@ public class AiImeBackInstrumentedTest {
         } while(android.os.SystemClock.elapsedRealtime()<indexedDeadline);
         assertTrue("Generated fixture must be published and indexed before opening SAF",indexed);
         observePickerForFailureDiagnostics();
-        click("添加截图");
+        click(longText?"文字长图分段导入":"添加截图");
         // OPEN_DOCUMENT starts at Recents or the previously visited directory. A Downloads
         // fixture is not necessarily listed there; navigate the real picker before selecting it.
         // The picker may already be at Downloads. Do not reopen its animated drawer
@@ -433,8 +436,8 @@ public class AiImeBackInstrumentedTest {
     }
     private void n1Capture(String name)throws Exception {
         if(!name.equals("picker-open")){
-            String target=name.equals("review-unconfirmed")?"input[type=checkbox]":name.equals("multi-preview")?"img[alt=\"截图 2\"]":"img[alt=\"截图 1\"]";
-            js("document.querySelector('"+target+"')?.scrollIntoView({block:'center'})");
+            String target=name.equals("review-unconfirmed")?"input[type=checkbox]":name.equals("n2-segment-preview")?"img[alt=\"截图 4\"]":name.equals("multi-preview")?"img[alt=\"截图 2\"]":"img[alt=\"截图 1\"]";
+            js("document.querySelector('"+target+"')?.scrollIntoView({block:'center',behavior:'instant'})");
             CountDownLatch presented=new CountDownLatch(1);
             instrumentation.runOnMainSync(()->web.postVisualStateCallback(android.os.SystemClock.uptimeMillis(),new WebView.VisualStateCallback(){
                 @Override public void onComplete(long requestId){web.postOnAnimation(()->web.postOnAnimation(presented::countDown));}
@@ -442,7 +445,7 @@ public class AiImeBackInstrumentedTest {
             assertTrue("WebView visual state did not reach a rendered frame",presented.await(8,TimeUnit.SECONDS));
         }
         instrumentation.waitForIdleSync();
-        File directory=new File(instrumentation.getTargetContext().getExternalFilesDir(null),"xhs-r2-n1-ui");assertTrue(directory.isDirectory()||directory.mkdirs());
+        File directory=new File(instrumentation.getTargetContext().getExternalFilesDir(null),name.startsWith("n2-")?"xhs-r2-n2-ui":"xhs-r2-n1-ui");assertTrue(directory.isDirectory()||directory.mkdirs());
         File file=new File(directory,name+"-"+UUID.randomUUID()+".png");Bitmap screenshot=instrumentation.getUiAutomation().takeScreenshot();assertNotNull(screenshot);
         try(OutputStream output=new FileOutputStream(file)){assertTrue(screenshot.compress(Bitmap.CompressFormat.PNG,100,output));}finally{screenshot.recycle();}
     }
@@ -479,6 +482,44 @@ public class AiImeBackInstrumentedTest {
         until("[...document.querySelectorAll('h1,h2')].some(e=>e.textContent.trim()==='APK4 IME GENERATED 中文 🍚')");
         assertEquals("true",js("document.body.innerText.includes('先焯水')"));
         assertEquals(1,posts.get());
+        assertEquals(0,new File(instrumentation.getTargetContext().getCacheDir(),"ai-import").listFiles((dir,name)->name.matches("[0-9a-f-]{36}")).length);
+    }
+    @Test public void xhsR2NativeLongPickerCancelKeepsExistingImage()throws Exception {
+        n1LinkScreenshotInput();pickGeneratedImage();
+        String existing=js("document.querySelector('img[alt=\"截图 1\"]').src");
+        click("文字长图分段导入");
+        long deadline=android.os.SystemClock.elapsedRealtime()+10000;boolean visible=false;
+        while(android.os.SystemClock.elapsedRealtime()<deadline){AccessibilityNodeInfo node=instrumentation.getUiAutomation().getRootInActiveWindow();if(node!=null&&systemPicker(String.valueOf(node.getPackageName()))){visible=true;break;}Thread.sleep(100);}
+        assertTrue("Real long-image picker must open",visible);back();
+        until("!!document.querySelector('img[alt=\"截图 1\"]')&&![...document.querySelectorAll('button')].find(b=>b.textContent.trim()==='文字长图分段导入').disabled");
+        assertEquals(existing,js("document.querySelector('img[alt=\"截图 1\"]').src"));
+        assertEquals("1",js("document.querySelectorAll('.v2-intake-image-grid li').length"));assertEquals(0,posts.get());
+        click("返回");click("放弃本轮整理");until("document.body.innerText.includes('仅获取到标题')");
+        assertEquals(0,new File(instrumentation.getTargetContext().getCacheDir(),"ai-import").listFiles((dir,name)->name.matches("[0-9a-f-]{36}")).length);
+    }
+    @Test public void xhsR2NativeLongSegmentsKeepOrderUntilExplicitReviewAndSave()throws Exception {
+        n1LinkScreenshotInput();
+        pickGeneratedImage(1080,7200,true);
+        until("document.querySelectorAll('.v2-intake-image-grid li').length===4");
+        until("[...document.querySelectorAll('.v2-intake-image-grid img')].every(i=>i.complete&&i.naturalWidth===1080&&i.naturalHeight>10&&i.naturalHeight<=2048)");
+        assertEquals(0,posts.get());
+        n1Capture("n2-segment-preview");
+        String fourth=js("document.querySelector('img[alt=\"截图 4\"]').src");
+        click("前移截图 4");assertEquals(fourth,js("document.querySelector('img[alt=\"截图 3\"]').src"));
+        click("移除截图 2");until("document.querySelectorAll('.v2-intake-image-grid li').length===3");
+        assertEquals(0,posts.get());
+        // Observe only generated image identifiers; never alter the bridge request.
+        js("(()=>{const c=window.Capacitor,o=c.nativePromise;c.nativePromise=function(...a){if(a[0]==='LocalAiIntake'&&a[1]==='organize')window.__n2SentImageIds=[...a[2].imageIds];return Reflect.apply(o,this,a)};window.__n2ExpectedIds=[...document.querySelectorAll('.v2-intake-image-grid img')].map(i=>i.src.match(/([0-9a-f-]{36})\\.jpg$/)[1]);return true})()");
+        preview();assertEquals(1,posts.get());
+        assertEquals("true",js("JSON.stringify(window.__n2SentImageIds)===JSON.stringify(window.__n2ExpectedIds)"));
+        assertFalse(n1LastRequest.contains("N1 来源提示"));assertFalse(n1LastRequest.contains("not-for-ai"));
+        assertEquals("false",js("document.querySelector('input[type=checkbox]').checked"));
+        assertEquals("true",js("[...document.querySelectorAll('button')].filter(b=>b.textContent.trim()==='确认保存菜谱').every(b=>b.disabled)"));
+        js("document.querySelector('input[type=checkbox]').click()");click("确认保存菜谱");
+        until("document.querySelector('[role=dialog]')?.innerText.includes('已存在同名菜谱')||!document.body.innerText.includes('检查整理结果')");
+        if("true".equals(js("!!document.querySelector('[role=dialog]')?.innerText.includes('已存在同名菜谱')")))click("仍然新建菜谱");
+        until("[...document.querySelectorAll('h1,h2')].some(e=>e.textContent.trim()==='APK4 IME GENERATED 中文 🍚')");
+        assertEquals("true",js("document.body.innerText.includes('先焯水')"));assertEquals(1,posts.get());
         assertEquals(0,new File(instrumentation.getTargetContext().getCacheDir(),"ai-import").listFiles((dir,name)->name.matches("[0-9a-f-]{36}")).length);
     }
 }

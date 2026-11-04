@@ -67,11 +67,16 @@ export function AiIntakeScreen({ service, onPreview, onCancel, onConfigureKey, o
     <section className="v2-intake-images" aria-label="本轮截图">
       <div className="v2-task-header"><h3>本轮截图（{state.images.length} / {AI_LIMITS.imageCount}）</h3>
         <Button variant="outline" disabled={busy || !state.operationId || state.images.length >= AI_LIMITS.imageCount}
-          onClick={() => void service.pickImage().catch(e => setLocalError(safeAiError(e).message))}>添加截图</Button>
+          onClick={() => { setLocalError(""); void service.pickImage().catch(e => setLocalError(safeAiError(e).message)); }}>添加截图</Button>
       </div>
       <p className="v2-task-note">可只选截图，也可补充文字。截图不会成为菜谱图片，也不会进入备份。</p>
+      <div className="v2-task-actions">
+        <Button variant="outline" disabled={busy || !state.operationId || state.images.length >= AI_LIMITS.imageCount}
+          onClick={() => { setLocalError(""); void service.pickLongImage().catch(e => setLocalError(safeAiError(e).message)); }}>文字长图分段导入</Button>
+        <p className="v2-task-note">先选择此模式，再从系统选择一张文字长图；本机按从上到下分段。分段计入本轮 {AI_LIMITS.imageCount} 张上限，剩余 {AI_LIMITS.imageCount - state.images.length} 张。无法完整放入时会拒绝，请手动分图，不会静默截断。开始 AI 整理前不会发送图片。</p>
+      </div>
       <details className="v2-intake-technical"><summary>图片格式与大小</summary><p>JPG、PNG 或 WebP 会在本机检查、缩小；每张原图不超过 {AI_LIMITS.originalImageBytes / 1048576} MiB / {AI_LIMITS.originalPixels / 10000} 万像素。</p></details>
-      {state.imageBusy && <p role="status" className="v2-task-status">正在选择或处理截图…</p>}
+      {state.imageBusy && <p role="status" className="v2-task-status">正在选择或处理截图…可返回并放弃本轮以取消。</p>}
       {state.images.length === 0 && <p className="v2-task-note">还没有添加截图，也可以只用文字整理。</p>}
       <ol className="v2-intake-image-grid">{state.images.map((image, index) => <li key={image.id}>
         <button type="button" className="v2-intake-image-preview" disabled={busy} aria-label={`预览截图 ${index + 1}`} onClick={() => setPreviewId(image.id)}>

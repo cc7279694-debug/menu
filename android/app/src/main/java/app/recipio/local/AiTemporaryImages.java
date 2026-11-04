@@ -9,6 +9,9 @@ import java.util.*;
 final class AiTemporaryImages {
     interface Clock { long now(); }
     interface Processor { Processed process(File source,String mime)throws Exception; }
+    interface Check { void check()throws Exception; }
+    interface SegmentSink { void add(Processed image)throws Exception; }
+    interface LongProcessor { void process(File source,String mime,int remaining,Check check,SegmentSink sink)throws Exception; }
     interface Work<T> { T run(List<Processed> images)throws Exception; }
     static final class Processed {
         final byte[] bytes;final int width,height;
@@ -18,12 +21,49 @@ final class AiTemporaryImages {
         final String id,previewUri;final int byteSize,width,height;
         Image(String id,File file,Processed result){this.id=id;previewUri="file://"+file.toURI().getRawPath();byteSize=result.bytes.length;width=result.width;height=result.height;}
     }
-    private final File root;private final Clock clock;private final Processor processor;
+    private final File root;private final Clock clock;private final Processor processor;private final LongProcessor longProcessor;
     private final Map<UUID,Session> sessions=new HashMap<>();
-    private static final class Session {final File dir;final long created;final Map<UUID,Image> images=new LinkedHashMap<>();int pins;boolean ended;Session(File dir,long created){this.dir=dir;this.created=created;}}
+    private static final class Session {final File dir;final long created;final Map<UUID,Image> images=new LinkedHashMap<>();int pins;boolean ended,batch;Session(File dir,long created){this.dir=dir;this.created=created;}}
     private boolean pendingCleanup;
-    AiTemporaryImages(File cache,Clock clock,Processor processor)throws Exception {root=new File(cache.getCanonicalFile(),"ai-import");safe(root);if(!root.isDirectory()&&!root.mkdir())throw new AiFailure("storage_error");this.clock=clock;this.processor=processor;}
+    AiTemporaryImages(File cache,Clock clock,Processor processor)throws Exception {this(cache,clock,processor,AiLongImageCodec::process);}
+    AiTemporaryImages(File cache,Clock clock,Processor processor,LongProcessor longProcessor)throws Exception {root=new File(cache.getCanonicalFile(),"ai-import");safe(root);if(!root.isDirectory()&&!root.mkdir())throw new AiFailure("storage_error");this.clock=clock;this.processor=processor;this.longProcessor=longProcessor;}
     static AiTemporaryImages forContext(Context context)throws Exception {return new AiTemporaryImages(context.getCacheDir(),System::currentTimeMillis,AiImageCodec::process);}
+    List<Image> importLongSelectedUri(Context context,UUID operation,Uri uri,Check check)throws Exception {
+        if(uri==null||!"content".equals(uri.getScheme())||uri.getAuthority()==null||uri.getFragment()!=null||(context.getPackageName()+".fileprovider").equals(uri.getAuthority()))throw new AiFailure("image_invalid");
+        try{return importLongStream(operation,context.getContentResolver().openInputStream(uri),context.getContentResolver().getType(uri),check);}catch(AiFailure e){throw e;}catch(Exception ignored){throw new AiFailure("image_invalid");}
+    }
+    List<Image> importLongStream(UUID operation,InputStream stream,String mime,Check externalCheck)throws Exception {
+        Session reserved=null;File original=null;boolean published=false;List<File> stagedFiles=new ArrayList<>();List<Image> staged=new ArrayList<>();
+        try(InputStream input=stream){
+            if(input==null||!Arrays.asList("image/jpeg","image/png","image/webp").contains(mime))throw new AiFailure("image_invalid");
+            final Session session;final int remaining;final int existingBytes;
+            synchronized(this){session=owned(operation);if(session.batch||session.pins!=0)throw new AiFailure("busy");remaining=6-session.images.size();if(remaining<1)throw new AiFailure("long_image_limit");
+                int sum=0;for(Image image:session.images.values())sum+=image.byteSize;existingBytes=sum;
+                original=safe(new File(session.dir,UUID.randomUUID()+".source.part"));session.batch=true;session.pins++;reserved=session;}
+            // The external callback may take the Plugin monitor: never invoke it while holding this store's monitor.
+            Check check=()->{if(Thread.currentThread().isInterrupted())throw new AiFailure("cancelled");externalCheck.check();synchronized(this){owned(operation);}};
+            int bytes=0;byte[] buffer=new byte[8192];
+            try(OutputStream output=new FileOutputStream(original)){int n;while((n=input.read(buffer))!=-1){check.check();if(n==0)continue;if(bytes+n>15*1024*1024)throw new AiFailure("image_too_large");output.write(buffer,0,n);bytes+=n;}if(bytes==0)throw new AiFailure("image_invalid");}
+            final int[] stagedBytes={0};
+            longProcessor.process(original,mime,remaining,check,result->{
+                check.check();if(result==null||result.bytes==null||result.bytes.length==0)throw new AiFailure("image_invalid");
+                if(result.bytes.length>1024*1024)throw new AiFailure("image_too_large");
+                if(result.width<=10||result.height<=10||Math.max(result.width,result.height)>2048||(long)result.width*result.height>4194304)throw new AiFailure("image_invalid");
+                if(staged.size()>=remaining||existingBytes+(long)stagedBytes[0]+result.bytes.length>6L*1024*1024)throw new AiFailure("long_image_limit");
+                UUID id=UUID.randomUUID();File target;
+                synchronized(this){owned(operation);target=safe(new File(session.dir,id+".jpg"));stagedFiles.add(target);}
+                try(OutputStream output=new FileOutputStream(target)){output.write(result.bytes);}
+                staged.add(new Image(id.toString(),target,result));stagedBytes[0]+=result.bytes.length;
+            });
+            check.check();if(staged.isEmpty())throw new AiFailure("image_invalid");
+            // Do not publish a successful batch while its full-resolution source still needs cleaning.
+            if(!unlink(original))throw new AiFailure("storage_error");original=null;
+            check.check();
+            synchronized(this){owned(operation);for(Image image:staged)session.images.put(UUID.fromString(image.id),image);published=true;return Collections.unmodifiableList(new ArrayList<>(staged));}
+        }catch(AiFailure error){throw error;}catch(Exception ignored){throw new AiFailure("storage_error");}
+        finally{synchronized(this){if(original!=null&&!unlink(original))pendingCleanup=true;if(!published)for(File file:stagedFiles)if(!unlink(file))pendingCleanup=true;
+            if(reserved!=null){reserved.batch=false;reserved.pins--;if(reserved.ended)cleanup(reserved);}}}
+    }
     synchronized void create(UUID operation)throws Exception {safe(root);if(sessions.size()>=8)throw new AiFailure("busy");File dir=safe(new File(root,operation.toString()));if(dir.exists()||!dir.mkdir())throw new AiFailure("storage_error");long created=clock.now();try(DataOutputStream out=new DataOutputStream(new FileOutputStream(safe(new File(dir,".session"))))){out.writeInt(1);out.writeLong(created);}sessions.put(operation,new Session(dir,created));}
     synchronized void requireEmptySession(UUID operation)throws Exception {Session session=owned(operation);if(!session.images.isEmpty()||session.pins!=0)throw new AiFailure("busy");}
     Image importSelectedUri(Context context,UUID operation,Uri uri)throws Exception {
@@ -35,7 +75,7 @@ final class AiTemporaryImages {
         try(InputStream input=stream){
             if(input==null||!Arrays.asList("image/jpeg","image/png","image/webp").contains(mime))throw new AiFailure("image_invalid");
             UUID id=UUID.randomUUID();
-            synchronized(this){session=owned(operation);if(session.images.size()+session.pins>=6)throw new AiFailure("image_too_large");session.pins++;pinned=true;original=safe(new File(session.dir,id+".source.part"));output=safe(new File(session.dir,id+".jpg"));}
+            synchronized(this){session=owned(operation);if(session.batch)throw new AiFailure("busy");if(session.images.size()+session.pins>=6)throw new AiFailure("image_too_large");session.pins++;pinned=true;original=safe(new File(session.dir,id+".source.part"));output=safe(new File(session.dir,id+".jpg"));}
             int bytes=0;byte[] buffer=new byte[8192];
             try(OutputStream out=new FileOutputStream(original)){int n;while((n=input.read(buffer))!=-1){if(n==0)continue;if(bytes+n>15*1024*1024)throw new AiFailure("image_too_large");out.write(buffer,0,n);bytes+=n;}if(bytes==0)throw new AiFailure("image_invalid");}
             Processed result=processor.process(original,mime);if(result==null||result.bytes==null||result.bytes.length==0)throw new AiFailure("image_invalid");
@@ -46,7 +86,7 @@ final class AiTemporaryImages {
     }
     <T>T withPinnedImages(UUID operation,List<UUID> ids,Work<T> work)throws Exception {
         Session session;List<Image> selected=new ArrayList<>();
-        synchronized(this){session=owned(operation);if(ids.size()>6||new HashSet<>(ids).size()!=ids.size())throw new AiFailure("image_invalid");for(UUID id:ids){Image image=session.images.get(id);if(image==null)throw new AiFailure("image_invalid");selected.add(image);}session.pins++;}
+        synchronized(this){session=owned(operation);if(session.batch)throw new AiFailure("busy");if(ids.size()>6||new HashSet<>(ids).size()!=ids.size())throw new AiFailure("image_invalid");for(UUID id:ids){Image image=session.images.get(id);if(image==null)throw new AiFailure("image_invalid");selected.add(image);}session.pins++;}
         try{List<Processed> data=new ArrayList<>();int total=0;for(Image image:selected){File file=safe(new File(session.dir,image.id+".jpg"));byte[] bytes=read(file,1024*1024);if(bytes.length!=image.byteSize)throw new AiFailure("image_invalid");total+=bytes.length;if(total>6*1024*1024)throw new AiFailure("image_too_large");data.add(new Processed(bytes,image.width,image.height));}return work.run(Collections.unmodifiableList(data));}
         finally{synchronized(this){session.pins--;if(session.ended)cleanup(session);}}
     }
