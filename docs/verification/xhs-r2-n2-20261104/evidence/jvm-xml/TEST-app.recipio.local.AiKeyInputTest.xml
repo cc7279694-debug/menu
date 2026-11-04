@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.recipio.local.AiKeyInputTest" tests="11" skipped="0" failures="0" errors="0" timestamp="2026-11-04T10:47:56.083Z" hostname="WHOCARE" time="0.207">
+  <properties/>
+  <testcase name="prefixQuotesBearerAndLookalikesAreNotAutomaticallyRepaired" classname="app.recipio.local.AiKeyInputTest" time="0.026"/>
+  <testcase name="errorNeverEchoesInputOrClaimsProviderAuthentication" classname="app.recipio.local.AiKeyInputTest" time="0.005"/>
+  <testcase name="emptyAndBoundaryOnlyInputAreRejected" classname="app.recipio.local.AiKeyInputTest" time="0.001"/>
+  <testcase name="originalLengthBoundsRemainStrict" classname="app.recipio.local.AiKeyInputTest" time="0.001"/>
+  <testcase name="normalizedInputStillUsesUnchangedStrictEncryptedEnvelope" classname="app.recipio.local.AiKeyInputTest" time="0.16"/>
+  <testcase name="validAsciiIsPreservedExactly" classname="app.recipio.local.AiKeyInputTest" time="0.001"/>
+  <testcase name="internalWhitespaceOrInvisibleCharactersAreNeverJoined" classname="app.recipio.local.AiKeyInputTest" time="0.001"/>
+  <testcase name="workspaceCredentialWithDotsSurvivesInputAndEncryptedStorage" classname="app.recipio.local.AiKeyInputTest" time="0.004"/>
+  <testcase name="clipboardBoundaryWhitespaceBomAndZeroWidthSpaceAreRemoved" classname="app.recipio.local.AiKeyInputTest" time="0.002"/>
+  <testcase name="maskedConsoleValuesHaveActionableError" classname="app.recipio.local.AiKeyInputTest" time="0.0"/>
+  <testcase name="otherInvalidCharactersAreRejectedRatherThanTranslated" classname="app.recipio.local.AiKeyInputTest" time="0.003"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

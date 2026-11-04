@@ -1,0 +1,28 @@
+JUnit version 4.13.2
+.E.E.E.E
+Time: 0.732
+There were 4 failures:
+1) insufficientSlotsAndOversizeOutputsDoNotKeepPartialBatch(app.recipio.local.AiLongImageBatchTest)
+org.junit.ComparisonFailure: expected:<[image_too_large]> but was:<[long_image_limit]>
+	at org.junit.Assert.assertEquals(Assert.java:117)
+	at org.junit.Assert.assertEquals(Assert.java:146)
+	at app.recipio.local.AiLongImageBatchTest.insufficientSlotsAndOversizeOutputsDoNotKeepPartialBatch(AiLongImageBatchTest.java:42)
+2) successfulBatchPublishesAllInOrderAndDeletesSource(app.recipio.local.AiLongImageBatchTest)
+app.recipio.local.AiFailure: long_image_limit
+	at app.recipio.local.AiTemporaryImages.importLongStream(AiTemporaryImages.java:31)
+	at app.recipio.local.AiLongImageBatchTest.add(AiLongImageBatchTest.java:15)
+	at app.recipio.local.AiLongImageBatchTest.successfulBatchPublishesAllInOrderAndDeletesSource(AiLongImageBatchTest.java:22)
+3) cancellationAfterAStageRollsBackWholeBatchAndReleasesPin(app.recipio.local.AiLongImageBatchTest)
+org.junit.ComparisonFailure: expected:<[cancelled]> but was:<[long_image_limit]>
+	at org.junit.Assert.assertEquals(Assert.java:117)
+	at org.junit.Assert.assertEquals(Assert.java:146)
+	at app.recipio.local.AiLongImageBatchTest.cancellationAfterAStageRollsBackWholeBatchAndReleasesPin(AiLongImageBatchTest.java:35)
+4) failingSecondSegmentPreservesExistingImageAndNoBatchFiles(app.recipio.local.AiLongImageBatchTest)
+org.junit.ComparisonFailure: expected:<[image_invalid]> but was:<[long_image_limit]>
+	at org.junit.Assert.assertEquals(Assert.java:117)
+	at org.junit.Assert.assertEquals(Assert.java:146)
+	at app.recipio.local.AiLongImageBatchTest.failingSecondSegmentPreservesExistingImageAndNoBatchFiles(AiLongImageBatchTest.java:29)
+
+FAILURES!!!
+Tests run: 4,  Failures: 4
+

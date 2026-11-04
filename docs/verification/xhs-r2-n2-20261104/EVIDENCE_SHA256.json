@@ -1,0 +1,262 @@
+[
+  {
+    "file": "evidence/.gitattributes",
+    "bytes": 68,
+    "sha256": "88dd77c8644aff44009c4476d1c8b778bde76af78492f47dcee57f08d05a61a3"
+  },
+  {
+    "file": "evidence/apk-name-check.json",
+    "bytes": 228,
+    "sha256": "35f7194447de4e7d7ef7992c6e58fd4fde43800ab2ef2baa6fe8b87d079cb901"
+  },
+  {
+    "file": "evidence/avd-create.txt",
+    "bytes": 34,
+    "sha256": "3dccbe45c5e41a8c35c9e8d8d9d1ab2bed262d4df56c35815b46470967beb879"
+  },
+  {
+    "file": "evidence/batch-green-8.txt",
+    "bytes": 64,
+    "sha256": "49e28378536cf8bfbb9225ea6793efe3dab84b6c7af440438cd183d5e28f6101"
+  },
+  {
+    "file": "evidence/batch-green.txt",
+    "bytes": 59,
+    "sha256": "41d3fb1f01aaefdbac20c031922fba8766332df7613a6eb358121cdf5e82491b"
+  },
+  {
+    "file": "evidence/batch-red.txt",
+    "bytes": 1810,
+    "sha256": "91b5b8a27bc13a447865f952646e33597c0f8426b7abf949faa486a0a8f1c220"
+  },
+  {
+    "file": "evidence/budget-red.txt",
+    "bytes": 732,
+    "sha256": "6296c5b936a66c07aba2522e761ea4c5d6cdefd5bc3deda3a2bd51fc292da070"
+  },
+  {
+    "file": "evidence/create_avd.py",
+    "bytes": 1307,
+    "sha256": "5607eab146a9a1393ea6a503cb9a38cdef2f6124bf54ec27ed59691965e057f1"
+  },
+  {
+    "file": "evidence/environment-blocked.json",
+    "bytes": 436,
+    "sha256": "428a8d56b7161e7484e501244d6e68195c5e3c2476a0a62d53f939a9d265bd6d"
+  },
+  {
+    "file": "evidence/environment-initial.json",
+    "bytes": 331,
+    "sha256": "3f2da4ef5613f1913149b50bf8eb48a5f50721ec6fda239145a263d7889d7b63"
+  },
+  {
+    "file": "evidence/gradle-build-1.txt",
+    "bytes": 12178,
+    "sha256": "9cd8e88b79960409d9f559854d916e49ed1d391240fa641312d8a254e2f6e433"
+  },
+  {
+    "file": "evidence/jvm-results.json",
+    "bytes": 3809,
+    "sha256": "cab1faa8178736ac0839c9da543755d72da20f9dc6ed6fcd4ed3bc6c860999ff"
+  },
+  {
+    "file": "evidence/jvm-xml/TEST-app.recipio.local.AiImageCodecTest.xml",
+    "bytes": 681,
+    "sha256": "00dddbb6d84e36bf7e2ac3d762336d6883c0d32aa00a15129acfd13b3259bdae"
+  },
+  {
+    "file": "evidence/jvm-xml/TEST-app.recipio.local.AiKeyInputTest.xml",
+    "bytes": 1731,
+    "sha256": "ab1a12020d0eb2b5ecb4851c85f8172464c6cd526e0e2f9e8c4b3ed9561059d1"
+  },
+  {
+    "file": "evidence/jvm-xml/TEST-app.recipio.local.AiLongImageBatchTest.xml",
+    "bytes": 1468,
+    "sha256": "14a2901608fcfdd095676be48319a3d07cb224a09b21b56cbd6f677fdbcfdd48"
+  },
+  {
+    "file": "evidence/jvm-xml/TEST-app.recipio.local.AiLongImagePlanTest.xml",
+    "bytes": 991,
+    "sha256": "5e5740a3b360d10d0d1e888e14b5e3c9eb9ca1ac1b76a045116b99669ab72626"
+  },
+  {
+    "file": "evidence/jvm-xml/TEST-app.recipio.local.AiRequestLifecycleTest.xml",
+    "bytes": 1308,
+    "sha256": "034154fad04c880f676fc3a9975959f919c1b6171e5c69169484e9572349a89a"
+  },
+  {
+    "file": "evidence/jvm-xml/TEST-app.recipio.local.AiSecretEnvelopeTest.xml",
+    "bytes": 1395,
+    "sha256": "3259060bf15b07bc862e8b1715502ac8d12026d42b80f7b1a3942e13f10a55f2"
+  },
+  {
+    "file": "evidence/jvm-xml/TEST-app.recipio.local.AiTemporaryImagesTest.xml",
+    "bytes": 2831,
+    "sha256": "11e617b119e4baba1d5177cfc9cf1f0cc62383989728c0531a5d288be0224bba"
+  },
+  {
+    "file": "evidence/jvm-xml/TEST-app.recipio.local.LocalBackupArchiveTest.xml",
+    "bytes": 2419,
+    "sha256": "d44dcf59aeecb7682c3f3d287498a86bd6cd61a96e2b28389bba29a91f01c72f"
+  },
+  {
+    "file": "evidence/jvm-xml/TEST-app.recipio.local.LocalBackupExportStateTest.xml",
+    "bytes": 764,
+    "sha256": "629f88cf3aa71c0ef2d41f3ba8e3e32a60d71868666d46b773ea96604b3e29e1"
+  },
+  {
+    "file": "evidence/jvm-xml/TEST-app.recipio.local.LocalBackupSessionTest.xml",
+    "bytes": 1195,
+    "sha256": "3f79a3385899926ba531bde2f35b83373aee7f2919d89feaad001cefeba7e36b"
+  },
+  {
+    "file": "evidence/jvm-xml/TEST-app.recipio.local.LocalImageCopyTest.xml",
+    "bytes": 1108,
+    "sha256": "8400e750725ea6925be336a45957666325683f95da88583b39e420e8444e82c1"
+  },
+  {
+    "file": "evidence/jvm-xml/TEST-app.recipio.local.QwenClientTest.xml",
+    "bytes": 2856,
+    "sha256": "579a4b289209c2acdca0af5f96e203213b663da58f9f9c588d77ef46231c8f54"
+  },
+  {
+    "file": "evidence/jvm-xml/TEST-app.recipio.local.RecipeFinderClientTest.xml",
+    "bytes": 4380,
+    "sha256": "ac8057185ed8c997f4bddfacc909991a53d2465319c96651f96c5b4fb77984b5"
+  },
+  {
+    "file": "evidence/jvm-xml/TEST-app.recipio.local.RecipeFinderLegacyDiagnosticsTest.xml",
+    "bytes": 499,
+    "sha256": "db0f579d5a4a677d9a07bbd43c5300ac021a4d8c2f210524456bf4448afb7205"
+  },
+  {
+    "file": "evidence/jvm-xml/TEST-app.recipio.local.RecipeFinderSessionsTest.xml",
+    "bytes": 1062,
+    "sha256": "326c1f3dec2537de83b88c18150a99f795ae246c6ee9bd2b5f64b78b57c04891"
+  },
+  {
+    "file": "evidence/jvm-xml/TEST-app.recipio.local.RecipeFinderSourcesTest.xml",
+    "bytes": 2214,
+    "sha256": "9ce515cb1a5282990a65e58470a67a6578d9e80b2432976d03dd075aab373f49"
+  },
+  {
+    "file": "evidence/jvm-xml/TEST-app.recipio.local.SafeWebFetcherTest.xml",
+    "bytes": 2235,
+    "sha256": "412cd00eefbeb71200c8289b8844700dbe45c46f731f8ae4f2d75b72f65e0259"
+  },
+  {
+    "file": "evidence/jvm-xml/TEST-app.recipio.local.ShareMediaCopyTest.xml",
+    "bytes": 591,
+    "sha256": "b8fbbbbea90606fb4e18d66d04c365eeac5ece9f91eff6b15afe61d0461eb5e8"
+  },
+  {
+    "file": "evidence/jvm-xml/TEST-app.recipio.local.ShareMediaFilesTest.xml",
+    "bytes": 1596,
+    "sha256": "beb2dff2187969f5764011b6f537cbf84c469a22457978cc92954c04a0599f87"
+  },
+  {
+    "file": "evidence/jvm-xml/TEST-app.recipio.local.ShareTargetInboxTest.xml",
+    "bytes": 1309,
+    "sha256": "daa40b83c9030daf08ee29038d0d485fa46b3266d0a95c98921a5a4c75afc0b7"
+  },
+  {
+    "file": "evidence/jvm-xml/TEST-app.recipio.local.ShareTextParserTest.xml",
+    "bytes": 1856,
+    "sha256": "6ea353b3c6f3063e27b9c76b68a11ee65028f70e1d87b2b3d695436e3844c850"
+  },
+  {
+    "file": "evidence/jvm-xml/TEST-app.recipio.local.WebImportRequestTest.xml",
+    "bytes": 864,
+    "sha256": "934ed4935907e84fabec195b1580179272ec3011d7a0ca0712414dc388473ed7"
+  },
+  {
+    "file": "evidence/jvm-xml/TEST-app.recipio.local.WebUrlSafetyTest.xml",
+    "bytes": 1282,
+    "sha256": "5e6d3142dc24ac34db851eec80d850b37539c770175dd57b6578bed40b1797c5"
+  },
+  {
+    "file": "evidence/jvm-xml/TEST-com.getcapacitor.myapp.ExampleUnitTest.xml",
+    "bytes": 432,
+    "sha256": "b706533a059f6a6ec615e723cf2665f04f759a8aa75fa131f19ba26f8a161908"
+  },
+  {
+    "file": "evidence/lint-1.txt",
+    "bytes": 2112,
+    "sha256": "01f6c0b8d07dfc8a31cf0ce8602d41a0b928414d1021110a95cdddef0d4a7acf"
+  },
+  {
+    "file": "evidence/lint-final-targeted.txt",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "file": "evidence/planner-green-5.txt",
+    "bytes": 60,
+    "sha256": "b6a01d6caa41aba1a0e747e0d9b8f2174c3e206829b2fa1b60b3b576ac53f622"
+  },
+  {
+    "file": "evidence/planner-green.txt",
+    "bytes": 59,
+    "sha256": "8ba91d456118e5ee319f5823239c19f301a9a288ed155e5d73e09a07ef364d57"
+  },
+  {
+    "file": "evidence/planner-red.txt",
+    "bytes": 4922,
+    "sha256": "244bc636a0f319349eb7dc11c20a333c70edfd6472755e5fc094e36d85912206"
+  },
+  {
+    "file": "evidence/run_native.py",
+    "bytes": 1351,
+    "sha256": "4937084c47f8488010668be31264e7a166e36fbe203c75e96914e9321ed2a789"
+  },
+  {
+    "file": "evidence/source.diff",
+    "bytes": 77536,
+    "sha256": "f296400fe1ab9bec27917939495ec469df8b56d0fe90ad8b1aa0db98911ea6da"
+  },
+  {
+    "file": "evidence/test-app-badging.txt",
+    "bytes": 5412,
+    "sha256": "9bca417b8061c590c364045c8efddc5fad5018b50db4853c7fd80d8f92cfa2c8"
+  },
+  {
+    "file": "evidence/ts-long-image-final-regression.txt",
+    "bytes": 619,
+    "sha256": "cff778e4e64c9f52d1a5c837e0276a3465c8ab2253adc83288abb9450f7f42eb"
+  },
+  {
+    "file": "evidence/ts-long-image-green-1.txt",
+    "bytes": 618,
+    "sha256": "70162da0ea07a5c5d6642b6ad4302b687683e6f3f1d54216e3802760317499e5"
+  },
+  {
+    "file": "evidence/ts-long-image-red.txt",
+    "bytes": 28897,
+    "sha256": "15d74932b0dd01172c7880718c0164b60e55c0107fa55dff689c3946134a3e26"
+  },
+  {
+    "file": "evidence/ts-long-image-retry-red.txt",
+    "bytes": 1798,
+    "sha256": "18547a0db8d3a0d5eeca50ac31dd7af253e6c387a0fefb22f0ebaef5301d5851"
+  },
+  {
+    "file": "evidence/ts-long-image-ui-final-fixture.txt",
+    "bytes": 615,
+    "sha256": "52a6b1bda54e4a457ef0d0c83b757115514b7d0e437bfc4ebd7309d243d13d63"
+  },
+  {
+    "file": "evidence/typecheck-1.txt",
+    "bytes": 311,
+    "sha256": "dabfc837bd49f9d6477dc10bad539a8df778b94f4959e1a8dab4ff2fef6fb26d"
+  },
+  {
+    "file": "evidence/typecheck-final.txt",
+    "bytes": 66,
+    "sha256": "c988c66ad9610e962124bc2fcfaa32e77a654125e71295ee680231dc42654cc0"
+  },
+  {
+    "file": "evidence/web-sync.txt",
+    "bytes": 2710,
+    "sha256": "11e8157ea22d07ba4423ae4e0137f2d6c0e6e879a3c71907679556ad0aaa5572"
+  }
+]

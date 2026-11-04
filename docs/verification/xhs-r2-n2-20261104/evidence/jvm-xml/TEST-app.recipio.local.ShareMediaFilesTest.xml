@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.recipio.local.ShareMediaFilesTest" tests="9" skipped="0" failures="0" errors="0" timestamp="2026-11-04T10:48:31.092Z" hostname="WHOCARE" time="1.487">
+  <properties/>
+  <testcase name="cleanupRetriesReleasedOwnershipAfterTransientFailure" classname="app.recipio.local.ShareMediaFilesTest" time="0.163"/>
+  <testcase name="cleanupPreservesCurrentOwnershipAndDeletesMarkedCrashOrphan" classname="app.recipio.local.ShareMediaFilesTest" time="0.126"/>
+  <testcase name="oneTransferPinOnlyAndReleaseDefersDeletionUntilUnpin" classname="app.recipio.local.ShareMediaFilesTest" time="0.133"/>
+  <testcase name="releaseAcknowledgementWaitsForLastPinActualDeletion" classname="app.recipio.local.ShareMediaFilesTest" time="0.207"/>
+  <testcase name="pendingMustBeCompleteBeforeLeaseAndReleaseDeletesOnlyThatReceipt" classname="app.recipio.local.ShareMediaFilesTest" time="0.131"/>
+  <testcase name="completeRejectsOutOfBoundsAndUnownedNames" classname="app.recipio.local.ShareMediaFilesTest" time="0.136"/>
+  <testcase name="lastUnpinReportsDelayedCleanupFailureAndReleaseRetryCanRecover" classname="app.recipio.local.ShareMediaFilesTest" time="0.131"/>
+  <testcase name="sixOrderedImagesAcceptedButOversizedOutputsAndTinyDimensionsRejected" classname="app.recipio.local.ShareMediaFilesTest" time="0.366"/>
+  <testcase name="cleanupNeverFollowsSymlinkOrDeletesUnknownFiles" classname="app.recipio.local.ShareMediaFilesTest" time="0.092"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

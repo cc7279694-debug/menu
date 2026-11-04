@@ -1,0 +1,89 @@
+{
+  "clientDate": "2026-11-04",
+  "status": "BLOCKED",
+  "reason": "ANDROID_MEMORY_ADMISSION",
+  "sourceCommit": "51a2d92d1417cc99bbba9547bcbb2497b8757949",
+  "baseEvidenceCommit": "f552d142d678868b739dff9a7eecda070a319df3",
+  "n1Acceptance": "ACCEPTED / FROZEN — PASS WITH NOTES (verification only; tall text clarity FAIL unresolved)",
+  "sourceBlobs": {
+    "android/app/src/androidTest/java/app/recipio/local/AiImeBackInstrumentedTest.java": "79ded24766442d43ddfb48bf9778d330ba841353",
+    "android/app/src/androidTest/java/app/recipio/local/XhsR2SegmentedImageInstrumentedTest.java": "f484905307dbec57bfaef419bd046dcc6fdb2706",
+    "android/app/src/main/java/app/recipio/local/AiLongImageCodec.java": "4b8dbc73d2df3d925ef1a2c6149e26f20e9c9db7",
+    "android/app/src/main/java/app/recipio/local/AiLongImagePlan.java": "51633c5eee74c519b304863e43fba20d598a6387",
+    "android/app/src/main/java/app/recipio/local/AiTemporaryImages.java": "1006a5d2670d41484545fbf5cdf530ea0b5dd6cc",
+    "android/app/src/main/java/app/recipio/local/LocalAiIntakePlugin.java": "3d42f91b1d128ab372fe1aa3b1a6502774bbb1ec",
+    "android/app/src/test/java/app/recipio/local/AiLongImageBatchTest.java": "32ac853a6c7be6292c681543598b887c3231f579",
+    "android/app/src/test/java/app/recipio/local/AiLongImagePlanTest.java": "ec15ae1329030cbcfd5d29483cf0490720b84070",
+    "src/native/ai/intake-screen.tsx": "7c3e9f616ff60062938ca7ccfe4ac2ac90f7a970",
+    "src/native/ai/long-image-screen.test.tsx": "35b1fae966245b0831cc8847a25290ec35f242e9",
+    "src/native/ai/long-images.test.ts": "1eba76c96d47b396455ed65c296103012c1d7043",
+    "src/native/ai/native-bridge-lazy.test.ts": "4ac7789a839f8ceb45e4706df29c92269a571dec",
+    "src/native/ai/native-bridge.ts": "0f2c78f05c908838e7c086a0ec6610b18015374e",
+    "src/native/ai/service.ts": "ca0441f963d06b390539f20f1748e83cfbcdcf67"
+  },
+  "apks": {
+    "test-app-debug.apk": {
+      "path": "E:\\CODEX\\Tools\\recipio-xhs-r2-n2-20261104\\test-app-debug.apk",
+      "bytes": 17493631,
+      "sha256": "03eca4b65f10e2698f2ea69378257699ccd815a0be8ddfa82cb96b079e502019"
+    },
+    "test-instrumentation.apk": {
+      "path": "E:\\CODEX\\Tools\\recipio-xhs-r2-n2-20261104\\test-instrumentation.apk",
+      "bytes": 843225,
+      "sha256": "fec06806fbb02d1bf51443e97a173e8c4acb7c0785db7e3d78d447dc30ce8bab"
+    }
+  },
+  "kind": "LOCAL_DEBUG_TEST_ONLY_NOT_FORMAL_SIGNED_RELEASE",
+  "package": "app.recipio.local",
+  "versionCode": 28,
+  "versionName": "0.11.1-personal.1",
+  "targetSdk": 36,
+  "newJvmPlannerTests": 5,
+  "newJvmBatchTests": 8,
+  "allJvmTests": 208,
+  "jvmFailures": 0,
+  "jvmSkipped": 0,
+  "scopedJsTests": 55,
+  "scopedJsFiles": 9,
+  "correctedFixtureUiTests": 5,
+  "countsAreNotAdditive": true,
+  "typecheck": "PASS (after testfixture correction)",
+  "lint": "PASS (5 pre-existing warnings), finalchangedTS files0errors",
+  "webBuild": "PASS",
+  "capacitorSync": "PASS",
+  "androidDebugBuild": "PASS",
+  "androidTestBuild": "PASS",
+  "productionIsolationFreshRun": "NOT_RUN - resource gate",
+  "broaderJsRun": "NOT_RUN - resource gate",
+  "androidTestsExecuted": 0,
+  "avdCreated": "Recipio_XHS_R2_N2_API36",
+  "avdStarted": false,
+  "segmentOutputFiles": "NOT_PRODUCED - Android NOT_RUN",
+  "actualN2Readability": "NOT_VERIFIED",
+  "realAiCalls": 0,
+  "realXhsRequests": 0,
+  "phoneOperations": 0,
+  "otherProjectOperations": 0,
+  "frozenSignedV28": {
+    "path": "E:\\CODEX\\RECIPIO-Signing\\recipio-personal-release-v28\\recipio-personal-v28.apk",
+    "bytes": 15194675,
+    "sha256": "52dfed4ef23afb5aa0dc6fb2b6089921af240993627aec9479ff69ea3d94b59b",
+    "unchanged": true
+  },
+  "notRun": [
+    "Android codec/Picker/IME/session execution",
+    "actual segment image geometry and hashes",
+    "actual14px24px comparison",
+    "Xiaomi14/OEM/TalkBack",
+    "realXHS",
+    "realAI/model accuracy",
+    "full historical JS/connected suite",
+    "new native save-failure injection"
+  ],
+  "observedAdmissionGiB": {
+    "initial": 5.986,
+    "beforeGradle": 4.331,
+    "afterOwnGradleExit": 2.647
+  },
+  "apkArchiveNameCheck": "PASS (not graph isolation)"
+}

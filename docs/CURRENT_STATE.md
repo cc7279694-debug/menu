@@ -1,6 +1,25 @@
 # Current State
 
-## XHS-R2-N1 — READY_FOR_INDEPENDENT_REVIEW — 2026-11-03
+## XHS-R2-N2 — BLOCKED: Android memory admission — 2026-11-04
+
+Independent branch `feat/recipio-xhs-r2-n2-long-image`, source51a2d92:
+explicit original-region text segmentation, whole-batch rollback, remaining-slot
+and unchanged15MiB/32M/1MiB/6images/6MiB gates are implemented. Fresh55 scoped
+JS/TS and208JVM, typecheck, lint(5 existing warnings), Web/sync and app/test
+debug builds PASS. Native actual execution0: ownGradle exited but finalfree
+2.647GiB<4GiB; N2 AVD created but never started. No actual segment files,
+14/24px comparison or N2 readability verdict exists. [Report](verification/xhs-r2-n2-20261104/REVIEW.md),
+[resume checkpoint](verification/xhs-r2-n2-20261104/CHECKPOINT.md).
+N1's tall-text clarityFAIL is unresolved, not promoted by source tests.
+Frozen signedV28/SQLite4/Preview7/Backup2/Key/network/themes/Logo stay unchanged;
+realAI/XHS/phone0, other projects untouched, no merge/release/new module.
+
+## XHS-R2-N1 — ACCEPTED / FROZEN — PASS WITH NOTES — registered 2026-11-04
+
+User supplied ChatGPT's limited acceptance of the N1 verification task in the
+N2 authorization. Sourceb38f82d7/evidencef552d14 remain fixed. Tall-image14px
+clarityFAIL remains unresolved; not a model-quality or product-release approval.
+Original readiness report and every failure/NOT_RUN below are historical and preserved.
 
 On `verification/recipio-xhs-r2-n1`, fresh5.996GiB admission allowed a new,
 owned API36 AVD. Final test sourceb38f82d7:12 unique Android tests and51 scoped

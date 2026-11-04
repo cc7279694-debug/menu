@@ -1,0 +1,651 @@
+(!) Your Vite config uses features that are unsupported by `configLoader: 'native'`, which is planned to become the default in a future major version of Vite:
+  - ESM syntax in a file loaded as CommonJS (vitest.config.ts:1:1). Use a `.mjs` extension or set `"type": "module"` in the closest package.json
+Set `VITE_CONFIG_NATIVE_IGNORE_WARNING=true` to suppress this warning.
+
+ RUN  v4.1.11 E:/CODEX/VIBE CODING/recipe-step-app-g7
+
+ ❯ src/native/ai/long-images.test.ts (6 tests | 6 failed) 48ms
+   × N2 bridge passes only the session and preserves the complete ordered owned batch 28ms
+   × N2 bridge rejects partial, oversized, duplicate or unowned batch metadata and requires empty cancellation 3ms
+   × N2 appends a batch atomically after existing images and sends its chosen order only on explicit organize 3ms
+   × N2 cancellation and batch failure retain existing input/images; full slots refuse before picker 2ms
+   × N2 malformed or overflowing batches never partially enter JS state 4ms
+   × N2 discard during processing prevents a late whole batch from entering a replacement session 4ms
+ ❯ src/native/ai/long-image-screen.test.tsx (4 tests | 4 failed) 814ms
+   × N2 warm-ivory exposes an explicit separate long-image picker, batch previews and no automatic AI 494ms
+   × N2 pure-glass exposes an explicit separate long-image picker, batch previews and no automatic AI 114ms
+   × N2 soft-sage exposes an explicit separate long-image picker, batch previews and no automatic AI 97ms
+   × N2 processing still allows explicit session abandonment and rejects its late batch 106ms
+
+⎯⎯⎯⎯⎯⎯ Failed Tests 10 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/native/ai/long-image-screen.test.tsx > N2 warm-ivory exposes an explicit separate long-image picker, batch previews and no automatic AI
+ FAIL  src/native/ai/long-image-screen.test.tsx > N2 pure-glass exposes an explicit separate long-image picker, batch previews and no automatic AI
+ FAIL  src/native/ai/long-image-screen.test.tsx > N2 soft-sage exposes an explicit separate long-image picker, batch previews and no automatic AI
+TestingLibraryElementError: Unable to find an accessible element with the role "button" and name "文字长图分段导入"
+
+Here are the accessible roles:
+
+  banner:
+
+  Name "":
+  <header
+    class="v2-task-header"
+  />
+
+  --------------------------------------------------
+  heading:
+
+  Name "整理菜谱":
+  <h2
+    class="v2-page-title"
+  />
+
+  Name "本轮截图（0 / 6）":
+  <h3 />
+
+  --------------------------------------------------
+  button:
+
+  Name "返回":
+  <button
+    class="group/button inline-flex shrink-0 items-center justify-center rounded-lg border bg-clip-padding text-sm font-medium whitespace-nowrap transition-all outline-none select-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 active:not-aria-[haspopup]:translate-y-px disabled:pointer-events-none disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 border-border bg-background hover:bg-muted hover:text-foreground aria-expanded:bg-muted aria-expanded:text-foreground dark:border-input dark:bg-input/30 dark:hover:bg-input/50 h-8 gap-1.5 px-2.5 has-data-[icon=inline-end]:pr-2 has-data-[icon=inline-start]:pl-2"
+    data-slot="button"
+    tabindex="0"
+    type="button"
+  />
+
+  Name "添加截图":
+  <button
+    class="group/button inline-flex shrink-0 items-center justify-center rounded-lg border bg-clip-padding text-sm font-medium whitespace-nowrap transition-all outline-none select-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 active:not-aria-[haspopup]:translate-y-px disabled:pointer-events-none disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 border-border bg-background hover:bg-muted hover:text-foreground aria-expanded:bg-muted aria-expanded:text-foreground dark:border-input dark:bg-input/30 dark:hover:bg-input/50 h-8 gap-1.5 px-2.5 has-data-[icon=inline-end]:pr-2 has-data-[icon=inline-start]:pl-2"
+    data-disabled=""
+    data-slot="button"
+    disabled=""
+    tabindex="0"
+    type="button"
+  />
+
+  Name "开始 AI 整理":
+  <button
+    class="group/button inline-flex shrink-0 items-center justify-center rounded-lg border border-transparent bg-clip-padding text-sm font-medium whitespace-nowrap transition-all outline-none select-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 active:not-aria-[haspopup]:translate-y-px disabled:pointer-events-none disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 bg-primary text-primary-foreground hover:bg-primary/80 h-8 gap-1.5 px-2.5 has-data-[icon=inline-end]:pr-2 has-data-[icon=inline-start]:pl-2"
+    data-disabled=""
+    data-slot="button"
+    disabled=""
+    tabindex="0"
+    type="button"
+  />
+
+  --------------------------------------------------
+  paragraph:
+
+  Name "":
+  <p
+    class="v2-intake-lead"
+  />
+
+  Name "":
+  <p
+    class="v2-task-note"
+    id="ai-text-count"
+  />
+
+  Name "":
+  <p
+    class="v2-task-note"
+  />
+
+  Name "":
+  <p />
+
+  Name "":
+  <p
+    class="v2-task-note"
+  />
+
+  Name "":
+  <p
+    class="v2-task-note v2-online-notice"
+  />
+
+  Name "":
+  <p
+    class="v2-task-note"
+  />
+
+  --------------------------------------------------
+  textbox:
+
+  Name "菜谱文字":
+  <textarea
+    aria-describedby="ai-text-count"
+    placeholder="粘贴食材和做法，也可以只添加截图"
+  />
+
+  --------------------------------------------------
+  region:
+
+  Name "本轮截图":
+  <section
+    aria-label="本轮截图"
+    class="v2-intake-images"
+  />
+
+  --------------------------------------------------
+  group:
+
+  Name "":
+  <details
+    class="v2-intake-technical"
+  />
+
+  --------------------------------------------------
+  list:
+
+  Name "":
+  <ol
+    class="v2-intake-image-grid"
+  />
+
+  --------------------------------------------------
+
+Ignored nodes: comments, script, style
+<body>
+  <div>
+    <section
+      class="v2-task v2-ai-intake"
+    >
+      <header
+        class="v2-task-header"
+      >
+        <h2
+          class="v2-page-title"
+        >
+          整理菜谱
+        </h2>
+        <button
+          class="group/button inline-flex shrink-0 items-center justify-center rounded-lg border bg-clip-padding text-sm font-medium whitespace-nowrap transition-all outline-none select-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 active:not-aria-[haspopup]:translate-y-px disabled:pointer-events-none disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 border-border bg-background hover:bg-muted hover:text-foreground aria-expanded:bg-muted aria-expanded:text-foreground dark:border-input dark:bg-input/30 dark:hover:bg-input/50 h-8 gap-1.5 px-2.5 has-data-[icon=inline-end]:pr-2 has-data-[icon=inline-start]:pl-2"
+          data-slot="button"
+          tabindex="0"
+          type="button"
+        >
+          返回
+        </button>
+      </header>
+      <p
+        class="v2-intake-lead"
+      >
+        粘贴已有做法，或添加最多 
+        6
+         张截图。整理后先检查，再保存到自己的菜谱。
+      </p>
+      <div
+        class="v2-intake-field"
+      >
+        <label
+          class="v2-field-label"
+        >
+          <span>
+            菜谱文字
+          </span>
+          <textarea
+            aria-describedby="ai-text-count"
+            placeholder="粘贴食材和做法，也可以只添加截图"
+          />
+        </label>
+        <p
+          class="v2-task-note"
+          id="ai-text-count"
+        >
+          0
+           / 
+          30000
+           字符；支持口语、换行和 Emoji。
+        </p>
+      </div>
+      <section
+        aria-label="本轮截图"
+        class="v2-intake-images"
+      >
+        <div
+          class="v2-task-header"
+        >
+          <h3>
+            本轮截图（
+            0
+             / 
+            6
+            ）
+          </h3>
+          <button
+            class="group/button inline-flex shrink-0 items-center justify-center rounded-lg border bg-clip-padding text-sm font-medium whitespace-nowrap transition-all outline-none select-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 active:not-aria-[haspopup]:translate-y-px disabled:pointer-events-none disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 border-border bg-background hover:bg-muted hover:text-foreground aria-expanded:bg-muted aria-expanded:text-foreground dark:border-input dark:bg-input/30 dark:hover:bg-input/50 h-8 gap-1.5 px-2.5 has-data-[icon=inline-end]:pr-2 has-data-[icon=inline-start]:pl-2"
+            data-disabled=""
+            data-slot="button"
+            disabled=""
+            tabindex="0"
+            type="button"
+          >
+            添加截图
+          </button>
+        </div>
+        <p
+          class="v2-task-note"
+        >
+          可只选截图，也可补充文字。截图不会成为菜谱图片，也不会进入备份。
+        </p>
+        <details
+          class="v2-intake-technical"
+        >
+          <summary>
+            图片格式与大小
+          </summary>
+          <p>
+            JPG、PNG 或 WebP 会在本机检查、缩小；每张原图不超过 
+            15
+             MiB / 
+            3200
+             万像素。
+          </p>
+        </details>
+        <p
+          class="v2-task-note"
+        >
+          还没有添加截图，也可以只用文字整理。
+        </p>
+        <ol
+          class="v2-intake-image-grid"
+        />
+      </section>
+      <p
+        class="v2-task-note v2-online-notice"
+      >
+        可选联网功能。仅点击整理后，本轮文字与截图才会发给千问 AI 平台或北京百炼，可能产生 API 费用。AI 结果需人工检查，不会自动保存。
+      </p>
+      <div
+        class="v2-task-actions v2-intake-submit"
+      >
+        <button
+          class="group/button inline-flex shrink-0 items-center justify-center rounded-lg border border-transparent bg-clip-padding text-sm font-medium whitespace-nowrap transition-all outline-none select-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 active:not-aria-[haspopup]:translate-y-px disabled:pointer-events-none disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 bg-primary text-primary-foreground hover:bg-primary/80 h-8 gap-1.5 px-2.5 has-data-[icon=inline-end]:pr-2 has-data-[icon=inline-start]:pl-2"
+          data-disabled=""
+          data-slot="button"
+          disabled=""
+          tabindex="0"
+          type="button"
+        >
+          开始 AI 整理
+        </button>
+        <p
+          class="v2-task-note"
+        >
+          输入文字或添加截图后即可整理。
+        </p>
+      </div>
+    </section>
+  </div>
+</body>
+ ❯ Object.getElementError node_modules/@testing-library/dom/dist/config.js:37:19
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:76:38
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:52:17
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:95:19
+ ❯ src/native/ai/long-image-screen.test.tsx:21:24
+     19|   const { bridge, service, onCancel } = fixture();
+     20|   render(<V2AppearanceProvider theme={theme}><AiIntakeScreen service={…
+     21|   const split = screen.getByRole("button", { name: "文字长图分段导入" });
+       |                        ^
+     22|   await waitFor(() => expect(split).toBeEnabled());
+     23|   expect(bridge.pickLongImage).not.toHaveBeenCalled(); expect(bridge.o…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/10]⎯
+
+ FAIL  src/native/ai/long-image-screen.test.tsx > N2 processing still allows explicit session abandonment and rejects its late batch
+TestingLibraryElementError: Unable to find an accessible element with the role "button" and name "文字长图分段导入"
+
+Here are the accessible roles:
+
+  banner:
+
+  Name "":
+  <header
+    class="v2-task-header"
+  />
+
+  --------------------------------------------------
+  heading:
+
+  Name "整理菜谱":
+  <h2
+    class="v2-page-title"
+  />
+
+  Name "本轮截图（0 / 6）":
+  <h3 />
+
+  --------------------------------------------------
+  button:
+
+  Name "返回":
+  <button
+    class="group/button inline-flex shrink-0 items-center justify-center rounded-lg border bg-clip-padding text-sm font-medium whitespace-nowrap transition-all outline-none select-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 active:not-aria-[haspopup]:translate-y-px disabled:pointer-events-none disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 border-border bg-background hover:bg-muted hover:text-foreground aria-expanded:bg-muted aria-expanded:text-foreground dark:border-input dark:bg-input/30 dark:hover:bg-input/50 h-8 gap-1.5 px-2.5 has-data-[icon=inline-end]:pr-2 has-data-[icon=inline-start]:pl-2"
+    data-slot="button"
+    tabindex="0"
+    type="button"
+  />
+
+  Name "添加截图":
+  <button
+    class="group/button inline-flex shrink-0 items-center justify-center rounded-lg border bg-clip-padding text-sm font-medium whitespace-nowrap transition-all outline-none select-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 active:not-aria-[haspopup]:translate-y-px disabled:pointer-events-none disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 border-border bg-background hover:bg-muted hover:text-foreground aria-expanded:bg-muted aria-expanded:text-foreground dark:border-input dark:bg-input/30 dark:hover:bg-input/50 h-8 gap-1.5 px-2.5 has-data-[icon=inline-end]:pr-2 has-data-[icon=inline-start]:pl-2"
+    data-disabled=""
+    data-slot="button"
+    disabled=""
+    tabindex="0"
+    type="button"
+  />
+
+  Name "开始 AI 整理":
+  <button
+    class="group/button inline-flex shrink-0 items-center justify-center rounded-lg border border-transparent bg-clip-padding text-sm font-medium whitespace-nowrap transition-all outline-none select-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 active:not-aria-[haspopup]:translate-y-px disabled:pointer-events-none disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 bg-primary text-primary-foreground hover:bg-primary/80 h-8 gap-1.5 px-2.5 has-data-[icon=inline-end]:pr-2 has-data-[icon=inline-start]:pl-2"
+    data-disabled=""
+    data-slot="button"
+    disabled=""
+    tabindex="0"
+    type="button"
+  />
+
+  --------------------------------------------------
+  paragraph:
+
+  Name "":
+  <p
+    class="v2-intake-lead"
+  />
+
+  Name "":
+  <p
+    class="v2-task-note"
+    id="ai-text-count"
+  />
+
+  Name "":
+  <p
+    class="v2-task-note"
+  />
+
+  Name "":
+  <p />
+
+  Name "":
+  <p
+    class="v2-task-note"
+  />
+
+  Name "":
+  <p
+    class="v2-task-note v2-online-notice"
+  />
+
+  Name "":
+  <p
+    class="v2-task-note"
+  />
+
+  --------------------------------------------------
+  textbox:
+
+  Name "菜谱文字":
+  <textarea
+    aria-describedby="ai-text-count"
+    placeholder="粘贴食材和做法，也可以只添加截图"
+  />
+
+  --------------------------------------------------
+  region:
+
+  Name "本轮截图":
+  <section
+    aria-label="本轮截图"
+    class="v2-intake-images"
+  />
+
+  --------------------------------------------------
+  group:
+
+  Name "":
+  <details
+    class="v2-intake-technical"
+  />
+
+  --------------------------------------------------
+  list:
+
+  Name "":
+  <ol
+    class="v2-intake-image-grid"
+  />
+
+  --------------------------------------------------
+
+Ignored nodes: comments, script, style
+<body>
+  <div>
+    <section
+      class="v2-task v2-ai-intake"
+    >
+      <header
+        class="v2-task-header"
+      >
+        <h2
+          class="v2-page-title"
+        >
+          整理菜谱
+        </h2>
+        <button
+          class="group/button inline-flex shrink-0 items-center justify-center rounded-lg border bg-clip-padding text-sm font-medium whitespace-nowrap transition-all outline-none select-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 active:not-aria-[haspopup]:translate-y-px disabled:pointer-events-none disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 border-border bg-background hover:bg-muted hover:text-foreground aria-expanded:bg-muted aria-expanded:text-foreground dark:border-input dark:bg-input/30 dark:hover:bg-input/50 h-8 gap-1.5 px-2.5 has-data-[icon=inline-end]:pr-2 has-data-[icon=inline-start]:pl-2"
+          data-slot="button"
+          tabindex="0"
+          type="button"
+        >
+          返回
+        </button>
+      </header>
+      <p
+        class="v2-intake-lead"
+      >
+        粘贴已有做法，或添加最多 
+        6
+         张截图。整理后先检查，再保存到自己的菜谱。
+      </p>
+      <div
+        class="v2-intake-field"
+      >
+        <label
+          class="v2-field-label"
+        >
+          <span>
+            菜谱文字
+          </span>
+          <textarea
+            aria-describedby="ai-text-count"
+            placeholder="粘贴食材和做法，也可以只添加截图"
+          />
+        </label>
+        <p
+          class="v2-task-note"
+          id="ai-text-count"
+        >
+          0
+           / 
+          30000
+           字符；支持口语、换行和 Emoji。
+        </p>
+      </div>
+      <section
+        aria-label="本轮截图"
+        class="v2-intake-images"
+      >
+        <div
+          class="v2-task-header"
+        >
+          <h3>
+            本轮截图（
+            0
+             / 
+            6
+            ）
+          </h3>
+          <button
+            class="group/button inline-flex shrink-0 items-center justify-center rounded-lg border bg-clip-padding text-sm font-medium whitespace-nowrap transition-all outline-none select-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 active:not-aria-[haspopup]:translate-y-px disabled:pointer-events-none disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 border-border bg-background hover:bg-muted hover:text-foreground aria-expanded:bg-muted aria-expanded:text-foreground dark:border-input dark:bg-input/30 dark:hover:bg-input/50 h-8 gap-1.5 px-2.5 has-data-[icon=inline-end]:pr-2 has-data-[icon=inline-start]:pl-2"
+            data-disabled=""
+            data-slot="button"
+            disabled=""
+            tabindex="0"
+            type="button"
+          >
+            添加截图
+          </button>
+        </div>
+        <p
+          class="v2-task-note"
+        >
+          可只选截图，也可补充文字。截图不会成为菜谱图片，也不会进入备份。
+        </p>
+        <details
+          class="v2-intake-technical"
+        >
+          <summary>
+            图片格式与大小
+          </summary>
+          <p>
+            JPG、PNG 或 WebP 会在本机检查、缩小；每张原图不超过 
+            15
+             MiB / 
+            3200
+             万像素。
+          </p>
+        </details>
+        <p
+          class="v2-task-note"
+        >
+          还没有添加截图，也可以只用文字整理。
+        </p>
+        <ol
+          class="v2-intake-image-grid"
+        />
+      </section>
+      <p
+        class="v2-task-note v2-online-notice"
+      >
+        可选联网功能。仅点击整理后，本轮文字与截图才会发给千问 AI 平台或北京百炼，可能产生 API 费用。AI 结果需人工检查，不会自动保存。
+      </p>
+      <div
+        class="v2-task-actions v2-intake-submit"
+      >
+        <button
+          class="group/button inline-flex shrink-0 items-center justify-center rounded-lg border border-transparent bg-clip-padding text-sm font-medium whitespace-nowrap transition-all outline-none select-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 active:not-aria-[haspopup]:translate-y-px disabled:pointer-events-none disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 bg-primary text-primary-foreground hover:bg-primary/80 h-8 gap-1.5 px-2.5 has-data-[icon=inline-end]:pr-2 has-data-[icon=inline-start]:pl-2"
+          data-disabled=""
+          data-slot="button"
+          disabled=""
+          tabindex="0"
+          type="button"
+        >
+          开始 AI 整理
+        </button>
+        <p
+          class="v2-task-note"
+        >
+          输入文字或添加截图后即可整理。
+        </p>
+      </div>
+    </section>
+  </div>
+</body>
+ ❯ Object.getElementError node_modules/@testing-library/dom/dist/config.js:37:19
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:76:38
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:52:17
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:95:19
+ ❯ src/native/ai/long-image-screen.test.tsx:38:24
+     36|   bridge.pickLongImage.mockReturnValueOnce(batch.promise);
+     37|   render(<AiIntakeScreen service={service} onPreview={vi.fn()} onCance…
+     38|   const split = screen.getByRole("button", { name: "文字长图分段导入" }); awai…
+       |                        ^
+     39|   const operationId = service.snapshot().operationId!; fireEvent.click…
+     40|   expect(screen.getByRole("button", { name: "开始 AI 整理" })).toBeDisable…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/10]⎯
+
+ FAIL  src/native/ai/long-images.test.ts > N2 bridge passes only the session and preserves the complete ordered owned batch
+TypeError: bridge.pickLongImage is not a function
+ ❯ src/native/ai/long-images.test.ts:24:23
+     22|   const pickLongImage = vi.fn(async () => ({ cancelled: false, images …
+     23|   const bridge = createAiBridge({ ...fake.bridge, pickLongImage });
+     24|   expect(await bridge.pickLongImage!({ operationId })).toEqual({ cance…
+       |                       ^
+     25|   expect(pickLongImage.mock.calls).toEqual([[{ operationId }]]);
+     26|   await expect(bridge.pickLongImage!({ operationId, file: "file:///uno…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/10]⎯
+
+ FAIL  src/native/ai/long-images.test.ts > N2 bridge rejects partial, oversized, duplicate or unowned batch metadata and requires empty cancellation
+TypeError: bridge.pickLongImage is not a function
+ ❯ src/native/ai/long-images.test.ts:44:25
+     42|   for (const reply of invalid) {
+     43|     const bridge = createAiBridge({ ...fake.bridge, pickLongImage: asy…
+     44|     await expect(bridge.pickLongImage!({ operationId })).rejects.toMat…
+       |                         ^
+     45|   }
+     46|   const cancelled = createAiBridge({ ...fake.bridge, pickLongImage: as…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/10]⎯
+
+ FAIL  src/native/ai/long-images.test.ts > N2 appends a batch atomically after existing images and sends its chosen order only on explicit organize
+TypeError: service.pickLongImage is not a function
+ ❯ src/native/ai/long-images.test.ts:53:61
+     51|   const { service, bridge, keys } = fixture(); await service.startSess…
+     52|   service.updateInput({ text: "用户补充：盐适量", imageIds: [] }); await servi…
+     53|   const first = service.snapshot().images[0]; await service.pickLongIm…
+       |                                                             ^
+     54|   const [a, b, c] = service.snapshot().images;
+     55|   expect(a).toEqual(first); expect(service.snapshot().input.imageIds).…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/10]⎯
+
+ FAIL  src/native/ai/long-images.test.ts > N2 cancellation and batch failure retain existing input/images; full slots refuse before picker
+TypeError: service.pickLongImage is not a function
+ ❯ src/native/ai/long-images.test.ts:70:17
+     68|   const before = service.snapshot().images;
+     69|   bridge.pickLongImage.mockResolvedValueOnce({ cancelled: true, images…
+     70|   await service.pickLongImage(); expect(service.snapshot().images).toE…
+       |                 ^
+     71|   bridge.pickLongImage.mockRejectedValueOnce({ code: "long_image_limit…
+     72|   await expect(service.pickLongImage()).rejects.toMatchObject({ code: …
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/10]⎯
+
+ FAIL  src/native/ai/long-images.test.ts > N2 malformed or overflowing batches never partially enter JS state
+TypeError: service.pickLongImage is not a function
+ ❯ src/native/ai/long-images.test.ts:85:26
+     83|   for (const images of [[before[0]], Array.from({ length: 6 }, () => i…
+     84|     bridge.pickLongImage.mockResolvedValueOnce({ cancelled: false, ima…
+     85|     await expect(service.pickLongImage()).rejects.toMatchObject({ code…
+       |                          ^
+     86|     expect(service.snapshot().images).toEqual(before); expect(service.…
+     87|   }
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[7/10]⎯
+
+ FAIL  src/native/ai/long-images.test.ts > N2 discard during processing prevents a late whole batch from entering a replacement session
+TypeError: service.pickLongImage is not a function
+ ❯ src/native/ai/long-images.test.ts:93:27
+     91|   const { service, bridge } = fixture(); const old = await service.sta…
+     92|   const batch = deferred<{ cancelled: boolean; images: AiTemporaryImag…
+     93|   const pending = service.pickLongImage().catch(e => e);
+       |                           ^
+     94|   expect(service.snapshot().imageBusy).toBe(true);
+     95|   await expect(service.pickImage()).rejects.toMatchObject({ code: "bus…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[8/10]⎯
+
+
+ Test Files  2 failed (2)
+      Tests  10 failed (10)
+   Start at  18:36:19
+   Duration  58.83s (transform 2.22s, setup 11.03s, import 16.80s, tests 862ms, environment 28.39s)
+

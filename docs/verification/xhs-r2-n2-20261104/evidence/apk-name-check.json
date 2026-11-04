@@ -1,0 +1,7 @@
+{
+  "kind": "READ_ONLY_ARCHIVE_NAME_CHECK_NOT_BUILD_GRAPH_ISOLATION",
+  "result": "PASS",
+  "entries": 488,
+  "forbiddenNames": [],
+  "scope": "private keystore/env names and explicit showcase/fixture directories only"
+}

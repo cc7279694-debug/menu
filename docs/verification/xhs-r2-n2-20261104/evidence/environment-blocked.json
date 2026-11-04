@@ -1,0 +1,16 @@
+{
+  "clientDate": "2026-11-04",
+  "phase": "POST_BUILD_ANDROID_ADMISSION_BLOCKED",
+  "freeGiB": 2.647,
+  "thresholdGiB": 4,
+  "ownGradleExited": true,
+  "ownAvd": "Recipio_XHS_R2_N2_API36",
+  "ownAvdCreated": true,
+  "ownAvdStarted": false,
+  "nativeTestsCompiled": true,
+  "nativeTestsRun": 0,
+  "blockedBroadJsRunNotStarted": true,
+  "otherProcessOperations": 0,
+  "otherDeviceOperations": 0,
+  "phoneOperations": 0
+}

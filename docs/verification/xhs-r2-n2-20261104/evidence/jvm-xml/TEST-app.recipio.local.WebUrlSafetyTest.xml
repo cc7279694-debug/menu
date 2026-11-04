@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.recipio.local.WebUrlSafetyTest" tests="7" skipped="0" failures="0" errors="0" timestamp="2026-11-04T10:48:32.658Z" hostname="WHOCARE" time="0.023">
+  <properties/>
+  <testcase name="malformedCredentialsLocalNamesSchemesAndPortsAreBlocked" classname="app.recipio.local.WebUrlSafetyTest" time="0.002"/>
+  <testcase name="benchmarkDnsIsDiagnosedWithoutAllowingItOrHidingMixedPrivateResults" classname="app.recipio.local.WebUrlSafetyTest" time="0.002"/>
+  <testcase name="privateReservedBenchmarkDocumentationAndMulticastV4AreBlocked" classname="app.recipio.local.WebUrlSafetyTest" time="0.001"/>
+  <testcase name="publicXhsShareHostsPreserveEscapedQueriesAndRejectLookalikeLocalHosts" classname="app.recipio.local.WebUrlSafetyTest" time="0.002"/>
+  <testcase name="v6AndMappedAddressesAreValidatedByActualAddressBytes" classname="app.recipio.local.WebUrlSafetyTest" time="0.002"/>
+  <testcase name="ordinaryDefaultPortPagesAreAccepted" classname="app.recipio.local.WebUrlSafetyTest" time="0.01"/>
+  <testcase name="oneUnsafeAddressBlocksTheEntireDnsResult" classname="app.recipio.local.WebUrlSafetyTest" time="0.003"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

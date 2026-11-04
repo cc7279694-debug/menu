@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.recipio.local.AiLongImageBatchTest" tests="8" skipped="0" failures="0" errors="0" timestamp="2026-11-04T10:47:56.319Z" hostname="WHOCARE" time="23.181">
+  <properties/>
+  <testcase name="discardDuringProcessingRollsBackOwnedBatchAndKeepsOtherSession" classname="app.recipio.local.AiLongImageBatchTest" time="0.396"/>
+  <testcase name="insufficientSlotsAndOversizeOutputsDoNotKeepPartialBatch" classname="app.recipio.local.AiLongImageBatchTest" time="0.633"/>
+  <testcase name="successfulBatchPublishesAllInOrderAndDeletesSource" classname="app.recipio.local.AiLongImageBatchTest" time="0.315"/>
+  <testcase name="sourceByteLimitRejectsBeforeProcessorAndLeavesNothing" classname="app.recipio.local.AiLongImageBatchTest" time="20.936"/>
+  <testcase name="threadInterruptionCancelsAndReleasesBatchReservation" classname="app.recipio.local.AiLongImageBatchTest" time="0.196"/>
+  <testcase name="cancellationAfterAStageRollsBackWholeBatchAndReleasesPin" classname="app.recipio.local.AiLongImageBatchTest" time="0.206"/>
+  <testcase name="batchReservationBlocksConcurrentMutationsAndStagingCleanup" classname="app.recipio.local.AiLongImageBatchTest" time="0.269"/>
+  <testcase name="failingSecondSegmentPreservesExistingImageAndNoBatchFiles" classname="app.recipio.local.AiLongImageBatchTest" time="0.23"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

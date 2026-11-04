@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.recipio.local.RecipeFinderSourcesTest" tests="13" skipped="0" failures="0" errors="0" timestamp="2026-11-04T10:48:28.182Z" hostname="WHOCARE" time="0.035">
+  <properties/>
+  <testcase name="unapprovedExecutedToolsCannotPassSelectedSourceGate" classname="app.recipio.local.RecipeFinderSourcesTest" time="0.002"/>
+  <testcase name="retainsQueryAndPathWhenMatchingSources" classname="app.recipio.local.RecipeFinderSourcesTest" time="0.002"/>
+  <testcase name="draftSubmissionIsNotAnAdditionalSourceOrPermissionToSearch" classname="app.recipio.local.RecipeFinderSourcesTest" time="0.001"/>
+  <testcase name="extraTargetSearchToolMissingOrFailedExtractorBlocksExtraction" classname="app.recipio.local.RecipeFinderSourcesTest" time="0.002"/>
+  <testcase name="deduplicatesPagesAndBoundsCandidatesAgainstNineStructuredSources" classname="app.recipio.local.RecipeFinderSourcesTest" time="0.004"/>
+  <testcase name="modelOnlyUrlsFailedSearchAndEmptySourcesCannotAuthorizeCandidate" classname="app.recipio.local.RecipeFinderSourcesTest" time="0.002"/>
+  <testcase name="acceptsOnlyStructuredSourcesAndReturnsSafePublicFields" classname="app.recipio.local.RecipeFinderSourcesTest" time="0.003"/>
+  <testcase name="extractorMustCompleteExactlyTheSelectedPage" classname="app.recipio.local.RecipeFinderSourcesTest" time="0.001"/>
+  <testcase name="completedVerifiedSearchWithNoReliableProposalsReturnsEmptyResults" classname="app.recipio.local.RecipeFinderSourcesTest" time="0.001"/>
+  <testcase name="assistantTextNeverSuppliesMissingCandidateHandoff" classname="app.recipio.local.RecipeFinderSourcesTest" time="0.001"/>
+  <testcase name="unsafeLiteralAddressesNeverBecomeCandidates" classname="app.recipio.local.RecipeFinderSourcesTest" time="0.007"/>
+  <testcase name="unsupportedTimeAndPreparationBecomeEmptyUntilSamePageEvidenceExists" classname="app.recipio.local.RecipeFinderSourcesTest" time="0.006"/>
+  <testcase name="preparationHintCannotRemoveNegationFromItsSourceEvidence" classname="app.recipio.local.RecipeFinderSourcesTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

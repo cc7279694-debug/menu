@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.recipio.local.SafeWebFetcherTest" tests="14" skipped="0" failures="0" errors="0" timestamp="2026-11-04T10:48:28.232Z" hostname="WHOCARE" time="2.693">
+  <properties/>
+  <testcase name="pinnedClientDisablesProxyCookiesRedirectsAndConnectionReuse" classname="app.recipio.local.SafeWebFetcherTest" time="0.464"/>
+  <testcase name="statusCodesConnectionFailuresAndUnreadablePagesStayCategorized" classname="app.recipio.local.SafeWebFetcherTest" time="0.185"/>
+  <testcase name="fakeIpStopsBeforeConnectionAndRemainsDiagnosableAfterRedirect" classname="app.recipio.local.SafeWebFetcherTest" time="0.169"/>
+  <testcase name="loopsAndFourthRedirectAreRejected" classname="app.recipio.local.SafeWebFetcherTest" time="0.4"/>
+  <testcase name="localPrivateCredentialPortAndSchemeRedirectsNeverConnect" classname="app.recipio.local.SafeWebFetcherTest" time="0.749"/>
+  <testcase name="onlyHtmlAndXhtmlMimeTypesAreAccepted" classname="app.recipio.local.SafeWebFetcherTest" time="0.253"/>
+  <testcase name="actualClientDnsAndSocketUseOnlyTheFirstValidatedResolution" classname="app.recipio.local.SafeWebFetcherTest" time="0.025"/>
+  <testcase name="httpsCannotDowngradeEvenAfterAnHttpStart" classname="app.recipio.local.SafeWebFetcherTest" time="0.004"/>
+  <testcase name="redirectsAreManualAndEachPublicHopIsRevalidated" classname="app.recipio.local.SafeWebFetcherTest" time="0.041"/>
+  <testcase name="mixedDnsIsBlockedBeforeAnyConnection" classname="app.recipio.local.SafeWebFetcherTest" time="0.048"/>
+  <testcase name="publicShareRedirectKeepsRequiredQueryAndNeverAddsCredentials" classname="app.recipio.local.SafeWebFetcherTest" time="0.043"/>
+  <testcase name="authenticationAndAccessStatusesRemainDistinctFromTransportFailure" classname="app.recipio.local.SafeWebFetcherTest" time="0.052"/>
+  <testcase name="dnsTimeCountsAgainstOverallDeadlineAndCancelPreventsWork" classname="app.recipio.local.SafeWebFetcherTest" time="0.004"/>
+  <testcase name="decodedBodyBoundaryIsEnforcedIncludingTransparentGzip" classname="app.recipio.local.SafeWebFetcherTest" time="0.25"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

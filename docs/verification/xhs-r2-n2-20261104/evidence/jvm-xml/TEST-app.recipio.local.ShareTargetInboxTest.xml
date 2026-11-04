@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.recipio.local.ShareTargetInboxTest" tests="7" skipped="0" failures="0" errors="0" timestamp="2026-11-04T10:48:32.583Z" hostname="WHOCARE" time="0.015">
+  <properties/>
+  <testcase name="recreatedBridgeReclaimsOnlyLatestOwnedMediaAndNeverReplaysOpenedUrl" classname="app.recipio.local.ShareTargetInboxTest" time="0.006"/>
+  <testcase name="stagedMediaIsNotConsumedUntilReadyAndReceiptRemainsLeased" classname="app.recipio.local.ShareTargetInboxTest" time="0.001"/>
+  <testcase name="separateProcessesHaveNoPersistentShare" classname="app.recipio.local.ShareTargetInboxTest" time="0.001"/>
+  <testcase name="replacementIsExplicitAndUnsupportedIntentsDoNotEvict" classname="app.recipio.local.ShareTargetInboxTest" time="0.003"/>
+  <testcase name="failedStagingReturnsSafeInvalidAndKeepsOwnershipUntilCleanup" classname="app.recipio.local.ShareTargetInboxTest" time="0.001"/>
+  <testcase name="lateStagingCannotOverwriteReplacementAndOnlyOwnReceiptIsReleased" classname="app.recipio.local.ShareTargetInboxTest" time="0.001"/>
+  <testcase name="consumeIsOneShotAndKeepsOriginalUrl" classname="app.recipio.local.ShareTargetInboxTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

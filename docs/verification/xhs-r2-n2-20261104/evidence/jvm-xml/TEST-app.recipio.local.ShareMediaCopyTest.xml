@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.recipio.local.ShareMediaCopyTest" tests="2" skipped="0" failures="0" errors="0" timestamp="2026-11-04T10:48:30.929Z" hostname="WHOCARE" time="0.159">
+  <properties/>
+  <testcase name="emptyAndFailingProviderNeverBecomeSuccessfulCopy" classname="app.recipio.local.ShareMediaCopyTest" time="0.024"/>
+  <testcase name="exactRawLimitAllowedAndOneAdditionalByteRejected" classname="app.recipio.local.ShareMediaCopyTest" time="0.135"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.recipio.local.LocalBackupSessionTest" tests="6" skipped="0" failures="0" errors="0" timestamp="2026-11-04T10:48:25.207Z" hostname="WHOCARE" time="0.768">
+  <properties/>
+  <testcase name="validPrivateExportIsRetainedAndCorruptPublishedJournalFailsClosed" classname="app.recipio.local.LocalBackupSessionTest" time="0.2"/>
+  <testcase name="uncommittedStagingIsRemovedButUnrelatedImagesStay" classname="app.recipio.local.LocalBackupSessionTest" time="0.118"/>
+  <testcase name="committedGenerationAndHistoricalReferencesSurviveCleanup" classname="app.recipio.local.LocalBackupSessionTest" time="0.211"/>
+  <testcase name="trustedSystemRootAliasIsResolvedBeforeChildPathChecks" classname="app.recipio.local.LocalBackupSessionTest" time="0.084"/>
+  <testcase name="crashBeforePublishingOperationCanBeCleanedWithoutGuessingGeneration" classname="app.recipio.local.LocalBackupSessionTest" time="0.077"/>
+  <testcase name="interruptedExportIsNotRetainedAsAValidBackup" classname="app.recipio.local.LocalBackupSessionTest" time="0.076"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

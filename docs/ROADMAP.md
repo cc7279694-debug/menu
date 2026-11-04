@@ -5,7 +5,8 @@
 | Module | Status | Scope |
 | --- | --- | --- |
 | XHS-R2 | Accepted / Frozen — PASS WITH NOTES（限定范围） | 用户转达ChatGPT验收：源码c2c55d21、脚本cb4d5e86、证据28b1a6bf；全部NOTES/NOT_RUN保留，见 verification/xhs-r2-20261103/INDEPENDENT_ACCEPTANCE.md。不是Android/真实AI/真实平台或发布验收 |
-| XHS-R2-N1 | Ready for independent review — clarity limitation recorded | 新独占API36、12项唯一Android及51项JS/TS通过；实际Picker/codec/审核/保存/清理、相关IME已验证，0真实AI/XHS。600×1800测试字可辨，1080×7200→307×2048小字不可可靠辨认，不改上限；真机/OEM/TalkBack/真实质量仍NOT_RUN。原内存阻塞/失败/系统ANR保留，见 verification/xhs-r2-n1-20261103/ANDROID_VERIFICATION.md；不是产品冻结或发布 |
+| XHS-R2-N1 | Accepted / Frozen — PASS WITH NOTES（限定验证） | 用户转达ChatGPT接受N1验证任务；源码b38f82d7、证据f552d14及全部NOTES/NOT_RUN保留；1080×7200小字清晰度FAIL仍未解决，不是产品发布验收 |
+| XHS-R2-N2 | Blocked — Android memory admission | 源码51a2d92已实现有界原图分段/整批回滚，55定向JS/208JVM、类型/Lint/Web/sync/debug编译通过；最终2.647GiB<4，N2 AVD未启动，实际段图/14px24px清晰度及Android均NOT_RUN，见 verification/xhs-r2-n2-20261104/REVIEW.md；不合main/签名/手机/真实AI |
 | APK-0 | Implemented; awaiting acceptance | 本地 Android + SQLite；菜名 CRUD/search/5 秒撤销；构建、离线、重启、覆盖升级已在模拟器验证 |
 | APK-1 | Native verified; initial user experience accepted | 日常库已实现；622 项回归与 6 项 Java 测试通过；原生图片、取消、离线 CRUD、重启、排序、返回键、v5→v6 覆盖升级验证通过；用户目前未发现问题 |
 | APK-2 | Accepted baseline | .recipio Format v1、完整当前/历史图片、安全 Replace；v10 与原 Golden 保留，历史验证数字不复用为 APK-3 结果 |

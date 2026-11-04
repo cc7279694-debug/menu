@@ -1,0 +1,10 @@
+{
+  "clientDate": "2026-11-04",
+  "phase": "SOURCE_AND_LIGHT_TESTS_ONLY",
+  "freeGiB": 5.986,
+  "emulatorThresholdGiB": 4,
+  "otherAvd": "Vectra_MAIN28A1R1_API37_490d3e40b80e",
+  "otherDeviceOperations": 0,
+  "phoneOperations": 0,
+  "signedV28Sha256": "52dfed4ef23afb5aa0dc6fb2b6089921af240993627aec9479ff69ea3d94b59b"
+}

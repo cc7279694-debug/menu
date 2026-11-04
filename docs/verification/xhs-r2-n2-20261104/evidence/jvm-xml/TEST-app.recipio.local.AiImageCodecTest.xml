@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.recipio.local.AiImageCodecTest" tests="3" skipped="0" failures="0" errors="0" timestamp="2026-11-04T10:47:56.047Z" hostname="WHOCARE" time="0.027">
+  <properties/>
+  <testcase name="rejectsAnimatedWebPAndFalseMime" classname="app.recipio.local.AiImageCodecTest" time="0.019"/>
+  <testcase name="rejectsAnimatedPngAndDeclaredChunkTruncation" classname="app.recipio.local.AiImageCodecTest" time="0.003"/>
+  <testcase name="rejectsJpegMpoAndConcatenatedJpegs" classname="app.recipio.local.AiImageCodecTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

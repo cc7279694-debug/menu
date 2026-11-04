@@ -1,0 +1,17 @@
+JUnit version 4.13.2
+....E.
+Time: 0.069
+There was 1 failure:
+1) decodeHeapBudgetRejectsBeforeAllocation(app.recipio.local.AiLongImagePlanTest)
+java.lang.AssertionError: Missing allocation admission guard
+	at app.recipio.local.AiLongImagePlanTest.budget(AiLongImagePlanTest.java:44)
+	at app.recipio.local.AiLongImagePlanTest.decodeHeapBudgetRejectsBeforeAllocation(AiLongImagePlanTest.java:49)
+	... 30 trimmed
+Caused by: java.lang.NoSuchMethodException: app.recipio.local.AiLongImagePlan.requireDecodeBudget(long,long)
+	at java.base/java.lang.Class.getDeclaredMethod(Class.java:2850)
+	at app.recipio.local.AiLongImagePlanTest.budget(AiLongImagePlanTest.java:43)
+	... 32 more
+
+FAILURES!!!
+Tests run: 5,  Failures: 1
+

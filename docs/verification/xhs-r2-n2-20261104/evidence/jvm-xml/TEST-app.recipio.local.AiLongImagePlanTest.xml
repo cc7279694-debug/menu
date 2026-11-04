@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.recipio.local.AiLongImagePlanTest" tests="5" skipped="0" failures="0" errors="0" timestamp="2026-11-04T10:48:19.507Z" hostname="WHOCARE" time="0.036">
+  <properties/>
+  <testcase name="tallImageKeepsAllRowsInTopToBottomOverlappingRegions" classname="app.recipio.local.AiLongImagePlanTest" time="0.018"/>
+  <testcase name="ordinaryAnd600LongImagesRemainOneFullResolutionRegion" classname="app.recipio.local.AiLongImagePlanTest" time="0.0"/>
+  <testcase name="widthAndOriginalPixelAndAspectBudgetsStayBounded" classname="app.recipio.local.AiLongImagePlanTest" time="0.004"/>
+  <testcase name="decodeHeapBudgetRejectsBeforeAllocation" classname="app.recipio.local.AiLongImagePlanTest" time="0.01"/>
+  <testcase name="remainingSlotsAreHardLimitAndNeverTruncateTail" classname="app.recipio.local.AiLongImagePlanTest" time="0.002"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.recipio.local.LocalBackupExportStateTest" tests="3" skipped="0" failures="0" errors="0" timestamp="2026-11-04T10:48:25.174Z" hostname="WHOCARE" time="0.013">
+  <properties/>
+  <testcase name="earlyFailureRemovesOnlyTheFreshUnverifiedDocument" classname="app.recipio.local.LocalBackupExportStateTest" time="0.003"/>
+  <testcase name="verifiedExportMustNotBeDeletedDuringPrivateCleanup" classname="app.recipio.local.LocalBackupExportStateTest" time="0.003"/>
+  <testcase name="refusedDeletionReportsAnExplicitIncompleteFileWarning" classname="app.recipio.local.LocalBackupExportStateTest" time="0.007"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

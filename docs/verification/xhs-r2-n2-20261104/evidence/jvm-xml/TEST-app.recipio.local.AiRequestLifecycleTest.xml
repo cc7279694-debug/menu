@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.recipio.local.AiRequestLifecycleTest" tests="7" skipped="0" failures="0" errors="0" timestamp="2026-11-04T10:48:19.548Z" hostname="WHOCARE" time="0.02">
+  <properties/>
+  <testcase name="oldFinallyCannotUnlockNewRequest" classname="app.recipio.local.AiRequestLifecycleTest" time="0.005"/>
+  <testcase name="requestAndActualSecretMutationAreMutuallyExclusive" classname="app.recipio.local.AiRequestLifecycleTest" time="0.004"/>
+  <testcase name="invalidRequestIdentityIsRejectedBeforeWork" classname="app.recipio.local.AiRequestLifecycleTest" time="0.001"/>
+  <testcase name="resultSealingReportsCancellationOrDeadlineButFinishedTokenCannotBeCancelled" classname="app.recipio.local.AiRequestLifecycleTest" time="0.003"/>
+  <testcase name="cancellationDisconnectsButDoesNotReleaseBeforeWorkerFinishes" classname="app.recipio.local.AiRequestLifecycleTest" time="0.002"/>
+  <testcase name="finishCallbacksObserveReleasedBusyBeforeReply" classname="app.recipio.local.AiRequestLifecycleTest" time="0.002"/>
+  <testcase name="monotonicOverallDeadlineAndLateCancelHooksAreEnforced" classname="app.recipio.local.AiRequestLifecycleTest" time="0.002"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

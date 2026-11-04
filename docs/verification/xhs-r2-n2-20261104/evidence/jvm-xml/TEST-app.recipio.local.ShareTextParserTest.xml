@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.recipio.local.ShareTextParserTest" tests="11" skipped="0" failures="0" errors="0" timestamp="2026-11-04T10:48:32.603Z" hostname="WHOCARE" time="0.039">
+  <properties/>
+  <testcase name="existingUrlValidatorRejectsUnsafeAuthorityAndMalformedInput" classname="app.recipio.local.ShareTextParserTest" time="0.003"/>
+  <testcase name="identicalCandidatesDeduplicateButDifferentUrlsNeverChooseFirst" classname="app.recipio.local.ShareTextParserTest" time="0.001"/>
+  <testcase name="bracketsAndCaseInsensitiveWebSchemesDoNotConsumeTitle" classname="app.recipio.local.ShareTextParserTest" time="0.0"/>
+  <testcase name="multipleLinksRetainBoundedOriginalTextForExplicitChoice" classname="app.recipio.local.ShareTextParserTest" time="0.0"/>
+  <testcase name="absentTextIsRejectedAndPlainTextIsPreservedWithoutNetwork" classname="app.recipio.local.ShareTextParserTest" time="0.001"/>
+  <testcase name="exactTitleNewlineAndSpacePreserveTheOneUrlAndItsQuery" classname="app.recipio.local.ShareTextParserTest" time="0.001"/>
+  <testcase name="unsupportedActionsAndMimeTypesAreIgnored" classname="app.recipio.local.ShareTextParserTest" time="0.001"/>
+  <testcase name="urlPrecedenceDoesNotSilentlyConvertTitleIntoAiText" classname="app.recipio.local.ShareTextParserTest" time="0.001"/>
+  <testcase name="literalBoundaryDoesNotStripLegitimatePathOrQueryPunctuation" classname="app.recipio.local.ShareTextParserTest" time="0.001"/>
+  <testcase name="boundedUtf8TextCannotBypassLimitWithChineseCharacters" classname="app.recipio.local.ShareTextParserTest" time="0.009"/>
+  <testcase name="aiCodepointLimitIsCheckedWithoutTruncatingText" classname="app.recipio.local.ShareTextParserTest" time="0.018"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

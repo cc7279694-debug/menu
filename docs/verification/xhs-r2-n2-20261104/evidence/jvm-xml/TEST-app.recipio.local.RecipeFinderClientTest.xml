@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.recipio.local.RecipeFinderClientTest" tests="25" skipped="0" failures="0" errors="0" timestamp="2026-11-04T10:48:26.962Z" hostname="WHOCARE" time="1.169">
+  <properties/>
+  <testcase name="missingKeyAndDishPreferenceLimitsStopBeforeAnyPost" classname="app.recipio.local.RecipeFinderClientTest" time="0.03"/>
+  <testcase name="candidateArgumentTypesAndArrayLimitsAreStrictBeforeFiltering" classname="app.recipio.local.RecipeFinderClientTest" time="0.037"/>
+  <testcase name="selectedExtractionInstructionsDoNotRetainIntakeOnlyTransportOrToolBan" classname="app.recipio.local.RecipeFinderClientTest" time="0.012"/>
+  <testcase name="validSelectedSourceReturnsOnlyRecipeContractAndBoundedTransientSourceText" classname="app.recipio.local.RecipeFinderClientTest" time="0.053"/>
+  <testcase name="recipeCannotContainSourceProvenanceInNotesOrWarnings" classname="app.recipio.local.RecipeFinderClientTest" time="0.021"/>
+  <testcase name="zeroReliableRecipesAfterVerifiedSearchReturnsEmptyCandidates" classname="app.recipio.local.RecipeFinderClientTest" time="0.003"/>
+  <testcase name="validCandidateFunctionReturnsVerifiedCandidateWithoutAssistantMessage" classname="app.recipio.local.RecipeFinderClientTest" time="0.004"/>
+  <testcase name="malformedCandidateArgumentsCannotFallbackToValidAssistantJson" classname="app.recipio.local.RecipeFinderClientTest" time="0.013"/>
+  <testcase name="actualHttpTransportPostsOnceAndDoesNotFollowRedirect" classname="app.recipio.local.RecipeFinderClientTest" time="0.398"/>
+  <testcase name="draftFunctionCannotBypassCompletedSelectedExtractorOrExecutedSearchGate" classname="app.recipio.local.RecipeFinderClientTest" time="0.015"/>
+  <testcase name="secretReflectionInToolsOrEscapedEnvelopeCannotCrossBridge" classname="app.recipio.local.RecipeFinderClientTest" time="0.007"/>
+  <testcase name="candidateFunctionCannotAuthorizeUrlAbsentFromCompletedSearchSources" classname="app.recipio.local.RecipeFinderClientTest" time="0.008"/>
+  <testcase name="assistantRecipeCannotReplaceDraftFunction" classname="app.recipio.local.RecipeFinderClientTest" time="0.008"/>
+  <testcase name="bodyBoundsUtf8AndCancelledIoCannotReturnLateSuccess" classname="app.recipio.local.RecipeFinderClientTest" time="0.012"/>
+  <testcase name="fixedModelProfileRoutingToolsAndNoConversationAreUsedForSearchAndExtract" classname="app.recipio.local.RecipeFinderClientTest" time="0.034"/>
+  <testcase name="candidateFunctionRequiresExactRootAndEveryCandidateField" classname="app.recipio.local.RecipeFinderClientTest" time="0.035"/>
+  <testcase name="sourceMismatchAndMalformedRecipeStopBeforePreview" classname="app.recipio.local.RecipeFinderClientTest" time="0.007"/>
+  <testcase name="assistantJsonOrFenceCannotReplaceCandidateFunction" classname="app.recipio.local.RecipeFinderClientTest" time="0.005"/>
+  <testcase name="strictDraftFunctionRejectsMalformedExtraAndMissingRecipeFields" classname="app.recipio.local.RecipeFinderClientTest" time="0.021"/>
+  <testcase name="resultFunctionMustHaveStringArgumentsCompletedStatusAndExpectedName" classname="app.recipio.local.RecipeFinderClientTest" time="0.028"/>
+  <testcase name="actualHttpCancellationDisconnectsBeforeSuccessAndSharedFinishAcknowledges" classname="app.recipio.local.RecipeFinderClientTest" time="0.098"/>
+  <testcase name="nestedJsonUnicodeSecretReflectionCannotBecomeRecipeOrCandidateText" classname="app.recipio.local.RecipeFinderClientTest" time="0.011"/>
+  <testcase name="statusFailuresExposeOnlyAllowlistedCodesAndNeverRetry" classname="app.recipio.local.RecipeFinderClientTest" time="0.024"/>
+  <testcase name="incompleteWrongModelErrorAndMalformedJsonCannotReturnCandidates" classname="app.recipio.local.RecipeFinderClientTest" time="0.016"/>
+  <testcase name="absoluteWatchdogClosesStalledHttpWithoutAnyRetry" classname="app.recipio.local.RecipeFinderClientTest" time="0.258"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[11月 04, 2026 6:48:27 下午 okhttp3.mockwebserver.MockWebServer$SocketHandler handle
+警告: MockWebServer[55728] connection from /127.0.0.1 didn't make a request
+11月 04, 2026 6:48:28 下午 okhttp3.mockwebserver.MockWebServer$SocketHandler handle
+警告: MockWebServer[55730] connection from /127.0.0.1 didn't make a request
+]]></system-err>
+</testsuite>

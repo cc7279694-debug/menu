@@ -1,0 +1,39 @@
+(!) Your Vite config uses features that are unsupported by `configLoader: 'native'`, which is planned to become the default in a future major version of Vite:
+  - ESM syntax in a file loaded as CommonJS (vitest.config.ts:1:1). Use a `.mjs` extension or set `"type": "module"` in the closest package.json
+Set `VITE_CONFIG_NATIVE_IGNORE_WARNING=true` to suppress this warning.
+
+ RUN  v4.1.11 E:/CODEX/VIBE CODING/recipe-step-app-g7
+
+ ❯ src/native/ai/long-image-screen.test.tsx (5 tests | 1 failed | 4 skipped) 1294ms
+   × N2 retrying a failed long import clears its old error after a complete batch succeeds 1287ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/native/ai/long-image-screen.test.tsx > N2 retrying a failed long import clears its old error after a complete batch succeeds
+Error: expect(element).not.toBeInTheDocument()
+
+expected document not to contain element, found <div
+  class="v2-task-status"
+  id="«r0»"
+  role="alert"
+>
+  <p>
+    长图无法在剩余名额或安全处理预算内完整分段，请手动分图后添加；没有截掉末尾内容。
+  </p>
+</div> instead
+ ❯ src/native/ai/long-image-screen.test.tsx:55:43
+     53|   fireEvent.click(split); expect(await screen.findByRole("alert")).toH…
+     54|   fireEvent.click(split); await screen.findByAltText("截图 2");
+     55|   expect(screen.queryByRole("alert")).not.toBeInTheDocument(); expect(…
+       |                                           ^
+     56| });
+     57|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 4 skipped (5)
+   Start at  18:41:27
+   Duration  16.71s (transform 2.99s, setup 2.46s, import 6.53s, tests 1.29s, environment 5.64s)
+

@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.recipio.local.LocalBackupArchiveTest" tests="15" skipped="0" failures="0" errors="0" timestamp="2026-11-04T10:48:23.389Z" hostname="WHOCARE" time="1.778">
+  <properties/>
+  <testcase name="mediaMissingCorruptionMimeAndOversizeAreRejected" classname="app.recipio.local.LocalBackupArchiveTest" time="0.283"/>
+  <testcase name="rejectsWrongHashSizeCountsAndFutureFormat" classname="app.recipio.local.LocalBackupArchiveTest" time="0.104"/>
+  <testcase name="acceptedImageSignaturesPreserveExactBytes" classname="app.recipio.local.LocalBackupArchiveTest" time="0.382"/>
+  <testcase name="completeV2ArchiveStagesCurrentHistoricalAndSharedCookingMediaIntoIndependentRoot" classname="app.recipio.local.LocalBackupArchiveTest" time="0.235"/>
+  <testcase name="hashesActualMediaAndStagesNewGenerationWithoutChangingOldFile" classname="app.recipio.local.LocalBackupArchiveTest" time="0.13"/>
+  <testcase name="rejectsUnknownTraversalAbsoluteBackslashAndMissingEntries" classname="app.recipio.local.LocalBackupArchiveTest" time="0.196"/>
+  <testcase name="enforcesActualStreamSizeAndCleansPartialCopies" classname="app.recipio.local.LocalBackupArchiveTest" time="0.03"/>
+  <testcase name="rejectsTruncatedCentralDirectoryNonZipAndTrailingBytes" classname="app.recipio.local.LocalBackupArchiveTest" time="0.073"/>
+  <testcase name="rejectsUnsafeSourceFilesAndDisguisedMime" classname="app.recipio.local.LocalBackupArchiveTest" time="0.054"/>
+  <testcase name="rejectsDuplicateCentralNamesWrongCrcAndFalseLength" classname="app.recipio.local.LocalBackupArchiveTest" time="0.087"/>
+  <testcase name="neverDeletesOrOverwritesAnExistingBackup" classname="app.recipio.local.LocalBackupArchiveTest" time="0.017"/>
+  <testcase name="strictJsonRejectsDuplicateFieldsInvalidUtf8AndDepthBombs" classname="app.recipio.local.LocalBackupArchiveTest" time="0.008"/>
+  <testcase name="writesAndRereadsEmptyArchiveAndActualMetadata" classname="app.recipio.local.LocalBackupArchiveTest" time="0.052"/>
+  <testcase name="externalWriteOrCloseFailureNeverReportsSuccess" classname="app.recipio.local.LocalBackupArchiveTest" time="0.05"/>
+  <testcase name="writesStrictV2WithCookingCountAndKeepsActualV1Import" classname="app.recipio.local.LocalBackupArchiveTest" time="0.072"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

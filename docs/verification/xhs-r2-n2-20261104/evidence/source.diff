@@ -1,0 +1,851 @@
+diff --git a/android/app/src/androidTest/java/app/recipio/local/AiImeBackInstrumentedTest.java b/android/app/src/androidTest/java/app/recipio/local/AiImeBackInstrumentedTest.java
+index 7e4d5d6..79ded24 100644
+--- a/android/app/src/androidTest/java/app/recipio/local/AiImeBackInstrumentedTest.java
++++ b/android/app/src/androidTest/java/app/recipio/local/AiImeBackInstrumentedTest.java
+@@ -358,6 +358,9 @@ public class AiImeBackInstrumentedTest {
+         pickGeneratedImage(64,64);
+     }
+     private void pickGeneratedImage(int width,int height)throws Exception {
++        pickGeneratedImage(width,height,false);
++    }
++    private void pickGeneratedImage(int width,int height,boolean longText)throws Exception {
+         Context context=instrumentation.getTargetContext();String name="recipio-ime-"+UUID.randomUUID()+".png";
+         ContentValues values=new ContentValues();values.put(MediaStore.Downloads.DISPLAY_NAME,name);values.put(MediaStore.Downloads.MIME_TYPE,"image/png");values.put(MediaStore.Downloads.RELATIVE_PATH,"Download/");values.put(MediaStore.Downloads.IS_PENDING,1);
+         generatedImage=context.getContentResolver().insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI,values);assertNotNull(generatedImage);
+@@ -378,7 +381,7 @@ public class AiImeBackInstrumentedTest {
+         } while(android.os.SystemClock.elapsedRealtime()<indexedDeadline);
+         assertTrue("Generated fixture must be published and indexed before opening SAF",indexed);
+         observePickerForFailureDiagnostics();
+-        click("添加截图");
++        click(longText?"文字长图分段导入":"添加截图");
+         // OPEN_DOCUMENT starts at Recents or the previously visited directory. A Downloads
+         // fixture is not necessarily listed there; navigate the real picker before selecting it.
+         // The picker may already be at Downloads. Do not reopen its animated drawer
+@@ -433,8 +436,8 @@ public class AiImeBackInstrumentedTest {
+     }
+     private void n1Capture(String name)throws Exception {
+         if(!name.equals("picker-open")){
+-            String target=name.equals("review-unconfirmed")?"input[type=checkbox]":name.equals("multi-preview")?"img[alt=\"截图 2\"]":"img[alt=\"截图 1\"]";
+-            js("document.querySelector('"+target+"')?.scrollIntoView({block:'center'})");
++            String target=name.equals("review-unconfirmed")?"input[type=checkbox]":name.equals("n2-segment-preview")?"img[alt=\"截图 4\"]":name.equals("multi-preview")?"img[alt=\"截图 2\"]":"img[alt=\"截图 1\"]";
++            js("document.querySelector('"+target+"')?.scrollIntoView({block:'center',behavior:'instant'})");
+             CountDownLatch presented=new CountDownLatch(1);
+             instrumentation.runOnMainSync(()->web.postVisualStateCallback(android.os.SystemClock.uptimeMillis(),new WebView.VisualStateCallback(){
+                 @Override public void onComplete(long requestId){web.postOnAnimation(()->web.postOnAnimation(presented::countDown));}
+@@ -442,7 +445,7 @@ public class AiImeBackInstrumentedTest {
+             assertTrue("WebView visual state did not reach a rendered frame",presented.await(8,TimeUnit.SECONDS));
+         }
+         instrumentation.waitForIdleSync();
+-        File directory=new File(instrumentation.getTargetContext().getExternalFilesDir(null),"xhs-r2-n1-ui");assertTrue(directory.isDirectory()||directory.mkdirs());
++        File directory=new File(instrumentation.getTargetContext().getExternalFilesDir(null),name.startsWith("n2-")?"xhs-r2-n2-ui":"xhs-r2-n1-ui");assertTrue(directory.isDirectory()||directory.mkdirs());
+         File file=new File(directory,name+"-"+UUID.randomUUID()+".png");Bitmap screenshot=instrumentation.getUiAutomation().takeScreenshot();assertNotNull(screenshot);
+         try(OutputStream output=new FileOutputStream(file)){assertTrue(screenshot.compress(Bitmap.CompressFormat.PNG,100,output));}finally{screenshot.recycle();}
+     }
+@@ -481,4 +484,42 @@ public class AiImeBackInstrumentedTest {
+         assertEquals(1,posts.get());
+         assertEquals(0,new File(instrumentation.getTargetContext().getCacheDir(),"ai-import").listFiles((dir,name)->name.matches("[0-9a-f-]{36}")).length);
+     }
++    @Test public void xhsR2NativeLongPickerCancelKeepsExistingImage()throws Exception {
++        n1LinkScreenshotInput();pickGeneratedImage();
++        String existing=js("document.querySelector('img[alt=\"截图 1\"]').src");
++        click("文字长图分段导入");
++        long deadline=android.os.SystemClock.elapsedRealtime()+10000;boolean visible=false;
++        while(android.os.SystemClock.elapsedRealtime()<deadline){AccessibilityNodeInfo node=instrumentation.getUiAutomation().getRootInActiveWindow();if(node!=null&&systemPicker(String.valueOf(node.getPackageName()))){visible=true;break;}Thread.sleep(100);}
++        assertTrue("Real long-image picker must open",visible);back();
++        until("!!document.querySelector('img[alt=\"截图 1\"]')&&![...document.querySelectorAll('button')].find(b=>b.textContent.trim()==='文字长图分段导入').disabled");
++        assertEquals(existing,js("document.querySelector('img[alt=\"截图 1\"]').src"));
++        assertEquals("1",js("document.querySelectorAll('.v2-intake-image-grid li').length"));assertEquals(0,posts.get());
++        click("返回");click("放弃本轮整理");until("document.body.innerText.includes('仅获取到标题')");
++        assertEquals(0,new File(instrumentation.getTargetContext().getCacheDir(),"ai-import").listFiles((dir,name)->name.matches("[0-9a-f-]{36}")).length);
++    }
++    @Test public void xhsR2NativeLongSegmentsKeepOrderUntilExplicitReviewAndSave()throws Exception {
++        n1LinkScreenshotInput();
++        pickGeneratedImage(1080,7200,true);
++        until("document.querySelectorAll('.v2-intake-image-grid li').length===4");
++        until("[...document.querySelectorAll('.v2-intake-image-grid img')].every(i=>i.complete&&i.naturalWidth===1080&&i.naturalHeight>10&&i.naturalHeight<=2048)");
++        assertEquals(0,posts.get());
++        n1Capture("n2-segment-preview");
++        String fourth=js("document.querySelector('img[alt=\"截图 4\"]').src");
++        click("前移截图 4");assertEquals(fourth,js("document.querySelector('img[alt=\"截图 3\"]').src"));
++        click("移除截图 2");until("document.querySelectorAll('.v2-intake-image-grid li').length===3");
++        assertEquals(0,posts.get());
++        // Observe only generated image identifiers; never alter the bridge request.
++        js("(()=>{const c=window.Capacitor,o=c.nativePromise;c.nativePromise=function(...a){if(a[0]==='LocalAiIntake'&&a[1]==='organize')window.__n2SentImageIds=[...a[2].imageIds];return Reflect.apply(o,this,a)};window.__n2ExpectedIds=[...document.querySelectorAll('.v2-intake-image-grid img')].map(i=>i.src.match(/([0-9a-f-]{36})\\.jpg$/)[1]);return true})()");
++        preview();assertEquals(1,posts.get());
++        assertEquals("true",js("JSON.stringify(window.__n2SentImageIds)===JSON.stringify(window.__n2ExpectedIds)"));
++        assertFalse(n1LastRequest.contains("N1 来源提示"));assertFalse(n1LastRequest.contains("not-for-ai"));
++        assertEquals("false",js("document.querySelector('input[type=checkbox]').checked"));
++        assertEquals("true",js("[...document.querySelectorAll('button')].filter(b=>b.textContent.trim()==='确认保存菜谱').every(b=>b.disabled)"));
++        js("document.querySelector('input[type=checkbox]').click()");click("确认保存菜谱");
++        until("document.querySelector('[role=dialog]')?.innerText.includes('已存在同名菜谱')||!document.body.innerText.includes('检查整理结果')");
++        if("true".equals(js("!!document.querySelector('[role=dialog]')?.innerText.includes('已存在同名菜谱')")))click("仍然新建菜谱");
++        until("[...document.querySelectorAll('h1,h2')].some(e=>e.textContent.trim()==='APK4 IME GENERATED 中文 🍚')");
++        assertEquals("true",js("document.body.innerText.includes('先焯水')"));assertEquals(1,posts.get());
++        assertEquals(0,new File(instrumentation.getTargetContext().getCacheDir(),"ai-import").listFiles((dir,name)->name.matches("[0-9a-f-]{36}")).length);
++    }
+ }
+diff --git a/android/app/src/androidTest/java/app/recipio/local/XhsR2SegmentedImageInstrumentedTest.java b/android/app/src/androidTest/java/app/recipio/local/XhsR2SegmentedImageInstrumentedTest.java
+new file mode 100644
+index 0000000..f484905
+--- /dev/null
++++ b/android/app/src/androidTest/java/app/recipio/local/XhsR2SegmentedImageInstrumentedTest.java
+@@ -0,0 +1,129 @@
++package app.recipio.local;
++
++import static org.junit.Assert.*;
++import android.content.Context;
++import android.graphics.*;
++import android.media.ExifInterface;
++import android.os.Build;
++import androidx.test.ext.junit.runners.AndroidJUnit4;
++import androidx.test.platform.app.InstrumentationRegistry;
++import java.io.*;
++import java.security.MessageDigest;
++import java.util.*;
++import java.util.concurrent.atomic.AtomicInteger;
++import java.util.zip.CRC32;
++import java.util.zip.DeflaterOutputStream;
++import org.json.*;
++import org.junit.*;
++import org.junit.rules.TestName;
++import org.junit.runner.RunWith;
++
++/** Generated source media only. Real Android region decoder; no Provider or Picker in this class. */
++@RunWith(AndroidJUnit4.class)
++public class XhsR2SegmentedImageInstrumentedTest {
++    @Rule public TestName name=new TestName();
++    private File cache,evidence;private AiTemporaryImages images;private UUID operation;
++    private final List<UUID> sessions=new ArrayList<>();
++    @Before public void setup()throws Exception {
++        assertTrue("Dedicated emulator only","ranchu".equals(Build.HARDWARE)||"goldfish".equals(Build.HARDWARE));
++        Context context=InstrumentationRegistry.getInstrumentation().getTargetContext();
++        cache=new File(context.getCacheDir(),"xhs-r2-n2-"+UUID.randomUUID()).getCanonicalFile();assertTrue(cache.mkdir());
++        images=new AiTemporaryImages(cache,System::currentTimeMillis,AiImageCodec::process);operation=session();
++        File parent=new File(context.getExternalFilesDir(null),"xhs-r2-n2");assertTrue(parent.isDirectory()||parent.mkdirs());
++        evidence=new File(parent,name.getMethodName()+"-"+UUID.randomUUID());assertTrue(evidence.mkdir());
++        json("run-info.json",new JSONObject().put("kind","GENERATED_NATIVE_REGION_DECODE_TEST_ONLY").put("test",name.getMethodName())
++            .put("api",Build.VERSION.SDK_INT).put("hardware",Build.HARDWARE).put("realAiCalls",0)
++            .put("automaticReadabilityVerdict","NOT_ASSESSED_REQUIRES_VISUAL_REVIEW"));
++    }
++    @After public void cleanup()throws Exception {
++        for(UUID id:sessions)images.discard(id);
++        assertTrue(new File(cache,"ai-import").delete());assertTrue(cache.delete());
++    }
++    private UUID session()throws Exception {UUID id=UUID.randomUUID();images.create(id);sessions.add(id);return id;}
++    private File folder(){return new File(cache,"ai-import/"+operation);}
++    private static void save(Bitmap bitmap,File file,Bitmap.CompressFormat format)throws Exception {try(OutputStream out=new FileOutputStream(file)){assertTrue(bitmap.compress(format,100,out));}}
++    private void json(String file,JSONObject object)throws Exception {try(Writer out=new OutputStreamWriter(new FileOutputStream(new File(evidence,file)),java.nio.charset.StandardCharsets.UTF_8)){out.write(object.toString(2));out.write("\n");}}
++    private static String sha(File file)throws Exception {MessageDigest digest=MessageDigest.getInstance("SHA-256");try(InputStream in=new FileInputStream(file)){byte[] b=new byte[8192];int n;while((n=in.read(b))!=-1)digest.update(b,0,n);}StringBuilder text=new StringBuilder();for(byte b:digest.digest())text.append(String.format(Locale.ROOT,"%02x",b&255));return text.toString();}
++    private static void copy(File from,File to)throws Exception {try(InputStream in=new FileInputStream(from);OutputStream out=new FileOutputStream(to)){byte[] b=new byte[8192];int n;while((n=in.read(b))!=-1)out.write(b,0,n);}}
++    private void crop(Bitmap bitmap,String file,int y,int height)throws Exception {Bitmap part=Bitmap.createBitmap(bitmap,0,y,bitmap.getWidth(),height);try{save(part,new File(evidence,file),Bitmap.CompressFormat.PNG);}finally{if(part!=bitmap)part.recycle();}}
++    private File generated(String file,int width,int height,boolean extra)throws Exception {
++        Bitmap source=Bitmap.createBitmap(width,height,Bitmap.Config.ARGB_8888);
++        try{
++            Canvas canvas=new Canvas(source);canvas.drawColor(Color.rgb(249,247,240));Paint paint=new Paint(Paint.ANTI_ALIAS_FLAG);paint.setColor(Color.rgb(30,35,30));
++            paint.setTextSize(40);canvas.drawText("合成菜谱 · 青菜炒饭",28,60,paint);paint.setTextSize(28);canvas.drawText("青菜200克 / 米饭1碗 / 盐适量",28,120,paint);
++            int[] sizes={14,24,36};for(int i=0;i<sizes.length;i++){paint.setTextSize(sizes[i]);canvas.drawText(sizes[i]+"px 青菜200克，煮8分钟",28,180+i*55,paint);canvas.drawText(sizes[i]+"px 盐适量，翻炒均匀",28,height-165+i*55,paint);}
++            String[] steps={"洗净青菜。","青菜切段。","热锅加少量水。","放入青菜。","翻拌均匀。","加盐适量。","加入米饭炒匀。","装盘。"};paint.setTextSize(32);
++            for(int i=0;i<steps.length;i++)canvas.drawText((i+1)+". "+steps[i],28,height*.28f+i*height*.065f,paint);
++            if(extra)for(int y:new int[]{1900,3900,5860}){paint.setTextSize(14);canvas.drawText("14px 中段关键步骤：加入青菜，翻拌均匀",28,y+25,paint);paint.setTextSize(24);canvas.drawText("24px 边界关键步骤：盐适量，最后装盘",28,y+65,paint);}
++            File result=new File(evidence,file+"-original.png");save(source,result,Bitmap.CompressFormat.PNG);
++            crop(source,file+"-original-top-text.png",135,180);crop(source,file+"-original-bottom-text.png",height-210,190);
++            if(extra)for(int y:new int[]{1900,3900,5860})crop(source,file+"-original-boundary-"+y+".png",y,120);
++            return result;
++        }finally{source.recycle();}
++    }
++    private List<AiTemporaryImages.Image> segment(File source)throws Exception {try(InputStream in=new FileInputStream(source)){return images.importLongStream(operation,in,"image/png",()->{});}}
++    @Test public void originalResolutionSegmentsExportAllContentAndTextCrops()throws Exception {
++        JSONArray samples=new JSONArray();int[][] geometry={{1080,1440},{600,1800},{1080,7200},{1080,7200}};
++        String[] names={"normal","long-600x1800","tall-1080x7200","coverage-1080x7200"};
++        for(int sample=0;sample<geometry.length;sample++){
++            if(sample>0)operation=session();int width=geometry[sample][0],height=geometry[sample][1];String label=names[sample];
++            File source=generated(label,width,height,sample==3);List<AiLongImagePlan.Region> plan=AiLongImagePlan.create(width,height,6);
++            List<AiTemporaryImages.Image> result=segment(source);assertEquals(plan.size(),result.size());assertTrue(result.size()<=6);
++            JSONArray parts=new JSONArray();int end=0,total=0;
++            for(int i=0;i<result.size();i++){
++                AiLongImagePlan.Region region=plan.get(i);AiTemporaryImages.Image image=result.get(i);String prefix=label+"-segment-"+(i+1);
++                assertEquals(width,image.width);assertEquals(region.bottom-region.top,image.height);assertTrue(image.byteSize<=1024*1024);total+=image.byteSize;
++                assertEquals(i==0?0:end-64,region.top);end=region.bottom;
++                File output=new File(evidence,prefix+".jpg");copy(new File(folder(),image.id+".jpg"),output);assertEquals(image.byteSize,output.length());
++                Bitmap decoded=BitmapFactory.decodeFile(output.getAbsolutePath());assertNotNull(decoded);
++                try{
++                    assertEquals(width,decoded.getWidth());assertEquals(region.bottom-region.top,decoded.getHeight());
++                    if(region.top==0)crop(decoded,prefix+"-top-text.png",135,180);
++                    if(region.bottom==height)crop(decoded,prefix+"-bottom-text.png",height-210-region.top,190);
++                    if(sample==3)for(int y:new int[]{1900,3900,5860})if(y>=region.top&&y+120<=region.bottom)crop(decoded,prefix+"-boundary-"+y+".png",y-region.top,120);
++                }finally{decoded.recycle();}
++                parts.put(new JSONObject().put("index",i).put("sourceTop",region.top).put("sourceBottom",region.bottom).put("width",image.width).put("height",image.height)
++                    .put("decodedPixelCount",(long)image.width*image.height).put("file",output.getName()).put("bytes",output.length()).put("sha256",sha(output)).put("rescaled",false));
++            }
++            assertEquals(height,end);assertTrue(total<=6*1024*1024);
++            assertFalse(Arrays.stream(Objects.requireNonNull(folder().list())).anyMatch(n->n.endsWith(".source.part")));
++            samples.put(new JSONObject().put("sample",label).put("source",source.getName()).put("sourceWidth",width).put("sourceHeight",height).put("sourceBytes",source.length()).put("sourceSha256",sha(source))
++                .put("segments",parts).put("totalBytes",total).put("allSourceRowsCovered",true).put("overlapRows",64).put("textPixelScale",1));
++            images.discard(operation);assertFalse(folder().exists());
++        }
++        json("segment-processing.json",new JSONObject().put("samples",samples).put("readability","NOT_ASSESSED_AUTOMATICALLY").put("ownedSessionCleanup","PASS"));
++    }
++    @Test public void existingImagesConsumeSlotsWithoutTailTruncation()throws Exception {
++        File normal=generated("normal",1080,1440,false);List<AiTemporaryImages.Image> old=new ArrayList<>();
++        for(int i=0;i<3;i++)try(InputStream in=new FileInputStream(normal)){old.add(images.importStream(operation,in,"image/png"));}
++        Map<String,String> before=new LinkedHashMap<>();for(AiTemporaryImages.Image image:old)before.put(image.id,sha(new File(folder(),image.id+".jpg")));
++        File tall=generated("tall",1080,7200,false);assertEquals("long_image_limit",assertThrows(AiFailure.class,()->segment(tall)).code);
++        assertEquals(3,Objects.requireNonNull(folder().listFiles((d,n)->n.endsWith(".jpg"))).length);
++        for(AiTemporaryImages.Image image:old)assertEquals(before.get(image.id),sha(new File(folder(),image.id+".jpg")));
++        images.remove(operation,UUID.fromString(old.get(2).id));assertEquals(4,segment(tall).size());
++        json("slot-limit.json",new JSONObject().put("threeExistingImagesRejectFourSegmentsWithoutChange",true).put("twoExistingImagesAllowFourSegments",true));
++    }
++    @Test public void actualRegionCancellationRollsBackAndRetainsOtherImages()throws Exception {
++        File source=generated("tall",1080,7200,false);AiTemporaryImages.Image old;try(InputStream in=new FileInputStream(source)){old=images.importStream(operation,in,"image/png");}
++        String before=sha(new File(folder(),old.id+".jpg"));AtomicInteger checks=new AtomicInteger();
++        try(InputStream in=new FileInputStream(source)){assertEquals("cancelled",assertThrows(AiFailure.class,()->images.importLongStream(operation,in,"image/png",()->{
++            checks.incrementAndGet();File[] parts=folder().listFiles((d,n)->n.endsWith(".jpg"));if(parts!=null&&parts.length>=2)throw new AiFailure("cancelled");
++        })).code);}
++        assertEquals(1,Objects.requireNonNull(folder().listFiles((d,n)->n.endsWith(".jpg"))).length);assertEquals(before,sha(new File(folder(),old.id+".jpg")));
++        assertFalse(Arrays.stream(Objects.requireNonNull(folder().list())).anyMatch(n->n.endsWith(".source.part")));
++        json("cancellation.json",new JSONObject().put("cancelAfterStagedSegment",true).put("checks",checks.get()).put("oldImageSha256Unchanged",true).put("partialSegmentsRemoved",true));
++    }
++    @Test public void rotatedSourceAndOversizePixelsAreRejectedBeforePublishing()throws Exception {
++        File png=generated("normal",1080,1440,false);Bitmap decoded=BitmapFactory.decodeFile(png.getAbsolutePath());File jpeg=new File(evidence,"rotated-original.jpg");try{save(decoded,jpeg,Bitmap.CompressFormat.JPEG);}finally{decoded.recycle();}
++        ExifInterface exif=new ExifInterface(jpeg.getAbsolutePath());exif.setAttribute(ExifInterface.TAG_ORIENTATION,"6");exif.saveAttributes();
++        try(InputStream in=new FileInputStream(jpeg)){assertEquals("long_image_limit",assertThrows(AiFailure.class,()->images.importLongStream(operation,in,"image/jpeg",()->{})).code);}
++        File over=overPixelPng();assertEquals("image_too_large",assertThrows(AiFailure.class,()->segment(over)).code);
++        assertEquals(0,Objects.requireNonNull(folder().listFiles((d,n)->n.endsWith(".jpg")||n.endsWith(".source.part"))).length);
++        json("native-limits.json",new JSONObject().put("rotatedExif6","long_image_limit").put("sourcePixels",32004000).put("overPixels","image_too_large").put("partialFiles",0));
++    }
++    private static void chunk(DataOutputStream out,String name,byte[] payload)throws Exception {byte[] type=name.getBytes(java.nio.charset.StandardCharsets.US_ASCII);CRC32 crc=new CRC32();crc.update(type);crc.update(payload);out.writeInt(payload.length);out.write(type);out.write(payload);out.writeInt((int)crc.getValue());}
++    private File overPixelPng()throws Exception {
++        ByteArrayOutputStream compressed=new ByteArrayOutputStream();try(DeflaterOutputStream deflater=new DeflaterOutputStream(compressed)){byte[] row=new byte[1+8001*3];for(int y=0;y<4000;y++)deflater.write(row);}
++        File result=new File(evidence,"over-32000000-pixels.png");try(DataOutputStream out=new DataOutputStream(new FileOutputStream(result))){out.write(new byte[]{(byte)137,80,78,71,13,10,26,10});ByteArrayOutputStream header=new ByteArrayOutputStream();try(DataOutputStream h=new DataOutputStream(header)){h.writeInt(8001);h.writeInt(4000);h.write(new byte[]{8,2,0,0,0});}chunk(out,"IHDR",header.toByteArray());chunk(out,"IDAT",compressed.toByteArray());chunk(out,"IEND",new byte[0]);}return result;
++    }
++}
+diff --git a/android/app/src/main/java/app/recipio/local/AiLongImageCodec.java b/android/app/src/main/java/app/recipio/local/AiLongImageCodec.java
+new file mode 100644
+index 0000000..4b8dbc7
+--- /dev/null
++++ b/android/app/src/main/java/app/recipio/local/AiLongImageCodec.java
+@@ -0,0 +1,50 @@
++package app.recipio.local;
++
++import android.graphics.*;
++import android.media.ExifInterface;
++import java.io.*;
++import java.util.*;
++
++/** Explicit text-image mode: decode one bounded region of the authorised original at a time. */
++final class AiLongImageCodec {
++    static void process(File source,String mime,int remaining,AiTemporaryImages.Check check,AiTemporaryImages.SegmentSink sink)throws Exception {
++        BitmapRegionDecoder decoder=null;
++        try{
++            check.check();
++            AiImageCodec.validateContainer(AiTemporaryImages.read(source,15*1024*1024),mime);
++            BitmapFactory.Options bounds=new BitmapFactory.Options();bounds.inJustDecodeBounds=true;
++            BitmapFactory.decodeFile(source.getAbsolutePath(),bounds);
++            List<AiLongImagePlan.Region> regions=AiLongImagePlan.create(bounds.outWidth,bounds.outHeight,remaining);
++            int orientation=new ExifInterface(source.getAbsolutePath()).getAttributeInt(ExifInterface.TAG_ORIENTATION,1);
++            // Screenshots are normally unrotated. Do not silently reorder rotated source content.
++            if(orientation!=0&&orientation!=1)throw new AiFailure("long_image_limit");
++            check.check();decoder=BitmapRegionDecoder.newInstance(source.getAbsolutePath(),false);
++            if(decoder==null||decoder.getWidth()!=bounds.outWidth||decoder.getHeight()!=bounds.outHeight)throw new AiFailure("image_invalid");
++            for(AiLongImagePlan.Region region:regions){
++                check.check();Bitmap decoded=null,white=null;
++                try{
++                    long pixels=(long)region.right*(region.bottom-region.top);
++                    long available=Runtime.getRuntime().maxMemory()-Runtime.getRuntime().totalMemory()+Runtime.getRuntime().freeMemory();
++                    // Two ARGB buffers plus bounded encoding/decoder overhead; never grow the pixel ceiling.
++                    AiLongImagePlan.requireDecodeBudget(pixels,available);
++                    BitmapFactory.Options options=new BitmapFactory.Options();options.inPreferredConfig=Bitmap.Config.ARGB_8888;options.inSampleSize=1;
++                    decoded=decoder.decodeRegion(new Rect(region.left,region.top,region.right,region.bottom),options);
++                    if(decoded==null||decoded.getWidth()!=region.right||decoded.getHeight()!=region.bottom-region.top)throw new AiFailure("image_invalid");
++                    check.check();white=Bitmap.createBitmap(decoded.getWidth(),decoded.getHeight(),Bitmap.Config.ARGB_8888);
++                    Canvas canvas=new Canvas(white);canvas.drawColor(Color.WHITE);canvas.drawBitmap(decoded,0,0,null);
++                    AiTemporaryImages.Processed output=null;
++                    for(int quality:new int[]{85,75,65})try(ByteArrayOutputStream encoded=new ByteArrayOutputStream()){
++                        check.check();if(!white.compress(Bitmap.CompressFormat.JPEG,quality,encoded))throw new AiFailure("image_invalid");
++                        if(encoded.size()<=1024*1024){output=new AiTemporaryImages.Processed(encoded.toByteArray(),white.getWidth(),white.getHeight());break;}
++                    }
++                    if(output==null)throw new AiFailure("long_image_limit");
++                    check.check();sink.add(output);
++                }finally{if(white!=null&&!white.isRecycled())white.recycle();if(decoded!=null&&!decoded.isRecycled())decoded.recycle();}
++            }
++            check.check();
++        }catch(AiFailure error){throw error;}
++        catch(OutOfMemoryError error){throw new AiFailure("long_image_limit");}
++        catch(IOException|RuntimeException error){throw new AiFailure("image_invalid");}
++        finally{if(decoder!=null&&!decoder.isRecycled())decoder.recycle();}
++    }
++}
+diff --git a/android/app/src/main/java/app/recipio/local/AiLongImagePlan.java b/android/app/src/main/java/app/recipio/local/AiLongImagePlan.java
+new file mode 100644
+index 0000000..51633c5
+--- /dev/null
++++ b/android/app/src/main/java/app/recipio/local/AiLongImagePlan.java
+@@ -0,0 +1,29 @@
++package app.recipio.local;
++
++import java.util.*;
++
++/** Bounded, unscaled source rectangles. Never omit the tail to fit a slot budget. */
++final class AiLongImagePlan {
++    static final int MAX_EDGE=2048,OVERLAP=64,MAX_DECODED_PIXELS=4194304;
++    static final class Region {
++        final int left=0,top,right,bottom;
++        Region(int width,int top,int bottom){this.top=top;right=width;this.bottom=bottom;}
++    }
++    static void requireDecodeBudget(long pixels,long availableHeap)throws AiFailure {
++        if(pixels<=0||pixels>MAX_DECODED_PIXELS||availableHeap<pixels*8+8L*1024*1024)throw new AiFailure("long_image_limit");
++    }
++    static List<Region> create(int width,int height,int slots)throws AiFailure {
++        if(width<=10||height<=10||Math.max(width,height)>(long)Math.min(width,height)*200)throw new AiFailure("image_invalid");
++        if((long)width*height>32000000)throw new AiFailure("image_too_large");
++        if(slots<1||slots>6||width>MAX_EDGE)throw new AiFailure("long_image_limit");
++        List<Region> result=new ArrayList<>();
++        for(int top=0;;){
++            if(result.size()==slots)throw new AiFailure("long_image_limit");
++            int bottom=(int)Math.min((long)height,(long)top+MAX_EDGE);
++            if((long)width*(bottom-top)>MAX_DECODED_PIXELS)throw new AiFailure("long_image_limit");
++            result.add(new Region(width,top,bottom));
++            if(bottom==height)return Collections.unmodifiableList(result);
++            top=bottom-OVERLAP;
++        }
++    }
++}
+diff --git a/android/app/src/main/java/app/recipio/local/AiTemporaryImages.java b/android/app/src/main/java/app/recipio/local/AiTemporaryImages.java
+index 55e7749..1006a5d 100644
+--- a/android/app/src/main/java/app/recipio/local/AiTemporaryImages.java
++++ b/android/app/src/main/java/app/recipio/local/AiTemporaryImages.java
+@@ -9,6 +9,9 @@ import java.util.*;
+ final class AiTemporaryImages {
+     interface Clock { long now(); }
+     interface Processor { Processed process(File source,String mime)throws Exception; }
++    interface Check { void check()throws Exception; }
++    interface SegmentSink { void add(Processed image)throws Exception; }
++    interface LongProcessor { void process(File source,String mime,int remaining,Check check,SegmentSink sink)throws Exception; }
+     interface Work<T> { T run(List<Processed> images)throws Exception; }
+     static final class Processed {
+         final byte[] bytes;final int width,height;
+@@ -18,12 +21,49 @@ final class AiTemporaryImages {
+         final String id,previewUri;final int byteSize,width,height;
+         Image(String id,File file,Processed result){this.id=id;previewUri="file://"+file.toURI().getRawPath();byteSize=result.bytes.length;width=result.width;height=result.height;}
+     }
+-    private final File root;private final Clock clock;private final Processor processor;
++    private final File root;private final Clock clock;private final Processor processor;private final LongProcessor longProcessor;
+     private final Map<UUID,Session> sessions=new HashMap<>();
+-    private static final class Session {final File dir;final long created;final Map<UUID,Image> images=new LinkedHashMap<>();int pins;boolean ended;Session(File dir,long created){this.dir=dir;this.created=created;}}
++    private static final class Session {final File dir;final long created;final Map<UUID,Image> images=new LinkedHashMap<>();int pins;boolean ended,batch;Session(File dir,long created){this.dir=dir;this.created=created;}}
+     private boolean pendingCleanup;
+-    AiTemporaryImages(File cache,Clock clock,Processor processor)throws Exception {root=new File(cache.getCanonicalFile(),"ai-import");safe(root);if(!root.isDirectory()&&!root.mkdir())throw new AiFailure("storage_error");this.clock=clock;this.processor=processor;}
++    AiTemporaryImages(File cache,Clock clock,Processor processor)throws Exception {this(cache,clock,processor,AiLongImageCodec::process);}
++    AiTemporaryImages(File cache,Clock clock,Processor processor,LongProcessor longProcessor)throws Exception {root=new File(cache.getCanonicalFile(),"ai-import");safe(root);if(!root.isDirectory()&&!root.mkdir())throw new AiFailure("storage_error");this.clock=clock;this.processor=processor;this.longProcessor=longProcessor;}
+     static AiTemporaryImages forContext(Context context)throws Exception {return new AiTemporaryImages(context.getCacheDir(),System::currentTimeMillis,AiImageCodec::process);}
++    List<Image> importLongSelectedUri(Context context,UUID operation,Uri uri,Check check)throws Exception {
++        if(uri==null||!"content".equals(uri.getScheme())||uri.getAuthority()==null||uri.getFragment()!=null||(context.getPackageName()+".fileprovider").equals(uri.getAuthority()))throw new AiFailure("image_invalid");
++        try{return importLongStream(operation,context.getContentResolver().openInputStream(uri),context.getContentResolver().getType(uri),check);}catch(AiFailure e){throw e;}catch(Exception ignored){throw new AiFailure("image_invalid");}
++    }
++    List<Image> importLongStream(UUID operation,InputStream stream,String mime,Check externalCheck)throws Exception {
++        Session reserved=null;File original=null;boolean published=false;List<File> stagedFiles=new ArrayList<>();List<Image> staged=new ArrayList<>();
++        try(InputStream input=stream){
++            if(input==null||!Arrays.asList("image/jpeg","image/png","image/webp").contains(mime))throw new AiFailure("image_invalid");
++            final Session session;final int remaining;final int existingBytes;
++            synchronized(this){session=owned(operation);if(session.batch||session.pins!=0)throw new AiFailure("busy");remaining=6-session.images.size();if(remaining<1)throw new AiFailure("long_image_limit");
++                int sum=0;for(Image image:session.images.values())sum+=image.byteSize;existingBytes=sum;
++                original=safe(new File(session.dir,UUID.randomUUID()+".source.part"));session.batch=true;session.pins++;reserved=session;}
++            // The external callback may take the Plugin monitor: never invoke it while holding this store's monitor.
++            Check check=()->{if(Thread.currentThread().isInterrupted())throw new AiFailure("cancelled");externalCheck.check();synchronized(this){owned(operation);}};
++            int bytes=0;byte[] buffer=new byte[8192];
++            try(OutputStream output=new FileOutputStream(original)){int n;while((n=input.read(buffer))!=-1){check.check();if(n==0)continue;if(bytes+n>15*1024*1024)throw new AiFailure("image_too_large");output.write(buffer,0,n);bytes+=n;}if(bytes==0)throw new AiFailure("image_invalid");}
++            final int[] stagedBytes={0};
++            longProcessor.process(original,mime,remaining,check,result->{
++                check.check();if(result==null||result.bytes==null||result.bytes.length==0)throw new AiFailure("image_invalid");
++                if(result.bytes.length>1024*1024)throw new AiFailure("image_too_large");
++                if(result.width<=10||result.height<=10||Math.max(result.width,result.height)>2048||(long)result.width*result.height>4194304)throw new AiFailure("image_invalid");
++                if(staged.size()>=remaining||existingBytes+(long)stagedBytes[0]+result.bytes.length>6L*1024*1024)throw new AiFailure("long_image_limit");
++                UUID id=UUID.randomUUID();File target;
++                synchronized(this){owned(operation);target=safe(new File(session.dir,id+".jpg"));stagedFiles.add(target);}
++                try(OutputStream output=new FileOutputStream(target)){output.write(result.bytes);}
++                staged.add(new Image(id.toString(),target,result));stagedBytes[0]+=result.bytes.length;
++            });
++            check.check();if(staged.isEmpty())throw new AiFailure("image_invalid");
++            // Do not publish a successful batch while its full-resolution source still needs cleaning.
++            if(!unlink(original))throw new AiFailure("storage_error");original=null;
++            check.check();
++            synchronized(this){owned(operation);for(Image image:staged)session.images.put(UUID.fromString(image.id),image);published=true;return Collections.unmodifiableList(new ArrayList<>(staged));}
++        }catch(AiFailure error){throw error;}catch(Exception ignored){throw new AiFailure("storage_error");}
++        finally{synchronized(this){if(original!=null&&!unlink(original))pendingCleanup=true;if(!published)for(File file:stagedFiles)if(!unlink(file))pendingCleanup=true;
++            if(reserved!=null){reserved.batch=false;reserved.pins--;if(reserved.ended)cleanup(reserved);}}}
++    }
+     synchronized void create(UUID operation)throws Exception {safe(root);if(sessions.size()>=8)throw new AiFailure("busy");File dir=safe(new File(root,operation.toString()));if(dir.exists()||!dir.mkdir())throw new AiFailure("storage_error");long created=clock.now();try(DataOutputStream out=new DataOutputStream(new FileOutputStream(safe(new File(dir,".session"))))){out.writeInt(1);out.writeLong(created);}sessions.put(operation,new Session(dir,created));}
+     synchronized void requireEmptySession(UUID operation)throws Exception {Session session=owned(operation);if(!session.images.isEmpty()||session.pins!=0)throw new AiFailure("busy");}
+     Image importSelectedUri(Context context,UUID operation,Uri uri)throws Exception {
+@@ -35,7 +75,7 @@ final class AiTemporaryImages {
+         try(InputStream input=stream){
+             if(input==null||!Arrays.asList("image/jpeg","image/png","image/webp").contains(mime))throw new AiFailure("image_invalid");
+             UUID id=UUID.randomUUID();
+-            synchronized(this){session=owned(operation);if(session.images.size()+session.pins>=6)throw new AiFailure("image_too_large");session.pins++;pinned=true;original=safe(new File(session.dir,id+".source.part"));output=safe(new File(session.dir,id+".jpg"));}
++            synchronized(this){session=owned(operation);if(session.batch)throw new AiFailure("busy");if(session.images.size()+session.pins>=6)throw new AiFailure("image_too_large");session.pins++;pinned=true;original=safe(new File(session.dir,id+".source.part"));output=safe(new File(session.dir,id+".jpg"));}
+             int bytes=0;byte[] buffer=new byte[8192];
+             try(OutputStream out=new FileOutputStream(original)){int n;while((n=input.read(buffer))!=-1){if(n==0)continue;if(bytes+n>15*1024*1024)throw new AiFailure("image_too_large");out.write(buffer,0,n);bytes+=n;}if(bytes==0)throw new AiFailure("image_invalid");}
+             Processed result=processor.process(original,mime);if(result==null||result.bytes==null||result.bytes.length==0)throw new AiFailure("image_invalid");
+@@ -46,7 +86,7 @@ final class AiTemporaryImages {
+     }
+     <T>T withPinnedImages(UUID operation,List<UUID> ids,Work<T> work)throws Exception {
+         Session session;List<Image> selected=new ArrayList<>();
+-        synchronized(this){session=owned(operation);if(ids.size()>6||new HashSet<>(ids).size()!=ids.size())throw new AiFailure("image_invalid");for(UUID id:ids){Image image=session.images.get(id);if(image==null)throw new AiFailure("image_invalid");selected.add(image);}session.pins++;}
++        synchronized(this){session=owned(operation);if(session.batch)throw new AiFailure("busy");if(ids.size()>6||new HashSet<>(ids).size()!=ids.size())throw new AiFailure("image_invalid");for(UUID id:ids){Image image=session.images.get(id);if(image==null)throw new AiFailure("image_invalid");selected.add(image);}session.pins++;}
+         try{List<Processed> data=new ArrayList<>();int total=0;for(Image image:selected){File file=safe(new File(session.dir,image.id+".jpg"));byte[] bytes=read(file,1024*1024);if(bytes.length!=image.byteSize)throw new AiFailure("image_invalid");total+=bytes.length;if(total>6*1024*1024)throw new AiFailure("image_too_large");data.add(new Processed(bytes,image.width,image.height));}return work.run(Collections.unmodifiableList(data));}
+         finally{synchronized(this){session.pins--;if(session.ended)cleanup(session);}}
+     }
+diff --git a/android/app/src/main/java/app/recipio/local/LocalAiIntakePlugin.java b/android/app/src/main/java/app/recipio/local/LocalAiIntakePlugin.java
+index 15d123b..3d42f91 100644
+--- a/android/app/src/main/java/app/recipio/local/LocalAiIntakePlugin.java
++++ b/android/app/src/main/java/app/recipio/local/LocalAiIntakePlugin.java
+@@ -65,6 +65,15 @@ public class LocalAiIntakePlugin extends Plugin {
+         }catch(Exception e){reject(call,e);}
+     }
+     @PluginMethod public synchronized void pickImage(PluginCall call){try{keys(call,"operationId");operation(call);if(picking||activeToken!=null)throw new AiFailure("busy");picking=true;Intent intent=new Intent(Intent.ACTION_OPEN_DOCUMENT);intent.addCategory(Intent.CATEGORY_OPENABLE);intent.setType("image/*");intent.putExtra(Intent.EXTRA_MIME_TYPES,new String[]{"image/jpeg","image/png","image/webp"});intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);try{startActivityForResult(call,intent,"imageSelected");}catch(RuntimeException ignored){picking=false;throw new AiFailure("image_invalid");}}catch(Exception e){reject(call,e);}}
++    @PluginMethod public synchronized void pickLongImage(PluginCall call){try{keys(call,"operationId");operation(call);if(picking||activeToken!=null)throw new AiFailure("busy");picking=true;Intent intent=new Intent(Intent.ACTION_OPEN_DOCUMENT);intent.addCategory(Intent.CATEGORY_OPENABLE);intent.setType("image/*");intent.putExtra(Intent.EXTRA_MIME_TYPES,new String[]{"image/jpeg","image/png","image/webp"});intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);try{startActivityForResult(call,intent,"longImageSelected");}catch(RuntimeException ignored){picking=false;throw new AiFailure("image_invalid");}}catch(Exception e){reject(call,e);}}
++    @ActivityCallback private void longImageSelected(PluginCall call,ActivityResult result){
++        if(call==null){synchronized(this){picking=false;}return;}
++        if(result.getResultCode()!=Activity.RESULT_OK){synchronized(this){picking=false;}call.resolve(new JSObject().put("cancelled",true).put("images",new JSArray()));return;}
++        Uri uri=result.getData()==null?null:result.getData().getData();
++        submit(call,()->{try{String id=operation(call);List<AiTemporaryImages.Image> images=runtime.images(getContext()).importLongSelectedUri(getContext(),UUID.fromString(id),uri,()->operation(call));
++            operation(call);JSArray resultImages=new JSArray();for(AiTemporaryImages.Image image:images)resultImages.put(new JSObject().put("id",image.id).put("mimeType","image/jpeg").put("byteSize",image.byteSize).put("width",image.width).put("height",image.height).put("previewUri",image.previewUri));
++            call.resolve(new JSObject().put("cancelled",false).put("images",resultImages));}finally{synchronized(this){picking=false;}}});
++    }
+     @ActivityCallback private void imageSelected(PluginCall call,ActivityResult result){
+         if(call==null){synchronized(this){picking=false;}return;}
+         if(result.getResultCode()!=Activity.RESULT_OK){synchronized(this){picking=false;}call.resolve(new JSObject().put("cancelled",true));return;}
+diff --git a/android/app/src/test/java/app/recipio/local/AiLongImageBatchTest.java b/android/app/src/test/java/app/recipio/local/AiLongImageBatchTest.java
+new file mode 100644
+index 0000000..32ac853
+--- /dev/null
++++ b/android/app/src/test/java/app/recipio/local/AiLongImageBatchTest.java
+@@ -0,0 +1,72 @@
++package app.recipio.local;
++
++import static org.junit.Assert.*;
++import java.io.*;
++import java.nio.file.*;
++import java.util.*;
++import java.util.concurrent.atomic.*;
++import org.junit.*;
++
++public class AiLongImageBatchTest {
++    private File cache;private UUID operation;
++    private AiTemporaryImages.Processed image(int marker){return new AiTemporaryImages.Processed(new byte[]{(byte)marker},1080,2048);}
++    private AiTemporaryImages store(AiTemporaryImages.LongProcessor process)throws Exception {AiTemporaryImages result=new AiTemporaryImages(cache,System::currentTimeMillis,(f,m)->image(9),process);result.create(operation);return result;}
++    private InputStream input(){return new ByteArrayInputStream(new byte[]{1,2,3});}
++    private List<AiTemporaryImages.Image> add(AiTemporaryImages images)throws Exception {return images.importLongStream(operation,input(),"image/png",()->{});}
++    @Before public void setup()throws Exception {cache=Files.createTempDirectory("recipio-generated-n2-").toFile();operation=UUID.randomUUID();}
++    @After public void cleanup()throws Exception {try(java.util.stream.Stream<Path> walk=Files.walk(cache.toPath())){walk.sorted(Comparator.reverseOrder()).forEach(p->{try{Files.delete(p);}catch(IOException e){throw new UncheckedIOException(e);}});}}
++    private long jpgs(){return Objects.requireNonNull(new File(cache,"ai-import/"+operation).listFiles((d,n)->n.endsWith(".jpg"))).length;}
++    private long sources(){return Objects.requireNonNull(new File(cache,"ai-import/"+operation).listFiles((d,n)->n.endsWith(".source.part"))).length;}
++    @Test public void successfulBatchPublishesAllInOrderAndDeletesSource()throws Exception {
++        AiTemporaryImages images=store((f,m,left,check,sink)->{assertEquals(6,left);sink.add(image(1));sink.add(image(2));sink.add(image(3));});
++        List<AiTemporaryImages.Image> added=add(images);assertEquals(3,added.size());assertEquals(3,jpgs());assertEquals(0,sources());
++        images.withPinnedImages(operation,Arrays.asList(UUID.fromString(added.get(2).id),UUID.fromString(added.get(0).id)),selected->{assertEquals(3,selected.get(0).bytes[0]);assertEquals(1,selected.get(1).bytes[0]);return null;});
++        images.discard(operation);assertFalse(new File(cache,"ai-import/"+operation).exists());
++    }
++    @Test public void failingSecondSegmentPreservesExistingImageAndNoBatchFiles()throws Exception {
++        AiTemporaryImages images=store((f,m,left,check,sink)->{assertEquals(5,left);sink.add(image(1));throw new AiFailure("image_invalid");});
++        AiTemporaryImages.Image old=images.importStream(operation,input(),"image/png");
++        assertEquals("image_invalid",assertThrows(AiFailure.class,()->add(images)).code);assertEquals(1,jpgs());assertEquals(0,sources());
++        assertEquals(9,(int)images.withPinnedImages(operation,Collections.singletonList(UUID.fromString(old.id)),selected->(int)selected.get(0).bytes[0]));
++        images.remove(operation,UUID.fromString(old.id));assertEquals(0,jpgs());
++    }
++    @Test public void cancellationAfterAStageRollsBackWholeBatchAndReleasesPin()throws Exception {
++        AtomicBoolean cancel=new AtomicBoolean();AiTemporaryImages images=store((f,m,left,check,sink)->{sink.add(image(1));cancel.set(true);check.check();sink.add(image(2));});
++        assertEquals("cancelled",assertThrows(AiFailure.class,()->images.importLongStream(operation,input(),"image/png",()->{if(cancel.get())throw new AiFailure("cancelled");})).code);
++        assertEquals(0,jpgs());assertEquals(0,sources());images.importStream(operation,input(),"image/png");assertEquals(1,jpgs());
++    }
++    @Test public void insufficientSlotsAndOversizeOutputsDoNotKeepPartialBatch()throws Exception {
++        AiTemporaryImages images=store((f,m,left,check,sink)->{for(int i=0;i<left+1;i++)sink.add(image(i));});
++        final AiTemporaryImages full=images;assertEquals("long_image_limit",assertThrows(AiFailure.class,()->add(full)).code);assertEquals(0,jpgs());assertEquals(0,sources());
++        images.discard(operation);operation=UUID.randomUUID();images=store((f,m,left,check,sink)->sink.add(new AiTemporaryImages.Processed(new byte[1024*1024+1],1080,2048)));
++        final AiTemporaryImages large=images;assertEquals("image_too_large",assertThrows(AiFailure.class,()->add(large)).code);assertEquals(0,jpgs());assertEquals(0,sources());
++    }
++    @Test public void batchReservationBlocksConcurrentMutationsAndStagingCleanup()throws Exception {
++        AiTemporaryImages[] owner=new AiTemporaryImages[1];owner[0]=store((f,m,left,check,sink)->{
++            sink.add(image(1));assertEquals("busy",assertThrows(AiFailure.class,()->owner[0].importStream(operation,input(),"image/png")).code);
++            assertEquals("busy",assertThrows(AiFailure.class,()->owner[0].withPinnedImages(operation,Collections.emptyList(),selected->null)).code);
++            assertEquals("busy",assertThrows(AiFailure.class,()->owner[0].remove(operation,UUID.randomUUID())).code);
++            assertFalse(owner[0].cleanupAbandoned());assertTrue(f.isFile());assertEquals(1,jpgs());sink.add(image(2));
++        });
++        assertEquals(2,add(owner[0]).size());assertEquals(2,jpgs());assertEquals(0,sources());
++    }
++    @Test public void discardDuringProcessingRollsBackOwnedBatchAndKeepsOtherSession()throws Exception {
++        AiTemporaryImages[] owner=new AiTemporaryImages[1];owner[0]=store((f,m,left,check,sink)->{sink.add(image(1));owner[0].discard(operation);check.check();});
++        UUID other=UUID.randomUUID();owner[0].create(other);AiTemporaryImages.Image old=owner[0].importStream(other,input(),"image/png");
++        assertEquals("stale_session",assertThrows(AiFailure.class,()->add(owner[0])).code);
++        assertFalse(new File(cache,"ai-import/"+operation).exists());
++        assertEquals(9,(int)owner[0].withPinnedImages(other,Collections.singletonList(UUID.fromString(old.id)),selected->(int)selected.get(0).bytes[0]));
++        owner[0].discard(other);
++    }
++    @Test public void sourceByteLimitRejectsBeforeProcessorAndLeavesNothing()throws Exception {
++        AtomicBoolean processed=new AtomicBoolean();AiTemporaryImages images=store((f,m,left,check,sink)->processed.set(true));
++        InputStream oversized=new InputStream(){int left=15*1024*1024+1;@Override public int read(){if(left==0)return -1;left--;return 0;}@Override public int read(byte[] b,int off,int len){if(left==0)return -1;int n=Math.min(left,len);Arrays.fill(b,off,off+n,(byte)0);left-=n;return n;}};
++        assertEquals("image_too_large",assertThrows(AiFailure.class,()->images.importLongStream(operation,oversized,"image/png",()->{})).code);
++        assertFalse(processed.get());assertEquals(0,jpgs());assertEquals(0,sources());
++    }
++    @Test public void threadInterruptionCancelsAndReleasesBatchReservation()throws Exception {
++        AiTemporaryImages images=store((f,m,left,check,sink)->{sink.add(image(1));Thread.currentThread().interrupt();check.check();});
++        try{assertEquals("cancelled",assertThrows(AiFailure.class,()->add(images)).code);}finally{Thread.interrupted();}
++        assertEquals(0,jpgs());assertEquals(0,sources());images.importStream(operation,input(),"image/png");assertEquals(1,jpgs());
++    }
++}
+diff --git a/android/app/src/test/java/app/recipio/local/AiLongImagePlanTest.java b/android/app/src/test/java/app/recipio/local/AiLongImagePlanTest.java
+new file mode 100644
+index 0000000..ec15ae1
+--- /dev/null
++++ b/android/app/src/test/java/app/recipio/local/AiLongImagePlanTest.java
+@@ -0,0 +1,53 @@
++package app.recipio.local;
++
++import static org.junit.Assert.*;
++import java.lang.reflect.*;
++import java.util.*;
++import org.junit.Test;
++
++/** These first tests compile without the new implementation so RED is an assertion, not javac. */
++public class AiLongImagePlanTest {
++    private List<?> plan(int width,int height,int slots)throws Exception {
++        Class<?> type;
++        try{type=Class.forName("app.recipio.local.AiLongImagePlan");}
++        catch(ClassNotFoundException missing){throw new AssertionError("Missing bounded original-image segment planner",missing);}
++        Method method=type.getDeclaredMethod("create",int.class,int.class,int.class);method.setAccessible(true);
++        try{return (List<?>)method.invoke(null,width,height,slots);}
++        catch(InvocationTargetException e){if(e.getCause() instanceof Exception)throw (Exception)e.getCause();throw e;}
++    }
++    private int value(Object region,String field)throws Exception {Field f=region.getClass().getDeclaredField(field);f.setAccessible(true);return f.getInt(region);}
++    @Test public void ordinaryAnd600LongImagesRemainOneFullResolutionRegion()throws Exception {
++        assertEquals(1,plan(1080,1440,6).size());List<?> regions=plan(600,1800,1);assertEquals(1,regions.size());
++        assertEquals(0,value(regions.get(0),"top"));assertEquals(1800,value(regions.get(0),"bottom"));
++    }
++    @Test public void tallImageKeepsAllRowsInTopToBottomOverlappingRegions()throws Exception {
++        List<?> regions=plan(1080,7200,6);assertEquals(4,regions.size());int previousBottom=0;
++        for(int i=0;i<regions.size();i++){int top=value(regions.get(i),"top"),bottom=value(regions.get(i),"bottom");
++            assertTrue(bottom>top);assertTrue(bottom-top<=2048);assertEquals(i==0?0:previousBottom-64,top);previousBottom=bottom;}
++        assertEquals(7200,previousBottom);
++    }
++    @Test public void remainingSlotsAreHardLimitAndNeverTruncateTail()throws Exception {
++        assertEquals("long_image_limit",assertThrows(AiFailure.class,()->plan(1080,7200,3)).code);
++        assertEquals("long_image_limit",assertThrows(AiFailure.class,()->plan(1080,7200,0)).code);
++        assertEquals(6,plan(1080,11968,6).size());
++        assertEquals("long_image_limit",assertThrows(AiFailure.class,()->plan(1080,11969,6)).code);
++    }
++    @Test public void widthAndOriginalPixelAndAspectBudgetsStayBounded()throws Exception {
++        assertEquals("long_image_limit",assertThrows(AiFailure.class,()->plan(2049,3000,6)).code);
++        assertEquals("image_too_large",assertThrows(AiFailure.class,()->plan(8001,4000,6)).code);
++        assertEquals("image_invalid",assertThrows(AiFailure.class,()->plan(10,100,6)).code);
++        assertEquals("image_invalid",assertThrows(AiFailure.class,()->plan(11,2201,6)).code);
++    }
++    private void budget(long pixels,long available)throws Exception {
++        Method method;
++        try{method=Class.forName("app.recipio.local.AiLongImagePlan").getDeclaredMethod("requireDecodeBudget",long.class,long.class);method.setAccessible(true);}
++        catch(NoSuchMethodException missing){throw new AssertionError("Missing allocation admission guard",missing);}
++        try{method.invoke(null,pixels,available);}catch(InvocationTargetException e){if(e.getCause() instanceof Exception)throw (Exception)e.getCause();throw e;}
++    }
++    @Test public void decodeHeapBudgetRejectsBeforeAllocation()throws Exception {
++        long pixels=1080L*2048,required=pixels*8+8L*1024*1024;
++        budget(pixels,required);
++        assertEquals("long_image_limit",assertThrows(AiFailure.class,()->budget(pixels,required-1)).code);
++        assertEquals("long_image_limit",assertThrows(AiFailure.class,()->budget(4194305,Long.MAX_VALUE)).code);
++    }
++}
+diff --git a/src/native/ai/intake-screen.tsx b/src/native/ai/intake-screen.tsx
+index dcda8df..7c3e9f6 100644
+--- a/src/native/ai/intake-screen.tsx
++++ b/src/native/ai/intake-screen.tsx
+@@ -67,11 +67,16 @@ export function AiIntakeScreen({ service, onPreview, onCancel, onConfigureKey, o
+     <section className="v2-intake-images" aria-label="本轮截图">
+       <div className="v2-task-header"><h3>本轮截图（{state.images.length} / {AI_LIMITS.imageCount}）</h3>
+         <Button variant="outline" disabled={busy || !state.operationId || state.images.length >= AI_LIMITS.imageCount}
+-          onClick={() => void service.pickImage().catch(e => setLocalError(safeAiError(e).message))}>添加截图</Button>
++          onClick={() => { setLocalError(""); void service.pickImage().catch(e => setLocalError(safeAiError(e).message)); }}>添加截图</Button>
+       </div>
+       <p className="v2-task-note">可只选截图，也可补充文字。截图不会成为菜谱图片，也不会进入备份。</p>
++      <div className="v2-task-actions">
++        <Button variant="outline" disabled={busy || !state.operationId || state.images.length >= AI_LIMITS.imageCount}
++          onClick={() => { setLocalError(""); void service.pickLongImage().catch(e => setLocalError(safeAiError(e).message)); }}>文字长图分段导入</Button>
++        <p className="v2-task-note">先选择此模式，再从系统选择一张文字长图；本机按从上到下分段。分段计入本轮 {AI_LIMITS.imageCount} 张上限，剩余 {AI_LIMITS.imageCount - state.images.length} 张。无法完整放入时会拒绝，请手动分图，不会静默截断。开始 AI 整理前不会发送图片。</p>
++      </div>
+       <details className="v2-intake-technical"><summary>图片格式与大小</summary><p>JPG、PNG 或 WebP 会在本机检查、缩小；每张原图不超过 {AI_LIMITS.originalImageBytes / 1048576} MiB / {AI_LIMITS.originalPixels / 10000} 万像素。</p></details>
+-      {state.imageBusy && <p role="status" className="v2-task-status">正在选择或处理截图…</p>}
++      {state.imageBusy && <p role="status" className="v2-task-status">正在选择或处理截图…可返回并放弃本轮以取消。</p>}
+       {state.images.length === 0 && <p className="v2-task-note">还没有添加截图，也可以只用文字整理。</p>}
+       <ol className="v2-intake-image-grid">{state.images.map((image, index) => <li key={image.id}>
+         <button type="button" className="v2-intake-image-preview" disabled={busy} aria-label={`预览截图 ${index + 1}`} onClick={() => setPreviewId(image.id)}>
+diff --git a/src/native/ai/long-image-screen.test.tsx b/src/native/ai/long-image-screen.test.tsx
+new file mode 100644
+index 0000000..35b1fae
+--- /dev/null
++++ b/src/native/ai/long-image-screen.test.tsx
+@@ -0,0 +1,56 @@
++import "fake-indexeddb/auto";
++import { fireEvent, render, screen, waitFor } from "@testing-library/react";
++import { afterEach, expect, it, vi } from "vitest";
++import { __resetLocalDatabaseForTests } from "@/features/offline/local-db";
++import { PreviewRecipeLibrary } from "../preview-store";
++import { V2AppearanceProvider } from "../ui-v2/appearance";
++import { AiIntakeScreen } from "./intake-screen";
++import { AiIntakeService } from "./service";
++import { deferred, fakeAi, image } from "./service.test-support";
++import type { AiTemporaryImage } from "./native-bridge";
++
++afterEach(__resetLocalDatabaseForTests);
++function fixture() {
++  const fake = fakeAi(), pickLongImage = vi.fn(async ({ operationId }: { operationId: string }) => ({ cancelled: false, images: [image(operationId), image(operationId)] }));
++  const bridge = { ...fake.bridge, pickLongImage }, service = new AiIntakeService(fake.keys, bridge, { store: new PreviewRecipeLibrary() });
++  return { bridge, service, onCancel: vi.fn() };
++}
++it.each(["warm-ivory", "pure-glass", "soft-sage"] as const)("N2 %s exposes an explicit separate long-image picker, batch previews and no automatic AI", async theme => {
++  const { bridge, service, onCancel } = fixture();
++  render(<V2AppearanceProvider theme={theme} solid={false}><AiIntakeScreen service={service} onPreview={vi.fn()} onCancel={onCancel} onConfigureKey={vi.fn()} /></V2AppearanceProvider>);
++  const split = screen.getByRole("button", { name: "文字长图分段导入" });
++  await waitFor(() => expect(split).toBeEnabled());
++  expect(bridge.pickLongImage).not.toHaveBeenCalled(); expect(bridge.organize).not.toHaveBeenCalled();
++  expect(screen.getByText(/分段计入本轮/)).toHaveTextContent("剩余 6 张");
++  fireEvent.click(split); await screen.findByAltText("截图 2");
++  expect(bridge.pickLongImage).toHaveBeenCalledOnce(); expect(bridge.pickImage).not.toHaveBeenCalled();
++  expect(screen.getByText(/分段计入本轮/)).toHaveTextContent("剩余 4 张");
++  expect(bridge.organize).not.toHaveBeenCalled();
++  fireEvent.click(screen.getByRole("button", { name: "前移截图 2" }));
++  expect(service.snapshot().input.imageIds).toHaveLength(2);
++  fireEvent.click(screen.getByRole("button", { name: "移除截图 2" }));
++  await waitFor(() => expect(service.snapshot().images).toHaveLength(1));
++});
++it("N2 processing still allows explicit session abandonment and rejects its late batch", async () => {
++  const { bridge, service, onCancel } = fixture(), batch = deferred<{ cancelled: boolean; images: AiTemporaryImage[] }>();
++  bridge.pickLongImage.mockReturnValueOnce(batch.promise);
++  render(<AiIntakeScreen service={service} onPreview={vi.fn()} onCancel={onCancel} onConfigureKey={vi.fn()} />);
++  const split = screen.getByRole("button", { name: "文字长图分段导入" }); await waitFor(() => expect(split).toBeEnabled());
++  const operationId = service.snapshot().operationId!; fireEvent.click(split);
++  expect(screen.getByRole("button", { name: "开始 AI 整理" })).toBeDisabled();
++  fireEvent.click(screen.getByRole("button", { name: "返回" }));
++  fireEvent.click(await screen.findByRole("button", { name: "放弃本轮整理" }));
++  await waitFor(() => expect(onCancel).toHaveBeenCalledOnce());
++  batch.resolve({ cancelled: false, images: [image(operationId)] });
++  await waitFor(() => expect(service.snapshot().imageBusy).toBe(false));
++  expect(service.snapshot().images).toEqual([]); expect(bridge.organize).not.toHaveBeenCalled();
++});
++it("N2 retrying a failed long import clears its old error after a complete batch succeeds", async () => {
++  const { bridge, service, onCancel } = fixture();
++  bridge.pickLongImage.mockRejectedValueOnce({ code: "long_image_limit" });
++  render(<AiIntakeScreen service={service} onPreview={vi.fn()} onCancel={onCancel} onConfigureKey={vi.fn()} />);
++  const split = screen.getByRole("button", { name: "文字长图分段导入" }); await waitFor(() => expect(split).toBeEnabled());
++  fireEvent.click(split); expect(await screen.findByRole("alert")).toHaveTextContent("手动分图");
++  fireEvent.click(split); await screen.findByAltText("截图 2");
++  expect(screen.queryByRole("alert")).not.toBeInTheDocument(); expect(bridge.organize).not.toHaveBeenCalled();
++});
+diff --git a/src/native/ai/long-images.test.ts b/src/native/ai/long-images.test.ts
+new file mode 100644
+index 0000000..1eba76c
+--- /dev/null
++++ b/src/native/ai/long-images.test.ts
+@@ -0,0 +1,102 @@
++import "fake-indexeddb/auto";
++import { afterEach, expect, it, vi } from "vitest";
++import { __resetLocalDatabaseForTests } from "@/features/offline/local-db";
++import { PreviewRecipeLibrary } from "../preview-store";
++import { AI_LIMITS } from "./contract";
++import { createAiBridge, type AiTemporaryImage } from "./native-bridge";
++import { AiIntakeService } from "./service";
++import { deferred, fakeAi, image } from "./service.test-support";
++
++afterEach(__resetLocalDatabaseForTests);
++const fixture = () => {
++  const fake = fakeAi();
++  const pickLongImage = vi.fn(async ({ operationId }: { operationId: string }) => ({ cancelled: false, images: [image(operationId), image(operationId)] }));
++  const bridge = { ...fake.bridge, pickLongImage };
++  const store = new PreviewRecipeLibrary();
++  return { ...fake, bridge, store, service: new AiIntakeService(fake.keys, bridge, { store }) };
++};
++
++it("N2 bridge passes only the session and preserves the complete ordered owned batch", async () => {
++  const fake = fakeAi(), { operationId } = await fake.bridge.createSession();
++  const images = [image(operationId), image(operationId)];
++  const pickLongImage = vi.fn(async () => ({ cancelled: false, images }));
++  const bridge = createAiBridge({ ...fake.bridge, pickLongImage });
++  expect(await bridge.pickLongImage!({ operationId })).toEqual({ cancelled: false, images });
++  expect(pickLongImage.mock.calls).toEqual([[{ operationId }]]);
++  await expect(bridge.pickLongImage!({ operationId, file: "file:///unowned.png" } as { operationId: string })).rejects.toMatchObject({ code: "input_invalid" });
++  expect(pickLongImage).toHaveBeenCalledTimes(1);
++  expect(fake.bridge.pickImage).not.toHaveBeenCalled(); expect(fake.bridge.organize).not.toHaveBeenCalled();
++});
++
++it("N2 bridge rejects partial, oversized, duplicate or unowned batch metadata and requires empty cancellation", async () => {
++  const fake = fakeAi(), { operationId } = await fake.bridge.createSession(), valid = image(operationId);
++  const invalid = [
++    { cancelled: false, images: [] },
++    { cancelled: false, images: [valid, valid] },
++    { cancelled: false, images: Array.from({ length: 7 }, () => image(operationId)) },
++    { cancelled: false, images: [{ ...valid, byteSize: AI_LIMITS.imageBytes + 1 }] },
++    { cancelled: false, images: [{ ...valid, width: 2049 }] },
++    { cancelled: false, images: [{ ...valid, previewUri: "file:///unowned.jpg" }] },
++    { cancelled: true, images: [valid] },
++  ];
++  for (const reply of invalid) {
++    const bridge = createAiBridge({ ...fake.bridge, pickLongImage: async () => reply });
++    await expect(bridge.pickLongImage!({ operationId })).rejects.toMatchObject({ code: "invalid_output" });
++  }
++  const cancelled = createAiBridge({ ...fake.bridge, pickLongImage: async () => ({ cancelled: true, images: [] }) });
++  expect(await cancelled.pickLongImage!({ operationId })).toEqual({ cancelled: true, images: [] });
++});
++
++it("N2 appends a batch atomically after existing images and sends its chosen order only on explicit organize", async () => {
++  const { service, bridge, keys } = fixture(); await service.startSession();
++  service.updateInput({ text: "用户补充：盐适量", imageIds: [] }); await service.pickImage();
++  const first = service.snapshot().images[0]; await service.pickLongImage();
++  const [a, b, c] = service.snapshot().images;
++  expect(a).toEqual(first); expect(service.snapshot().input.imageIds).toEqual([a.id, b.id, c.id]);
++  expect(keys.hasAiKey).not.toHaveBeenCalled(); expect(bridge.organize).not.toHaveBeenCalled();
++  service.moveImage(c.id, -1); await service.removeImage(b.id);
++  await service.organize(service.snapshot().input);
++  expect(bridge.organize).toHaveBeenCalledWith(expect.objectContaining({ text: "用户补充：盐适量", imageIds: [a.id, c.id] }));
++  expect(service.snapshot().confirmed).toBe(false);
++  expect(() => service.assertCanSave()).toThrow();
++  service.setConfirmed(true); service.assertCanSave();
++});
++
++it("N2 cancellation and batch failure retain existing input/images; full slots refuse before picker", async () => {
++  const { service, bridge } = fixture(); await service.startSession();
++  service.updateInput({ text: "保留输入", imageIds: [] }); await service.pickImage();
++  const before = service.snapshot().images;
++  bridge.pickLongImage.mockResolvedValueOnce({ cancelled: true, images: [] });
++  await service.pickLongImage(); expect(service.snapshot().images).toEqual(before);
++  bridge.pickLongImage.mockRejectedValueOnce({ code: "long_image_limit" });
++  await expect(service.pickLongImage()).rejects.toMatchObject({ code: "long_image_limit" });
++  expect(service.snapshot().input.text).toBe("保留输入"); expect(service.snapshot().images).toEqual(before);
++  expect(service.snapshot().error?.message).toContain("手动分图");
++  for (let i = 1; i < 6; i++) await service.pickImage();
++  await expect(service.pickLongImage()).rejects.toMatchObject({ code: "image_too_large" });
++  expect(bridge.pickLongImage).toHaveBeenCalledTimes(2); expect(bridge.organize).not.toHaveBeenCalled();
++});
++
++it("N2 malformed or overflowing batches never partially enter JS state", async () => {
++  const { service, bridge } = fixture(); const operationId = await service.startSession(); await service.pickImage();
++  const before = service.snapshot().images;
++  for (const images of [[before[0]], Array.from({ length: 6 }, () => image(operationId)), [{ ...image(operationId), byteSize: AI_LIMITS.imageBytes + 1 }]]) {
++    bridge.pickLongImage.mockResolvedValueOnce({ cancelled: false, images });
++    await expect(service.pickLongImage()).rejects.toMatchObject({ code: "invalid_output" });
++    expect(service.snapshot().images).toEqual(before); expect(service.snapshot().input.imageIds).toEqual(before.map(x => x.id));
++  }
++});
++
++it("N2 discard during processing prevents a late whole batch from entering a replacement session", async () => {
++  const { service, bridge } = fixture(); const old = await service.startSession();
++  const batch = deferred<{ cancelled: boolean; images: AiTemporaryImage[] }>(); bridge.pickLongImage.mockReturnValueOnce(batch.promise);
++  const pending = service.pickLongImage().catch(e => e);
++  expect(service.snapshot().imageBusy).toBe(true);
++  await expect(service.pickImage()).rejects.toMatchObject({ code: "busy" });
++  await expect(service.organize({ text: "不应请求", imageIds: [] })).rejects.toMatchObject({ code: "busy" });
++  await service.discard(); const fresh = await service.startSession();
++  batch.resolve({ cancelled: false, images: [image(old), image(old)] });
++  expect(await pending).toMatchObject({ code: "stale_session" });
++  expect(service.snapshot()).toMatchObject({ operationId: fresh, images: [], imageBusy: false });
++  expect(bridge.discardSession).toHaveBeenCalledWith({ operationId: old }); expect(bridge.organize).not.toHaveBeenCalled();
++});
+diff --git a/src/native/ai/native-bridge-lazy.test.ts b/src/native/ai/native-bridge-lazy.test.ts
+index 0e6c125..4ac7789 100644
+--- a/src/native/ai/native-bridge-lazy.test.ts
++++ b/src/native/ai/native-bridge-lazy.test.ts
+@@ -9,3 +9,9 @@ it("unsupported browser action is rejected before any native registration",async
+   const {createAiKeyPort}=await import("./native-bridge");
+   await expect(createAiKeyPort().hasAiKey()).rejects.toMatchObject({code:"native_unavailable"});expect(register).not.toHaveBeenCalled();
+ });
++it("long-image selection stays lazy and unavailable browser never registers Native",async()=>{
++  const {createAiBridge}=await import("./native-bridge");
++  const bridge=createAiBridge();expect(register).not.toHaveBeenCalled();
++  await expect(bridge.pickLongImage!({operationId:crypto.randomUUID()})).rejects.toMatchObject({code:"native_unavailable"});
++  expect(register).not.toHaveBeenCalled();
++});
+diff --git a/src/native/ai/native-bridge.ts b/src/native/ai/native-bridge.ts
+index 0069773..0f2c78f 100644
+--- a/src/native/ai/native-bridge.ts
++++ b/src/native/ai/native-bridge.ts
+@@ -3,6 +3,7 @@ import { z } from "zod";
+ import { AI_LIMITS } from "./contract";
+ 
+ const messages = {
++  long_image_limit: "长图无法在剩余名额或安全处理预算内完整分段，请手动分图后添加；没有截掉末尾内容。",
+   key_missing: "请先在设置中配置本机 AI 密钥。", network_unavailable: "AI 整理需要联网，已有菜谱仍可正常使用。", forbidden: "当前 AI 账号或模型无访问权限。", input_invalid: "请检查文字与截图后重试。", image_too_large: "截图超出数量或大小限制。", response_too_large: "AI 返回内容过大，请减少输入后重试。",
+   native_unavailable: "AI 整理仅支持 Android；本地菜谱仍可使用。", key_unavailable: "请在设置中重新配置本机 AI 密钥。", busy: "当前 AI 操作尚未结束，请稍候。", cancelled: "已取消整理。", invalid_input: "请检查文字与截图后重试。", invalid_output: "AI 返回内容不完整，请重试或手动录入。", no_network: "无法连接 AI；请检查网络。已有菜谱仍可离线使用。", timeout: "AI 请求超时，请手动重试。", unauthorized: "AI 密钥无效或没有权限，请检查设置。", rate_limited: "AI 请求过于频繁，请稍后重试。", provider_unavailable: "AI 服务暂不可用，请稍后重试。", provider_access: "当前账号、区域或模型访问不可用。", image_invalid: "截图无法读取，请选择 JPG、PNG 或 WebP 图片。", image_limit: "截图超出数量或大小限制。", storage_error: "本机临时存储失败，请检查可用空间。", stale_session: "本轮整理已结束，请重新进入。", review_required: "请先检查推断或缺失内容，并明确确认。", save_uncertain: "保存结果尚未确认，请勿重复新建。",
+ } as const;
+@@ -33,6 +34,7 @@ export function createAiKeyPort(api?: NativeAiKeyApi): AiKeyPort {
+ }
+ export type AiOrganizeRequest = {operationId: string; requestId: string; text: string; imageIds: string[]};
+ export type AiTemporaryImage={id:string;mimeType:"image/jpeg";byteSize:number;width:number;height:number;previewUri:string};
++export type AiLongImageReply={cancelled:boolean;images:AiTemporaryImage[]};
+ export interface NativeAiApi {
+   createSession(): Promise<unknown>;
+   discardSession(options:{operationId:string}): Promise<unknown>;
+@@ -40,6 +42,7 @@ export interface NativeAiApi {
+   cancel(options:{operationId:string;requestId:string}): Promise<unknown>;
+   preflight(): Promise<unknown>;
+   pickImage(options:{operationId:string}):Promise<unknown>;
++  pickLongImage?(options:{operationId:string}):Promise<unknown>;
+   removeImage(options:{operationId:string;imageId:string}):Promise<unknown>;
+   cleanupExpired():Promise<unknown>;
+ }
+@@ -52,6 +55,7 @@ export interface AiBridge {
+   cancel(options:{operationId:string;requestId:string}):Promise<void>;
+   preflight():Promise<AiPreflightResult>;
+   pickImage(options:{operationId:string}):Promise<{cancelled:boolean;image?:AiTemporaryImage}>;
++  pickLongImage?(options:{operationId:string}):Promise<AiLongImageReply>;
+   removeImage(options:{operationId:string;imageId:string}):Promise<void>;
+   cleanupExpired():Promise<{pendingCleanup:boolean}>;
+ }
+@@ -84,6 +88,15 @@ export function createAiBridge(api?:NativeAiApi):AiBridge {
+     organize:async input=>{const checked=options(organizeSchema,input);const reply=await run(()=>getNative().organize(checked),z.strictObject({rawJson:z.string()}));if(new TextEncoder().encode(reply.rawJson).length>AI_LIMITS.responseBytes)throw new AiIntakeError("response_too_large");return reply;},
+     preflight:()=>run(()=>getNative().preflight(),z.strictObject({available:z.literal(true),model:z.literal("qwen3.8-flash"),region:z.enum(["beijing","qianwen-platform"])})),
+     pickImage:async input=>{const checked=options(operationSchema,input);const reply=await run(()=>getNative().pickImage(checked),z.union([z.strictObject({cancelled:z.literal(true)}),z.strictObject({cancelled:z.literal(false),image:imageSchema})]));if(!reply.cancelled&&!ownedImage(reply.image,checked.operationId))throw new AiIntakeError("invalid_output");return reply;},
++    pickLongImage:async input=>{
++      const checked=options(operationSchema,input);
++      const reply=await run(()=>{const api=getNative();if(!api.pickLongImage)throw new AiIntakeError("native_unavailable");return api.pickLongImage(checked);},z.union([
++        z.strictObject({cancelled:z.literal(true),images:z.array(imageSchema).max(0)}),
++        z.strictObject({cancelled:z.literal(false),images:z.array(imageSchema).min(1).max(AI_LIMITS.imageCount)}),
++      ]));
++      if(!reply.cancelled)parseTransferredAiImages({images:reply.images},checked.operationId);
++      return reply;
++    },
+     removeImage:async input=>{const checked=options(operationSchema.extend({imageId:z.uuid()}),input);await run(()=>getNative().removeImage(checked),voidSchema);},
+     cleanupExpired:()=>run(()=>getNative().cleanupExpired(),z.strictObject({pendingCleanup:z.boolean()})),
+   };
+diff --git a/src/native/ai/service.ts b/src/native/ai/service.ts
+index ed95dbf..ca0441f 100644
+--- a/src/native/ai/service.ts
++++ b/src/native/ai/service.ts
+@@ -6,7 +6,7 @@ import type { AiReviewDraft, AiSourceContext } from "./contract";
+ import { AI_LIMITS,requiresAiReview } from "./contract";
+ import { parseAiDraft } from "./normalize";
+ import { z } from "zod";
+-import { AiIntakeError, safeAiError, type AiBridge, type AiKeyPort, type AiTemporaryImage } from "./native-bridge";
++import { AiIntakeError, parseTransferredAiImages, safeAiError, type AiBridge, type AiKeyPort, type AiTemporaryImage } from "./native-bridge";
+ export type AiInput={text:string;imageIds:string[]};
+ export type AiIntakeState={phase:"input"|"requesting"|"preview"|"error"|"saving"|"saved"|"uncertain";input:AiInput;operationId:string|null;requestId:string|null;draft:AiReviewDraft|null;confirmed:boolean;error:AiIntakeError|null;images:AiTemporaryImage[];imageBusy:boolean;pendingCleanup:boolean;savedRecipe:RecipeDetails|null};
+ export class AiIntakeService {
+@@ -116,6 +116,24 @@ export class AiIntakeService {
+     catch(error){const safe=safeAiError(error);if(generation===this.generation)this.set({...this.state,error:safe});throw safe;}
+     finally{if(generation===this.generation&&operationId===this.state.operationId)this.set({...this.state,imageBusy:false});}
+   }
++  async pickLongImage():Promise<void>{
++    this.assertInputEditable();
++    if(this.state.images.length>=AI_LIMITS.imageCount)throw new AiIntakeError("image_too_large");
++    if(!this.bridge.pickLongImage)throw new AiIntakeError("native_unavailable");
++    const operationId=this.state.operationId!,generation=this.generation;
++    this.set({...this.state,imageBusy:true,error:null});
++    try{
++      const reply=await this.bridge.pickLongImage({operationId});
++      if(generation!==this.generation||operationId!==this.state.operationId)throw new AiIntakeError("stale_session");
++      if(reply.cancelled){if(reply.images.length)throw new AiIntakeError("invalid_output");return;}
++      const batch=parseTransferredAiImages({images:reply.images},operationId),images=[...this.state.images,...batch];
++      if(images.length>AI_LIMITS.imageCount||new Set(images.map(image=>image.id)).size!==images.length||images.reduce((sum,image)=>sum+image.byteSize,0)>AI_LIMITS.totalImageBytes)throw new AiIntakeError("invalid_output");
++      // Native commits all segments together. Publish the validated batch in one
++      // state update; a failed/late result must never appear as a partial import.
++      this.set({...this.state,images,input:{...this.state.input,imageIds:images.map(image=>image.id)},phase:"input",draft:null,confirmed:false});
++    }catch(error){const safe=safeAiError(error);if(generation===this.generation)this.set({...this.state,error:safe});throw safe;}
++    finally{if(generation===this.generation&&operationId===this.state.operationId)this.set({...this.state,imageBusy:false});}
++  }
+   async removeImage(id:string):Promise<void>{
+     this.assertInputEditable();if(!this.state.images.some(image=>image.id===id))throw new AiIntakeError("image_invalid");const operationId=this.state.operationId!,generation=this.generation;this.set({...this.state,imageBusy:true,error:null});
+     try{await this.bridge.removeImage({operationId,imageId:id});if(generation!==this.generation)throw new AiIntakeError("stale_session");const images=this.state.images.filter(image=>image.id!==id);this.set({...this.state,images,input:{...this.state.input,imageIds:images.map(image=>image.id)},phase:"input",draft:null,confirmed:false});}catch(error){const safe=safeAiError(error);if(generation===this.generation)this.set({...this.state,error:safe});throw safe;}finally{if(generation===this.generation)this.set({...this.state,imageBusy:false});}

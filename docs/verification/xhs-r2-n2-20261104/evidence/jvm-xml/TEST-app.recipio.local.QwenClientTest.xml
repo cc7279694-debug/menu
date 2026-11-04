@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.recipio.local.QwenClientTest" tests="19" skipped="0" failures="0" errors="0" timestamp="2026-11-04T10:48:26.379Z" hostname="WHOCARE" time="0.519">
+  <properties/>
+  <testcase name="preflightRejectsAnythingExceptExactStatusOkObject" classname="app.recipio.local.QwenClientTest" time="0.146"/>
+  <testcase name="imagesUseJsonObjectWithoutChangingRecipeBudget" classname="app.recipio.local.QwenClientTest" time="0.012"/>
+  <testcase name="inputLimitsCodePointsAndMissingKeyAreEnforcedBeforeHttp" classname="app.recipio.local.QwenClientTest" time="0.089"/>
+  <testcase name="workspaceKeyUsesOfficialPlatformForPreflightTextAndImagesWithoutFallback" classname="app.recipio.local.QwenClientTest" time="0.02"/>
+  <testcase name="socketTimeoutAndOverallTimeoutAreDistinctFromOtherIo" classname="app.recipio.local.QwenClientTest" time="0.008"/>
+  <testcase name="textPreflightUsesOnlyFixedSmallJsonSchemaAndNoImage" classname="app.recipio.local.QwenClientTest" time="0.01"/>
+  <testcase name="fixedEndpointPromptSchemaAndNonThinkingParametersHaveNoBodySecret" classname="app.recipio.local.QwenClientTest" time="0.007"/>
+  <testcase name="preflightRejectsImageInputBeforeHttp" classname="app.recipio.local.QwenClientTest" time="0.004"/>
+  <testcase name="cancelledErrorBodyDoesNotReplaceTimeoutWithUnauthorized" classname="app.recipio.local.QwenClientTest" time="0.01"/>
+  <testcase name="statusErrorsNeverEchoProviderMessageOrCredentials" classname="app.recipio.local.QwenClientTest" time="0.031"/>
+  <testcase name="truncatedRefusalEmptyMalformedAndSchemaInvalidAreRejected" classname="app.recipio.local.QwenClientTest" time="0.03"/>
+  <testcase name="secretsCannotBecomeSourceOrPreflightPayload" classname="app.recipio.local.QwenClientTest" time="0.011"/>
+  <testcase name="currentSecretInResponseIncludingJsonEscapesIsRejected" classname="app.recipio.local.QwenClientTest" time="0.023"/>
+  <testcase name="cancelledSocketAndInvalidUtf8CannotReturnSuccessOrDifferentError" classname="app.recipio.local.QwenClientTest" time="0.023"/>
+  <testcase name="validReplyAndTextBlocksAreAccepted" classname="app.recipio.local.QwenClientTest" time="0.012"/>
+  <testcase name="tokenPlanAndMalformedWorkspaceKeysCannotReachAnyEndpoint" classname="app.recipio.local.QwenClientTest" time="0.02"/>
+  <testcase name="accessFailureCodesArePreservedWithoutProviderMessages" classname="app.recipio.local.QwenClientTest" time="0.011"/>
+  <testcase name="unknownBusinessFieldsImagesNumericStringsAndBadReferencesAreRejected" classname="app.recipio.local.QwenClientTest" time="0.032"/>
+  <testcase name="streamLimitFailureAndCancellationAreClosed" classname="app.recipio.local.QwenClientTest" time="0.014"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

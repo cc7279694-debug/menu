@@ -1,0 +1,5 @@
+
+> recipe-app-foundation-auth@0.1.0 typecheck
+> tsc --noEmit
+
+src/native/ai/long-image-screen.test.tsx(20,11): error TS2741: Property 'solid' is missing in type '{ children: Element; theme: "warm-ivory" | "pure-glass" | "soft-sage"; }' but required in type 'Readonly<{ theme: V2Theme; solid: boolean; }>'.
