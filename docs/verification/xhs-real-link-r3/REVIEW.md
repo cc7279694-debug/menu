@@ -59,6 +59,7 @@ New tests cover mobile identity absent/null/numeric/wrong; unfinished short link
 - SQLite4 / Preview7 / Backup2, native Key/Provider, local media and user data untouched. No new permission or dependency. No N2 long-image code.
 - Signed V28 SHA-256 remains `52dfed4ef23afb5aa0dc6fb2b6089921af240993627aec9479ff69ea3d94b59b` (read-only recheck); no APK build/sync/install/signing or phone operation.
 - Source and evidence commits are separate; later evidence commit does not change source. No main merge/tag/release. Diagnostic code is audit evidence under [diagnostic-tools](diagnostic-tools/README.md), never imported into production.
+- Final Git readback accounts for Windows line-ending normalization: `verification.json` gives canonical **Git blob** bytes/SHA-256 and separately records original local-file bytes/SHA-256. Original logs and patch context whitespace are retained; product-source whitespace check passes, while a global evidence diff check reports raw-log/patch whitespace. No test result is changed to normalize a receipt.
 
 ## NOT_RUN / UNKNOWN / remaining limitations
 
