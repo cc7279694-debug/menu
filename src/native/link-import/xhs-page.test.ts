@@ -8,6 +8,43 @@ const html = (state: unknown) => `<title>合成笔记 - 小红书</title><script
 const state = (value: unknown = note()) => ({ note: { noteDetailMap: { "test-note": { note: value } } } });
 
 describe("bounded inert public Xiaohongshu state", () => {
+  it("R3 reads the fixed mobile public state path only with an explicit target identity", () => {
+    const result = extractXhsPublicPage(html({ noteData: { data: { noteData: note() } } }), url);
+    expect(result).toMatchObject({ targetResolved: true, diagnostic: "target_text", title: "合成椰子鸡", text: note().desc });
+  });
+  it.each([undefined, null, "other", 0, ""])("R3 rejects mobile notes with missing or conflicting identity: %s", noteId => {
+    const result = extractXhsPublicPage(html({ noteData: { data: { noteData: { ...note(), noteId } } } }), url);
+    expect(result).toMatchObject({ targetResolved: false, text: "", title: "" });
+  });
+  it("R3 never searches mobile recommendations or resolves an unfinished short link by singleton", () => {
+    const source = html({ noteData: { data: { noteData: { ...note(), noteId: "other" }, recommendations: [note()] } } });
+    expect(extractXhsPublicPage(source, url)).toMatchObject({ targetResolved: false, text: "" });
+    expect(extractXhsPublicPage(html({ noteData: { data: { noteData: note() } } }), "https://xhslink.cn/o/synthetic"))
+      .toMatchObject({ targetResolved: false, diagnostic: "unresolved_link", text: "" });
+  });
+  it("R3 does not supplement an existing legacy map with a competing mobile layout", () => {
+    const source = html({ ...state({ ...note(), noteId: "other" }), noteData: { data: { noteData: note() } } });
+    expect(extractXhsPublicPage(source, url)).toMatchObject({ targetResolved: false, diagnostic: "target_missing", text: "" });
+  });
+  it.each([null, [], "invalid"])("R3 does not fall through a malformed legacy map: %s", noteDetailMap => {
+    const source = html({ note: { noteDetailMap }, noteData: { data: { noteData: note() } } });
+    expect(extractXhsPublicPage(source, url)).toMatchObject({ targetResolved: false, text: "" });
+  });
+  it.each([{ noteData: { data: null } }, { noteData: { data: { noteData: [note()] } } }, { noteData: { noteData: note() } }])("R3 rejects unsupported mobile containers without searching elsewhere: %j", value => {
+    expect(extractXhsPublicPage(html(value), url)).toMatchObject({ targetResolved: false, diagnostic: "state_unsupported", text: "" });
+  });
+  it("R3 preserves the original target when both layouts exist and keeps mobile media/invalid prose diagnostics", () => {
+    expect(extractXhsPublicPage(html({ ...state(), noteData: { data: { noteData: note("另一标题", "另一正文") } } }), url)?.text).toBe(note().desc);
+    for (const [desc, diagnostic] of [["", "media_only"], [{ text: "不可猜测" }, "invalid_content"]] as const) {
+      expect(extractXhsPublicPage(html({ noteData: { data: { noteData: { ...note(), desc } } } }), url)).toMatchObject({ diagnostic, text: "" });
+    }
+  });
+  it("R3 keeps inert serialization, sanitization and safety limits on the mobile layout", () => {
+    const source = html({ noteData: { data: { noteData: note("合成汤", '<p>煮熟。</p><script>attack()</script>') } } }).replace('"type":"normal"', '"unused":undefined,"type":"normal"');
+    expect(extractXhsPublicPage(source, url)).toMatchObject({ text: "煮熟。", targetResolved: true });
+    expect(extractXhsPublicPage(html({ noteData: { data: { noteData: note() } }, huge: "x".repeat(270000) }), url))
+      .toMatchObject({ diagnostic: "safety_limit", text: "", targetResolved: false });
+  });
   it("reads only the target note title, description and media kind", () => {
     const result = extractXhsPublicPage(html(state()), url);
     expect(result).toMatchObject({ title: "合成椰子鸡", text: "食材：鸡肉500克，椰子2个。\n做法：焯水，加入椰汁，小火煮20分钟。", media: "image", access: null });

@@ -59,7 +59,16 @@ function noteFromEntry(value: unknown): Record<string, unknown> | null {
 
 function noteFromState(state: unknown, noteId: string | null): { note: Record<string, unknown> | null; supported: boolean } {
   // A singleton recommendation on an unresolved short page is not target identity.
-  const notes = object(own(object(own(object(state), "note")), "noteDetailMap"));
+  const legacy = object(own(object(state), "note"));
+  if (!legacy || !Object.hasOwn(legacy, "noteDetailMap")) {
+    // A second public serialization layout, not a recursive search or a fallback
+    // from a conflicting/malformed legacy map. Its embedded identity is mandatory.
+    const mobile = object(own(object(state), "noteData"));
+    const data = object(own(mobile, "data"));
+    const note = object(own(data, "noteData"));
+    return { note: noteId && note && own(note, "noteId") === noteId ? note : null, supported: note !== null };
+  }
+  const notes = object(own(legacy, "noteDetailMap"));
   if (!notes) return { note: null, supported: false };
   if (!noteId) return { note: null, supported: true };
   const values = Object.values(notes).map(noteFromEntry).filter((item): item is Record<string, unknown> => item !== null);

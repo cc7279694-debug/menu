@@ -21,6 +21,42 @@ const setup = () => {
   const service = new LinkImportService({ store, port, ai }); return { store, fake, ai, port, service };
 };
 afterEach(__resetLocalDatabaseForTests);
+it("R3 mobile target prose enables explicit AI only, excludes recommendations and retains review/save gates", async () => {
+  const { service, port, fake, ai, store } = setup();
+  const target = { noteId: "synthetic-target", title: "合成青菜", desc: "青菜200克。洗净后炒熟。", type: "normal" };
+  const data = { noteData: { data: { noteData: target, recommendations: [{ ...target, noteId: "other", desc: "不得导入的推荐正文" }] } } };
+  port.read.mockResolvedValue({ html: `<title>合成青菜</title><script>window.__INITIAL_STATE__=${JSON.stringify(data)};</script><main>不得导入的页面壳</main>`, finalUrl: "https://www.xiaohongshu.com/discovery/item/synthetic-target?xsec_token=synthetic", contentType: "text/html" });
+  await service.read("https://xhslink.cn/o/synthetic");
+  expect(service.readQuality()).toBe("partial");
+  expect(service.snapshot().visible?.text).toBe(target.desc);
+  expect(service.snapshot().parsed?.candidates).toEqual([]);
+  expect(fake.bridge.organize).not.toHaveBeenCalled();
+  expect(await store.list()).toEqual([]);
+  await service.useAi();
+  const request = vi.mocked(service.dependencies.ai.bridge.organize).mock.calls[0][0];
+  expect(request.text).toContain(target.desc);
+  expect(JSON.stringify(request)).not.toMatch(/synthetic-target|xsec_token|https:|推荐正文|页面壳/u);
+  expect(request.imageIds).toEqual([]);
+  await expect(service.saveAi(ai.snapshot().draft!.recipe)).rejects.toMatchObject({ code: "review_required" });
+  expect(await store.list()).toEqual([]);
+  ai.setConfirmed(true);
+  await service.saveAi(ai.snapshot().draft!.recipe);
+  expect(await store.list()).toHaveLength(1);
+});
+it("R3 mismatched mobile identity cannot use unrelated JSON-LD or page text to enable AI/save", async () => {
+  const { service, port, fake, store } = setup();
+  const data = { noteData: { data: { noteData: { noteId: "other", title: "推荐菜", desc: "推荐步骤" } } } };
+  const recipe = { "@type": "Recipe", name: "推荐菜", recipeIngredient: ["鸡肉500克"], recipeInstructions: ["炖熟。"] };
+  port.read.mockResolvedValue({ html: `<title>合成目标</title><script>window.__INITIAL_STATE__=${JSON.stringify(data)}</script><script type="application/ld+json">${JSON.stringify(recipe)}</script><main>推荐步骤</main>`, finalUrl: "https://www.xiaohongshu.com/explore/target", contentType: "text/html" });
+  await service.read("https://xhslink.cn/o/synthetic");
+  expect(service.snapshot().visible?.text).toBe("");
+  expect(service.snapshot().parsed?.candidates).toEqual([]);
+  expect(service.readQuality()).toBe("title_only");
+  await expect(service.useAi()).rejects.toMatchObject({ code: "page_unreadable" });
+  await expect(service.saveParser(emptyDetails("推荐菜"))).rejects.toMatchObject({ code: "stale_session" });
+  expect(fake.bridge.organize).not.toHaveBeenCalled();
+  expect(await store.list()).toEqual([]);
+});
 it("XHS-R2 distinguishes absent public state from an unsupported serialization shape", async () => {
   const { service, port, fake } = setup();
   port.read.mockResolvedValue({ ...fetched(), finalUrl: "https://www.xiaohongshu.com/explore/synthetic", html: "<title>合成菜</title>" });
