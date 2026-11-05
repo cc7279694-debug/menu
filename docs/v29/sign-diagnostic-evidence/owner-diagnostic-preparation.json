@@ -1,0 +1,19 @@
+{
+  "status": "OWNER_SIGNING_REQUIRED",
+  "firstAttempt": "SIGN_FAILED",
+  "rootCause": "UNKNOWN",
+  "frozenApkAndV28Preserved": true,
+  "oldHelperAndStagingPreserved": true,
+  "signingPreflightArgumentsIdentityAndPasswordTransportAstUnchanged": true,
+  "launcher": "E:\\CODEX\\RECIPIO-Signing\\v29-r3-owner-signing-diagnostic\\START_V29_SIGN_DIAGNOSTIC.cmd",
+  "files": {
+    "START_V29_SIGN_DIAGNOSTIC.cmd": "79f07315a261661a3d8cbddf1f50e36b11968f3b8f29443f311398aac67630bc",
+    "sign_existing.py": "9d204d4ca433e6b48e16de2f93515e577292b9e1cba8dea9f78624abc0df0fb2",
+    "README.md": "ef01525c79eb4240e27e9c3994e7b595a3fca98e4b1121ca2b8452d42f9102e5"
+  },
+  "mockTests": 32,
+  "realKeyOpenedByCodex": false,
+  "realSigningByCodex": false,
+  "guiLaunched": false,
+  "signedV29Exists": false
+}

@@ -4,8 +4,10 @@ import hashlib
 import importlib.util
 import io
 from pathlib import Path
+import subprocess
 import tempfile
 import unittest
+from unittest.mock import patch
 import zipfile
 
 spec = importlib.util.find_spec('sign_existing')
@@ -186,6 +188,89 @@ class V29ExistingIdentityTests(unittest.TestCase):
         with self.assertRaisesRegex(signing.Stop, 'PASSWORD_TRANSPORT_INVALID'):
             self.run_sign()
         self.assertFalse(self.calls)
+
+
+class V29SigningDiagnosticTests(unittest.TestCase):
+    secret = b'SYNTHETIC_PRIVATE_DIAGNOSTIC_SENTINEL'
+    sign_args = ['fake-java', '-jar', 'apksigner.jar', 'sign', 'fake-private-input']
+
+    def assert_safe_error(self, expected, *, stderr=b'', side_effect=None, args=None,
+                          stage='SIGN_FAILED', runner=None):
+        captured = io.StringIO()
+        fake_result = subprocess.CompletedProcess(self.sign_args, 1, self.secret, stderr + b'\n' + self.secret)
+        with patch.object(subprocess, 'run', return_value=fake_result, side_effect=side_effect):
+            with contextlib.redirect_stdout(captured), contextlib.redirect_stderr(captured):
+                with self.assertRaises(signing.Stop) as caught:
+                    signing.tool(runner or signing.official, args or self.sign_args, stage, self.secret)
+        self.assertEqual(caught.exception.args, (expected,))
+        self.assertIsNone(caught.exception.__cause__)
+        self.assertIsNone(caught.exception.__context__)
+        self.assertNotIn(self.secret.decode(), repr(caught.exception))
+        self.assertEqual(captured.getvalue(), '')
+
+    def test_store_provider_rejection_takes_priority_over_key_exception(self):
+        self.assert_safe_error('SIGN_STORE_PASSWORD_REJECTED', stderr=(
+            b'java.io.IOException: keystore password was incorrect\n'
+            b'Caused by: java.security.UnrecoverableKeyException: failed to decrypt safe contents'))
+
+    def test_key_provider_rejection_is_distinct(self):
+        self.assert_safe_error('SIGN_KEY_PASSWORD_REJECTED', stderr=(
+            b'Caused by: java.security.UnrecoverableKeyException: Cannot recover key'))
+
+    def test_generic_wrong_password_hint_does_not_claim_password_error(self):
+        self.assert_safe_error('SIGN_TOOL_UNKNOWN', stderr=b'Failed to obtain key with alias "fixture". Wrong password?')
+
+    def test_alias_without_key_is_distinct(self):
+        self.assert_safe_error('SIGN_ALIAS_MISSING', stderr=b'java.security.KeyStoreException: Keystore entry "fixture" does not contain a key')
+
+    def test_rejected_options_are_distinct(self):
+        self.assert_safe_error('SIGN_OPTIONS_REJECTED', stderr=b'Unsupported option: --fixture. See --help for supported options.')
+
+    def test_missing_algorithm_or_provider_is_distinct(self):
+        self.assert_safe_error('SIGN_KEYSTORE_FORMAT_OR_PROVIDER', stderr=b'Caused by: java.security.NoSuchAlgorithmException: fixture algorithm')
+
+    def test_file_access_error_is_distinct(self):
+        self.assert_safe_error('SIGN_FILE_ACCESS_OR_IO', stderr=b'java.nio.file.AccessDeniedException: fake-private-input')
+
+    def test_closed_stdin_is_not_reported_as_bad_password(self):
+        self.assert_safe_error('SIGN_STDIN_CLOSED', stderr=b'java.io.IOException: Failed to read password: standard input closed')
+
+    def test_unknown_stderr_does_not_escape(self):
+        self.assert_safe_error('SIGN_TOOL_UNKNOWN', stderr=b'Unrecognized synthetic tool failure')
+
+    def test_timeout_never_retains_raw_exception_context(self):
+        self.assert_safe_error('SIGN_TOOL_TIMEOUT', side_effect=subprocess.TimeoutExpired(
+            self.sign_args, 120, output=self.secret, stderr=self.secret))
+
+    def test_process_start_exception_is_redacted(self):
+        self.assert_safe_error('SIGN_PROCESS_START_FAILED', side_effect=PermissionError(self.secret.decode()))
+
+    def test_verify_stage_does_not_interpret_signing_stderr(self):
+        self.assert_safe_error('SIGNED_VERIFY_FAILED', stderr=b'java.io.IOException: keystore password was incorrect',
+                               args=['fake-java', '-jar', 'apksigner.jar', 'verify'], stage='SIGNED_VERIFY_FAILED')
+
+    def test_generic_runner_exception_is_not_retained(self):
+        def fail(_args, _payload):
+            raise RuntimeError(self.secret.decode())
+        self.assert_safe_error('SIGN_FAILED', runner=fail)
+
+    def test_unapproved_diagnostic_category_is_not_propagated(self):
+        def fail(_args, _payload):
+            error = signing.SignToolFailure(self.secret.decode())
+            self.assertEqual(error.args, ('SIGN_TOOL_UNKNOWN',))
+            error.args = (self.secret.decode(),)
+            raise error
+        self.assert_safe_error('SIGN_TOOL_UNKNOWN', runner=fail)
+
+    def test_allowlisted_sign_exception_cannot_cross_other_stage(self):
+        def fail(_args, _payload):
+            raise signing.SignToolFailure('SIGN_ALIAS_MISSING')
+        self.assert_safe_error('V28_SIGNATURE_INVALID', stage='V28_SIGNATURE_INVALID', runner=fail)
+
+    def test_successful_sign_does_not_return_tool_output(self):
+        with patch.object(subprocess, 'run', return_value=subprocess.CompletedProcess(
+                self.sign_args, 0, self.secret, self.secret)):
+            self.assertEqual(signing.official(self.sign_args, self.secret), '')
 
 
 if __name__ == '__main__':

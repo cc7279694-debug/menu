@@ -1,0 +1,11 @@
+{
+  "scope": "OFFICIAL_PASSWORD_RETRIEVER_SYNTHETIC_NO_SIGNING",
+  "twoSequentialUtf8Lines": "PASS",
+  "javaDefaultCharset": "UTF-8",
+  "defaultKeystoreType": "pkcs12",
+  "extraToolPromptBytes": 32,
+  "realKeystoreLoaded": false,
+  "realPasswordRead": false,
+  "signingExecuted": false,
+  "signFailureRootCause": "UNKNOWN"
+}

@@ -51,6 +51,27 @@ a valid success receipt is not success; preserve it and stop. Codex independentl
 checks the actual signed APK after owner completion. No installation or upgrade
 claim follows from signing; those remain separately gated.
 
+## Owner signing diagnostics
+
+The earlier `SIGN_FAILED` attempt discarded its raw tool output. There is no
+recoverable stderr and its actual cause remains **UNKNOWN**; it does not prove
+the owner typed the wrong password. The failed staging files remain unchanged.
+
+Only an owner-initiated new local attempt can establish a more specific
+failure category. For that one attempt, the helper checks a bounded in-memory
+prefix of apksigner sign stderr for known ASCII diagnostics and exposes only a
+fixed category. `SIGN_STORE_PASSWORD_REJECTED` or `SIGN_KEY_PASSWORD_REJECTED`
+means the provider rejected unlocking the store or key; neither proves an
+input mistake. `SIGN_ALIAS_MISSING` means no usable key was reported for the
+alias. Other categories cover rejected options, keystore format/provider,
+file access/I/O, closed stdin, timeout, process start and unknown failures.
+A generic "Wrong password?" hint is not treated as a confirmed password error.
+
+No raw stdout/stderr, arguments, exception chain, password or path is emitted
+from the signing diagnostic. Other tool stages retain their original failure
+codes. No automatic retry, changed signing parameters or new key route is
+introduced. If an owner attempt stops, report only its fixed error category.
+
 `python -m unittest -v test_sign_existing` in this directory uses only generated
 non-APK ZIPs, non-key text fixtures and Fake official tools. It neither invokes
 real signing nor proves cryptographic/device success. Never run `preflight(FIXED)`,

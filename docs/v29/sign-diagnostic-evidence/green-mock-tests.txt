@@ -1,0 +1,37 @@
+test_alignment_happens_before_signing_and_password_only_stdin (test_sign_existing.V29ExistingIdentityTests.test_alignment_happens_before_signing_and_password_only_stdin) ... ok
+test_changed_previous_apk_rejected_before_tools (test_sign_existing.V29ExistingIdentityTests.test_changed_previous_apk_rejected_before_tools) ... ok
+test_changed_unsigned_rejected (test_sign_existing.V29ExistingIdentityTests.test_changed_unsigned_rejected) ... ok
+test_debuggable_rejected_before_sign (test_sign_existing.V29ExistingIdentityTests.test_debuggable_rejected_before_sign) ... ok
+test_existing_output_never_overwritten (test_sign_existing.V29ExistingIdentityTests.test_existing_output_never_overwritten) ... ok
+test_missing_v2_refuses_publication (test_sign_existing.V29ExistingIdentityTests.test_missing_v2_refuses_publication) ... ok
+test_missing_v3_refuses_publication (test_sign_existing.V29ExistingIdentityTests.test_missing_v3_refuses_publication) ... ok
+test_newline_password_never_reaches_tool (test_sign_existing.V29ExistingIdentityTests.test_newline_password_never_reaches_tool) ... ok
+test_payload_changes_refuse_publication (test_sign_existing.V29ExistingIdentityTests.test_payload_changes_refuse_publication) ... ok
+test_pending_build_hash_fails_before_tools_or_password (test_sign_existing.V29ExistingIdentityTests.test_pending_build_hash_fails_before_tools_or_password) ... ok
+test_preflight_uses_only_fake_existing_inputs (test_sign_existing.V29ExistingIdentityTests.test_preflight_uses_only_fake_existing_inputs) ... ok
+test_success_fixed_v29_public_receipt_and_key_fixture_unchanged (test_sign_existing.V29ExistingIdentityTests.test_success_fixed_v29_public_receipt_and_key_fixture_unchanged) ... ok
+test_testonly_rejected_before_sign (test_sign_existing.V29ExistingIdentityTests.test_testonly_rejected_before_sign) ... ok
+test_tool_failure_redacted_and_no_retry (test_sign_existing.V29ExistingIdentityTests.test_tool_failure_redacted_and_no_retry) ... ok
+test_wrong_certificate_refuses_publication (test_sign_existing.V29ExistingIdentityTests.test_wrong_certificate_refuses_publication) ... ok
+test_wrong_version_rejected_before_sign (test_sign_existing.V29ExistingIdentityTests.test_wrong_version_rejected_before_sign) ... ok
+test_alias_without_key_is_distinct (test_sign_existing.V29SigningDiagnosticTests.test_alias_without_key_is_distinct) ... ok
+test_allowlisted_sign_exception_cannot_cross_other_stage (test_sign_existing.V29SigningDiagnosticTests.test_allowlisted_sign_exception_cannot_cross_other_stage) ... ok
+test_closed_stdin_is_not_reported_as_bad_password (test_sign_existing.V29SigningDiagnosticTests.test_closed_stdin_is_not_reported_as_bad_password) ... ok
+test_file_access_error_is_distinct (test_sign_existing.V29SigningDiagnosticTests.test_file_access_error_is_distinct) ... ok
+test_generic_runner_exception_is_not_retained (test_sign_existing.V29SigningDiagnosticTests.test_generic_runner_exception_is_not_retained) ... ok
+test_generic_wrong_password_hint_does_not_claim_password_error (test_sign_existing.V29SigningDiagnosticTests.test_generic_wrong_password_hint_does_not_claim_password_error) ... ok
+test_key_provider_rejection_is_distinct (test_sign_existing.V29SigningDiagnosticTests.test_key_provider_rejection_is_distinct) ... ok
+test_missing_algorithm_or_provider_is_distinct (test_sign_existing.V29SigningDiagnosticTests.test_missing_algorithm_or_provider_is_distinct) ... ok
+test_process_start_exception_is_redacted (test_sign_existing.V29SigningDiagnosticTests.test_process_start_exception_is_redacted) ... ok
+test_rejected_options_are_distinct (test_sign_existing.V29SigningDiagnosticTests.test_rejected_options_are_distinct) ... ok
+test_store_provider_rejection_takes_priority_over_key_exception (test_sign_existing.V29SigningDiagnosticTests.test_store_provider_rejection_takes_priority_over_key_exception) ... ok
+test_successful_sign_does_not_return_tool_output (test_sign_existing.V29SigningDiagnosticTests.test_successful_sign_does_not_return_tool_output) ... ok
+test_timeout_never_retains_raw_exception_context (test_sign_existing.V29SigningDiagnosticTests.test_timeout_never_retains_raw_exception_context) ... ok
+test_unapproved_diagnostic_category_is_not_propagated (test_sign_existing.V29SigningDiagnosticTests.test_unapproved_diagnostic_category_is_not_propagated) ... ok
+test_unknown_stderr_does_not_escape (test_sign_existing.V29SigningDiagnosticTests.test_unknown_stderr_does_not_escape) ... ok
+test_verify_stage_does_not_interpret_signing_stderr (test_sign_existing.V29SigningDiagnosticTests.test_verify_stage_does_not_interpret_signing_stderr) ... ok
+
+----------------------------------------------------------------------
+Ran 32 tests in 0.216s
+
+OK

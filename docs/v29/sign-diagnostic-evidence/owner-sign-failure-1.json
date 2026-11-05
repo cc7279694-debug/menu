@@ -1,0 +1,24 @@
+{
+  "failure": "SIGN_FAILED_USER_SCREENSHOT",
+  "phase": "APKSIGNER_SIGN_OR_PROCESS_EXCEPTION",
+  "ownerReceiptExists": false,
+  "stagedUnsignedBytes": 15149572,
+  "stagedUnsignedSha256": "95f52141cdcb228353fd98edb7611599132c16ab243100e30216ff6b96b5d995",
+  "signedStagedExists": false,
+  "helperCopies": {
+    "sign_existing.py": {
+      "repoSha256": "2f83b038658d226354f1898e41f48d4bbc5565c3d4b1f247afb0b9393b8579c4",
+      "ownerSha256": "2f83b038658d226354f1898e41f48d4bbc5565c3d4b1f247afb0b9393b8579c4"
+    },
+    "START_V29_EXISTING_KEY.cmd": {
+      "repoSha256": "79f07315a261661a3d8cbddf1f50e36b11968f3b8f29443f311398aac67630bc",
+      "ownerSha256": "79f07315a261661a3d8cbddf1f50e36b11968f3b8f29443f311398aac67630bc"
+    },
+    "README.md": {
+      "repoSha256": "40adbd70b9dbbe4ff9f9853b992e8398112c2959748ceb9e06e708ee2c0670ba",
+      "ownerSha256": "40adbd70b9dbbe4ff9f9853b992e8398112c2959748ceb9e06e708ee2c0670ba"
+    }
+  },
+  "passwordRootCause": "UNKNOWN",
+  "actualKeyReadByCodex": false
+}

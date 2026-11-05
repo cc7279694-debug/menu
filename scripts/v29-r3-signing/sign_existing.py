@@ -15,6 +15,24 @@ class Stop(Exception):
     pass
 
 
+SIGN_FAILURE_CODES = frozenset({
+    'SIGN_STORE_PASSWORD_REJECTED', 'SIGN_KEY_PASSWORD_REJECTED',
+    'SIGN_ALIAS_MISSING', 'SIGN_OPTIONS_REJECTED',
+    'SIGN_KEYSTORE_FORMAT_OR_PROVIDER', 'SIGN_FILE_ACCESS_OR_IO',
+    'SIGN_TOOL_TIMEOUT', 'SIGN_PROCESS_START_FAILED', 'SIGN_STDIN_CLOSED',
+    'SIGN_TOOL_UNKNOWN',
+})
+
+
+def safe_sign_code(category):
+    return category if isinstance(category, str) and category in SIGN_FAILURE_CODES else 'SIGN_TOOL_UNKNOWN'
+
+
+class SignToolFailure(Stop):
+    def __init__(self, category):
+        super().__init__(safe_sign_code(category))
+
+
 @dataclass(frozen=True)
 class Inputs:
     unsigned: Path
@@ -48,22 +66,75 @@ def digest(path):
         return hashlib.file_digest(stream, 'sha256').hexdigest()
 
 
+def is_apksigner_sign(args):
+    return len(args) >= 4 and args[1] == '-jar' and Path(args[2]).name.lower() == 'apksigner.jar' and args[3] == 'sign'
+
+
+def sign_failure_category(stderr):
+    # Only stable ASCII diagnostics; byte matching works with Windows console encodings.
+    # Keep the original output in memory, never include it in an exception or receipt.
+    text = stderr[:65536].lower() if isinstance(stderr, bytes) else b''
+    if re.search(rb'java\.io\.ioexception:\s*keystore password was incorrect\b', text):
+        return 'SIGN_STORE_PASSWORD_REJECTED'
+    if any(marker in text for marker in (b'unsupported option:', b'unsupported password spec for ',
+                                         b'unsupported password character encoding requested')):
+        return 'SIGN_OPTIONS_REJECTED'
+    if b'" does not contain a key' in text or b' does not contain key entries' in text:
+        return 'SIGN_ALIAS_MISSING'
+    if b'standard input closed' in text:
+        return 'SIGN_STDIN_CLOSED'
+    if any(marker in text for marker in (b'java.security.nosuchalgorithmexception', b'java.security.nosuchproviderexception',
+                                         b'invalid keystore format', b'unsupported key algorithm',
+                                         b'not an rsa, ec, or dsa private key')):
+        return 'SIGN_KEYSTORE_FORMAT_OR_PROVIDER'
+    # An outer "Wrong password?" prompt alone is ambiguous and does not qualify.
+    if b'java.security.unrecoverablekeyexception' in text:
+        return 'SIGN_KEY_PASSWORD_REJECTED'
+    if any(marker in text for marker in (b'java.io.filenotfoundexception', b'java.nio.file.accessdeniedexception',
+                                         b'java.nio.file.nosuchfileexception', b'java.io.ioexception')):
+        return 'SIGN_FILE_ACCESS_OR_IO'
+    return 'SIGN_TOOL_UNKNOWN'
+
+
 def official(args, payload=None):
     # Passwords never enter arguments, exported environment, files or raw tool logs.
+    signing = is_apksigner_sign(args)
     env = {key: os.environ[key] for key in ('SystemRoot', 'WINDIR', 'TEMP', 'TMP', 'PATH') if key in os.environ}
-    result = subprocess.run(args, input=payload, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-                            env=env, timeout=120, check=False,
-                            creationflags=getattr(subprocess, 'CREATE_NO_WINDOW', 0))
-    if result.returncode:
-        raise Stop('TOOL_FAILED')
-    return result.stdout.decode('utf-8', errors='replace')
+    failure = None
+    try:
+        result = subprocess.run(args, input=payload, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                                env=env, timeout=120, check=False,
+                                creationflags=getattr(subprocess, 'CREATE_NO_WINDOW', 0))
+    except subprocess.TimeoutExpired:
+        failure = 'SIGN_TOOL_TIMEOUT'
+    except OSError:
+        failure = 'SIGN_PROCESS_START_FAILED'
+    except Exception:
+        failure = 'SIGN_TOOL_UNKNOWN'
+    else:
+        if not result.returncode:
+            return '' if signing else result.stdout.decode('utf-8', errors='replace')
+        failure = sign_failure_category(result.stderr) if signing else 'TOOL_FAILED'
+        del result
+    # Raise outside the handler so a raw child exception cannot remain as __context__.
+    args = payload = env = None
+    if signing:
+        raise SignToolFailure(failure) from None
+    raise Stop('TOOL_FAILED') from None
 
 
 def tool(runner, args, code, payload=None):
+    argv = [str(arg) for arg in args]
+    failure = code
     try:
-        return runner([str(arg) for arg in args], payload)
+        return runner(argv, payload)
+    except SignToolFailure as error:
+        if code == 'SIGN_FAILED' and is_apksigner_sign(argv):
+            failure = safe_sign_code(error.args[0] if len(error.args) == 1 else None)
     except Exception:
-        raise Stop(code) from None
+        pass
+    args = argv = payload = None
+    raise Stop(failure) from None
 
 
 def reject_link(path):

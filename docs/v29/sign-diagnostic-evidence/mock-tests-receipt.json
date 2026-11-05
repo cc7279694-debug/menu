@@ -1,0 +1,54 @@
+{
+  "scope": "SIGNING_DIAGNOSTIC_CLASSIFICATION_FAKE_TESTS_ONLY",
+  "firstOwnerFailureRootCause": "UNKNOWN_PREVIOUS_RAW_STDERR_DISCARDED",
+  "frozenCoreStaticAstComparison": "PASS",
+  "unchangedDefinitions": [
+    "FIXED",
+    "SOURCE",
+    "ROOT",
+    "Inputs",
+    "sign_existing",
+    "preflight",
+    "identity",
+    "verify_signed",
+    "main"
+  ],
+  "onlyExistingFunctionsChanged": [
+    "official",
+    "tool"
+  ],
+  "changedFiles": [
+    "scripts/v29-r3-signing/README.md",
+    "scripts/v29-r3-signing/sign_existing.py",
+    "scripts/v29-r3-signing/test_sign_existing.py"
+  ],
+  "red": {
+    "tests": 32,
+    "failures": 16,
+    "exitCode": 1,
+    "receipt": "red-with-stdin.txt"
+  },
+  "green": {
+    "tests": 32,
+    "failures": 0,
+    "existingRegressionTests": 16,
+    "newDiagnosticTests": 16,
+    "exitCode": 0,
+    "receipt": "green.txt"
+  },
+  "childToolInvocationsMocked": true,
+  "rawSyntheticDiagnosticNotExposed": true,
+  "rawExceptionContextNotRetained": true,
+  "newRealKeyContentOrMetadataReads": 0,
+  "newRealGuiStarts": 0,
+  "newRealSigningAttempts": 0,
+  "realOfficialToolExecutions": 0,
+  "ownerExternalCopyModified": false,
+  "ownerStatus": "OWNER_SIGNING_REQUIRED",
+  "receiptSha256": {
+    "red.txt": "51aa033d88e28371509e9789037813ec52af29c7a906be5e74c0480ddd041d49",
+    "red-with-stdin.txt": "2bf0a6b9d3aa3f06b3357ac96b85d56ca51f61aa568f3d5c848df0b910da1f54",
+    "green.txt": "61e2208455242541b4bec12cfd75dfe348c6452fdfac915dc5c4ce43b9871b94"
+  },
+  "checkedAt": "2026-11-05T04:52:39.001838+00:00"
+}

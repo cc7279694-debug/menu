@@ -9,10 +9,14 @@ Original package/code29/name0.11.2-personal.1 unsigned Release built and inspect
 15,149,572bytes /95f52141cdcb228353fd98edb7611599132c16ab243100e30216ff6b96b5d995.
 454scopedJS/30files,25pureJVM,typecheck,lint0error/5existingwarnings, Web build,
 sync/isolation and Gradle release PASS.16Fake owner-helper tests PASS separately.
-No real XHS/AI requests, phone/AVD/install/signing/key operations. V28 hash unchanged.
-OWNER_SIGNING_REQUIRED: the owner must input the existing password privately once
-using the new pinned V29 launcher. Until then the APK is unsigned/not installable;
-actual V29 certificate/v2/v3 and V28→V29 Android data retention remain NOT_RUN.
+No real XHS/AI requests or phone/AVD/install/key operations by Codex. V28 hash unchanged.
+The owner's first private signing attempt returned SIGN_FAILED; root cause UNKNOWN,
+no signed candidate or success receipt. Original stage preserved. The diagnostic
+helper now provides fixed safe failure categories for one owner-controlled attempt;
+32 mock tests passed, including the original16 and16 new diagnostic cases.
+[Current diagnostic handoff](v29/V29_OWNER_SIGN_DIAGNOSTIC.md) supersedes the
+original launcher instruction. Actual V29 certificate/v2/v3 and Android upgrade
+data retention remain NOT_RUN; unsigned APK is not installable.
 [Review/resume](v29/V29_R3_A1_REVIEW.md) / [owner checklist](v29/V29_R3_A1_OWNER_CHECKLIST.md).
 No main merge/release/N2 resumption or Xiaomi pass is authorized or claimed.
 
