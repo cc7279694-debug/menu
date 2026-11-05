@@ -1,0 +1,6 @@
+{
+  "command": "install -r",
+  "result": "Performing Streamed Install\r\nSuccess",
+  "uninstalled": false,
+  "clearedData": false
+}

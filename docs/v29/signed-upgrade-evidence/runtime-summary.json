@@ -1,0 +1,34 @@
+{
+  "emulator": "Recipio_V29_R3_A1_API36",
+  "api": 36,
+  "serial": "emulator-5686",
+  "before": {
+    "versionCode": "28 minSdk=24 targetSdk=36",
+    "versionName": "0.11.1-personal.1",
+    "appId": "10216",
+    "firstInstallTime": "2026-11-05 05:20:24",
+    "lastUpdateTime": "2026-11-05 05:20:24",
+    "installedBaseSha256": "52dfed4ef23afb5aa0dc6fb2b6089921af240993627aec9479ff69ea3d94b59b",
+    "airplaneMode": "1"
+  },
+  "after": {
+    "versionCode": "29 minSdk=24 targetSdk=36",
+    "versionName": "0.11.2-personal.1",
+    "appId": "10216",
+    "firstInstallTime": "2026-11-05 05:20:24",
+    "lastUpdateTime": "2026-11-05 05:26:33",
+    "installedBaseSha256": "b7226af457af39fcf049d082cfe82813a0ad120957d562b9ee5c908e06f3ae4d",
+    "airplaneMode": "1"
+  },
+  "coldStart": "PASS_ACTUAL_OFFLINE_UI",
+  "firstInstallTimeEqual": true,
+  "appIdEqual": true,
+  "offline": true,
+  "realXhsRequests": 0,
+  "realAiCalls": 0,
+  "phoneOperations": 0,
+  "v28ToV29": "PASS",
+  "theme": "PASS_SOFT_SAGE_ACTUAL_SCREENSHOTS",
+  "androidR3SyntheticParserInstrumentation": "NOT_RUN",
+  "rawPrivateDatabaseRead": false
+}

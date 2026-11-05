@@ -1,0 +1,17 @@
+Verifies
+Verified using v1 scheme (JAR signing): false
+Verified using v2 scheme (APK Signature Scheme v2): true
+Verified using v3 scheme (APK Signature Scheme v3): true
+Verified using v3.1 scheme (APK Signature Scheme v3.1): false
+Verified using v4 scheme (APK Signature Scheme v4): false
+Verified for SourceStamp: false
+Number of signers: 1
+Signer #1 certificate DN: CN=RECIPIO Personal, O=Personal, C=CN
+Signer #1 certificate SHA-256 digest: 5a3f7cb866cdc15d0357e03a49d611204bd2df763c71a3e005656e416adc251d
+Signer #1 certificate SHA-1 digest: 2105271beab1900608fe50d17543642c6587d01e
+Signer #1 certificate MD5 digest: cc02a2159dc78c1aa2f27942361da10e
+Signer #1 key algorithm: RSA
+Signer #1 key size (bits): 3072
+Signer #1 public key SHA-256 digest: 3b8126a2abff666154e08e1c6a56a3ba377fd5ecb8d73f883561993a2bd007a0
+Signer #1 public key SHA-1 digest: 551490bb9a8400f785ffd19300e0b01a1ad52471
+Signer #1 public key MD5 digest: c1776069af8d14e7fb98a7a8842db595

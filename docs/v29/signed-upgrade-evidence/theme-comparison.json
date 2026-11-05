@@ -1,0 +1,25 @@
+{
+  "dimensions": [
+    540,
+    960
+  ],
+  "source": "actual before/after settings screenshots, cold starts",
+  "regions": [
+    {
+      "pixelsDifferent": 0,
+      "name": "background",
+      "equal": true
+    },
+    {
+      "pixelsDifferent": 0,
+      "name": "selectedRadio",
+      "equal": true
+    },
+    {
+      "pixelsDifferent": 0,
+      "name": "themePanel",
+      "equal": true
+    }
+  ],
+  "theme": "Soft Sage"
+}

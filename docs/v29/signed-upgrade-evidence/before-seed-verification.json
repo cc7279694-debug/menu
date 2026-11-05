@@ -1,0 +1,16 @@
+{
+  "beforeIsActualUIExport": true,
+  "versionCode": 28,
+  "seedDataFieldsAndOrderEqual": true,
+  "seedMediaBytesEqual": true,
+  "counts": {
+    "recipes": 2,
+    "ingredients": 3,
+    "steps": 3,
+    "preparations": 2,
+    "keyTips": 2,
+    "changes": 1,
+    "cookingRecords": 1,
+    "media": 3
+  }
+}

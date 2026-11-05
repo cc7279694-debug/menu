@@ -1,0 +1,22 @@
+{
+  "initialLaunchFailures": [
+    {
+      "attempt": "emulator-out.txt",
+      "availableMiB": 7112.18,
+      "requiredMiB": 7372.8,
+      "failure": "INSUFFICIENT_DISK_FOR_USERDATA"
+    },
+    {
+      "attempt": "compact-out.txt",
+      "availableMiB": 7110.84,
+      "requiredMiB": 7372.8,
+      "failure": "INSUFFICIENT_DISK_FOR_USERDATA"
+    }
+  ],
+  "successfulStorage": "C-drive isolated temporary AVD",
+  "v28InitialUiDump": "INVALID_XML_RECOVERED",
+  "v28FirstRestoreAttempt": "INPUT_DISPATCH_ANR",
+  "v28Recovery": "OWNED_AVD_DISPLAY_OVERRIDE_AND_APP_COLD_RESTART",
+  "avdStoppedAndDeviceDisconnected": true,
+  "testStatePreserved": true
+}

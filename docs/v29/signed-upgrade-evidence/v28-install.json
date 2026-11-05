@@ -1,0 +1,6 @@
+{
+  "install": "Performing Streamed Install\r\nSuccess",
+  "freshPackage": true,
+  "syntheticSeedSha256": "bd102b14c01677b4b96ee6bcdeac7b7b89ec652d1fef95d30a040604ce1c0294",
+  "launch": "Starting: Intent { act=android.intent.action.MAIN cat=[android.intent.category.LAUNCHER] cmp=app.recipio.local/.MainActivity }\r\nStatus: ok\r\nLaunchState: COLD\r\nActivity: app.recipio.local/.MainActivity\r\nTotalTime: 3814\r\nWaitTime: 3818\r\nComplete"
+}

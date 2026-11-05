@@ -1,0 +1,34 @@
+{
+  "freshConfigOnly": true,
+  "priorFailures": [
+    "E: disk insufficient for original partition",
+    "E: reduced configured partition still required 7372.80MB"
+  ],
+  "serial": "emulator-5686",
+  "avdRoot": "C:\\Users\\CDD\\AppData\\Local\\Temp\\Recipio_V29_R3_A1_API36_20261105",
+  "name": "Recipio_V29_R3_A1_API36",
+  "args": [
+    "-avd",
+    "Recipio_V29_R3_A1_API36",
+    "-port",
+    "5686",
+    "-memory",
+    "2560",
+    "-cores",
+    "2",
+    "-gpu",
+    "swiftshader",
+    "-no-window",
+    "-no-audio",
+    "-no-snapshot",
+    "-no-boot-anim",
+    "-camera-back",
+    "none",
+    "-camera-front",
+    "none"
+  ],
+  "thresholdGiB": 4,
+  "pid": 4048,
+  "diskFreeBytes": 15014105088,
+  "freePhysicalGiB": 4.61260986328125
+}

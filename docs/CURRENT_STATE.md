@@ -1,6 +1,6 @@
 # Current State
 
-## V29-R3-A1 — BLOCKED / OWNER_ACTION_REQUIRED — 2026-11-05
+## V29-R3-A1 — READY_FOR_INDEPENDENT_REVIEW — 2026-11-05
 
 On `integration/recipio-v29-r3-a1`, R3 limited acceptance was registered in3998147;
 version-only integration source747f80a38761882a19522e4c8f61a5f09a90068d keeps the
@@ -9,16 +9,15 @@ Original package/code29/name0.11.2-personal.1 unsigned Release built and inspect
 15,149,572bytes /95f52141cdcb228353fd98edb7611599132c16ab243100e30216ff6b96b5d995.
 454scopedJS/30files,25pureJVM,typecheck,lint0error/5existingwarnings, Web build,
 sync/isolation and Gradle release PASS.16Fake owner-helper tests PASS separately.
-No real XHS/AI requests or phone/AVD/install/key operations by Codex. V28 hash unchanged.
-The owner's first private signing attempt returned SIGN_FAILED; root cause UNKNOWN,
-no signed candidate or success receipt. Original stage preserved. The diagnostic
-helper now provides fixed safe failure categories for one owner-controlled attempt;
-32 mock tests passed, including the original16 and16 new diagnostic cases.
-[Current diagnostic handoff](v29/V29_OWNER_SIGN_DIAGNOSTIC.md) supersedes the
-original launcher instruction. Actual V29 certificate/v2/v3 and Android upgrade
-data retention remain NOT_RUN; unsigned APK is not installable.
-[Review/resume](v29/V29_R3_A1_REVIEW.md) / [owner checklist](v29/V29_R3_A1_OWNER_CHECKLIST.md).
-No main merge/release/N2 resumption or Xiaomi pass is authorized or claimed.
+Owner signing succeeded after the first failed attempt. The original failure
+cause remains UNKNOWN. Independent official v2/v3, V28 certificate match, package
+version, payload and APK SHA passed. Signed SHA
+`b7226af457af39fcf049d082cfe82813a0ad120957d562b9ee5c908e06f3ae4d`.
+On the dedicated offline API36 AVD, actual V28→V29 install -r and cold start passed.
+Both UI exports retained identical data.json and three synthetic image payloads.
+Soft Sage settings screenshot regions matched. Disk and V28 ANR recovery are in
+the report. Owned AVD stopped. Xiaomi14, real XHS/AI and Android synthetic parser
+instrumentation remain NOT_RUN. N2 paused. [Signed upgrade evidence](v29/V29_R3_A1_SIGNED_UPGRADE.md).
 
 ## P0 XHS-R3 — ACCEPTED / FROZEN — PASS WITH NOTES（限定范围） — 2026-11-05
 

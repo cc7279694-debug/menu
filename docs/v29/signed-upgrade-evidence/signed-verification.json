@@ -1,0 +1,22 @@
+{
+  "status": "SIGNED_CANDIDATE_VERIFIED",
+  "package": "app.recipio.local",
+  "versionCode": 29,
+  "versionName": "0.11.2-personal.1",
+  "unsignedSha256": "95f52141cdcb228353fd98edb7611599132c16ab243100e30216ff6b96b5d995",
+  "previousApkSha256": "52dfed4ef23afb5aa0dc6fb2b6089921af240993627aec9479ff69ea3d94b59b",
+  "certificateSha256": "5a3f7cb866cdc15d0357e03a49d611204bd2df763c71a3e005656e416adc251d",
+  "v2Verified": true,
+  "v3Verified": true,
+  "sha256": "b7226af457af39fcf049d082cfe82813a0ad120957d562b9ee5c908e06f3ae4d",
+  "bytes": 15198771,
+  "apk": "E:\\CODEX\\RECIPIO-Signing\\recipio-personal-release-v29\\recipio-personal-v29.apk",
+  "signingIdentity": "EXISTING_V27_V28_ONLY",
+  "payloadEntriesUnchanged": true,
+  "runtimeUpgrade": "NOT_RUN",
+  "source": "747f80a38761882a19522e4c8f61a5f09a90068d",
+  "independentOfficialVerification": "PASS",
+  "signedPayloadMatchesFrozenUnsigned": true,
+  "v28Reverified": "PASS",
+  "realKeyReadByCodex": false
+}
