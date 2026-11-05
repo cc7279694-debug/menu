@@ -1,0 +1,15 @@
+diff --git a/android/gradle.properties b/android/gradle.properties
+index a2ad9a5..ca0da81 100644
+--- a/android/gradle.properties
++++ b/android/gradle.properties
+@@ -21,7 +21,7 @@ org.gradle.jvmargs=-Xmx1536m
+ # https://developer.android.com/topic/libraries/support-library/androidx-rn
+ android.useAndroidX=true
+ 
+-# V28 integration candidate. Release remains unsigned; no signing configuration.
++# V29 R3 integration candidate. Release remains unsigned; no signing configuration.
+ # Explicit project properties can override these values; verify the built APK.
+-apkVersionCode=28
+-apkVersionName=0.11.1-personal.1
++apkVersionCode=29
++apkVersionName=0.11.2-personal.1

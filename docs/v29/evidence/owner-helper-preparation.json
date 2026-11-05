@@ -1,0 +1,17 @@
+{
+  "status": "OWNER_SIGNING_REQUIRED",
+  "launcher": "E:\\CODEX\\RECIPIO-Signing\\v29-r3-owner-signing\\START_V29_EXISTING_KEY.cmd",
+  "source": "747f80a38761882a19522e4c8f61a5f09a90068d",
+  "unsignedSha256": "95f52141cdcb228353fd98edb7611599132c16ab243100e30216ff6b96b5d995",
+  "helperFileHashes": {
+    "START_V29_EXISTING_KEY.cmd": "79f07315a261661a3d8cbddf1f50e36b11968f3b8f29443f311398aac67630bc",
+    "sign_existing.py": "2f83b038658d226354f1898e41f48d4bbc5565c3d4b1f247afb0b9393b8579c4",
+    "README.md": "40adbd70b9dbbe4ff9f9853b992e8398112c2959748ceb9e06e708ee2c0670ba"
+  },
+  "existingV28Untouched": true,
+  "keyOpenedByCodex": false,
+  "ownerGuiLaunchedByCodex": false,
+  "realSigningRun": false,
+  "newIdentityCreated": false,
+  "v29SignedOutputExists": false
+}

@@ -1,0 +1,149 @@
+test_alignment_happens_before_signing_and_password_only_stdin (test_sign_existing.V29ExistingIdentityTests.test_alignment_happens_before_signing_and_password_only_stdin) ... FAIL
+test_changed_previous_apk_rejected_before_tools (test_sign_existing.V29ExistingIdentityTests.test_changed_previous_apk_rejected_before_tools) ... FAIL
+test_changed_unsigned_rejected (test_sign_existing.V29ExistingIdentityTests.test_changed_unsigned_rejected) ... FAIL
+test_debuggable_rejected_before_sign (test_sign_existing.V29ExistingIdentityTests.test_debuggable_rejected_before_sign) ... FAIL
+test_existing_output_never_overwritten (test_sign_existing.V29ExistingIdentityTests.test_existing_output_never_overwritten) ... FAIL
+test_missing_v2_refuses_publication (test_sign_existing.V29ExistingIdentityTests.test_missing_v2_refuses_publication) ... FAIL
+test_missing_v3_refuses_publication (test_sign_existing.V29ExistingIdentityTests.test_missing_v3_refuses_publication) ... FAIL
+test_newline_password_never_reaches_tool (test_sign_existing.V29ExistingIdentityTests.test_newline_password_never_reaches_tool) ... FAIL
+test_payload_changes_refuse_publication (test_sign_existing.V29ExistingIdentityTests.test_payload_changes_refuse_publication) ... FAIL
+test_pending_build_hash_fails_before_tools_or_password (test_sign_existing.V29ExistingIdentityTests.test_pending_build_hash_fails_before_tools_or_password) ... FAIL
+test_preflight_uses_only_fake_existing_inputs (test_sign_existing.V29ExistingIdentityTests.test_preflight_uses_only_fake_existing_inputs) ... FAIL
+test_success_fixed_v29_public_receipt_and_key_fixture_unchanged (test_sign_existing.V29ExistingIdentityTests.test_success_fixed_v29_public_receipt_and_key_fixture_unchanged) ... FAIL
+test_testonly_rejected_before_sign (test_sign_existing.V29ExistingIdentityTests.test_testonly_rejected_before_sign) ... FAIL
+test_tool_failure_redacted_and_no_retry (test_sign_existing.V29ExistingIdentityTests.test_tool_failure_redacted_and_no_retry) ... FAIL
+test_wrong_certificate_refuses_publication (test_sign_existing.V29ExistingIdentityTests.test_wrong_certificate_refuses_publication) ... FAIL
+test_wrong_version_rejected_before_sign (test_sign_existing.V29ExistingIdentityTests.test_wrong_version_rejected_before_sign) ... FAIL
+
+======================================================================
+FAIL: test_alignment_happens_before_signing_and_password_only_stdin (test_sign_existing.V29ExistingIdentityTests.test_alignment_happens_before_signing_and_password_only_stdin)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "E:\CODEX\VIBE CODING\recipe-step-app-xhs-r3\scripts\v29-r3-signing\test_sign_existing.py", line 17, in setUp
+    self.assertIsNotNone(signing, 'V29 existing-identity helper not implemented')
+AssertionError: unexpectedly None : V29 existing-identity helper not implemented
+
+======================================================================
+FAIL: test_changed_previous_apk_rejected_before_tools (test_sign_existing.V29ExistingIdentityTests.test_changed_previous_apk_rejected_before_tools)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "E:\CODEX\VIBE CODING\recipe-step-app-xhs-r3\scripts\v29-r3-signing\test_sign_existing.py", line 17, in setUp
+    self.assertIsNotNone(signing, 'V29 existing-identity helper not implemented')
+AssertionError: unexpectedly None : V29 existing-identity helper not implemented
+
+======================================================================
+FAIL: test_changed_unsigned_rejected (test_sign_existing.V29ExistingIdentityTests.test_changed_unsigned_rejected)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "E:\CODEX\VIBE CODING\recipe-step-app-xhs-r3\scripts\v29-r3-signing\test_sign_existing.py", line 17, in setUp
+    self.assertIsNotNone(signing, 'V29 existing-identity helper not implemented')
+AssertionError: unexpectedly None : V29 existing-identity helper not implemented
+
+======================================================================
+FAIL: test_debuggable_rejected_before_sign (test_sign_existing.V29ExistingIdentityTests.test_debuggable_rejected_before_sign)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "E:\CODEX\VIBE CODING\recipe-step-app-xhs-r3\scripts\v29-r3-signing\test_sign_existing.py", line 17, in setUp
+    self.assertIsNotNone(signing, 'V29 existing-identity helper not implemented')
+AssertionError: unexpectedly None : V29 existing-identity helper not implemented
+
+======================================================================
+FAIL: test_existing_output_never_overwritten (test_sign_existing.V29ExistingIdentityTests.test_existing_output_never_overwritten)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "E:\CODEX\VIBE CODING\recipe-step-app-xhs-r3\scripts\v29-r3-signing\test_sign_existing.py", line 17, in setUp
+    self.assertIsNotNone(signing, 'V29 existing-identity helper not implemented')
+AssertionError: unexpectedly None : V29 existing-identity helper not implemented
+
+======================================================================
+FAIL: test_missing_v2_refuses_publication (test_sign_existing.V29ExistingIdentityTests.test_missing_v2_refuses_publication)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "E:\CODEX\VIBE CODING\recipe-step-app-xhs-r3\scripts\v29-r3-signing\test_sign_existing.py", line 17, in setUp
+    self.assertIsNotNone(signing, 'V29 existing-identity helper not implemented')
+AssertionError: unexpectedly None : V29 existing-identity helper not implemented
+
+======================================================================
+FAIL: test_missing_v3_refuses_publication (test_sign_existing.V29ExistingIdentityTests.test_missing_v3_refuses_publication)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "E:\CODEX\VIBE CODING\recipe-step-app-xhs-r3\scripts\v29-r3-signing\test_sign_existing.py", line 17, in setUp
+    self.assertIsNotNone(signing, 'V29 existing-identity helper not implemented')
+AssertionError: unexpectedly None : V29 existing-identity helper not implemented
+
+======================================================================
+FAIL: test_newline_password_never_reaches_tool (test_sign_existing.V29ExistingIdentityTests.test_newline_password_never_reaches_tool)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "E:\CODEX\VIBE CODING\recipe-step-app-xhs-r3\scripts\v29-r3-signing\test_sign_existing.py", line 17, in setUp
+    self.assertIsNotNone(signing, 'V29 existing-identity helper not implemented')
+AssertionError: unexpectedly None : V29 existing-identity helper not implemented
+
+======================================================================
+FAIL: test_payload_changes_refuse_publication (test_sign_existing.V29ExistingIdentityTests.test_payload_changes_refuse_publication)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "E:\CODEX\VIBE CODING\recipe-step-app-xhs-r3\scripts\v29-r3-signing\test_sign_existing.py", line 17, in setUp
+    self.assertIsNotNone(signing, 'V29 existing-identity helper not implemented')
+AssertionError: unexpectedly None : V29 existing-identity helper not implemented
+
+======================================================================
+FAIL: test_pending_build_hash_fails_before_tools_or_password (test_sign_existing.V29ExistingIdentityTests.test_pending_build_hash_fails_before_tools_or_password)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "E:\CODEX\VIBE CODING\recipe-step-app-xhs-r3\scripts\v29-r3-signing\test_sign_existing.py", line 17, in setUp
+    self.assertIsNotNone(signing, 'V29 existing-identity helper not implemented')
+AssertionError: unexpectedly None : V29 existing-identity helper not implemented
+
+======================================================================
+FAIL: test_preflight_uses_only_fake_existing_inputs (test_sign_existing.V29ExistingIdentityTests.test_preflight_uses_only_fake_existing_inputs)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "E:\CODEX\VIBE CODING\recipe-step-app-xhs-r3\scripts\v29-r3-signing\test_sign_existing.py", line 17, in setUp
+    self.assertIsNotNone(signing, 'V29 existing-identity helper not implemented')
+AssertionError: unexpectedly None : V29 existing-identity helper not implemented
+
+======================================================================
+FAIL: test_success_fixed_v29_public_receipt_and_key_fixture_unchanged (test_sign_existing.V29ExistingIdentityTests.test_success_fixed_v29_public_receipt_and_key_fixture_unchanged)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "E:\CODEX\VIBE CODING\recipe-step-app-xhs-r3\scripts\v29-r3-signing\test_sign_existing.py", line 17, in setUp
+    self.assertIsNotNone(signing, 'V29 existing-identity helper not implemented')
+AssertionError: unexpectedly None : V29 existing-identity helper not implemented
+
+======================================================================
+FAIL: test_testonly_rejected_before_sign (test_sign_existing.V29ExistingIdentityTests.test_testonly_rejected_before_sign)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "E:\CODEX\VIBE CODING\recipe-step-app-xhs-r3\scripts\v29-r3-signing\test_sign_existing.py", line 17, in setUp
+    self.assertIsNotNone(signing, 'V29 existing-identity helper not implemented')
+AssertionError: unexpectedly None : V29 existing-identity helper not implemented
+
+======================================================================
+FAIL: test_tool_failure_redacted_and_no_retry (test_sign_existing.V29ExistingIdentityTests.test_tool_failure_redacted_and_no_retry)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "E:\CODEX\VIBE CODING\recipe-step-app-xhs-r3\scripts\v29-r3-signing\test_sign_existing.py", line 17, in setUp
+    self.assertIsNotNone(signing, 'V29 existing-identity helper not implemented')
+AssertionError: unexpectedly None : V29 existing-identity helper not implemented
+
+======================================================================
+FAIL: test_wrong_certificate_refuses_publication (test_sign_existing.V29ExistingIdentityTests.test_wrong_certificate_refuses_publication)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "E:\CODEX\VIBE CODING\recipe-step-app-xhs-r3\scripts\v29-r3-signing\test_sign_existing.py", line 17, in setUp
+    self.assertIsNotNone(signing, 'V29 existing-identity helper not implemented')
+AssertionError: unexpectedly None : V29 existing-identity helper not implemented
+
+======================================================================
+FAIL: test_wrong_version_rejected_before_sign (test_sign_existing.V29ExistingIdentityTests.test_wrong_version_rejected_before_sign)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "E:\CODEX\VIBE CODING\recipe-step-app-xhs-r3\scripts\v29-r3-signing\test_sign_existing.py", line 17, in setUp
+    self.assertIsNotNone(signing, 'V29 existing-identity helper not implemented')
+AssertionError: unexpectedly None : V29 existing-identity helper not implemented
+
+----------------------------------------------------------------------
+Ran 16 tests in 0.004s
+
+FAILED (failures=16)

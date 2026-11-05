@@ -1,0 +1,59 @@
+{
+  "scope": "V29_EXISTING_IDENTITY_HELPER_FAKE_TESTS_ONLY",
+  "source": "747f80a38761882a19522e4c8f61a5f09a90068d",
+  "pendingBuildHash": false,
+  "unsignedExpectedSha256": "95f52141cdcb228353fd98edb7611599132c16ab243100e30216ff6b96b5d995",
+  "unsignedExpectedBytes": 15149572,
+  "unsignedActualValidation": "PARENT_EXECUTED_READ_ONLY_VERIFICATION_NOT_REPEATED_BY_THIS_HELPER_AUDIT",
+  "versionCode": 29,
+  "versionName": "0.11.2-personal.1",
+  "package": "app.recipio.local",
+  "fixedInputsStaticAudit": "PASS",
+  "signatureFlags": {
+    "v2": "EXPLICIT_TRUE",
+    "v3": "EXPLICIT_TRUE",
+    "v4": "EXPLICIT_FALSE"
+  },
+  "red": {
+    "tests": 16,
+    "failures": 16,
+    "reason": "helper not yet implemented",
+    "exitCode": 1
+  },
+  "green": {
+    "tests": 16,
+    "failures": 0,
+    "exitCode": 0,
+    "receipt": "green-final.txt"
+  },
+  "officialToolsExecuted": 0,
+  "realKeyContentOrMetadataRead": false,
+  "realGuiStarted": false,
+  "realSigningExecuted": false,
+  "realAiCalls": 0,
+  "ownerStatus": "OWNER_SIGNING_REQUIRED",
+  "privatePasswordInput": "NOT_RUN",
+  "files": {
+    "sign_existing.py": {
+      "bytes": 10006,
+      "sha256": "2f83b038658d226354f1898e41f48d4bbc5565c3d4b1f247afb0b9393b8579c4"
+    },
+    "START_V29_EXISTING_KEY.cmd": {
+      "bytes": 208,
+      "sha256": "79f07315a261661a3d8cbddf1f50e36b11968f3b8f29443f311398aac67630bc"
+    },
+    "README.md": {
+      "bytes": 3342,
+      "sha256": "40adbd70b9dbbe4ff9f9853b992e8398112c2959748ceb9e06e708ee2c0670ba"
+    },
+    "test_sign_existing.py": {
+      "bytes": 8806,
+      "sha256": "fad12415deded6d697459771e986f877949610d1fbd9aafdaabb003109fecdcc"
+    }
+  },
+  "receipts": {
+    "red.txt": "8885d2ff9b45c22a7c8e217dcf568e30580c3d4e67d783544be4ca4be1b06e05",
+    "green-final.txt": "179f26f726561d2397d7f5647c65a6698c2cc6611b8e025e4f66b455f88c238f"
+  },
+  "checkedAt": "2026-11-05T04:30:14.031098+00:00"
+}

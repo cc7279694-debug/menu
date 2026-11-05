@@ -1,5 +1,21 @@
 # Current State
 
+## V29-R3-A1 — BLOCKED / OWNER_ACTION_REQUIRED — 2026-11-05
+
+On `integration/recipio-v29-r3-a1`, R3 limited acceptance was registered in3998147;
+version-only integration source747f80a38761882a19522e4c8f61a5f09a90068d keeps the
+accepted R3 product sourcebc045ad, inherits V28 and excludes paused N2.
+Original package/code29/name0.11.2-personal.1 unsigned Release built and inspected:
+15,149,572bytes /95f52141cdcb228353fd98edb7611599132c16ab243100e30216ff6b96b5d995.
+454scopedJS/30files,25pureJVM,typecheck,lint0error/5existingwarnings, Web build,
+sync/isolation and Gradle release PASS.16Fake owner-helper tests PASS separately.
+No real XHS/AI requests, phone/AVD/install/signing/key operations. V28 hash unchanged.
+OWNER_SIGNING_REQUIRED: the owner must input the existing password privately once
+using the new pinned V29 launcher. Until then the APK is unsigned/not installable;
+actual V29 certificate/v2/v3 and V28→V29 Android data retention remain NOT_RUN.
+[Review/resume](v29/V29_R3_A1_REVIEW.md) / [owner checklist](v29/V29_R3_A1_OWNER_CHECKLIST.md).
+No main merge/release/N2 resumption or Xiaomi pass is authorized or claimed.
+
 ## P0 XHS-R3 — ACCEPTED / FROZEN — PASS WITH NOTES（限定范围） — 2026-11-05
 
 User relayed ChatGPT's scoped independent acceptance for sourcebc045ad/evidence1298517.

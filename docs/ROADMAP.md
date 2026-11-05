@@ -4,6 +4,7 @@
 
 | Module | Status | Scope |
 | --- | --- | --- |
+| V29-R3-A1 | Blocked / Owner action required — OWNER_SIGNING_REQUIRED | R3登记3998147，版本源码747f80a；29/0.11.2-personal.1原包名未签名候选已构建核验。454JS/25JVM及build/sync/isolation/Gradle通过；16Fake签名助手测试另列。所有者现有密码私人输入尚未完成，实际签名/Android覆盖升级/小米 NOT_RUN，N2暂停，见 v29/V29_R3_A1_REVIEW.md |
 | P0 XHS-R3 | Accepted / Frozen — PASS WITH NOTES（限定范围） | 用户转达ChatGPT限定验收：源码bc045ad、证据1298517。409字符来自提交方回执，真实原文未提交；仅PC诊断DoH HTTP/真实响应离线重放，默认Fake-IP拒绝、原小米DNS UNKNOWN及全部NOT_RUN保留。非手机/正式版本通过，见 verification/xhs-real-link-r3/INDEPENDENT_ACCEPTANCE.md |
 | XHS-R2-N2 | PAUSED_BY_USER | 用户将真实链接直导置于最高优先级；源码51a2d92及证据ab7f6f9、原工作区保留。R3不移植分段代码，不重试N2模拟器，验收后也不自动恢复 |
 | XHS-R2 | Accepted / Frozen — PASS WITH NOTES（限定范围） | 用户转达ChatGPT验收：源码c2c55d21、脚本cb4d5e86、证据28b1a6bf；全部NOTES/NOT_RUN保留，见 verification/xhs-r2-20261103/INDEPENDENT_ACCEPTANCE.md。不是Android/真实AI/真实平台或发布验收 |

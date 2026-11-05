@@ -1,0 +1,14 @@
+{
+  "source": "747f80a38761882a19522e4c8f61a5f09a90068d",
+  "acceptedR3": "bc045adfc9bb5b6a9698580f9c1cad593d90ab35",
+  "r3ProductSourceUnchanged": true,
+  "v28Ancestor": true,
+  "n2Ancestor": false,
+  "n2SegmentationClassesAbsent": true,
+  "schema": 4,
+  "preview": 7,
+  "backup": 2,
+  "realXhsRequests": 0,
+  "realAiCalls": 0,
+  "phoneOperations": 0
+}

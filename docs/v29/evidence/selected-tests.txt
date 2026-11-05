@@ -1,0 +1,16 @@
+src/native/link-import
+src/native/intake-review
+src/native/ui-v2/g5-library.test.tsx
+src/native/ui-v2/g5-editor.test.tsx
+src/native/library-app.test.tsx
+src/native/preview-store.test.ts
+src/native/recipe-store.test.mjs
+src/native/ui-v2/theme-foundation.test.tsx
+src/native/ui-v2/theme-preference-storage.test.tsx
+src/native/backup/compatibility.test.mjs
+src/native/backup/repository.test.mjs
+src/native/backup/service.test.mjs
+src/native/backup/format.test.ts
+src/native/backup/preview-repository.test.ts
+src/native/ai/security-regression.test.ts
+src/native/ai/offline-regression.test.tsx

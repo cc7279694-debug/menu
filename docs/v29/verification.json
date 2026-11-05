@@ -1,0 +1,245 @@
+{
+  "status": "BLOCKED / OWNER_ACTION_REQUIRED",
+  "ownerGate": "OWNER_SIGNING_REQUIRED",
+  "acceptanceRegistration": "3998147dcd5d68f8284a6529a2f0660e69d30e6b",
+  "productSource": "747f80a38761882a19522e4c8f61a5f09a90068d",
+  "helperCommit": "53228865b00d335b80f44d55280052618fa2d785",
+  "acceptedR3Source": "bc045adfc9bb5b6a9698580f9c1cad593d90ab35",
+  "productUnchangedAfterBuild": true,
+  "n2Status": "PAUSED_BY_USER",
+  "unsigned": {
+    "source": "747f80a38761882a19522e4c8f61a5f09a90068d",
+    "artifact": "E:\\CODEX\\Tools\\recipio-v29-r3-a1-20261105\\recipio-v29-r3-a1-unsigned.apk",
+    "bytes": 15149572,
+    "sha256": "95f52141cdcb228353fd98edb7611599132c16ab243100e30216ff6b96b5d995",
+    "package": "app.recipio.local",
+    "versionCode": 29,
+    "versionName": "0.11.2-personal.1",
+    "debuggable": false,
+    "testOnly": false,
+    "allowBackup": false,
+    "signature": "ABSENT_EXPLICITLY_VERIFIED",
+    "signingCertificate": null,
+    "alignment": "PASS_OFFICIAL_ZIPALIGN",
+    "webFilesMatched": 16,
+    "permissionsEqualToV28": true,
+    "testAssetsAbsent": true,
+    "keyAndDatabaseArchiveFilesAbsent": true,
+    "versionInPackagedBundle": true,
+    "runtimeInstallation": "NOT_RUN",
+    "upgradeDataRetention": "NOT_RUN",
+    "installableDeliverable": false
+  },
+  "executed": {
+    "jsTsPass": 454,
+    "jsTsFiles": 30,
+    "jvmPass": 25,
+    "typecheck": "PASS",
+    "lintErrors": 0,
+    "existingLintWarnings": 5,
+    "build": "PASS",
+    "sync": "PASS",
+    "isolation": "PASS",
+    "assembleRelease": "PASS",
+    "ownerHelperFakeTests": 16
+  },
+  "ownerHelperFileCopyMatches": true,
+  "signingKeyReadByCodex": false,
+  "realSigning": "NOT_RUN",
+  "signedV29OutputCreated": false,
+  "androidRuntimeUpgrade": "NOT_RUN_OWNER_SIGNING_REQUIRED",
+  "realXhsRequests": 0,
+  "realAiCalls": 0,
+  "phoneOperations": 0,
+  "personalDataOperations": 0,
+  "securityScan": {
+    "result": "PASS_NEW_SOURCE_AND_EVIDENCE",
+    "initialBroadShortLinkPatternMatchedSyntheticFixtures": 5,
+    "realShortLinkMatches": 0,
+    "credentialsOrPrivateKeyMatches": 0
+  },
+  "note": "Artifact bytes/sha256 are canonical Git-index blob bytes. originalLocal* are unmodified local execution copies; logs/patch whitespace retained. No source APK/media/key is uploaded. verification.json excludes itself.",
+  "artifacts": {
+    "docs/v29/evidence/apk-badging.txt": {
+      "bytes": 5059,
+      "sha256": "7c9a005789bf46e57f55f3a4284f2b71f9add48d42c668f6b9b0689234592ed5",
+      "originalLocalBytes": 5172,
+      "originalLocalSha256": "b4ce5c3a17fd36640a07d5972c5508bb2855c71a466b94c54974c7706342a88a"
+    },
+    "docs/v29/evidence/apk-manifest.txt": {
+      "bytes": 10182,
+      "sha256": "ca505ad7fe00c2b15fcc5d14adf8274b646c3a0b8958b6309405f3e3faa0d3b7",
+      "originalLocalBytes": 10292,
+      "originalLocalSha256": "6d14a42f4ee0db34b73b6e7d16476af7a4b4aa8f7816cccb6eb7b041ecf36cb5"
+    },
+    "docs/v29/evidence/assemble-release.txt": {
+      "bytes": 14056,
+      "sha256": "af6dd383a8b9d49f0864466b701b230677e11bef54eaa0b85dfb113523ba0001",
+      "originalLocalBytes": 14314,
+      "originalLocalSha256": "79d16fffa68e97fc2cefe9ab645c1b4ff14370cf5fc36061a1924c946f4d8264"
+    },
+    "docs/v29/evidence/asset-precheck.json": {
+      "bytes": 1851,
+      "sha256": "b5464cfb78dcabc6ccd1032f3e5943f9689fb06c7f70a26bf4f31c11bb26c827",
+      "originalLocalBytes": 1877,
+      "originalLocalSha256": "a101a88b421faaff734008ff1d6c3e7bd30484b6bc7517d0da8315be67ca6169"
+    },
+    "docs/v29/evidence/build.txt": {
+      "bytes": 2145,
+      "sha256": "bf12a2934aa53e5d4e9637a9ac8df70e6f02a678d98ccdc9d8ba7cc4c0798973",
+      "originalLocalBytes": 2181,
+      "originalLocalSha256": "c286f15e89d94c1e52e8524e44caed6768c621f73e960b33dbfbecd29ab1f68c"
+    },
+    "docs/v29/evidence/gradle-admission.json": {
+      "bytes": 189,
+      "sha256": "72948913e7b369de0075b9affd00a5d58b875b63376911d2bcc4b9e071e99b96",
+      "originalLocalBytes": 196,
+      "originalLocalSha256": "ed29db3759d14be4beb26a17ab6003e6d04a0da31ad052750c12d8571f144e09"
+    },
+    "docs/v29/evidence/inspect_unsigned.py": {
+      "bytes": 4666,
+      "sha256": "55e3c784e5cde31b1bc9bcbf6699720b8db69fdcf054f92cbe91d04a3bc4da88",
+      "originalLocalBytes": 4741,
+      "originalLocalSha256": "394e7efe44b82e5bccabc656fa1a16f2e8c596e97480132e4a43ffe60f48e5a5"
+    },
+    "docs/v29/evidence/integration-source-checks.json": {
+      "bytes": 354,
+      "sha256": "7d6f9d4a47930978d90058395fc3f84962fb9589d50dd72161bf4dcc965f2757",
+      "originalLocalBytes": 368,
+      "originalLocalSha256": "75e98eb42e52ba2a5ee28737d8f7562ab811cfd09d1b290cdb15ceb93a6f83de"
+    },
+    "docs/v29/evidence/isolation.txt": {
+      "bytes": 262,
+      "sha256": "361546b26778ea521753571e262911d2c0786487c93ce12c3e4559af6062e672",
+      "originalLocalBytes": 268,
+      "originalLocalSha256": "f60efe0e01d24a1c7966c318c426c2a600a778c5e4674515b230201b1739a5ea"
+    },
+    "docs/v29/evidence/jvm-network-receipt.json": {
+      "bytes": 8696,
+      "sha256": "bf14cb2a28522326235038c734607c0c7375bebc8b8634d338475e958d7e5443",
+      "originalLocalBytes": 8809,
+      "originalLocalSha256": "20db4a3b43a2b4d28e459683a0a189fa26f43d041b6d6b80a7517b600effddf2"
+    },
+    "docs/v29/evidence/jvm-tests.txt": {
+      "bytes": 75,
+      "sha256": "c1f4cd1b28bd2e878d204832dc050442dd3ce0acd5ee9ef318639a98d98a2565",
+      "originalLocalBytes": 81,
+      "originalLocalSha256": "03615c925a9f2b14247bf24e9789fe42cbd15300a6c00e9a303fd5486deec2b6"
+    },
+    "docs/v29/evidence/lint.txt": {
+      "bytes": 2108,
+      "sha256": "78fd0705e4b91fa114017fe9e0d134b1aa14d131f680fa617dff359784bb0ca2",
+      "originalLocalBytes": 2128,
+      "originalLocalSha256": "043d100d067bc96f58db71bc675c07a85f184117208e7d8fab2cc239fe88ed2c"
+    },
+    "docs/v29/evidence/owner-helper-preparation.json": {
+      "bytes": 775,
+      "sha256": "916094f7719ff5539d2ad184ac75f6dbf824ac3e7105ce2e27b125f17d079538",
+      "originalLocalBytes": 792,
+      "originalLocalSha256": "6db730fc235112b60dcb08013ae953a6d31418cfca47e4e449e3753d0d5e9328"
+    },
+    "docs/v29/evidence/selected-tests.txt": {
+      "bytes": 589,
+      "sha256": "1fe2f36db36e5ec46f378fada3aacea2cce14c37a74dd3891be94a2bc3fd331e",
+      "originalLocalBytes": 605,
+      "originalLocalSha256": "36bd96383a81b96bb5fc7a1eb84cd3836e65aad711f2bd0a251b60b9bda9c15a"
+    },
+    "docs/v29/evidence/signing-helper-tests/green-final.txt": {
+      "bytes": 2333,
+      "sha256": "4ceb67bfdf6d3e49bbf3256e7a44a05719a8cc36907b289757fff495953d8c07",
+      "originalLocalBytes": 2354,
+      "originalLocalSha256": "179f26f726561d2397d7f5647c65a6698c2cc6611b8e025e4f66b455f88c238f"
+    },
+    "docs/v29/evidence/signing-helper-tests/receipt-final.json": {
+      "bytes": 1892,
+      "sha256": "347c407703a7671a3928be73e0edb988667434b0171a962fe4894077fbb3d09f",
+      "originalLocalBytes": 1951,
+      "originalLocalSha256": "491fd1465936cef8a5253c9bc0ec103c81399082fcb6e79e81331ece9d214deb"
+    },
+    "docs/v29/evidence/signing-helper-tests/red.txt": {
+      "bytes": 11929,
+      "sha256": "000f709318cbad58ccaf5833a8aada0d24871d34c019f140803263807347539f",
+      "originalLocalBytes": 12078,
+      "originalLocalSha256": "8885d2ff9b45c22a7c8e217dcf568e30580c3d4e67d783544be4ca4be1b06e05"
+    },
+    "docs/v29/evidence/sync.txt": {
+      "bytes": 418,
+      "sha256": "b6c8edbd8eeea5ab7b14a14ca78ab834c376cca9bb4035ea3d176f4357d03e16",
+      "originalLocalBytes": 427,
+      "originalLocalSha256": "4f59a6df6002af4823241f0e19e12c3af1010299c20025315a2dc61d53393e8a"
+    },
+    "docs/v29/evidence/targeted-tests.txt": {
+      "bytes": 707,
+      "sha256": "fa727251a31c5e68fc7ec66c6a66a376b34e69a4320c150bb1a4b313fc141553",
+      "originalLocalBytes": 721,
+      "originalLocalSha256": "046c94023ecb2e3c86d5ebb4252e78ba9c195cf7943b671c2f70764358c590a6"
+    },
+    "docs/v29/evidence/typecheck.txt": {
+      "bytes": 62,
+      "sha256": "693ddb0b72002da46dbadbd192d8de0608c2e8b35a38d6e2e4843d6930909b52",
+      "originalLocalBytes": 66,
+      "originalLocalSha256": "c988c66ad9610e962124bc2fcfaa32e77a654125e71295ee680231dc42654cc0"
+    },
+    "docs/v29/evidence/unsigned-apk-metadata.json": {
+      "bytes": 804,
+      "sha256": "4ac15d95ba10fbaf2abfcf8059d05497efb9f67292a5a2b6c1fd1f684e09ad14",
+      "originalLocalBytes": 827,
+      "originalLocalSha256": "c0d02cff16f0d6027f821603a9f02312cbb3d97d67b6b1679de576fc87780021"
+    },
+    "docs/v29/evidence/unsigned-apksigner.txt": {
+      "bytes": 52,
+      "sha256": "1413af210d1627fde4f14e31934eb5d9d031684e4f7a5c3371a74b3bdeb8764c",
+      "originalLocalBytes": 54,
+      "originalLocalSha256": "191c571fdec14ff7a912a66097a6bdbe9dae1fd90930b31d90ff41f759c025dd"
+    },
+    "docs/v29/evidence/v28-protected-input.json": {
+      "bytes": 235,
+      "sha256": "ec45b7e6c368e4fd9290d474048bc01622a30e03ff7898e5eabd2ded7b41507e",
+      "originalLocalBytes": 241,
+      "originalLocalSha256": "84ebc67f62cd8fd4b7520b3a362313c9367ccede418ec918231047c5dc251b89"
+    },
+    "docs/v29/evidence/v28-public-signature.txt": {
+      "bytes": 958,
+      "sha256": "2f584dcc5352c7ec16cfbe50af8b66dca7ddbd190415c63af4f8ca2fb60db8bd",
+      "originalLocalBytes": 975,
+      "originalLocalSha256": "12d95d1321c95e4bc32b506f7b50746a9fdfdeb2d612f36ef8b9386a78a9017d"
+    },
+    "docs/v29/evidence/v28-to-v29-product.diff.patch": {
+      "bytes": 51550,
+      "sha256": "b88ba4862d98955c352aba843c8bab9b19119b4cda9e8b2e4372284888841dcc",
+      "originalLocalBytes": 51550,
+      "originalLocalSha256": "b88ba4862d98955c352aba843c8bab9b19119b4cda9e8b2e4372284888841dcc"
+    },
+    "docs/v29/evidence/version.diff.patch": {
+      "bytes": 666,
+      "sha256": "ce5bc11598d377fe275cf69616d9e173b49136e7bb305eb90a441326e685b9e9",
+      "originalLocalBytes": 666,
+      "originalLocalSha256": "ce5bc11598d377fe275cf69616d9e173b49136e7bb305eb90a441326e685b9e9"
+    },
+    "docs/v29/evidence/zipalign.txt": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "originalLocalBytes": 0,
+      "originalLocalSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "docs/v29/V29_R3_A1_OWNER_CHECKLIST.md": {
+      "bytes": 3382,
+      "sha256": "33937a296901b3d211e33c93552f3acaafb902b64dcc8feb98bee3bf123f358d",
+      "originalLocalBytes": 3382,
+      "originalLocalSha256": "33937a296901b3d211e33c93552f3acaafb902b64dcc8feb98bee3bf123f358d"
+    },
+    "docs/v29/V29_R3_A1_REVIEW.md": {
+      "bytes": 9183,
+      "sha256": "8aeb94c1634edf7b5bc8ea42fc58f84e6c6054c3812cba1ca7d92a5e3834094e",
+      "originalLocalBytes": 9183,
+      "originalLocalSha256": "8aeb94c1634edf7b5bc8ea42fc58f84e6c6054c3812cba1ca7d92a5e3834094e"
+    },
+    "docs/v29/V29_R3_A1_SCOPE.md": {
+      "bytes": 2488,
+      "sha256": "dd919102364f02b43c6bbecdf068169ee4fbc5144aa023a3bf7b40d6162de105",
+      "originalLocalBytes": 2488,
+      "originalLocalSha256": "dd919102364f02b43c6bbecdf068169ee4fbc5144aa023a3bf7b40d6162de105"
+    }
+  },
+  "checkedAt": "2026-11-05T04:35:09.528275+00:00"
+}

@@ -1,0 +1,26 @@
+{
+  "source": "747f80a38761882a19522e4c8f61a5f09a90068d",
+  "versionName": "0.11.2-personal.1",
+  "copiedWebFiles": 16,
+  "webDistAndroidAndApkIdentical": true,
+  "n2NativeDescriptorsAbsent": true,
+  "webFileHashes": {
+    "icon.png": "5e621326617da7a25a7c534816e1d3e9330e53a3ea1c0264c00ae3ea444c8913",
+    "index.html": "8f2fc1628a1cf4057ccdf774a68bbe83c9d59d75375ae0e84514f44d30ba5c4a",
+    "assets/contract-BJQMx4ZE.js": "fb16cc3f9d1d501aa4cccabc7dce6841b446bf4482e06e7206a06a4f1602f4a0",
+    "assets/contract-pVYp9FET.js": "f23e87c03efee46cb0a29323efa70b0ec425a9d3a0ca5951e38c180252816b38",
+    "assets/dist-B-fBiTU6.js": "ce5fb8745c3bd9c5a37598ed1df1f435b950b29f49f3d42db1b38b0f50867710",
+    "assets/index-B-Ij3acy.css": "6b8307506ed7eb65dbc4b0436ddb8bfbe5b7d6a805e33ee0690ff3af21b17a62",
+    "assets/index-CbDNMAdh.js": "e9d0aba0d507bbb4eca9df62b851ce8d80d3521caea77cd650ba340a384f8066",
+    "assets/native-bridge-CroiyxFm.js": "3baec9e2fc9d5338c14045c7747f90386281f96f32f0af8ab2c87d4678b7cf1d",
+    "assets/native-bridge-CsGGPe-A.js": "0f45807ed18d6a5405c9b542d4c062f41de1a9f4c1745cb1850ce5e47ab336bb",
+    "assets/schemas-DmGWAyfG.js": "a38670f56827db5c3a8bd9ab7dbdebb40717d8c8d1f2f189feb8881c71e1a894",
+    "assets/screen-nRtdr8Dh.js": "cb8e098e945c6d2af506a5da8efd0f8f06c25f22a530badc8e5241ad38e1c545",
+    "assets/screen-uQMs2YDz.js": "89563cb5d3ecef5a0f7f34aca7a097a8359a1d36cc2b2f491871e7bd0c21c90e",
+    "assets/service-CrNh8Itv.js": "9f836d7de907e1d948a47160f9f2784e02882c1f532700d211df3d455e80a187",
+    "assets/service-DNHkLbZD.js": "b3a91320902050b499c6fb888345144cfbbcb45af37a9dd2e2e7227bfa5175de",
+    "assets/web-C9D8KBV2.js": "890853d94f85154ae8f758808227bd859023770490904e5d913e2eb30aa19a93",
+    "assets/web-CebqPff5.js": "f07f9dd4df001c269ea4d9ee8aaa0ffe5a2b8a2dd543cbe50e85dbda86c39d75"
+  },
+  "noPrivateInputsRead": true
+}
