@@ -4,6 +4,8 @@
 
 | Module | Status | Scope |
 | --- | --- | --- |
+| P0 XHS-R3 | Ready for independent review; limited REAL_PUBLIC_LINK_PASS | 源码bc045ad；Sample A匿名302→200仅PC诊断DoH，原生产安全抓取/pin/TLS保留；同一真实响应修复后离线解析409字符/partial，非完整菜谱或默认DNS/Android/小米通过。196JS/25JVM及构建门禁通过，真实AI0；见 verification/xhs-real-link-r3/REVIEW.md。不制作APK、不合main |
+| XHS-R2-N2 | PAUSED_BY_USER | 用户将真实链接直导置于最高优先级；源码51a2d92及证据ab7f6f9、原工作区保留。R3不移植分段代码，不重试N2模拟器，验收后也不自动恢复 |
 | XHS-R2 | Accepted / Frozen — PASS WITH NOTES（限定范围） | 用户转达ChatGPT验收：源码c2c55d21、脚本cb4d5e86、证据28b1a6bf；全部NOTES/NOT_RUN保留，见 verification/xhs-r2-20261103/INDEPENDENT_ACCEPTANCE.md。不是Android/真实AI/真实平台或发布验收 |
 | XHS-R2-N1 | Ready for independent review — clarity limitation recorded | 新独占API36、12项唯一Android及51项JS/TS通过；实际Picker/codec/审核/保存/清理、相关IME已验证，0真实AI/XHS。600×1800测试字可辨，1080×7200→307×2048小字不可可靠辨认，不改上限；真机/OEM/TalkBack/真实质量仍NOT_RUN。原内存阻塞/失败/系统ANR保留，见 verification/xhs-r2-n1-20261103/ANDROID_VERIFICATION.md；不是产品冻结或发布 |
 | APK-0 | Implemented; awaiting acceptance | 本地 Android + SQLite；菜名 CRUD/search/5 秒撤销；构建、离线、重启、覆盖升级已在模拟器验证 |

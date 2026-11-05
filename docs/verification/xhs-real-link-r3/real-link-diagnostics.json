@@ -1,0 +1,363 @@
+{
+  "schemaVersion": 1,
+  "sampleLabelsOnly": true,
+  "rawSourcePersistedInGit": false,
+  "sourceCommit": "bc045adfc9bb5b6a9698580f9c1cad593d90ab35",
+  "baseCommit": "f552d142d678868b739dff9a7eecda070a319df3",
+  "sample": "Sample A",
+  "inputHost": "xhslink.cn",
+  "inputPathType": "SHORT_SHARE_PATH",
+  "observedNetworkDate": "2026-11-05",
+  "systemProduction": {
+    "inputHost": "xhslink.cn",
+    "inputPathType": "SHORT_SHARE_PATH",
+    "dnsMode": "SYSTEM_PRODUCTION",
+    "httpRequestBudget": 3,
+    "httpRequestsAdmitted": 0,
+    "requestBudgetExceeded": false,
+    "finalHost": "UNAVAILABLE",
+    "finalPathType": "UNAVAILABLE",
+    "finalNoteIdPatternMatched": false,
+    "finalHtmlUtf8Bytes": 0,
+    "tlsConfiguration": "DEFAULT_TRUST_AND_HOSTNAME_VERIFICATION",
+    "cookieMode": "NO_COOKIES",
+    "proxyMode": "NO_EXPLICIT_PROXY",
+    "userAgent": "RECIPIO/0.6 Android Link Import",
+    "overallDeadlineMillis": 20000,
+    "decodedHtmlLimitBytes": 2097152,
+    "automaticRetry": false,
+    "diagnosticOnly": true,
+    "productionSourceUsed": true,
+    "dns": [
+      {
+        "host": "xhslink.cn",
+        "addressCount": 1,
+        "addressClasses": {
+          "FAKE_IP_BENCHMARK": 1
+        },
+        "validation": "dns_fake_ip"
+      }
+    ],
+    "connects": [],
+    "responses": [],
+    "redirectResponses": 0,
+    "tls": [],
+    "failures": [
+      {
+        "stage": "TERMINAL",
+        "exceptionClass": "WebImportFailure"
+      }
+    ],
+    "execution": "PC_EXACT_PRODUCTION_FETCHER",
+    "networkError": "dns_fake_ip",
+    "observedAt": "2026-11-05T03:44:36.506555+00:00",
+    "sample": "Sample A",
+    "privatePageSaved": false
+  },
+  "firstDiagnosticFailure": {
+    "sample": "Sample A",
+    "executionStatus": "FAILED_DIAGNOSTIC_OUTPUT_ENCODING",
+    "dnsMode": "DIAGNOSTIC_DOH_NOT_PRODUCTION",
+    "httpRequestsAdmitted": null,
+    "httpRequestsUpperBound": 3,
+    "rawPageRetained": false,
+    "verifiedPublicTargetBody": false,
+    "failureCategory": "UTF8_STDOUT_DECODE_FAILURE",
+    "productionCodeChanged": false,
+    "canSupportRealLinkPass": false
+  },
+  "verifiedAnonymousNetworkBeforePatch": {
+    "inputHost": "xhslink.cn",
+    "inputPathType": "SHORT_SHARE_PATH",
+    "dnsMode": "DIAGNOSTIC_DOH_NOT_PRODUCTION",
+    "httpRequestBudget": 3,
+    "httpRequestsAdmitted": 2,
+    "requestBudgetExceeded": false,
+    "finalHost": "www.xiaohongshu.com",
+    "finalPathType": "NOTE_PATH",
+    "finalNoteIdPatternMatched": true,
+    "finalHtmlUtf8Bytes": 49180,
+    "tlsConfiguration": "DEFAULT_TRUST_AND_HOSTNAME_VERIFICATION",
+    "cookieMode": "NO_COOKIES",
+    "proxyMode": "NO_EXPLICIT_PROXY",
+    "userAgent": "RECIPIO/0.6 Android Link Import",
+    "overallDeadlineMillis": 20000,
+    "decodedHtmlLimitBytes": 2097152,
+    "automaticRetry": false,
+    "diagnosticOnly": true,
+    "productionSourceUsed": true,
+    "dns": [
+      {
+        "host": "xhslink.cn",
+        "addressCount": 2,
+        "addressClasses": {
+          "GLOBAL_IPV4": 2
+        },
+        "validation": "PUBLIC_ALL_ADDRESSES"
+      },
+      {
+        "host": "www.xiaohongshu.com",
+        "addressCount": 4,
+        "addressClasses": {
+          "GLOBAL_IPV4": 3,
+          "GLOBAL_IPV6": 1
+        },
+        "validation": "PUBLIC_ALL_ADDRESSES"
+      }
+    ],
+    "connects": [
+      {
+        "host": "xhslink.cn",
+        "addressClass": "GLOBAL_IPV4",
+        "memberOfValidatedSet": true,
+        "port": 443,
+        "proxyType": "DIRECT"
+      },
+      {
+        "host": "www.xiaohongshu.com",
+        "addressClass": "GLOBAL_IPV4",
+        "memberOfValidatedSet": true,
+        "port": 443,
+        "proxyType": "DIRECT"
+      }
+    ],
+    "responses": [
+      {
+        "host": "xhslink.cn",
+        "pathType": "SHORT_SHARE_PATH",
+        "noteIdPatternMatched": false,
+        "status": 302,
+        "statusClass": "3xx",
+        "https": true
+      },
+      {
+        "host": "www.xiaohongshu.com",
+        "pathType": "NOTE_PATH",
+        "noteIdPatternMatched": true,
+        "status": 200,
+        "statusClass": "2xx",
+        "https": true
+      }
+    ],
+    "redirectResponses": 1,
+    "tls": [
+      {
+        "host": "xhslink.cn",
+        "verified": true,
+        "version": "TLSv1.2"
+      },
+      {
+        "host": "www.xiaohongshu.com",
+        "verified": true,
+        "version": "TLSv1.3"
+      }
+    ],
+    "failures": [],
+    "diagnosticRunId": "doh-diagnostic-attempt-2",
+    "safeTraceSidecarWritten": true,
+    "execution": "PC_EXACT_PRODUCTION_FETCHER",
+    "networkError": null,
+    "extraction": {
+      "diagnostic": "state_unsupported",
+      "statePresent": true,
+      "targetResolved": false,
+      "access": null,
+      "media": null,
+      "wasTruncated": false,
+      "titleNonempty": false,
+      "textCodePoints": 0,
+      "bodyHasNonTitle": false,
+      "aiSourceTextGate": false
+    },
+    "safePageShape": {
+      "htmlBytes": 49180,
+      "scriptCount": 15,
+      "initialStateMentions": 1,
+      "anchoredInitialStateAssignments": 1,
+      "hasNextData": false,
+      "stateAssignmentPayloadBytes": [
+        13286
+      ]
+    },
+    "observedAt": "2026-11-05T03:55:08.804177+00:00",
+    "sample": "Sample A",
+    "privatePageSaved": true,
+    "privatePagePurpose": "LOCAL_TEMP_OFFLINE_ROOT_CAUSE_ONLY"
+  },
+  "replayedRealPageAfterPatch": {
+    "inputHost": "xhslink.cn",
+    "inputPathType": "SHORT_SHARE_PATH",
+    "dnsMode": "DIAGNOSTIC_DOH_NOT_PRODUCTION",
+    "httpRequestBudget": 3,
+    "httpRequestsAdmitted": 2,
+    "requestBudgetExceeded": false,
+    "finalHost": "www.xiaohongshu.com",
+    "finalPathType": "NOTE_PATH",
+    "finalNoteIdPatternMatched": true,
+    "finalHtmlUtf8Bytes": 49180,
+    "tlsConfiguration": "DEFAULT_TRUST_AND_HOSTNAME_VERIFICATION",
+    "cookieMode": "NO_COOKIES",
+    "proxyMode": "NO_EXPLICIT_PROXY",
+    "userAgent": "RECIPIO/0.6 Android Link Import",
+    "overallDeadlineMillis": 20000,
+    "decodedHtmlLimitBytes": 2097152,
+    "automaticRetry": false,
+    "diagnosticOnly": true,
+    "productionSourceUsed": true,
+    "dns": [
+      {
+        "host": "xhslink.cn",
+        "addressCount": 2,
+        "addressClasses": {
+          "GLOBAL_IPV4": 2
+        },
+        "validation": "PUBLIC_ALL_ADDRESSES"
+      },
+      {
+        "host": "www.xiaohongshu.com",
+        "addressCount": 4,
+        "addressClasses": {
+          "GLOBAL_IPV4": 3,
+          "GLOBAL_IPV6": 1
+        },
+        "validation": "PUBLIC_ALL_ADDRESSES"
+      }
+    ],
+    "connects": [
+      {
+        "host": "xhslink.cn",
+        "addressClass": "GLOBAL_IPV4",
+        "memberOfValidatedSet": true,
+        "port": 443,
+        "proxyType": "DIRECT"
+      },
+      {
+        "host": "www.xiaohongshu.com",
+        "addressClass": "GLOBAL_IPV4",
+        "memberOfValidatedSet": true,
+        "port": 443,
+        "proxyType": "DIRECT"
+      }
+    ],
+    "responses": [
+      {
+        "host": "xhslink.cn",
+        "pathType": "SHORT_SHARE_PATH",
+        "noteIdPatternMatched": false,
+        "status": 302,
+        "statusClass": "3xx",
+        "https": true
+      },
+      {
+        "host": "www.xiaohongshu.com",
+        "pathType": "NOTE_PATH",
+        "noteIdPatternMatched": true,
+        "status": 200,
+        "statusClass": "2xx",
+        "https": true
+      }
+    ],
+    "redirectResponses": 1,
+    "tls": [
+      {
+        "host": "xhslink.cn",
+        "verified": true,
+        "version": "TLSv1.2"
+      },
+      {
+        "host": "www.xiaohongshu.com",
+        "verified": true,
+        "version": "TLSv1.3"
+      }
+    ],
+    "failures": [],
+    "diagnosticRunId": "doh-diagnostic-attempt-2",
+    "safeTraceSidecarWritten": true,
+    "execution": "PC_EXACT_PRODUCTION_FETCHER",
+    "networkError": null,
+    "extraction": {
+      "diagnostic": "target_text",
+      "statePresent": true,
+      "targetResolved": true,
+      "access": null,
+      "media": "image",
+      "wasTruncated": false,
+      "titleNonempty": true,
+      "textCodePoints": 409,
+      "bodyHasNonTitle": true,
+      "aiSourceTextGate": true
+    },
+    "safePageShape": {
+      "htmlBytes": 49180,
+      "scriptCount": 15,
+      "initialStateMentions": 1,
+      "anchoredInitialStateAssignments": 1,
+      "hasNextData": false,
+      "stateAssignmentPayloadBytes": [
+        13286
+      ]
+    },
+    "verificationMode": "OFFLINE_REPLAY_OF_REAL_ANONYMOUS_HTTP_RESPONSE",
+    "additionalHttpRequests": 0,
+    "networkEvidenceRunId": "doh-diagnostic-attempt-2",
+    "sample": "Sample A",
+    "verifiedAt": "2026-11-05T04:00:35.037218+00:00"
+  },
+  "productionServiceReplayWithFakeAi": {
+    "kind": "REAL_CACHED_PAGE_EXACT_PRODUCTION_SERVICE_OFFLINE",
+    "cacheReadOnly": true,
+    "additionalHttpRequests": 0,
+    "realAiCalls": 0,
+    "provider": "FAKE_NO_NETWORK_NO_PERSISTENCE",
+    "sourceHash": "64efd9499f2b52142da117e93b94ae607e32a951a4e79d82bba78b5c582032dc",
+    "phaseAfterRead": "ready",
+    "qualityAfterRead": "partial",
+    "titleNonempty": true,
+    "textCodePoints": 409,
+    "structuredCandidateCount": 0,
+    "automaticAiCalls": 0,
+    "explicitAiEntryEnabled": true,
+    "explicitFakeAiCalls": 1,
+    "phaseAfterExplicitFake": "ai-preview",
+    "request": {
+      "textChars": 535,
+      "imageCount": 0,
+      "containsFinalUrl": false,
+      "containsShareParameterValues": false
+    },
+    "savedRecipes": 0,
+    "databaseOpened": false
+  },
+  "confirmedRootCause": {
+    "kind": "PUBLIC_STATE_LAYOUT_COMPATIBILITY",
+    "statePath": "__INITIAL_STATE__.noteData.data.noteData",
+    "targetIdMatchesFinalRoute": true,
+    "bodyCodePoints": 409,
+    "legacyReaderOnlySupported": "note.noteDetailMap",
+    "defaultSystemDnsProblemSeparate": true
+  },
+  "requestAccounting": {
+    "systemPlatformHttp": 0,
+    "failedDiagnosticPlatformHttpActual": "UNKNOWN",
+    "failedDiagnosticPlatformHttpConservativeUpperBound": 3,
+    "ownerAdditionalRoundMax": 3,
+    "ownerAdditionalRoundActual": 2,
+    "totalPlatformHttpConservativeUpperBound": 5,
+    "furtherRequests": 0,
+    "officialPrivateApiRequests": 0,
+    "realAiCalls": 0
+  },
+  "acceptance": {
+    "realPublicTargetBodyRead": "EXECUTED_PASS_PC_DIAGNOSTIC_DOH_ONLY",
+    "targetOwnershipAndParsingAfterPatch": "EXECUTED_PASS_OFFLINE_REAL_RESPONSE_REPLAY",
+    "defaultProductionDnsCurrentPc": "BLOCKED_BY_FAKE_IP_AS_DESIGNED",
+    "productionDefaultDnsRealEndToEndAfterPatch": "NOT_RUN",
+    "xiaomi14OriginalDnsFailure": "UNKNOWN",
+    "androidRealXhs": "NOT_RUN",
+    "realProviderQuality": "NOT_RUN",
+    "allXhsLinksSupported": false,
+    "fullRecipeOrImageStepsRecovered": false,
+    "automaticAiCalls": 0,
+    "phoneOperated": false
+  }
+}

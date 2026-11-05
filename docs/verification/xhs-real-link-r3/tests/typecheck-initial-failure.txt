@@ -1,0 +1,7 @@
+
+> recipe-app-foundation-auth@0.1.0 typecheck
+> tsc --noEmit
+
+src/native/link-import/service.test.ts(36,65): error TS2493: Tuple type '[]' of length '0' has no element at index '0'.
+src/native/link-import/service.test.ts(37,10): error TS18048: 'request' is possibly 'undefined'.
+src/native/link-import/service.test.ts(39,10): error TS18048: 'request' is possibly 'undefined'.

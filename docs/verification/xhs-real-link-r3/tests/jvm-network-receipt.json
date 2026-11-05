@@ -1,0 +1,113 @@
+{
+  "scope": "OFFLINE_JVM_NETWORK_SAFETY_ONLY",
+  "worktree": "E:\\CODEX\\VIBE CODING\\recipe-step-app-xhs-r3",
+  "head": "f552d142d678868b739dff9a7eecda070a319df3",
+  "branch": "fix/recipio-xhs-real-link-r3",
+  "classesDirectory": "E:\\CODEX\\Tools\\recipio-xhs-r3-20261105\\jvm-network-20261105-115715\\test-classes",
+  "productionSourceSHA256": {
+    "android\\app\\src\\main\\java\\app\\recipio\\local\\WebImportFailure.java": "726538f0fcdbc40849763ec22050d5f004bdc55ec0fad0a6a8a2d29677b0a1bf",
+    "android\\app\\src\\main\\java\\app\\recipio\\local\\WebUrlSafety.java": "6732ac570e16f7865d11773b5b47e38edf8d4ef69734927e9a1686cc618e3282",
+    "android\\app\\src\\main\\java\\app\\recipio\\local\\SafeWebFetcher.java": "537ddc1de36c0b5ef1741422a62ae4cc738a24231a65d00d2f4e002dc759a12a",
+    "android\\app\\src\\main\\java\\app\\recipio\\local\\WebImportRequest.java": "79d322bd07445241436317c332ab519f6695784e574341f9ed525af3a390b23c",
+    "android\\app\\src\\test\\java\\app\\recipio\\local\\WebUrlSafetyTest.java": "6fd3872d9b6d820f5bd2153678defb38f68c64640b8472186b4588178895af59",
+    "android\\app\\src\\test\\java\\app\\recipio\\local\\SafeWebFetcherTest.java": "b18efd51ed170ab8e8c812280d2c68708b9f038873d153c286459582250251f5",
+    "android\\app\\src\\test\\java\\app\\recipio\\local\\WebImportRequestTest.java": "7f5989c32282029f1c2e69e60e739bfc7a699fc2aff93351ac50808a968d2bf7"
+  },
+  "dependencies": [
+    {
+      "path": "C:\\Users\\CDD\\.gradle\\caches\\modules-2\\files-2.1\\com.squareup.okhttp3\\okhttp\\4.12.0\\2f4525d4a200e97e1b87449c2cd9bd2e25b7e8cd\\okhttp-4.12.0.jar",
+      "SHA256": "b1050081b14bb7a3a7e55a4d3ef01b5dcfabc453b4573a4fc019767191d5f4e0"
+    },
+    {
+      "path": "C:\\Users\\CDD\\.gradle\\caches\\modules-2\\files-2.1\\com.squareup.okhttp3\\mockwebserver\\4.12.0\\3bc54cc5c87cd632031d0881f3c313d3799a1476\\mockwebserver-4.12.0.jar",
+      "SHA256": "6784673687f4ac8f21679b9d4bc7cdb46e1a1ce1be9d3133b36bede59a741561"
+    },
+    {
+      "path": "C:\\Users\\CDD\\.gradle\\caches\\modules-2\\files-2.1\\com.squareup.okio\\okio-jvm\\3.6.0\\5600569133b7bdefe1daf9ec7f4abeb6d13e1786\\okio-jvm-3.6.0.jar",
+      "SHA256": "67543f0736fc422ae927ed0e504b98bc5e269fda0d3500579337cb713da28412"
+    },
+    {
+      "path": "C:\\Users\\CDD\\.gradle\\caches\\modules-2\\files-2.1\\org.jetbrains.kotlin\\kotlin-stdlib\\2.2.20\\5380b19fa1924399b62ce3a1faffebb2b4f82272\\kotlin-stdlib-2.2.20.jar",
+      "SHA256": "8836ccffd3585fadda9901244b20d42901d2f3cd581058d8434e2ffabcf3a3e7"
+    },
+    {
+      "path": "C:\\Users\\CDD\\.gradle\\caches\\modules-2\\files-2.1\\junit\\junit\\4.13.2\\8ac9e16d933b6fb43bc7f576336b8f4d7eb5ba12\\junit-4.13.2.jar",
+      "SHA256": "8e495b634469d64fb8acfa3495a065cbacc8a0fff55ce1e31007be4c16dc57d3"
+    },
+    {
+      "path": "C:\\Users\\CDD\\.gradle\\caches\\modules-2\\files-2.1\\org.hamcrest\\hamcrest-core\\1.3\\42a25dc3219429f0e5d060061f71acb49bf010a0\\hamcrest-core-1.3.jar",
+      "SHA256": "66fdef91e9739348df7a096aa384a5685f4e875584cce89386a7a47251c4d8e9"
+    },
+    {
+      "path": "C:\\Users\\CDD\\.gradle\\caches\\modules-2\\files-2.1\\org.json\\json\\20250517\\d67181bbd819ccceb929b580a4e2fcb0c8b17cd8\\json-20250517.jar",
+      "SHA256": "3ea61b2a06e31edf1c91134fe9106b0ebb16628be169f3db75bc7a2b06b45796"
+    }
+  ],
+  "commands": {
+    "compileArgv": [
+      "E:\\CODEX\\Tools\\recipio-official-signing-jdk21\\bin\\javac.exe",
+      "-J-Xmx128m",
+      "-encoding",
+      "UTF-8",
+      "-cp",
+      "C:\\Users\\CDD\\.gradle\\caches\\modules-2\\files-2.1\\com.squareup.okhttp3\\okhttp\\4.12.0\\2f4525d4a200e97e1b87449c2cd9bd2e25b7e8cd\\okhttp-4.12.0.jar;C:\\Users\\CDD\\.gradle\\caches\\modules-2\\files-2.1\\com.squareup.okhttp3\\mockwebserver\\4.12.0\\3bc54cc5c87cd632031d0881f3c313d3799a1476\\mockwebserver-4.12.0.jar;C:\\Users\\CDD\\.gradle\\caches\\modules-2\\files-2.1\\com.squareup.okio\\okio-jvm\\3.6.0\\5600569133b7bdefe1daf9ec7f4abeb6d13e1786\\okio-jvm-3.6.0.jar;C:\\Users\\CDD\\.gradle\\caches\\modules-2\\files-2.1\\org.jetbrains.kotlin\\kotlin-stdlib\\2.2.20\\5380b19fa1924399b62ce3a1faffebb2b4f82272\\kotlin-stdlib-2.2.20.jar;C:\\Users\\CDD\\.gradle\\caches\\modules-2\\files-2.1\\junit\\junit\\4.13.2\\8ac9e16d933b6fb43bc7f576336b8f4d7eb5ba12\\junit-4.13.2.jar;C:\\Users\\CDD\\.gradle\\caches\\modules-2\\files-2.1\\org.hamcrest\\hamcrest-core\\1.3\\42a25dc3219429f0e5d060061f71acb49bf010a0\\hamcrest-core-1.3.jar;C:\\Users\\CDD\\.gradle\\caches\\modules-2\\files-2.1\\org.json\\json\\20250517\\d67181bbd819ccceb929b580a4e2fcb0c8b17cd8\\json-20250517.jar",
+      "-d",
+      "E:\\CODEX\\Tools\\recipio-xhs-r3-20261105\\jvm-network-20261105-115715\\test-classes",
+      "E:\\CODEX\\VIBE CODING\\recipe-step-app-xhs-r3\\android\\app\\src\\main\\java\\app\\recipio\\local\\WebImportFailure.java",
+      "E:\\CODEX\\VIBE CODING\\recipe-step-app-xhs-r3\\android\\app\\src\\main\\java\\app\\recipio\\local\\WebUrlSafety.java",
+      "E:\\CODEX\\VIBE CODING\\recipe-step-app-xhs-r3\\android\\app\\src\\main\\java\\app\\recipio\\local\\SafeWebFetcher.java",
+      "E:\\CODEX\\VIBE CODING\\recipe-step-app-xhs-r3\\android\\app\\src\\main\\java\\app\\recipio\\local\\WebImportRequest.java",
+      "E:\\CODEX\\VIBE CODING\\recipe-step-app-xhs-r3\\android\\app\\src\\test\\java\\app\\recipio\\local\\WebUrlSafetyTest.java",
+      "E:\\CODEX\\VIBE CODING\\recipe-step-app-xhs-r3\\android\\app\\src\\test\\java\\app\\recipio\\local\\SafeWebFetcherTest.java",
+      "E:\\CODEX\\VIBE CODING\\recipe-step-app-xhs-r3\\android\\app\\src\\test\\java\\app\\recipio\\local\\WebImportRequestTest.java"
+    ],
+    "junitArgv": [
+      "E:\\CODEX\\Tools\\recipio-official-signing-jdk21\\bin\\java.exe",
+      "-Xmx256m",
+      "-Dstdout.encoding=UTF-8",
+      "-Dstderr.encoding=UTF-8",
+      "-cp",
+      "E:\\CODEX\\Tools\\recipio-xhs-r3-20261105\\jvm-network-20261105-115715\\test-classes;C:\\Users\\CDD\\.gradle\\caches\\modules-2\\files-2.1\\com.squareup.okhttp3\\okhttp\\4.12.0\\2f4525d4a200e97e1b87449c2cd9bd2e25b7e8cd\\okhttp-4.12.0.jar;C:\\Users\\CDD\\.gradle\\caches\\modules-2\\files-2.1\\com.squareup.okhttp3\\mockwebserver\\4.12.0\\3bc54cc5c87cd632031d0881f3c313d3799a1476\\mockwebserver-4.12.0.jar;C:\\Users\\CDD\\.gradle\\caches\\modules-2\\files-2.1\\com.squareup.okio\\okio-jvm\\3.6.0\\5600569133b7bdefe1daf9ec7f4abeb6d13e1786\\okio-jvm-3.6.0.jar;C:\\Users\\CDD\\.gradle\\caches\\modules-2\\files-2.1\\org.jetbrains.kotlin\\kotlin-stdlib\\2.2.20\\5380b19fa1924399b62ce3a1faffebb2b4f82272\\kotlin-stdlib-2.2.20.jar;C:\\Users\\CDD\\.gradle\\caches\\modules-2\\files-2.1\\junit\\junit\\4.13.2\\8ac9e16d933b6fb43bc7f576336b8f4d7eb5ba12\\junit-4.13.2.jar;C:\\Users\\CDD\\.gradle\\caches\\modules-2\\files-2.1\\org.hamcrest\\hamcrest-core\\1.3\\42a25dc3219429f0e5d060061f71acb49bf010a0\\hamcrest-core-1.3.jar;C:\\Users\\CDD\\.gradle\\caches\\modules-2\\files-2.1\\org.json\\json\\20250517\\d67181bbd819ccceb929b580a4e2fcb0c8b17cd8\\json-20250517.jar",
+      "org.junit.runner.JUnitCore",
+      "app.recipio.local.WebUrlSafetyTest",
+      "app.recipio.local.SafeWebFetcherTest",
+      "app.recipio.local.WebImportRequestTest"
+    ]
+  },
+  "testMethodCountByClass": {
+    "WebUrlSafetyTest": 7,
+    "SafeWebFetcherTest": 14,
+    "WebImportRequestTest": 4
+  },
+  "networkBoundary": {
+    "realExternalRequests": 0,
+    "realDNSQueries": 0,
+    "testTransport": "MockWebServer loopback via test-only TestSockets",
+    "syntheticDns": "injected address bytes only; InetAddress numeric literals",
+    "realProbeClassesReferenced": false,
+    "gradle": "NOT_RUN",
+    "emulator": "NOT_RUN",
+    "realAI": "NOT_RUN"
+  },
+  "compile": {
+    "exitCode": 0,
+    "elapsedSeconds": 2.969,
+    "stdout": "E:\\CODEX\\Tools\\recipio-xhs-r3-20261105\\jvm-network-20261105-115715\\compile.stdout.txt",
+    "stdoutSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "stderr": "E:\\CODEX\\Tools\\recipio-xhs-r3-20261105\\jvm-network-20261105-115715\\compile.stderr.txt",
+    "stderrSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "junit": {
+    "exitCode": 0,
+    "elapsedSeconds": 1.515,
+    "stdout": "E:\\CODEX\\Tools\\recipio-xhs-r3-20261105\\jvm-network-20261105-115715\\junit.stdout.txt",
+    "stdoutSHA256": "fb2e8c591fcfbc9eb9065a6e893a61cb08ad9d23424cb489e6c0f1b06116b963",
+    "stderr": "E:\\CODEX\\Tools\\recipio-xhs-r3-20261105\\jvm-network-20261105-115715\\junit.stderr.txt",
+    "stderrSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "actualTestsPassed": 25,
+  "result": "PASS",
+  "testedSourceUnchanged": true,
+  "realProbeClassesUnchanged": true,
+  "runnerSHA256": "f6e22742d66c5ae220cbde83d22f24de8e0fe950698a6725fa5da57fe4ad6760"
+}

@@ -1,0 +1,118 @@
+{
+  "inputHost": "xhslink.cn",
+  "inputPathType": "SHORT_SHARE_PATH",
+  "dnsMode": "DIAGNOSTIC_DOH_NOT_PRODUCTION",
+  "httpRequestBudget": 3,
+  "httpRequestsAdmitted": 2,
+  "requestBudgetExceeded": false,
+  "finalHost": "www.xiaohongshu.com",
+  "finalPathType": "NOTE_PATH",
+  "finalNoteIdPatternMatched": true,
+  "finalHtmlUtf8Bytes": 49180,
+  "tlsConfiguration": "DEFAULT_TRUST_AND_HOSTNAME_VERIFICATION",
+  "cookieMode": "NO_COOKIES",
+  "proxyMode": "NO_EXPLICIT_PROXY",
+  "userAgent": "RECIPIO/0.6 Android Link Import",
+  "overallDeadlineMillis": 20000,
+  "decodedHtmlLimitBytes": 2097152,
+  "automaticRetry": false,
+  "diagnosticOnly": true,
+  "productionSourceUsed": true,
+  "dns": [
+    {
+      "host": "xhslink.cn",
+      "addressCount": 2,
+      "addressClasses": {
+        "GLOBAL_IPV4": 2
+      },
+      "validation": "PUBLIC_ALL_ADDRESSES"
+    },
+    {
+      "host": "www.xiaohongshu.com",
+      "addressCount": 4,
+      "addressClasses": {
+        "GLOBAL_IPV4": 3,
+        "GLOBAL_IPV6": 1
+      },
+      "validation": "PUBLIC_ALL_ADDRESSES"
+    }
+  ],
+  "connects": [
+    {
+      "host": "xhslink.cn",
+      "addressClass": "GLOBAL_IPV4",
+      "memberOfValidatedSet": true,
+      "port": 443,
+      "proxyType": "DIRECT"
+    },
+    {
+      "host": "www.xiaohongshu.com",
+      "addressClass": "GLOBAL_IPV4",
+      "memberOfValidatedSet": true,
+      "port": 443,
+      "proxyType": "DIRECT"
+    }
+  ],
+  "responses": [
+    {
+      "host": "xhslink.cn",
+      "pathType": "SHORT_SHARE_PATH",
+      "noteIdPatternMatched": false,
+      "status": 302,
+      "statusClass": "3xx",
+      "https": true
+    },
+    {
+      "host": "www.xiaohongshu.com",
+      "pathType": "NOTE_PATH",
+      "noteIdPatternMatched": true,
+      "status": 200,
+      "statusClass": "2xx",
+      "https": true
+    }
+  ],
+  "redirectResponses": 1,
+  "tls": [
+    {
+      "host": "xhslink.cn",
+      "verified": true,
+      "version": "TLSv1.2"
+    },
+    {
+      "host": "www.xiaohongshu.com",
+      "verified": true,
+      "version": "TLSv1.3"
+    }
+  ],
+  "failures": [],
+  "diagnosticRunId": "doh-diagnostic-attempt-2",
+  "safeTraceSidecarWritten": true,
+  "execution": "PC_EXACT_PRODUCTION_FETCHER",
+  "networkError": null,
+  "extraction": {
+    "diagnostic": "state_unsupported",
+    "statePresent": true,
+    "targetResolved": false,
+    "access": null,
+    "media": null,
+    "wasTruncated": false,
+    "titleNonempty": false,
+    "textCodePoints": 0,
+    "bodyHasNonTitle": false,
+    "aiSourceTextGate": false
+  },
+  "safePageShape": {
+    "htmlBytes": 49180,
+    "scriptCount": 15,
+    "initialStateMentions": 1,
+    "anchoredInitialStateAssignments": 1,
+    "hasNextData": false,
+    "stateAssignmentPayloadBytes": [
+      13286
+    ]
+  },
+  "observedAt": "2026-11-05T03:55:08.804177+00:00",
+  "sample": "Sample A",
+  "privatePageSaved": true,
+  "privatePagePurpose": "LOCAL_TEMP_OFFLINE_ROOT_CAUSE_ONLY"
+}

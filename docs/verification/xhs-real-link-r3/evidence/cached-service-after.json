@@ -1,0 +1,25 @@
+{
+  "kind": "REAL_CACHED_PAGE_EXACT_PRODUCTION_SERVICE_OFFLINE",
+  "cacheReadOnly": true,
+  "additionalHttpRequests": 0,
+  "realAiCalls": 0,
+  "provider": "FAKE_NO_NETWORK_NO_PERSISTENCE",
+  "sourceHash": "64efd9499f2b52142da117e93b94ae607e32a951a4e79d82bba78b5c582032dc",
+  "phaseAfterRead": "ready",
+  "qualityAfterRead": "partial",
+  "titleNonempty": true,
+  "textCodePoints": 409,
+  "structuredCandidateCount": 0,
+  "automaticAiCalls": 0,
+  "explicitAiEntryEnabled": true,
+  "explicitFakeAiCalls": 1,
+  "phaseAfterExplicitFake": "ai-preview",
+  "request": {
+    "textChars": 535,
+    "imageCount": 0,
+    "containsFinalUrl": false,
+    "containsShareParameterValues": false
+  },
+  "savedRecipes": 0,
+  "databaseOpened": false
+}

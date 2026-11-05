@@ -1,0 +1,11 @@
+{
+  "java": "E:\\CODEX\\Tools\\recipio-official-signing-jdk21\\bin\\java.exe",
+  "classpath": "E:\\CODEX\\Tools\\recipio-xhs-r3-20261105\\classes;C:\\Users\\CDD\\.gradle\\caches\\modules-2\\files-2.1\\com.squareup.okhttp3\\okhttp\\4.12.0\\2f4525d4a200e97e1b87449c2cd9bd2e25b7e8cd\\okhttp-4.12.0.jar;C:\\Users\\CDD\\.gradle\\caches\\modules-2\\files-2.1\\com.squareup.okio\\okio-jvm\\3.6.0\\5600569133b7bdefe1daf9ec7f4abeb6d13e1786\\okio-jvm-3.6.0.jar;C:\\Users\\CDD\\.gradle\\caches\\modules-2\\files-2.1\\org.jetbrains.kotlin\\kotlin-stdlib\\2.2.20\\5380b19fa1924399b62ce3a1faffebb2b4f82272\\kotlin-stdlib-2.2.20.jar;C:\\Users\\CDD\\.gradle\\caches\\modules-2\\files-2.1\\com.google.code.gson\\gson\\2.11.0\\527175ca6d81050b53bdd4c457a6d6e017626b0e\\gson-2.11.0.jar",
+  "mainClass": "app.recipio.local.R3NativeProbe",
+  "compiledProductionFiles": [
+    "E:\\CODEX\\VIBE CODING\\recipe-step-app-xhs-r3\\android\\app\\src\\main\\java\\app\\recipio\\local\\SafeWebFetcher.java",
+    "E:\\CODEX\\VIBE CODING\\recipe-step-app-xhs-r3\\android\\app\\src\\main\\java\\app\\recipio\\local\\WebUrlSafety.java",
+    "E:\\CODEX\\VIBE CODING\\recipe-step-app-xhs-r3\\android\\app\\src\\main\\java\\app\\recipio\\local\\WebImportFailure.java"
+  ],
+  "maxHeapArg": "-Xmx256m"
+}

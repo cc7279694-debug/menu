@@ -1,5 +1,26 @@
 # Current State
 
+## P0 XHS-R3 — READY_FOR_INDEPENDENT_REVIEW; N2 PAUSED_BY_USER — 2026-11-05
+
+User reprioritized real anonymous XHS link intake. New isolated worktree/branch
+`fix/recipio-xhs-real-link-r3` starts fromf552d14: its initial production is identical
+to accepted R2c2c55d21, with N1 history but no unaccepted N2 segmentation code.
+Fixed sourcebc045adfc9bb5b6a9698580f9c1cad593d90ab35 adds only the verified public
+`noteData.data.noteData` layout with mandatory exact target ID; no recommendation search.
+Sample A real anonymous302→200 via diagnostic DoH, default TLS and production pin:
+same real response replays from state_unsupported to target_text/409 code points.
+Production Service replay yields partial,0automaticAI,1explicitFake,0saves.
+**REAL_PUBLIC_LINK_PASS is limited to PC_DIAGNOSTIC_DOH + REAL_RESPONSE_OFFLINE_REPLAY**;
+default system DNS still safely refuses Fake-IP. No default-system-DNS/Android/Xiaomi
+or post-patch fresh-network E2E claim; original phone DNS cause remains UNKNOWN.
+196link-import tests/25pureJVM, typecheck, lint0error/5existingwarnings, local build
+and isolation PASS. RealAI/phone/Android/more-real-samples/real-save NOT_RUN.
+No sample URL/HTML/body/ID/token in Git; V28 hash and contracts unchanged.
+[Review](verification/xhs-real-link-r3/REVIEW.md) / [task](verification/xhs-real-link-r3/TASK.md).
+N2 source51a2d92/evidenceab7f6f9 and its own workspace are retained and explicitly
+PAUSED_BY_USER; no merge/transplant or emulator retry. Historical N1/R2 evidence
+below is inherited history, not a new real-link PASS.
+
 ## XHS-R2-N1 — READY_FOR_INDEPENDENT_REVIEW — 2026-11-03
 
 On `verification/recipio-xhs-r2-n1`, fresh5.996GiB admission allowed a new,

@@ -1,0 +1,38 @@
+{
+  "kind": "DIAGNOSTIC_TOOL_ONLY_OFFLINE",
+  "legacyRed": {
+    "kind": "OFFLINE_SYNTHETIC_EMULATED_WINDOWS_GBK",
+    "legacyStdout": "FAILED_AS_EXPECTED",
+    "failureCategory": "UTF8_DECODE_ERROR",
+    "networkExecuted": false,
+    "rawPayloadPersisted": false
+  },
+  "checks": [
+    {
+      "stdoutEncodingProperty": "GBK",
+      "utf8Decode": "PASS",
+      "chineseEmojiRoundtrip": "PASS",
+      "networkExecuted": false,
+      "safeSidecarOnly": "PASS",
+      "sidecarFile": "r3-safe-selftest-bf9e5ef6a73447189654fe3c322bf57b.json",
+      "sidecarSha256": "e133e6f8b05364cff9055f01a2a90db82dcbfdeda687346c63f5aa45f3a9d0e9",
+      "existingSidecarRefusal": "PASS"
+    },
+    {
+      "stdoutEncodingProperty": "UTF-8",
+      "utf8Decode": "PASS",
+      "chineseEmojiRoundtrip": "PASS",
+      "networkExecuted": false,
+      "safeSidecarOnly": "PASS",
+      "sidecarFile": "r3-safe-selftest-1f51cde1c92d4635b582beb6ff77135c.json",
+      "sidecarSha256": "20f8c0fc0a9ab8928f96446db96806de3d9792c1160492cf96b6cf451ad93cd0",
+      "existingSidecarRefusal": "PASS"
+    }
+  ],
+  "compile": "PASS",
+  "realAiCalls": 0,
+  "realHttpRequests": 0,
+  "realXhsRequests": 0,
+  "productionSourceModified": false,
+  "realLinkPass": false
+}

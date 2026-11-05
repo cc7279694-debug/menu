@@ -1,0 +1,46 @@
+{
+  "inputHost": "xhslink.cn",
+  "inputPathType": "SHORT_SHARE_PATH",
+  "dnsMode": "SYSTEM_PRODUCTION",
+  "httpRequestBudget": 3,
+  "httpRequestsAdmitted": 0,
+  "requestBudgetExceeded": false,
+  "finalHost": "UNAVAILABLE",
+  "finalPathType": "UNAVAILABLE",
+  "finalNoteIdPatternMatched": false,
+  "finalHtmlUtf8Bytes": 0,
+  "tlsConfiguration": "DEFAULT_TRUST_AND_HOSTNAME_VERIFICATION",
+  "cookieMode": "NO_COOKIES",
+  "proxyMode": "NO_EXPLICIT_PROXY",
+  "userAgent": "RECIPIO/0.6 Android Link Import",
+  "overallDeadlineMillis": 20000,
+  "decodedHtmlLimitBytes": 2097152,
+  "automaticRetry": false,
+  "diagnosticOnly": true,
+  "productionSourceUsed": true,
+  "dns": [
+    {
+      "host": "xhslink.cn",
+      "addressCount": 1,
+      "addressClasses": {
+        "FAKE_IP_BENCHMARK": 1
+      },
+      "validation": "dns_fake_ip"
+    }
+  ],
+  "connects": [],
+  "responses": [],
+  "redirectResponses": 0,
+  "tls": [],
+  "failures": [
+    {
+      "stage": "TERMINAL",
+      "exceptionClass": "WebImportFailure"
+    }
+  ],
+  "execution": "PC_EXACT_PRODUCTION_FETCHER",
+  "networkError": "dns_fake_ip",
+  "observedAt": "2026-11-05T03:44:36.506555+00:00",
+  "sample": "Sample A",
+  "privatePageSaved": false
+}

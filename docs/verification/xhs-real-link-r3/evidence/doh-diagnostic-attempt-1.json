@@ -1,0 +1,12 @@
+{
+  "sample": "Sample A",
+  "executionStatus": "FAILED_DIAGNOSTIC_OUTPUT_ENCODING",
+  "dnsMode": "DIAGNOSTIC_DOH_NOT_PRODUCTION",
+  "httpRequestsAdmitted": null,
+  "httpRequestsUpperBound": 3,
+  "rawPageRetained": false,
+  "verifiedPublicTargetBody": false,
+  "failureCategory": "UTF8_STDOUT_DECODE_FAILURE",
+  "productionCodeChanged": false,
+  "canSupportRealLinkPass": false
+}

@@ -1,0 +1,7 @@
+{
+  "kind": "OFFLINE_SYNTHETIC_EMULATED_WINDOWS_GBK",
+  "legacyStdout": "FAILED_AS_EXPECTED",
+  "failureCategory": "UTF8_DECODE_ERROR",
+  "networkExecuted": false,
+  "rawPayloadPersisted": false
+}

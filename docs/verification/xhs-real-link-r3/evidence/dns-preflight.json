@@ -1,0 +1,11 @@
+{
+  "sample": "Sample A",
+  "input_host": "xhslink.cn",
+  "phase": "PYTHON_SYSTEM_DNS_DIAGNOSTIC_ONLY_NOT_PRODUCTION_GATE",
+  "answerCount": 1,
+  "addressCategories": [
+    "FAKE_IP_BENCHMARK"
+  ],
+  "platformHttpRequests": 0,
+  "observedAt": "2026-11-05T03:43:26.822736+00:00"
+}

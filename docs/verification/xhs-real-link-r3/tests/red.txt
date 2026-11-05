@@ -1,0 +1,84 @@
+(!) Your Vite config uses features that are unsupported by `configLoader: 'native'`, which is planned to become the default in a future major version of Vite:
+  - ESM syntax in a file loaded as CommonJS (vitest.config.ts:1:1). Use a `.mjs` extension or set `"type": "module"` in the closest package.json
+Set `VITE_CONFIG_NATIVE_IGNORE_WARNING=true` to suppress this warning.
+
+ RUN  v4.1.11 E:/CODEX/VIBE CODING/recipe-step-app-xhs-r3
+
+ ❯ src/native/link-import/service.test.ts (34 tests | 1 failed) 300ms
+   × R3 mobile target prose enables explicit AI only, excludes recommendations and retains review/save gates 24ms
+ ❯ src/native/link-import/xhs-page.test.ts (58 tests | 2 failed) 85ms
+     × R3 reads the fixed mobile public state path only with an explicit target identity 20ms
+     × R3 keeps inert serialization, sanitization and safety limits on the mobile layout 2ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 3 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/native/link-import/service.test.ts > R3 mobile target prose enables explicit AI only, excludes recommendations and retains review/save gates
+AssertionError: expected 'title_only' to be 'partial' // Object.is equality
+
+Expected: "partial"
+Received: "title_only"
+
+ ❯ src/native/link-import/service.test.ts:30:33
+
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/3]⎯
+
+ FAIL  src/native/link-import/xhs-page.test.ts > bounded inert public Xiaohongshu state > R3 reads the fixed mobile public state path only with an explicit target identity
+AssertionError: expected { title: '', text: '', …(7) } to match object { targetResolved: true, …(3) }
+(5 matching properties omitted from actual)
+
+- Expected
++ Received
+
+  {
+-   "diagnostic": "target_text",
+-   "targetResolved": true,
+-   "text": "食材：鸡肉500克，椰子2个。
+- 做法：焯水，加入椰汁，小火煮20分钟。",
+-   "title": "合成椰子鸡",
++   "diagnostic": "state_unsupported",
++   "targetResolved": false,
++   "text": "",
++   "title": "",
+  }
+
+ ❯ src/native/link-import/xhs-page.test.ts:13:20
+     11|   it("R3 reads the fixed mobile public state path only with an explici…
+     12|     const result = extractXhsPublicPage(html({ noteData: { data: { not…
+     13|     expect(result).toMatchObject({ targetResolved: true, diagnostic: "…
+       |                    ^
+     14|   });
+     15|   it.each([undefined, null, "other", 0, ""])("R3 rejects mobile notes …
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/3]⎯
+
+ FAIL  src/native/link-import/xhs-page.test.ts > bounded inert public Xiaohongshu state > R3 keeps inert serialization, sanitization and safety limits on the mobile layout
+AssertionError: expected { title: '', text: '', …(7) } to match object { text: '煮熟。', targetResolved: true }
+(7 matching properties omitted from actual)
+
+- Expected
++ Received
+
+  {
+-   "targetResolved": true,
+-   "text": "煮熟。",
++   "targetResolved": false,
++   "text": "",
+  }
+
+ ❯ src/native/link-import/xhs-page.test.ts:31:47
+     29|   it("R3 keeps inert serialization, sanitization and safety limits on …
+     30|     const source = html({ noteData: { data: { noteData: note("合成汤", '<…
+     31|     expect(extractXhsPublicPage(source, url)).toMatchObject({ text: "煮…
+       |                                               ^
+     32|     expect(extractXhsPublicPage(html({ noteData: { data: { noteData: n…
+     33|       .toMatchObject({ diagnostic: "safety_limit", text: "", targetRes…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/3]⎯
+
+
+ Test Files  2 failed (2)
+      Tests  3 failed | 89 passed (92)
+   Start at  11:57:10
+   Duration  16.08s (transform 958ms, setup 10.14s, import 3.39s, tests 385ms, environment 0ms)
+
