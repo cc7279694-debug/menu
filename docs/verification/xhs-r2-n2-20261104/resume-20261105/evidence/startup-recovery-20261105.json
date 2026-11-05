@@ -1,0 +1,17 @@
+{
+  "startedAt": "2026-11-05T02:02:29.851011+00:00",
+  "avd": "Recipio_XHS_R2_N2_API36",
+  "controlledWaitAttempts": 1,
+  "forcedClose": false,
+  "reboots": 0,
+  "appsInstalled": false,
+  "priorSystemEvents": 7,
+  "newAnrOrCrashEvents": 1,
+  "focusedWindow": [
+    "  mCurrentFocus=Window{ce324dd u0 com.google.android.apps.nexuslauncher/com.google.android.apps.nexuslauncher.NexusLauncherActivity}"
+  ],
+  "recoveredAtObservation": false,
+  "newEvents": [
+    "11-05 02:02:47.362   706  4723 I am_anr  : [0,4563,com.google.android.inputmethod.latin,550157893,Process ProcessRecord{2a2cabc 4563:com.google.android.inputmethod.latin/u0a154} failed to complete startup]"
+  ]
+}

@@ -1,0 +1,69 @@
+{
+  "clientDate": "2026-11-05",
+  "status": "BLOCKED — VERIFIED_DEFECT",
+  "scope": "ENV_SYSTEM_STARTUP_ANR",
+  "productionDefectConfirmed": false,
+  "anrRootCause": "UNKNOWN",
+  "sourceCommit": "51a2d92d1417cc99bbba9547bcbb2497b8757949",
+  "inputEvidenceHead": "0daf4c04c7b653ba5b776ea24fb4dd6fda06337a",
+  "productionOrTestSourceChanged": false,
+  "artifacts": {
+    "test-app-debug.apk": {
+      "bytes": 17493631,
+      "sha256": "03eca4b65f10e2698f2ea69378257699ccd815a0be8ddfa82cb96b079e502019",
+      "installed": false
+    },
+    "test-instrumentation.apk": {
+      "bytes": 843225,
+      "sha256": "fec06806fbb02d1bf51443e97a173e8c4acb7c0785db7e3d78d447dc30ce8bab",
+      "installed": false
+    }
+  },
+  "memoryAdmissionGiB": 5.437,
+  "memoryThresholdGiB": 4,
+  "memoryAdmission": "PASS",
+  "avd": "Recipio_XHS_R2_N2_API36",
+  "serial": "emulator-5690",
+  "api": 36,
+  "ramMiB": 2560,
+  "cpuCount": 2,
+  "launches": 1,
+  "bootCompletedAfterSeconds": 182.9,
+  "startupSystemAnrEvents": 7,
+  "controlledSystemWaitAttempts": 1,
+  "newGboardAnrAfterWait": 1,
+  "totalSystemAnrEvents": 8,
+  "systemHealthGate": "FAIL",
+  "forcedClose": false,
+  "reboots": 0,
+  "avdStopped": true,
+  "avdDataPreserved": true,
+  "recipioInstalled": false,
+  "nativeTestsExecuted": 0,
+  "newNativeTests": {
+    "codec4": "NOT_RUN",
+    "longPickerCancel1": "NOT_RUN",
+    "longReviewSave1": "NOT_RUN"
+  },
+  "segmentFilesProduced": false,
+  "n2ImageReadability": "NOT_VERIFIED",
+  "airplaneModeAppTests": "NOT_RUN - pre-install health failed",
+  "supplementaryJsAndGraphChecks": "NOT_RUN - core native gate not reached",
+  "historicalEvidenceReused": {
+    "scopedJs": 55,
+    "jvm": 208,
+    "typecheck": "PASS",
+    "lint": "0errors5warnings",
+    "webSyncAndDebugBuild": "PASS",
+    "rerunThisResume": false
+  },
+  "realAiCalls": 0,
+  "realXhsRequests": 0,
+  "phoneOperations": 0,
+  "otherProjectOperations": 0,
+  "frozenSignedV28": {
+    "bytes": 15194675,
+    "sha256": "52dfed4ef23afb5aa0dc6fb2b6089921af240993627aec9479ff69ea3d94b59b",
+    "unchanged": true
+  }
+}

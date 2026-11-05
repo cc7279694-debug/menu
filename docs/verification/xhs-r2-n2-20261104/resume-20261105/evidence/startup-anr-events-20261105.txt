@@ -1,0 +1,7 @@
+11-05 01:59:33.390   706  1902 I am_anr  : [0,1564,com.google.android.gms.persistent,-1597325755,Process ProcessRecord{3487e54 1564:com.google.android.gms.persistent/u0a143} failed to complete startup]
+11-05 01:59:37.375   706  1902 I am_anr  : [0,1163,com.android.systemui,550026765,executing service com.android.systemui/.keyguard.KeyguardService, waited 20040ms]
+11-05 01:59:41.728   706  1902 I am_anr  : [0,1627,com.google.android.inputmethod.latin,550157893,Process ProcessRecord{26088bf 1627:com.google.android.inputmethod.latin/u0a154} failed to complete startup]
+11-05 01:59:45.960   706  2112 I am_anr  : [0,1906,com.google.android.gms,-1597325755,Broadcast of Intent { act=android.intent.action.SIM_STATE_CHANGED flg=0x15000010 xflg=0x4 cmp=com.google.android.gms/.checkin.CheckinServiceTriggerReceiver (has extras) }]
+11-05 01:59:57.112   706  2234 I am_anr  : [0,1871,com.google.android.as,818658885,Process ProcessRecord{62f97df 1871:com.google.android.as/u0a145} failed to complete startup]
+11-05 02:00:04.550   706  2327 I am_anr  : [0,1982,com.google.android.gms.persistent,-1597325755,Process ProcessRecord{c59ad86 1982:com.google.android.gms.persistent/u0a143} failed to complete startup]
+11-05 02:00:13.383   706  2492 I am_anr  : [0,2266,com.google.android.gms,-1597325755,Broadcast of Intent { act=android.intent.action.SIM_STATE_CHANGED flg=0x15000010 xflg=0x4 cmp=com.google.android.gms/.checkin.CheckinServiceTriggerReceiver (has extras) }]

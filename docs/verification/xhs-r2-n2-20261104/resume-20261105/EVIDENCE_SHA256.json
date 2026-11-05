@@ -1,0 +1,87 @@
+[
+  {
+    "file": "evidence/.gitattributes",
+    "bytes": 65,
+    "sha256": "b5015accec55a95470a93ba2beb2f4cd074171ffea871f003dbcd07c162afe06"
+  },
+  {
+    "file": "evidence/admission-20261105.json",
+    "bytes": 238,
+    "sha256": "f7867752889768b4bdd8886d7d4fc0805c5ee2b3e49377835ad9153cfaa0626a"
+  },
+  {
+    "file": "evidence/boot-20261105.json",
+    "bytes": 120,
+    "sha256": "8079486a83f3be7eaab10a48badf38b5a098e39262e0c869a40db45929239717"
+  },
+  {
+    "file": "evidence/check_startup_recovery_20261105.py",
+    "bytes": 2085,
+    "sha256": "071b87f0969c35ffc8203b50a29ca9a7ab69754ef9d72250b0e3cb238af3496e"
+  },
+  {
+    "file": "evidence/emulator-20261105-err.txt",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "file": "evidence/emulator-20261105-out.txt",
+    "bytes": 16038,
+    "sha256": "7c21542b19d3bfc3419640ebd86de6321126e7ecdc08b00b7b8a8818f0474c82"
+  },
+  {
+    "file": "evidence/owned-avd-stop-20261105.txt",
+    "bytes": 38,
+    "sha256": "15279539b73b12172f33ce5b426af72e9c65bf7de3871b05cf3b041af537ea88"
+  },
+  {
+    "file": "evidence/pre-install-packages-20261105.txt",
+    "bytes": 30,
+    "sha256": "3d1953d52a9777eeb47fca20c5cffffaceab0f65795a8d1e1795a03ccb6a4e33"
+  },
+  {
+    "file": "evidence/recovery-anr-events-20261105.txt",
+    "bytes": 1680,
+    "sha256": "a4450a17dbb362447f0f04d01f0110b9d44f4cbd3823f508711d7b9fdf44f8c3"
+  },
+  {
+    "file": "evidence/startup-anr-20261105.png",
+    "bytes": 471443,
+    "sha256": "7d2698ac1b3bc55035e68a947882b85151c7b26d1dec33a7b9c79fef4846bfe6"
+  },
+  {
+    "file": "evidence/startup-anr-events-20261105.txt",
+    "bytes": 1473,
+    "sha256": "7582ac465694fa09cceaa16388502a723c0bd1b23a188b5a09de3886423d7933"
+  },
+  {
+    "file": "evidence/startup-anr-ui-20261105.xml",
+    "bytes": 4450,
+    "sha256": "26a1126d1ba4f722d22aaab6f75563b8d5c8d24514369e6bc814f8456502f688"
+  },
+  {
+    "file": "evidence/startup-focus-20261105.txt",
+    "bytes": 50122,
+    "sha256": "600782e5f379e418ff4b76093984cb8af93acc4015a666cf0e9aa9e90bf0e12c"
+  },
+  {
+    "file": "evidence/startup-recovery-20261105.json",
+    "bytes": 692,
+    "sha256": "80c17ea087c2869d0b2cb01cec5ed3b50d5a30aa1dac422e6881ee67471d0d2a"
+  },
+  {
+    "file": "evidence/startup-recovery-20261105.png",
+    "bytes": 1240590,
+    "sha256": "3a8cde001637bc5811b9446869bf116c766ce26226a8e5d3b4111d239ebf8f63"
+  },
+  {
+    "file": "evidence/startup-recovery-focus-20261105.txt",
+    "bytes": 49341,
+    "sha256": "54842788cbbf79afa386ed7c79690e39a55468f0df08031809de539e535d358b"
+  },
+  {
+    "file": "evidence/wait_boot_20261105.py",
+    "bytes": 788,
+    "sha256": "b25da38f131abe812cd79221868fda0c7b6be47c09afe89926f67b3718d7ce20"
+  }
+]
