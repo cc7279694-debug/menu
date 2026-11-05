@@ -1,6 +1,13 @@
 # Current State
 
-## P0 XHS-R3 — READY_FOR_INDEPENDENT_REVIEW; N2 PAUSED_BY_USER — 2026-11-05
+## P0 XHS-R3 — ACCEPTED / FROZEN — PASS WITH NOTES（限定范围） — 2026-11-05
+
+User relayed ChatGPT's scoped independent acceptance for sourcebc045ad/evidence1298517.
+[Registration](verification/xhs-real-link-r3/INDEPENDENT_ACCEPTANCE.md) retains
+submitter-only409character receipt, diagnosticDoH-only HTTP, offline replay,
+Fake-IP refusal, UNKNOWN original XiaomiDNS and all realAI/phone/update NOT_RUN.
+This is not whole-platform, phone or release acceptance. The earlier submission
+below is retained as history. N2 stays PAUSED_BY_USER.
 
 User reprioritized real anonymous XHS link intake. New isolated worktree/branch
 `fix/recipio-xhs-real-link-r3` starts fromf552d14: its initial production is identical
